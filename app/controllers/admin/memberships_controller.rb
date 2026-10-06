@@ -72,6 +72,6 @@ class Admin::MembershipsController < ApplicationController
 
   def membership_params
     params.require(:membership).permit(:membership_offer_id, :member_since, :member_code, :status,
-                                       :preferred_seating, :address_id)
+                                       :preferred_seating, :address_id, :expires_on)
   end
 end

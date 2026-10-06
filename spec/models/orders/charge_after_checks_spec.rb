@@ -362,6 +362,12 @@ RSpec.describe 'Charging only after every check' do
       with_card(order)
     end
 
+    # Checkout reads an unsynced offer's billing period before charging
+    # (MembershipOrder#charge_proper_payment!); this offer's price recurs.
+    before do
+      allow(gateway).to receive(:price_billing_period).and_return(interval: MembershipOffer::MONTH, interval_count: 1)
+    end
+
     it 'creates the subscription (its charge) once the checks pass' do
       allow(PaymentProcessing).to receive(:create_subscription).and_return('TESTSUBSCRIPTION')
 

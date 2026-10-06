@@ -80,14 +80,15 @@ RSpec.describe Membership do
                                      ended_at: Date.new(2026, 7, 25))
     end
 
-    def sync_with(status:, ended_at: nil)
+    def sync_with(status:, ended_at: nil, cancel_at: nil, cancel_at_period_end: false)
       price = { 'price' => Struct.new(:unit_amount).new(2900) }
-      subscription = Struct.new(:start_date, :ended_at, :items, :current_period_end, :cancel_at_period_end, :status,
-                                keyword_init: true)
+      subscription = Struct.new(:start_date, :ended_at, :items, :current_period_end, :cancel_at_period_end,
+                                :cancel_at, :status, keyword_init: true)
                            .new(start_date: Time.zone.local(2021, 10, 9).to_i, ended_at: ended_at&.to_i,
                                 items: Struct.new(:data).new([price]),
                                 current_period_end: Time.zone.local(2026, 10, 9).to_i,
-                                cancel_at_period_end: false, status: status)
+                                cancel_at_period_end: cancel_at_period_end, cancel_at: cancel_at&.to_i,
+                                status: status)
       allow(membership).to receive(:get_profile_data).and_return(subscription)
       membership.update_from_profile
     end
@@ -109,6 +110,32 @@ RSpec.describe Membership do
       sync_with(status: 'canceled', ended_at: Time.zone.local(2026, 9, 1, 12))
 
       expect(membership.ended_at).to eq(Date.new(2026, 9, 1))
+    end
+
+    it 'shows a gift subscription with a scheduled cancel_at as cancel pending' do
+      sync_with(status: 'active', cancel_at: Time.zone.local(2027, 1, 9, 12))
+
+      expect(membership.cancel_at_period_end).to be(true)
+      expect(membership.status).to eq(Membership::ACTIVE)
+    end
+
+    it 'shows cancel pending when the member cancels at period end' do
+      sync_with(status: 'active', cancel_at_period_end: true)
+
+      expect(membership.cancel_at_period_end).to be(true)
+    end
+
+    it 'shows no cancel pending for a subscription that renews' do
+      sync_with(status: 'active')
+
+      expect(membership.cancel_at_period_end).to be(false)
+    end
+
+    it 'cancels the membership when a cancel_at gift subscription ends' do
+      ended = Time.zone.local(2027, 1, 9, 12)
+      sync_with(status: 'canceled', ended_at: ended, cancel_at: ended)
+
+      expect(membership).to have_attributes(status: Membership::CANCELED, ended_at: Date.new(2027, 1, 9))
     end
 
     it 'keeps an existing ended_at when a past-due subscription has no end date' do
@@ -152,6 +179,50 @@ RSpec.describe Membership do
       membership.update_from_profile
 
       expect(membership).not_to have_received(:get_profile_data)
+    end
+  end
+
+  describe 'one-time memberships' do
+    let(:membership) do
+      FactoryBot.create(:membership, profile_id: nil, start_date: Date.current - 30,
+                                     expires_on: Date.current + 10)
+    end
+
+    def order_on(date)
+      FactoryBot.create(:ticket_order, :for_a_single_ticket,
+                        performance: FactoryBot.create(:general_admission, performance_date: date))
+    end
+
+    it 'is one-time only when it has an expiry date' do
+      expect(membership).to be_one_time
+      expect(FactoryBot.build(:membership)).not_to be_one_time
+    end
+
+    it 'keeps reservations through expires_on when staff cancel it' do
+      expect(membership.last_effective_date).to eq(Date.current + 10)
+    end
+
+    it 'covers a performance on its last day' do
+      expect { membership.verify_within_term_for!(order_on(Date.current + 10)) }.not_to raise_error
+    end
+
+    it 'rejects a performance after it expires' do
+      expect { membership.verify_within_term_for!(order_on(Date.current + 11)) }
+        .to raise_error(Exceptions::MembershipExpiredForPerformance, /expires on/)
+    end
+
+    it 'never limits a subscription membership' do
+      subscription = FactoryBot.create(:membership)
+
+      expect { subscription.verify_within_term_for!(order_on(Date.current + 400)) }.not_to raise_error
+    end
+
+    it 'expires with ended_at at its expiry date, not the day the job runs' do
+      membership.update_columns(expires_on: Date.current - 3)
+
+      membership.expire!
+
+      expect(membership.reload).to have_attributes(status: Membership::EXPIRED, ended_at: Date.current - 3)
     end
   end
 

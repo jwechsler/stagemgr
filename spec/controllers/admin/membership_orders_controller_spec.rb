@@ -32,5 +32,15 @@ RSpec.describe Admin::MembershipOrdersController, type: :controller do
       expect(response.body).to include(id_card_admin_membership_path(membership))
       expect(response.body).to include('no photo on file')
     end
+
+    it 'shows when a one-time membership expires and no subscription controls' do
+      membership.update!(profile_id: nil, expires_on: Date.new(2027, 10, 6))
+
+      get :show, params: { id: membership_order.id }
+
+      expect(response.body).to include('Expires:')
+      expect(response.body).to include('October 06, 2027')
+      expect(response.body).not_to include('Manage Subscription')
+    end
   end
 end

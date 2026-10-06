@@ -187,6 +187,7 @@ RSpec.describe StripeGateway, type: :model do
              credit_card_expiration_year: "2025",
              'credit_card_expiration_year=': nil,
              credit_card_verification_number: "123",
+             gift?: false,
              id: 99)
     end
 
@@ -318,6 +319,169 @@ RSpec.describe StripeGateway, type: :model do
           gateway.create_subscription(fake_order)
         end
       end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Shared card/customer setup for #create_subscription gift ends and
+  # #charge_one_time
+  # ---------------------------------------------------------------------------
+  shared_context "a stubbed Stripe customer" do
+    let(:offer) do
+      FactoryBot.build(:membership_offer, price_id: "price_test123", billing_interval: "month",
+                                          billing_interval_count: 1, billing_period_synced_at: Time.current)
+    end
+    let(:address) do
+      double("Address", id: 42, full_name: "Jane Doe", parse_full_name: %w[Jane Doe], line1: "1 Main St",
+                        line2: nil, city: "Chicago", state: "IL", zipcode: "60601", email: "jane@example.com",
+                        phone: "555-1234", processor_id: nil, 'processor_id=': nil)
+    end
+    let(:gift) { false }
+    let(:order) do
+      double("MembershipOrder", address: address, recurring_offer: offer, credit_card_type: "visa",
+                                credit_card_number: "4111111111111111", credit_card_expiration_month: "12",
+                                credit_card_expiration_year: "2030", 'credit_card_expiration_year=': nil,
+                                credit_card_verification_number: "123", gift?: gift, id: 77)
+    end
+    let(:customer) { double("Stripe::Customer", id: "cus_77") }
+
+    before do
+      allow(PaymentProcessing).to receive(:credit_card)
+        .and_return(double("CreditCard", number: "4111111111111111", month: "12", year: "2030",
+                                         verification_value: "123"))
+      allow(Stripe::PaymentMethod).to receive(:create).and_return(double("Stripe::PaymentMethod", id: "pm_77"))
+      allow(Stripe::Customer).to receive(:create).and_return(customer)
+      allow(Stripe::PaymentMethod).to receive(:attach)
+      allow(Stripe::Customer).to receive(:update).and_return(customer)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # #create_subscription for a gift: ends after max_cycles_if_gift periods
+  # ---------------------------------------------------------------------------
+  describe "#create_subscription for a gift" do
+    include_context "a stubbed Stripe customer"
+
+    let(:gift) { true }
+
+    before do
+      allow(Stripe::Price).to receive(:retrieve).and_return(double("Stripe::Price", product: "prod_77"))
+      allow(Stripe::Product).to receive(:retrieve)
+      allow(Stripe::Subscription).to receive(:create).and_return(double("Stripe::Subscription", id: "sub_77"))
+    end
+
+    # Noon CDT is 17:00 UTC; Stripe's period boundaries keep the UTC hour.
+    around { |example| travel_to(Time.zone.local(2026, 10, 6, 12, 0, 0)) { example.run } }
+
+    def created_params
+      gateway.create_subscription(order)
+      params = nil
+      expect(Stripe::Subscription).to have_received(:create) { |p| params = p }
+      params
+    end
+
+    it "cancels a monthly gift after its gift length in months, without proration" do
+      offer.max_cycles_if_gift = 3
+
+      expect(created_params).to include(cancel_at: Time.utc(2027, 1, 6, 17).to_i,
+                                        proration_behavior: "none")
+    end
+
+    it "cancels a yearly gift after its gift length in years" do
+      offer.assign_attributes(billing_interval: "year", max_cycles_if_gift: 2)
+
+      expect(created_params).to include(cancel_at: Time.utc(2028, 10, 6, 17).to_i)
+    end
+
+    it "syncs an unsynced offer before computing the end" do
+      offer.assign_attributes(billing_interval: nil, billing_interval_count: nil, max_cycles_if_gift: 1)
+      allow(offer).to receive(:sync_billing_period!) { offer.assign_attributes(billing_interval: "year") }
+
+      expect(created_params).to include(cancel_at: Time.utc(2027, 10, 6, 17).to_i)
+      expect(offer).to have_received(:sync_billing_period!)
+    end
+
+    # Created in July (CDT), ending in January (CST): Stripe's last boundary is
+    # 20:00 UTC, and an end even an hour later bills the buyer a 7th month.
+    it "never cancels after the final UTC period boundary across a DST change" do
+      offer.max_cycles_if_gift = 6
+      start = Time.zone.local(2026, 7, 1, 15, 0)
+
+      travel_back
+      travel_to(start)
+      cancel_at = created_params[:cancel_at]
+
+      expect(cancel_at).to eq(Time.utc(2027, 1, 1, 20).to_i)
+      expect(cancel_at).to be <= (start.utc + 6.months).to_i
+    end
+
+    it "renews indefinitely when the offer sets no gift length" do
+      offer.max_cycles_if_gift = nil
+
+      expect(created_params).not_to include(:cancel_at, :proration_behavior)
+    end
+
+    context "when the order is not a gift" do
+      let(:gift) { false }
+
+      it "sets no cancel_at" do
+        offer.max_cycles_if_gift = 3
+
+        expect(created_params).not_to include(:cancel_at)
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # #charge_one_time
+  # ---------------------------------------------------------------------------
+  describe "#charge_one_time" do
+    include_context "a stubbed Stripe customer"
+
+    let(:invoice) { double("Stripe::Invoice", id: "in_77") }
+    let(:paid_invoice) { double("Stripe::Invoice", id: "in_77", amount_paid: 15_000) }
+
+    before do
+      allow(Stripe::InvoiceItem).to receive(:create)
+      allow(Stripe::Invoice).to receive(:create).and_return(invoice)
+      allow(Stripe::Invoice).to receive(:finalize_invoice).and_return(invoice)
+      allow(Stripe::Invoice).to receive(:pay).and_return(paid_invoice)
+      allow(Stripe::Invoice).to receive(:void_invoice)
+      allow(Stripe::Subscription).to receive(:create)
+    end
+
+    it "invoices the one-time price, finalizes and pays it, and returns the paid invoice" do
+      expect(gateway.charge_one_time(order)).to eq(paid_invoice)
+
+      expect(Stripe::InvoiceItem).to have_received(:create).with({ customer: "cus_77", invoice: "in_77", price: "price_test123" })
+      expect(Stripe::Invoice).to have_received(:create).with(
+        hash_including(customer: "cus_77", collection_method: "charge_automatically",
+                       pending_invoice_items_behavior: "exclude", auto_advance: false,
+                       metadata: { stagemgr_order_id: 77 })
+      )
+      expect(Stripe::Invoice).to have_received(:finalize_invoice).with("in_77")
+      expect(Stripe::Invoice).to have_received(:pay).with("in_77")
+      expect(Stripe::Subscription).not_to have_received(:create)
+    end
+
+    it "attaches the card as the customer's default payment method" do
+      gateway.charge_one_time(order)
+
+      expect(Stripe::PaymentMethod).to have_received(:attach).with("pm_77", { customer: "cus_77" })
+    end
+
+    it "voids the invoice and re-raises when the card is declined" do
+      allow(Stripe::Invoice).to receive(:pay).and_raise(Stripe::CardError.new("Your card was declined.", nil))
+
+      expect { gateway.charge_one_time(order) }.to raise_error(Stripe::CardError, /declined/)
+      expect(Stripe::Invoice).to have_received(:void_invoice).with("in_77")
+    end
+
+    it "still reports the decline when voiding also fails" do
+      allow(Stripe::Invoice).to receive(:pay).and_raise(Stripe::CardError.new("Your card was declined.", nil))
+      allow(Stripe::Invoice).to receive(:void_invoice).and_raise(Stripe::InvalidRequestError.new("nope", nil))
+
+      expect { gateway.charge_one_time(order) }.to raise_error(Stripe::CardError)
     end
   end
 

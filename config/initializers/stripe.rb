@@ -14,6 +14,10 @@ StripeEvent.configure do |events|
   #  end
   # end
 
+  # Records subscription renewals. A one-time membership's invoice
+  # (StripeGateway#charge_one_time) also fires invoice.paid, but its line has
+  # no subscription, so it is skipped here: checkout has already recorded
+  # that payment.
   events.subscribe 'invoice.paid' do |event|
     # Rails.logger.debug("STRIPE for #{event.data['subscription']}")
     transaction_id = event.data['object']['id']

@@ -256,6 +256,77 @@ RSpec.describe MembershipOffer do
     end
   end
 
+  describe 'one-time and gift lengths' do
+    def offer_with(interval, count = 1, gift_cycles = nil)
+      FactoryBot.build(:membership_offer, billing_interval: interval, billing_interval_count: count,
+                                          max_cycles_if_gift: gift_cycles)
+    end
+
+    # 14:30 CST is 20:30 UTC. Ends are Stripe's period boundaries, which are
+    # anchored on the UTC start, so they keep 20:30 UTC (not 14:30 Central).
+    let(:start) { Time.zone.local(2026, 1, 31, 14, 30) }
+
+    it 'runs a one-time term for the gift length, or a year when none is set' do
+      expect(offer_with(MembershipOffer::ONE_TIME, nil, 6).one_time_term_months).to eq(6)
+      expect(offer_with(MembershipOffer::ONE_TIME, nil).one_time_term_months).to eq(12)
+    end
+
+    it 'ends a monthly gift subscription after its gift length in calendar months' do
+      expect(offer_with(MembershipOffer::MONTH, 1, 3).gift_subscription_ends_at(start))
+        .to eq(Time.utc(2026, 4, 30, 20, 30))
+      expect(offer_with(MembershipOffer::MONTH, 3, 2).gift_subscription_ends_at(start))
+        .to eq(Time.utc(2026, 7, 31, 20, 30))
+    end
+
+    it 'ends a yearly gift subscription after its gift length in years' do
+      expect(offer_with(MembershipOffer::YEAR, 1, 2).gift_subscription_ends_at(start))
+        .to eq(Time.utc(2028, 1, 31, 20, 30))
+    end
+
+    it 'counts weeks and days as fixed lengths of UTC days' do
+      expect(offer_with(MembershipOffer::WEEK, 2, 3).gift_subscription_ends_at(start)).to eq(Time.utc(2026, 3, 14, 20, 30))
+      expect(offer_with(MembershipOffer::DAY, 30, 2).gift_subscription_ends_at(start)).to eq(Time.utc(2026, 4, 1, 20, 30))
+    end
+
+    it 'assumes monthly when the period has not been synced' do
+      expect(offer_with(nil, nil, 3).gift_subscription_ends_at(start)).to eq(Time.utc(2026, 4, 30, 20, 30))
+    end
+
+    # Stripe renews at the UTC boundary; an end even an hour later is billed
+    # one more full period (proration_behavior 'none' credits none of it).
+    it 'never ends after the final UTC period boundary when the gift spans a CDT -> CST change' do
+      july = Time.zone.local(2026, 7, 1, 15, 0) # CDT, 20:00 UTC
+      ends_at = offer_with(MembershipOffer::MONTH, 1, 6).gift_subscription_ends_at(july)
+
+      expect(ends_at).to eq(Time.utc(2027, 1, 1, 20, 0))
+      expect(ends_at).to be <= july.utc + 6.months
+    end
+
+    it 'has no end without a positive gift length' do
+      expect(offer_with(MembershipOffer::MONTH, 1, nil).gift_subscription_ends_at(start)).to be_nil
+      expect(offer_with(MembershipOffer::MONTH, 1, 0).gift_subscription_ends_at(start)).to be_nil
+    end
+
+    it 'describes the gift length in the unit the offer bills in' do
+      expect(offer_with(MembershipOffer::MONTH, 1, 12).gift_length_label).to eq('12 months')
+      expect(offer_with(MembershipOffer::YEAR, 1, 2).gift_length_label).to eq('2 years')
+      expect(offer_with(MembershipOffer::WEEK, 1, 1).gift_length_label).to eq('1 week')
+      expect(offer_with(MembershipOffer::ONE_TIME, nil, nil).gift_length_label).to eq('12 months')
+      expect(offer_with(MembershipOffer::MONTH, 1, nil).gift_length_label).to be_nil
+    end
+
+    it 'syncs the billing period inline from Stripe' do
+      offer = FactoryBot.create(:membership_offer, price_id: 'price_once')
+      allow(PaymentProcessing).to receive(:price_billing_period)
+        .with('price_once').and_return(interval: 'one_time', interval_count: nil)
+
+      offer.sync_billing_period!
+
+      expect(offer.reload).to be_one_time_payment
+      expect(offer.billing_period_synced_at).to be_present
+    end
+  end
+
   describe 'member ID card artwork', :membership_cards do
     let(:offer) { FactoryBot.create(:membership_offer) }
 

@@ -49,6 +49,14 @@ module PaymentProcessing
       'TESTSUBSCRIPTION'
     end
 
+    # The fields of a paid Stripe::Invoice that MembershipOrder reads.
+    BogusInvoice = Struct.new(:id, :amount_paid, keyword_init: true)
+    BOGUS_ONE_TIME_CENTS = 9900
+
+    def charge_one_time(_order)
+      BogusInvoice.new(id: "in_TEST#{SecureRandom.hex(6)}", amount_paid: BOGUS_ONE_TIME_CENTS)
+    end
+
     def price_billing_period(_price_id)
       { interval: MembershipOffer::MONTH, interval_count: 1 }
     end
@@ -175,6 +183,10 @@ module PaymentProcessing
 
   def self.price_billing_period(price_id)
     gateway.price_billing_period(price_id)
+  end
+
+  def self.charge_one_time(order)
+    gateway.charge_one_time(order)
   end
 
   def self.credit_card_type(ctype)

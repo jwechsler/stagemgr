@@ -79,8 +79,17 @@ module RecurringProfile
     sync_ended_at(subscription)
     self.recurring_amount = subscription.items.data.first['price'].unit_amount.to_f / 100.0
     self.next_billing_date = Time.at(subscription.current_period_end).to_date unless subscription.current_period_end.nil?
-    self.cancel_at_period_end = subscription.cancel_at_period_end
+    self.cancel_at_period_end = cancel_pending?(subscription)
     self.status = status_for_subscription(subscription.status)
+  end
+
+  # A scheduled end shows as "Cancel pending" whichever way it was set: the
+  # member canceling at period end, or a gift subscription created with
+  # cancel_at (StripeGateway#gift_cancel_at), for which Stripe reports
+  # cancel_at_period_end false. Folded into the one column rather than adding
+  # another; next_billing_date already shows the final period's end.
+  def cancel_pending?(subscription)
+    subscription.cancel_at_period_end || subscription.cancel_at.present?
   end
 
   def stripe_profile?

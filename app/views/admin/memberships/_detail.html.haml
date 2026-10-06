@@ -20,6 +20,12 @@
     %strong Member Since:
     = membership.member_since
     %br
+    -# One-time (gift) memberships end on this date; subscriptions show their
+    -# billing below instead.
+    - if membership.one_time?
+      %strong Expires:
+      = membership.expires_on.to_formatted_s(:long)
+      %br
     - if membership.profile_id.present?
       %strong Next Billing Date:
       = membership.next_billing_date

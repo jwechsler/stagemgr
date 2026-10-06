@@ -245,5 +245,31 @@ RSpec.describe Admin::MembershipsController, type: :controller do
       patch :update, params: { id: membership.id, membership: { status: Membership::CANCELED } }
       expect(response).to redirect_to(admin_membership_path(membership))
     end
+
+    it "lets staff extend a one-time membership's expiry date" do
+      membership.update!(expires_on: Date.current + 30)
+
+      patch :update, params: { id: membership.id, membership: { expires_on: (Date.current + 90).iso8601 } }
+
+      expect(membership.reload.expires_on).to eq(Date.current + 90)
+    end
+  end
+
+  describe 'one-time membership display' do
+    before { membership.update!(expires_on: Date.new(2027, 10, 6)) }
+
+    it 'shows the edit field for the expiry date' do
+      get :edit, params: { id: membership.id }
+
+      expect(response.body).to include('membership[expires_on]')
+    end
+
+    it 'offers no expiry field for a subscription membership' do
+      membership.update!(expires_on: nil)
+
+      get :edit, params: { id: membership.id }
+
+      expect(response.body).not_to include('membership[expires_on]')
+    end
   end
 end

@@ -11,9 +11,7 @@ class SyncMembershipOfferBillingPeriodJob
     offer = MembershipOffer.find_by(id: membership_offer_id)
     return if offer.nil? || offer.price_id.blank?
 
-    period = PaymentProcessing.price_billing_period(offer.price_id)
-    offer.update_columns(billing_interval: period[:interval], billing_interval_count: period[:interval_count],
-                         billing_period_synced_at: Time.current)
+    offer.sync_billing_period!
   rescue Stripe::InvalidRequestError => e
     Rails.logger.warn("[SyncMembershipOfferBillingPeriodJob] offer #{membership_offer_id}: " \
                       "Stripe price #{offer&.price_id} not found, left unsynced (#{e.message})")

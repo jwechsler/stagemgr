@@ -53,9 +53,9 @@
             - if @membership_offer.restricted_to_first_time?
               %p
                 %i Available to first time members only
-            - unless @membership_offer.max_cycles_if_gift.blank?
+            - if (gift_length = @membership_offer.gift_length_label)
               %p
-                %i= "#{@membership_offer.max_cycles_if_gift} months duration when given as gift"
+                %i= "#{gift_length} duration when given as gift"
         - if @membership_offer.card_available?
           .grid-x.grid-padding-x
             .small-12.cell

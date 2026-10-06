@@ -152,6 +152,36 @@ class Membership < ApplicationRecord
     raise Exceptions::PerformanceOutsideCurrentWeek.new("This pass can only reserve performances through Sunday, #{(week_start + 6.days).strftime('%B %d')}. Reservations for later weeks open on the Monday of that week.")
   end
 
+  # A one-time membership covers performances through its last day,
+  # expires_on. Subscriptions have no expiry date and are not checked here.
+  # Like verify_bookable_this_week!, called at redemption time only
+  # (MembershipPayment#process!), not from verify_applicable_for: that re-runs
+  # on any later save of a Processed order, which would start failing if
+  # staff shortened expires_on after the booking.
+  def verify_within_term_for!(order)
+    return if expires_on.nil? || order.performance.nil?
+    return if order.performance.performance_date.to_date <= expires_on
+
+    raise Exceptions::MembershipExpiredForPerformance.new(
+      "This membership expires on #{expires_on.to_formatted_s(:long)} and cannot be used for a performance after that date."
+    )
+  end
+
+  # Bought with a one-time payment: it ends on expires_on rather than when a
+  # Stripe subscription does.
+  def one_time?
+    expires_on.present?
+  end
+
+  # Ends a one-time membership at the close of its term. ended_at is the
+  # expiry date, set explicitly so stamp_ended_at_on_close does not stamp the
+  # day the job happens to run.
+  def expire!
+    self.ended_at = expires_on
+    self.status = EXPIRED
+    save!
+  end
+
   def create_code(size = 6)
     charset = %w{2 3 4 6 7 9 A C D E F G H J K L M N P Q R T V W X Y Z}
     while member_code.nil? || !FlexPass.find_by_code(member_code).nil?
@@ -176,7 +206,12 @@ class Membership < ApplicationRecord
     membership_line_item.order
   end
 
+  # The last date reservations made with this membership stay valid when staff
+  # cancel it. A one-time membership was paid through expires_on; otherwise
+  # the last redemption plus a month (the assumed billing period).
   def last_effective_date
+    return expires_on if one_time?
+
     lp = membership_payments.max_by { |payment| payment.processed_on.to_date }
     if lp.nil?
       created_at.nil? ? Date.current : created_at.to_date

@@ -27,4 +27,11 @@
     - if membership.persisted?
       .small-12.medium-6.cell
         = f.input :member_code, :label=>"Member Code", :input_html=>{:readonly=>true}
+  -# Set only for one-time (gift) memberships; staff may extend one here.
+  -# Blank means a subscription, which Stripe ends.
+  - if membership.one_time?
+    .grid-x.grid-padding-x
+      .small-12.medium-6.cell
+        = f.input :expires_on, :as=>:string, :label=>"Expires on", :input_html=>{:class=>'date_picker'},
+            :hint=>"Last day this one-time membership can be used"
   = f.button :submit, :class=>'button'
