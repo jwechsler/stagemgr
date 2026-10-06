@@ -40,10 +40,10 @@ the billing period to spread each payment across the months it pays for.
 |-------|-------------|
 | **Tickets Per Performance** | Number of tickets the member receives for each performance they attend. The limit covers all of the member's orders for that performance together, not each order separately. |
 | **Use Ticket Class Code** | The ticket class assigned to the member's own tickets on redemption. |
-| **Use Member Friend Code** | The ticket class assigned to guest tickets. This allows different pricing or seating for the member's companions. |
+| **Use Member Friend Code** | Turns on the twice-yearly **bring a friend** pass. Choose the ticket class the friend's seat should be booked under; leave it blank for no friend passes. See [How Friend Passes Work](#how-friend-passes-work). |
 
-!!! tip "Member vs. guest ticket classes"
-    Use different ticket class codes for members and their guests to track attendance patterns and generate accurate settlement reports.
+!!! tip "Member vs. friend ticket classes"
+    Use a ticket class for friend passes that is distinct from the member's own class, so friend admissions show separately in attendance and settlement reports.
 
 ### Restrictions
 
@@ -196,13 +196,48 @@ Staff can change a one-time membership's expiry date on its edit form; see
 
 1. A member visits the box office or logs in online to claim tickets for a performance.
 2. The system issues up to **Tickets Per Performance** tickets using the **Use Ticket Class Code**.
-3. If guest tickets are configured via **Use Member Friend Code**, additional tickets are issued under that class.
-4. Members can redeem tickets for each performance independently -- there is no total cap across the membership period.
+3. Members can redeem tickets for each performance independently -- there is no total cap across the membership period.
+
+The **Use Member Friend Code** plays no part in redemption. Friend seats are booked on a separate order with an emailed promo code, described next.
 
 !!! note "Tickets Per Performance Across Orders"
     The **Tickets Per Performance** limit counts every seat the membership has already paid for at that performance, on any of the member's current orders, plus the ones being requested. A second order that would take the member past the limit is refused with a message giving the limit and how many seats are already reserved on other orders. Exchanged, canceled and refunded orders do not count.
 
     Extra seats paid another way -- for example by card through [Add to Order](../ticketing/add-to-order.md) -- do not count against the limit.
+
+---
+
+## How Friend Passes Work
+
+When an offer has a **Use Member Friend Code**, every membership sold on it earns a free
+"bring a friend" admission twice a year. Nothing else needs to be set up; the field being
+filled in is the switch.
+
+1. **Scheduling.** When the membership order is processed, Stagemgr queues an outreach task
+   for four months after the membership start date, repeating every six months for as long
+   as the membership lasts.
+2. **The pass.** When the task runs, Stagemgr creates a one-use
+   [special offer](special-offers.md) with a code beginning **MF**, good for one ticket on
+   one order and expiring six months later. Applying the code switches the ticket to the
+   offer's friend ticket class, which is normally a free class.
+3. **The email.** The member receives the code in a "Thanks for being a member" email from
+   the artistic director. It explains that the friend's seat is booked as a separate general
+   admission reservation with the code entered as the special offer.
+4. **Tracking.** Each MF code is linked to the membership that earned it and flagged as
+   system generated, so it does not clutter the
+   [special offers list](special-offers.md). Unused codes are purged three months after they
+   expire, like any other special offer.
+
+The task is not sent when the member has no email address on file. It stops when the
+membership is **Canceled**; a membership that lapses by suspension or expiry keeps its queued
+task until it is canceled. Orders paid with a payment type that
+[suppresses the task](../setup/payment-types.md#order-task-suppressions) never receive friend
+passes.
+
+!!! note "Changing the field later"
+    Clearing **Use Member Friend Code** on an offer stops future passes for every membership
+    on it, even those already scheduled. Setting it on an offer that previously had none only
+    affects memberships sold from then on; existing members are not back-filled.
 
 ---
 
