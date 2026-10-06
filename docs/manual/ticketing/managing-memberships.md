@@ -28,7 +28,8 @@ The Memberships list shows every individual membership in the system -- one row 
 
 - For canceled or expired memberships, this is the date the membership actually closed.
 - For an active membership scheduled to cancel at the end of its billing period, the final billing date is shown with a **Cancel pending** label. This includes gift subscriptions, which are set to end after the offer's **Gift duration** cycles.
-- A blank value means the membership is ongoing with no scheduled end, or that it is an active [one-time membership](#one-time-memberships), whose end date appears as **Expires** on its detail page.
+- For an active [one-time membership](#one-time-memberships), its last valid day is shown with an **Expires** label.
+- A blank value means the membership is ongoing with no scheduled end.
 
 ## Sorting and Searching
 
@@ -64,8 +65,9 @@ Its edit form adds an **Expires on** field, with the hint *Last day this one-tim
 can be used*. Change it to extend or shorten the term. Orders already booked are not
 affected; the new date applies to tickets paid for with the membership from then on.
 
-The day after **Expires**, a nightly job (1:15 am) sets the status to **Expired**, and
-**Membership End** in the list shows the Expires date. Expiring removes the member from the
+In the list, **Membership End** shows the same date with an **Expires** label. The day
+after it, a nightly job (1:15 am) sets the status to **Expired**, and **Membership End**
+shows the date without the label. Expiring removes the member from the
 offer's MyEmma group like any other status change. If the job cannot save a membership,
 it emails the `membership_notifications` address. The membership stays Active, and can
 still be used to book, until the record is fixed.

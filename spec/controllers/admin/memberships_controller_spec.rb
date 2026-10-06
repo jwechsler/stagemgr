@@ -53,6 +53,23 @@ RSpec.describe Admin::MembershipsController, type: :controller do
       expect(row['membership_end']).to eq(Date.current.strftime('%m/%d/%Y'))
     end
 
+    it 'shows a running one-time membership its expiry date, labeled Expires' do
+      membership.update!(profile_id: nil, expires_on: Date.new(2027, 10, 5))
+
+      get :index, params: datatable_params, format: :json
+      row = response.parsed_body['data'].find { |r| r['member_code'].include?(membership.member_code) }
+      expect(row['membership_end']).to include('10/05/2027', 'Expires')
+    end
+
+    it 'shows an expired one-time membership its end date without the Expires label' do
+      membership.update!(profile_id: nil, expires_on: Date.current - 1)
+      membership.expire!
+
+      get :index, params: datatable_params, format: :json
+      row = response.parsed_body['data'].find { |r| r['member_code'].include?(membership.member_code) }
+      expect(row['membership_end']).to eq((Date.current - 1).strftime('%m/%d/%Y'))
+    end
+
     it 'filters by member name through the global search' do
       other_address = FactoryBot.create(:address, full_name: 'Zelda Zzyzx', last_name: 'Zzyzx')
       FactoryBot.create(:membership, address: other_address, membership_offer: timed_offer, member_code: 'TW-LIB02')

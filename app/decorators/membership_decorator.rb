@@ -21,14 +21,20 @@ class MembershipDecorator < ApplicationDecorator
     (object.start_date || object.member_since)&.strftime(DATE_FORMAT)
   end
 
-  # ended_at is authoritative for closed memberships; an active membership
+  # ended_at is authoritative for closed memberships. A one-time membership
+  # still running shows its last valid day (expires_on); an active membership
   # scheduled to cancel at period end shows its final billing date.
   def membership_end
     return object.ended_at.strftime(DATE_FORMAT) if object.ended_at.present?
+    return expires_display if object.one_time?
     return unless object.cancel_at_period_end? && object.next_billing_date.present?
 
     h.safe_join([object.next_billing_date.strftime(DATE_FORMAT),
                  h.ui_label('Cancel pending', variant: :warning, class: 'tiny')], ' ')
+  end
+
+  def expires_display
+    h.safe_join([object.expires_on.strftime(DATE_FORMAT), h.ui_label('Expires', variant: :info, class: 'tiny')], ' ')
   end
 
   def dt_actions
