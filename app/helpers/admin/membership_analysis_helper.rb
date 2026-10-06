@@ -27,6 +27,14 @@ module Admin::MembershipAnalysisHelper
     'membership-analysis__total' if stats.offer.nil?
   end
 
+  # "+12.5%" / "-3.0%", or a dash when no memberships were active at the
+  # start to grow from.
+  def membership_change(percent)
+    return EMPTY_CELL if percent.nil?
+
+    "#{'+' if percent.positive?}#{percent.round(1).to_f}%"
+  end
+
   # A min or max figure with the member code it came from, linked to the
   # membership's admin page.
   def membership_extreme(value, membership)

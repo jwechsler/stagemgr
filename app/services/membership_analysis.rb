@@ -18,7 +18,7 @@ class MembershipAnalysis
   Result = Struct.new(:total, :by_offer, :idle_offers, keyword_init: true)
 
   OfferStats = Struct.new(
-    :offer, :memberships_in_range, :memberships_active_at_end,
+    :offer, :memberships_in_range, :memberships_active_at_start, :memberships_active_at_end,
     :members_in_range, :members_active_at_end,
     :collected, :redeemed_orders, :redeemed_amount,
     :new_count, :dropped_count, :avg_length_days,
@@ -27,6 +27,14 @@ class MembershipAnalysis
   ) do
     def net
       collected - redeemed_amount
+    end
+
+    # Growth in memberships from the start of the range to its end, as a
+    # percentage of those active on the start date; nil when none were.
+    def membership_change_percent
+      return nil if memberships_active_at_start.zero?
+
+      (memberships_active_at_end - memberships_active_at_start) * 100.to_d / memberships_active_at_start
     end
 
     # Any membership in the range, or any money collected or redeemed in it.
@@ -46,7 +54,7 @@ class MembershipAnalysis
   # rate_days: the monthly rate of each payment covering the span, times the
   # days of the span it covers, summed.
   Row = Struct.new(:id, :offer_id, :member_code, :window_start, :effective_end, :status, :member_count,
-                   :in_range, :active_at_end, :revenue, :redeemed, :span_start, :span_end, :rate_days,
+                   :in_range, :active_at_start, :active_at_end, :revenue, :redeemed, :span_start, :span_end, :rate_days,
                    keyword_init: true) do
     # Months actually active in the span. Revenue is already spread across
     # the period each payment covers, so dividing by the real time gives the
@@ -136,6 +144,7 @@ class MembershipAnalysis
 
   def membership_rows
     in_range = MembershipMetrics.overlapping(offer_memberships, starting_date, ending_date).pluck(:id).to_set
+    active_at_start = MembershipMetrics.active_on(offer_memberships, starting_date).pluck(:id).to_set
     active_at_end = MembershipMetrics.active_on(offer_memberships, ending_date).pluck(:id).to_set
     collected = collected_by_membership
     redeemed = redeemed_by_membership
@@ -143,7 +152,8 @@ class MembershipAnalysis
     rows = offer_memberships.pluck(*membership_columns).map do |id, offer_id, code, start, effective_end, status, members|
       Row.new(id: id, offer_id: offer_id, member_code: code, window_start: start&.to_date,
               effective_end: effective_end&.to_date, status: status, member_count: members.to_i,
-              in_range: in_range.include?(id), active_at_end: active_at_end.include?(id),
+              in_range: in_range.include?(id), active_at_start: active_at_start.include?(id),
+              active_at_end: active_at_end.include?(id),
               revenue: collected.fetch(id, 0).to_d, redeemed: redeemed.fetch(id, 0).to_d)
     end
     with_spans(rows)
@@ -258,7 +268,8 @@ class MembershipAnalysis
 
     OfferStats.new(
       offer: offer,
-      memberships_in_range: in_range.size, memberships_active_at_end: active_at_end.size,
+      memberships_in_range: in_range.size, memberships_active_at_start: rows.count(&:active_at_start),
+      memberships_active_at_end: active_at_end.size,
       members_in_range: in_range.sum(&:member_count), members_active_at_end: active_at_end.sum(&:member_count),
       collected: rows.sum(0.to_d, &:revenue), redeemed_amount: rows.sum(0.to_d, &:redeemed),
       redeemed_orders: order_offers.map(&:first).uniq.size,
@@ -268,10 +279,12 @@ class MembershipAnalysis
     )
   end
 
-  # Memberships that began in the range. in_range already excludes
-  # memberships that never started (Pending and never paid).
+  # Memberships that began after the start date. One that began on the start
+  # date is already counted as active at the start, so active at start + new
+  # - dropped = active at end. in_range already excludes memberships that
+  # never started (Pending and never paid).
   def new_in_range(rows)
-    rows.select { |row| row.in_range && row.window_start >= starting_date }
+    rows.select { |row| row.in_range && row.window_start > starting_date }
   end
 
   # Whole length of a membership, from its start: to its end when it ended in
