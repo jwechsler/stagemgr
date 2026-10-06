@@ -99,6 +99,7 @@ Before do
   end
 end
 
-After do
+After do |scenario|
+  settle_browser_requests if scenario.source_tag_names.include?('@javascript')
   DatabaseCleaner.clean
 end

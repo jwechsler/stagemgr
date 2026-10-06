@@ -24,7 +24,12 @@ class FlexPassOrdersDatatable < DatatableBase
     end
   end
 
+  # Orders paid with this flex pass. An order whose flex pass record is
+  # missing (two legacy orders have none) has no history, so the order page
+  # shows an empty table rather than an error.
   def get_raw_records
+    return Order.none if flex_pass.nil?
+
     Order.allowed_for(current_user).includes(:payments, performance: :production).references(performance: :production).references(:payments).where(payments: { flex_pass_id: flex_pass.id })
   end
 
