@@ -74,7 +74,7 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
         get :index, params: datatable_params(status_scope: 'active'), format: :json
         types = response.parsed_body['data'].to_h { |row| [row['id'].to_i, row['membership_type']] }
 
-        expect(types[prepaid.id]).to include('production', 'One-time')
+        expect(types[prepaid.id]).to include('production', 'Prepaid')
         expect(types[active_offer.id]).to eq('production')
       end
 
@@ -94,7 +94,7 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
 
       get :show, params: { id: active_offer.id }
 
-      expect(response.body.scan('>One-time<').size).to eq(2)
+      expect(response.body.scan('>Prepaid<').size).to eq(2)
       expect(response.body).to include('One-time payment (from Stripe)', '12 months term, paid once; does not renew')
     end
 
@@ -103,7 +103,7 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
 
       get :show, params: { id: active_offer.id }
 
-      expect(response.body).not_to include('>One-time<')
+      expect(response.body).not_to include('>Prepaid<')
     end
 
     it 'shows no card block while no background is attached' do

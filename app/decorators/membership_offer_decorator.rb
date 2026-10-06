@@ -5,7 +5,7 @@ class MembershipOfferDecorator < ApplicationDecorator
     h.link_to(object.name, [:admin, object])
   end
 
-  # The offer's type, plus a One-time label when its Stripe price is charged
+  # The offer's type, plus a Prepaid label when its Stripe price is charged
   # once (a prepaid, fixed-term membership) rather than as a subscription.
   # Tag helpers, not a partial: h.render inside datatable JSON returns "".
   def membership_type_display
@@ -15,7 +15,7 @@ class MembershipOfferDecorator < ApplicationDecorator
   def one_time_label(css_class: 'tiny')
     return unless object.one_time_payment?
 
-    h.ui_label('One-time', variant: :info, class: css_class, title: 'Paid once; runs for a fixed term and does not renew')
+    h.ui_label('Prepaid', variant: :info, class: css_class, title: 'Paid once; runs for a fixed term and does not renew')
   end
 
   def on_sale?
