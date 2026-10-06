@@ -271,6 +271,14 @@ RSpec.describe MembershipOffer do
       expect(offer_with(MembershipOffer::ONE_TIME, nil).one_time_term_months).to eq(12)
     end
 
+    it 'ends a one-time term on its last day, the day before the anniversary' do
+      offer = offer_with(MembershipOffer::ONE_TIME, nil)
+
+      expect(offer.one_time_term_end(Date.new(2026, 10, 6))).to eq(Date.new(2027, 10, 5))
+      expect(offer.one_time_term_end(Date.new(2026, 10, 6)) - Date.new(2026, 10, 6) + 1).to eq(365)
+      expect(offer.one_time_term_end(Date.new(2027, 3, 1))).to eq(Date.new(2028, 2, 29))
+    end
+
     it 'ends a monthly gift subscription after its gift length in calendar months' do
       expect(offer_with(MembershipOffer::MONTH, 1, 3).gift_subscription_ends_at(start))
         .to eq(Time.utc(2026, 4, 30, 20, 30))

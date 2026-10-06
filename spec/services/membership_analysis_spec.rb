@@ -509,16 +509,28 @@ RSpec.describe MembershipAnalysis do
       gold_offer.update_column(:max_cycles_if_gift, 6)
       membership = membership_with_order(gold_offer, code: 'GIFT1', member_since: Date.new(2026, 1, 10),
                                                      collected: [[120, Time.zone.local(2026, 1, 10, 12)]])
-      # Bought January 10 as a gift for February 1: the term runs to August 1,
-      # past the July 10 the payment alone would pay through.
-      membership.update_columns(start_date: Date.new(2026, 2, 1), expires_on: Date.new(2026, 8, 1))
+      # Bought January 10 as a gift for February 1: the term runs through
+      # July 31, past the July 9 the payment alone would pay through.
+      membership.update_columns(start_date: Date.new(2026, 2, 1), expires_on: Date.new(2026, 7, 31))
 
       expect(analyze(to: Date.new(2026, 12, 31)).total.memberships_active_at_end).to eq(1)
 
-      travel_to(Date.new(2026, 8, 2)) { membership.expire! }
+      travel_to(Date.new(2026, 8, 1)) { membership.expire! }
 
-      expect(analyze(to: Date.new(2026, 8, 1)).total.memberships_active_at_end).to eq(1)
-      expect(analyze(to: Date.new(2026, 8, 2)).total.memberships_active_at_end).to eq(0)
+      expect(analyze(to: Date.new(2026, 7, 31)).total.memberships_active_at_end).to eq(1)
+      expect(analyze(to: Date.new(2026, 8, 1)).total.memberships_active_at_end).to eq(0)
+    end
+
+    it 'counts a one-time purchase as paid through its last day, not its anniversary' do
+      set_billing_period(gold_offer, MembershipOffer::ONE_TIME, nil)
+      gold_offer.update_column(:max_cycles_if_gift, 12)
+      membership = membership_with_order(gold_offer, code: 'GIFT2', member_since: Date.new(2026, 1, 10),
+                                                     collected: [[420, Time.zone.local(2026, 1, 10, 12)]])
+      membership.update_columns(start_date: Date.new(2026, 1, 10), expires_on: Date.new(2027, 1, 9))
+      travel_to(Date.new(2027, 1, 10)) { membership.expire! }
+
+      expect(analyze(to: Date.new(2027, 1, 9)).total.memberships_active_at_end).to eq(1)
+      expect(analyze(to: Date.new(2027, 1, 10)).total.memberships_active_at_end).to eq(0)
     end
 
     it 'runs a weekly price for its weeks' do

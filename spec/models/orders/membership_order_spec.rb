@@ -54,6 +54,7 @@ RSpec.describe MembershipOrder do
     before do
       allow(PaymentProcessing).to receive(:create_subscription)
       allow(PaymentProcessing).to receive(:charge_one_time).and_call_original
+      allow(PaymentProcessing).to receive(:refund_one_time)
     end
 
     it 'charges once, never subscribes, and activates the membership for its term' do
@@ -65,7 +66,7 @@ RSpec.describe MembershipOrder do
       expect(PaymentProcessing).to have_received(:charge_one_time).once
       expect(order).to be_processed
       expect(membership).to have_attributes(status: Membership::ACTIVE, profile_id: nil,
-                                            start_date: Date.current, expires_on: Date.current >> 6,
+                                            start_date: Date.current, expires_on: (Date.current >> 6) - 1,
                                             preferred_seating: Membership::ON_AISLE)
     end
 
@@ -85,7 +86,7 @@ RSpec.describe MembershipOrder do
                              recipient_email: 'recipient@example.com')
       order.transition_to!(Order::PROCESSED)
 
-      expect(order.reload.membership).to have_attributes(start_date: gift_date, expires_on: gift_date >> 6)
+      expect(order.reload.membership).to have_attributes(start_date: gift_date, expires_on: (gift_date >> 6) - 1)
     end
 
     it 'syncs an unsynced offer inline so it is not sent to Subscription.create' do
@@ -97,7 +98,7 @@ RSpec.describe MembershipOrder do
 
       expect(offer.reload).to be_one_time_payment
       expect(PaymentProcessing).not_to have_received(:create_subscription)
-      expect(order.reload.membership.expires_on).to eq(Date.current >> 6)
+      expect(order.reload.membership.expires_on).to eq((Date.current >> 6) - 1)
     end
 
     it 'reports a failed charge without mentioning a payment plan' do
@@ -107,6 +108,47 @@ RSpec.describe MembershipOrder do
       expect { order.transition_to!(Order::PROCESSED) }
         .to raise_error(/setting up your account for the #{offer.name}\. Your card was declined/)
       expect(order.membership.reload.status).to eq(Membership::PENDING)
+      expect(PaymentProcessing).not_to have_received(:refund_one_time)
+    end
+
+    # A paid invoice is not a CreditCardPayment, so the base reversal cannot
+    # see it; MembershipOrder refunds it before the rollback surfaces.
+    context 'when something fails after the invoice is paid' do
+      let(:invoice) { PaymentProcessing::BogusGateway::BogusInvoice.new(id: 'in_PAID', amount_paid: 9900) }
+
+      before do
+        allow(PaymentProcessing).to receive(:charge_one_time).and_return(invoice)
+        allow(Rails.logger).to receive(:error)
+      end
+
+      it 'refunds the invoice when membership.save! raises, as an app refund' do
+        order = one_time_order
+        allow(order.membership).to receive(:save!).and_raise(ActiveRecord::RecordInvalid)
+
+        expect { order.transition_to!(Order::PROCESSED) }.to raise_error(/setting up your account/)
+        expect(PaymentProcessing).to have_received(:refund_one_time)
+          .with('in_PAID', hash_including(source: CreditCardPayment::REFUND_SOURCE))
+        expect(Rails.logger).to have_received(:error).with(/after invoice in_PAID \(\$99\.00\); refunding it/)
+        expect(RecurringPayment.where(type: 'RecurringPayment', transaction_id: 'in_PAID')).not_to exist
+      end
+
+      it 'refunds the invoice when the order save after the charge raises' do
+        order = one_time_order
+        allow(order).to receive(:set_email_confirmation).and_raise(RuntimeError, 'mailer down')
+
+        expect { order.transition_to!(Order::PROCESSED) }.to raise_error(/mailer down/)
+        expect(PaymentProcessing).to have_received(:refund_one_time).with('in_PAID', anything).once
+      end
+
+      it 'logs MANUAL REFUND NEEDED when the refund itself fails' do
+        allow(PaymentProcessing).to receive(:refund_one_time).and_raise(Stripe::APIConnectionError, 'stripe unreachable')
+        order = one_time_order
+        allow(order.membership).to receive(:save!).and_raise(ActiveRecord::RecordInvalid)
+
+        expect { order.transition_to!(Order::PROCESSED) }.to raise_error(/setting up your account/)
+        expect(Rails.logger).to have_received(:error)
+          .with(/MANUAL REFUND NEEDED for invoice in_PAID \(\$99\.00\): stripe unreachable/)
+      end
     end
   end
 end

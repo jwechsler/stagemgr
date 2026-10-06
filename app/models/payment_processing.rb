@@ -52,9 +52,14 @@ module PaymentProcessing
     # The fields of a paid Stripe::Invoice that MembershipOrder reads.
     BogusInvoice = Struct.new(:id, :amount_paid, keyword_init: true)
     BOGUS_ONE_TIME_CENTS = 9900
+    BogusRefund = Struct.new(:id, :status, keyword_init: true)
 
     def charge_one_time(_order)
       BogusInvoice.new(id: "in_TEST#{SecureRandom.hex(6)}", amount_paid: BOGUS_ONE_TIME_CENTS)
+    end
+
+    def refund_one_time(_invoice_id, _metadata)
+      BogusRefund.new(id: "re_TEST#{SecureRandom.hex(6)}", status: 'succeeded')
     end
 
     def price_billing_period(_price_id)
@@ -187,6 +192,10 @@ module PaymentProcessing
 
   def self.charge_one_time(order)
     gateway.charge_one_time(order)
+  end
+
+  def self.refund_one_time(invoice_id, metadata)
+    gateway.refund_one_time(invoice_id, metadata)
   end
 
   def self.credit_card_type(ctype)

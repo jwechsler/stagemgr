@@ -357,6 +357,21 @@ RSpec.describe StripeGateway, type: :model do
   end
 
   # ---------------------------------------------------------------------------
+  # #refund_one_time
+  # ---------------------------------------------------------------------------
+  describe "#refund_one_time" do
+    it "refunds the invoice's charge with the given metadata, once per invoice" do
+      allow(Stripe::Invoice).to receive(:retrieve).with("in_77").and_return(double("Stripe::Invoice", charge: "ch_77"))
+      allow(Stripe::Refund).to receive(:create)
+
+      gateway.refund_one_time("in_77", { source: "stagemgr", order_id: 77 })
+
+      expect(Stripe::Refund).to have_received(:create).with({ charge: "ch_77", metadata: { source: "stagemgr", order_id: 77 } },
+                                                            { idempotency_key: "one-time-reversal-in_77" })
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # #create_subscription for a gift: ends after max_cycles_if_gift periods
   # ---------------------------------------------------------------------------
   describe "#create_subscription for a gift" do

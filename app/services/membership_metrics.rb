@@ -43,8 +43,11 @@ module MembershipMetrics
       WHERE period_offers.id = memberships.membership_offer_id)
   SQL
 
+  # A one-time term ends the day before its anniversary
+  # (MembershipOffer#one_time_term_end), so it subtracts a day.
   PERIOD_DAYS_SQL = <<~SQL.squish.freeze
     (SELECT CASE period_offers.billing_interval
+              WHEN '#{MembershipOffer::ONE_TIME}' THEN -1
               WHEN '#{MembershipOffer::WEEK}' THEN 7 * COALESCE(period_offers.billing_interval_count, 1)
               WHEN '#{MembershipOffer::DAY}' THEN COALESCE(period_offers.billing_interval_count, 1)
               ELSE 0

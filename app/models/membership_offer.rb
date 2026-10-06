@@ -113,6 +113,13 @@ class MembershipOffer < ApplicationRecord
     max_cycles_if_gift || DEFAULT_ONE_TIME_MONTHS
   end
 
+  # The last day (inclusive) of a one-time term starting on +start+: a
+  # 12-month term from 2026-10-06 runs through 2027-10-05, 365 days, not to
+  # the anniversary. MembershipMetrics::PERIOD_DAYS_SQL subtracts the same day.
+  def one_time_term_end(start)
+    (start >> one_time_term_months) - 1
+  end
+
   # Reads the billing period of the offer's Stripe Price and caches it, as
   # SyncMembershipOfferBillingPeriodJob does in the background. Checkout calls
   # this when the offer is not synced yet, so a freshly saved one-time offer is

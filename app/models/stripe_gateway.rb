@@ -64,6 +64,17 @@ class StripeGateway < ActiveMerchant::Billing::StripePaymentIntentsGateway
     pay_invoice(invoice)
   end
 
+  # Refunds a paid one-time invoice in full, for an order that failed after
+  # the charge (MembershipOrder#refund_paid_one_time_invoice). +metadata+
+  # carries source: CreditCardPayment::REFUND_SOURCE, so StripeRefundRecorder
+  # does not book the app's own refund as a dashboard one. The idempotency key
+  # keeps a retried reversal from refunding twice.
+  def refund_one_time(invoice_id, metadata)
+    charge_id = Stripe::Invoice.retrieve(invoice_id).charge
+    Stripe::Refund.create({ charge: charge_id, metadata: metadata },
+                          { idempotency_key: "one-time-reversal-#{invoice_id}" })
+  end
+
   def subscription(subscription_id)
     Stripe::Subscription.retrieve(subscription_id)
   end

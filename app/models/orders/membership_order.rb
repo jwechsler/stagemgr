@@ -142,6 +142,32 @@ class MembershipOrder < Order
 
   protected
 
+  # A paid one-time invoice is not a CreditCardPayment, so the base reversal
+  # (charged_payments) cannot see it. If anything after the charge raises --
+  # membership.save!, the order's save!, its donation orders -- refund the
+  # invoice before the rollback reaches the patron, so they are never left
+  # charged for a membership that was not created.
+  def reversing_charges_on_failure(&)
+    @paid_one_time_invoice = nil
+    super
+  rescue StandardError => e
+    refund_paid_one_time_invoice(e)
+    raise
+  end
+
+  def refund_paid_one_time_invoice(error)
+    invoice = @paid_one_time_invoice
+    return if invoice.nil?
+
+    @paid_one_time_invoice = nil
+    reference = "invoice #{invoice.id}"
+    amount = invoice.amount_paid / 100.0
+    log_refunding_after_failure(reference, amount, error)
+    PaymentProcessing.refund_one_time(invoice.id, source: CreditCardPayment::REFUND_SOURCE, order_id: id)
+  rescue StandardError => e
+    log_manual_refund_needed(reference, amount, e.message)
+  end
+
   # membership.save! follows the subscription, so check it can save first.
   def ready_to_charge?
     return false unless super
@@ -261,8 +287,9 @@ class MembershipOrder < Order
   # refunds made in Stripe find it (StripeRefundRecorder#recurring_source).
   def charge_one_time_membership!
     invoice = PaymentProcessing.charge_one_time(self)
+    @paid_one_time_invoice = invoice
     membership.start_date = term_start
-    membership.expires_on = membership.start_date >> membership_offer.one_time_term_months
+    membership.expires_on = membership_offer.one_time_term_end(membership.start_date)
     membership.status = Membership::ACTIVE
     membership.preferred_seating = special_request
     membership.save!
