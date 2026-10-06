@@ -31,6 +31,42 @@ RSpec.describe ExpireOneTimeMembershipsJob do
     expect(subscription.reload.status).to eq(Membership::ACTIVE)
   end
 
+  context 'when one membership cannot be saved' do
+    let!(:broken) { one_time(Date.current - 3) }
+    let!(:healthy) { one_time(Date.current - 1) }
+
+    before do
+      allow(Rails.logger).to receive(:error)
+      allow(Rails.logger).to receive(:info)
+      # A legacy row that fails validation, wherever find_each meets it.
+      allow_any_instance_of(Membership).to receive(:expire!).and_wrap_original do |original, *args|
+        if original.receiver.id == broken.id
+          raise ActiveRecord::RecordInvalid, original.receiver
+        end
+
+        original.call(*args)
+      end
+    end
+
+    it 'logs it, expires the rest, and reports both counts' do
+      expect(described_class.perform).to eq(expired: 1, failed: 1)
+
+      expect(healthy.reload.status).to eq(Membership::EXPIRED)
+      expect(broken.reload).to have_attributes(status: Membership::ACTIVE, ended_at: nil)
+      expect(Rails.logger).to have_received(:error)
+        .with(/could not expire membership #{broken.id} \(expires_on #{(Date.current - 3).iso8601}\): ActiveRecord::RecordInvalid/)
+      expect(Rails.logger).to have_received(:info).with(/expired 1 one-time memberships, 1 failed/)
+    end
+
+    it 'retries the failed membership on the next run once it can be saved' do
+      described_class.perform
+      allow_any_instance_of(Membership).to receive(:expire!).and_call_original
+
+      expect(described_class.perform).to eq(expired: 1, failed: 0)
+      expect(broken.reload.status).to eq(Membership::EXPIRED)
+    end
+  end
+
   it 'records its run' do
     described_class.perform
     described_class.after_perform_record_last_run
