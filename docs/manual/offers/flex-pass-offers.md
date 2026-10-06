@@ -41,7 +41,7 @@ A flex pass is a prepaid ticket package. The patron purchases a set number of ti
 | Field | Description |
 |-------|-------------|
 | **Active** | Whether the offer can be purchased and redeemed. |
-| **On Sale to Public** | Whether the offer appears on the public-facing website. When unchecked, the pass can only be sold through the box office. |
+| **On Sale to Public** | Whether the offer appears on the public-facing website. When unchecked, the pass can only be sold through the box office. Checking it also makes the offer active. |
 
 ### Theater Restrictions
 
@@ -200,6 +200,6 @@ An offer can show several labels at once -- for example, a festival pass restric
 
 ## Managing Flex Pass Offers
 
-- **Deactivate** an offer by unchecking the **Active** checkbox. It moves to the **Inactive** tab, and existing purchased passes remain valid until they expire.
+- **Deactivate** an offer by unchecking the **Active** checkbox. It moves to the **Inactive** tab, **On Sale to Public** is unchecked along with it, and existing purchased passes remain valid until they expire.
 - **Remove from public sale** by unchecking **On Sale to Public** while keeping the offer active for box office sales.
 - Changes to an offer (price, number of tickets) apply only to future purchases and do not affect already-sold passes.

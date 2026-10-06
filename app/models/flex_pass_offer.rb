@@ -22,7 +22,7 @@ class FlexPassOffer < ApplicationRecord
   validates :months_till_expiration, presence: true
   validates :name, :price, :number_of_tickets, :use_ticket_class_code, presence: true
 
-  before_validation :set_public_sale_by_active
+  before_validation :sync_active_with_public_sale
   validate :validate_autofulfill_configuration, if: :autofulfill?
 
   # Performance codes this offer automatically redeems against at purchase
@@ -54,8 +54,15 @@ class FlexPassOffer < ApplicationRecord
 
   private
 
-  def set_public_sale_by_active
-    self.active ||= on_sale_to_public?
+  # Public sale is gated on on_sale_to_public alone, so an offer on public sale
+  # must be active. Putting an offer on sale activates it; deactivating an offer
+  # takes it off sale, rather than being silently undone by the first rule.
+  def sync_active_with_public_sale
+    if persisted? && will_save_change_to_active?(from: true, to: false)
+      self.on_sale_to_public = false
+    else
+      self.active ||= on_sale_to_public?
+    end
   end
 
   def validate_autofulfill_configuration

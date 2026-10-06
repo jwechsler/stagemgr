@@ -1,4 +1,6 @@
 class Admin::MembershipOffersController < ApplicationController
+  include ReturnsToIndex
+
   load_and_authorize_resource except: %i[autocomplete_tag search resolve_group]
   before_action :remove_empty_card_files, only: %i[create update]
 
@@ -50,7 +52,8 @@ class Admin::MembershipOffersController < ApplicationController
 
   def update
     if @membership_offer.update(membership_offer_params)
-      redirect_to [:admin, @membership_offer], success: 'Successfully updated membership offer.'
+      redirect_to return_to_index_or([:admin, @membership_offer], admin_membership_offers_path),
+                  success: 'Successfully updated membership offer.'
     else
       render action: 'edit'
     end
