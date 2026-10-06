@@ -46,6 +46,16 @@ class NotificationMailer < ActionMailer::Base
          tag: 'Alert')
   end
 
+  # Sent by ExpireOneTimeMembershipsJob when memberships past expires_on could
+  # not be expired. Each failure is { id:, member_code:, expires_on:, error: }.
+  def membership_expiry_failed_alert(failures, recipient)
+    @failures = failures
+    mail(to: recipient,
+         from: Rails.configuration.x.email_address['software_address'],
+         subject: "#{failures.size} #{'membership'.pluralize(failures.size)} could not be expired",
+         tag: 'Alert')
+  end
+
   def file_generated(filestore)
     return if filestore.datafile.nil?
 

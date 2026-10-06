@@ -1,0 +1,11 @@
+%p
+  Tonight's run could not expire the one-time memberships below. They are past
+  their expiry date but still Active, so they can still be used to book. Fix
+  each record (usually a validation error from old data); the job retries
+  them every night.
+%ul
+  - @failures.each do |failure|
+    %li
+      = link_to failure[:member_code].presence || "Membership #{failure[:id]}", admin_membership_url(failure[:id])
+      = "(expired #{failure[:expires_on]&.to_formatted_s(:long)}):"
+      = failure[:error]

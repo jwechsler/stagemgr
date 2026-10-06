@@ -58,6 +58,23 @@ RSpec.describe ExpireOneTimeMembershipsJob do
       expect(Rails.logger).to have_received(:info).with(/expired 1 one-time memberships, 1 failed/)
     end
 
+    it 'emails the box office the memberships it could not expire' do
+      expect { described_class.perform }.to change { ActionMailer::Base.deliveries.size }.by(1)
+
+      mail = ActionMailer::Base.deliveries.last
+      expect(mail.to).to eq([Rails.configuration.x.email_address['box_office']])
+      expect(mail.subject).to eq('1 membership could not be expired')
+      expect(mail.body.encoded).to include(broken.member_code, "/admin/memberships/#{broken.id}", 'RecordInvalid')
+      expect(mail.body.encoded).not_to include("/admin/memberships/#{healthy.id}")
+    end
+
+    it 'still finishes the run when the alert cannot be sent' do
+      allow(NotificationMailer).to receive(:membership_expiry_failed_alert).and_raise(Net::SMTPFatalError, 'mail down')
+
+      expect(described_class.perform).to eq(expired: 1, failed: 1)
+      expect(Rails.logger).to have_received(:error).with(/could not email the box office about 1 failed expirations.*mail down/)
+    end
+
     it 'retries the failed membership on the next run once it can be saved' do
       described_class.perform
       allow_any_instance_of(Membership).to receive(:expire!).and_call_original
@@ -65,6 +82,12 @@ RSpec.describe ExpireOneTimeMembershipsJob do
       expect(described_class.perform).to eq(expired: 1, failed: 0)
       expect(broken.reload.status).to eq(Membership::EXPIRED)
     end
+  end
+
+  it 'sends no alert when every membership expires' do
+    one_time(Date.current - 1)
+
+    expect { described_class.perform }.not_to(change { ActionMailer::Base.deliveries.size })
   end
 
   it 'records its run' do

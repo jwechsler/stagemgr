@@ -8,7 +8,8 @@
 # rows with stale data often fail validation) is logged and skipped, so it
 # neither stops the rest of tonight's run nor blocks every run after it.
 # It stays Active and past expires_on, so it is retried each night until
-# someone fixes the row.
+# someone fixes the row; the box office is emailed the list each night it
+# fails.
 class ExpireOneTimeMembershipsJob
   @queue = :maintenance
 
@@ -16,22 +17,39 @@ class ExpireOneTimeMembershipsJob
 
   # Returns { expired:, failed: } counts.
   def self.perform
-    counts = { expired: 0, failed: 0 }
+    expired = 0
+    failures = []
     Membership.where(status: Membership::ACTIVE).where(expires_on: ...Date.current).find_each do |membership|
-      counts[expire(membership) ? :expired : :failed] += 1
+      failure = expire(membership)
+      failure.nil? ? expired += 1 : failures << failure
     end
-    Rails.logger.info("ExpireOneTimeMembershipsJob: expired #{counts[:expired]} one-time memberships, " \
-                      "#{counts[:failed]} failed")
-    counts
+    Rails.logger.info("ExpireOneTimeMembershipsJob: expired #{expired} one-time memberships, " \
+                      "#{failures.size} failed")
+    alert_box_office(failures)
+    { expired: expired, failed: failures.size }
   end
 
+  # nil on success; otherwise the failure, for the box office alert.
   def self.expire(membership)
     membership.expire!
-    true
+    nil
   rescue StandardError => e
     Rails.logger.error("ExpireOneTimeMembershipsJob: could not expire membership #{membership.id} " \
                        "(expires_on #{membership.expires_on&.iso8601}): #{e.class}: #{e.message}")
-    false
+    { id: membership.id, member_code: membership.member_code, expires_on: membership.expires_on,
+      error: "#{e.class}: #{e.message}" }
   end
-  private_class_method :expire
+
+  # A mail failure is logged, not raised: the expirations are already saved
+  # and the failures are in the log.
+  def self.alert_box_office(failures)
+    box_office = Rails.configuration.x.email_address&.dig('box_office')
+    return if failures.empty? || box_office.blank?
+
+    NotificationMailer.membership_expiry_failed_alert(failures, box_office).deliver_now
+  rescue StandardError => e
+    Rails.logger.error("ExpireOneTimeMembershipsJob: could not email the box office about " \
+                       "#{failures.size} failed expirations: #{e.class}: #{e.message}")
+  end
+  private_class_method :expire, :alert_box_office
 end
