@@ -10,6 +10,7 @@
   .small-12.medium-6.cell
     = ui_label((@membership_offer.on_sale? ? 'On Sale' : 'Private'), variant: nil, class: 'float-right')
     = ui_label(@membership_offer.status, variant: :alert, class: 'float-right')
+    = @membership_offer.decorate.one_time_label(css_class: 'float-right')
 
     %ul.tabs#offertab(data-tabs)
       %li.tabs-title.is-active
@@ -33,7 +34,7 @@
               = @membership_offer.tickets_per_performance
             %p
               %strong Type:
-              = @membership_offer.membership_type
+              = @membership_offer.decorate.membership_type_display
             - unless MyEmma.disabled?
               %p
                 %strong MyEmma Group:
@@ -55,7 +56,11 @@
                 %i Available to first time members only
             - if (gift_length = @membership_offer.gift_length_label)
               %p
-                %i= "#{gift_length} duration when given as gift"
+                -# A one-time price's term applies to every purchase, not only gifts.
+                - if @membership_offer.one_time_payment?
+                  %i= "#{gift_length} term, paid once; does not renew"
+                - else
+                  %i= "#{gift_length} duration when given as gift"
         - if @membership_offer.card_available?
           .grid-x.grid-padding-x
             .small-12.cell

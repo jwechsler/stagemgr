@@ -237,6 +237,8 @@ Each row on the **Active** tab has an actions column with three buttons; the las
 
 Each active offer shows exactly one of **Create Order** or **Issue Pass**. Rows on the **Inactive** tab show only **Edit** and **Usage** -- inactive offers cannot be sold or issued, so no sales action appears.
 
+The **Type** column shows a blue **One-time** label next to offers whose Stripe price is a one-time price -- prepaid, fixed-term memberships (see [One-time memberships](#one-time-memberships)). Offers without it are subscriptions.
+
 The **On Sale to Public** column shows a checkmark when the offer is publicly purchasable. Offers on the Inactive tab show a red **Inactive** label in this column instead.
 
 !!! tip "Usage over the offer's full history"
@@ -252,7 +254,7 @@ Clicking an offer's name opens its detail page.
 
 - The offer name appears as a heading above the offer's public description.
 - The **Offer Details** panel summarizes the Price ID and its **Billing period**, tickets per performance, type, MyEmma group (when MyEmma is enabled), and ticket classes; a **Notification** tab shows the confirmation email content when one is configured.
-- Status labels in the top-right corner show whether the offer is Active/Inactive and On Sale/Private.
+- Status labels in the top-right corner show whether the offer is Active/Inactive and On Sale/Private, plus **One-time** for a prepaid offer. For a prepaid offer the panel also gives its term, for example *12 months term, paid once; does not renew*.
 - Below the description sit **Edit** and the offer's primary sales action: **Create Order** for production offers or **Issue Pass** for timed offers. Unlike the list -- where inactive offers show no sales action at all -- the detail page always shows the button, greyed out and disabled while the offer is Inactive.
 
 ---

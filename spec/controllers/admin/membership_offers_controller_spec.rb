@@ -66,6 +66,18 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
         expect(listed_actions).not_to include('Create Order', 'Issue Pass')
       end
 
+      it 'labels a one-time (prepaid) offer in the Type column, and only that offer' do
+        prepaid = FactoryBot.create(:membership_offer, name: 'Prepaid Gift')
+        prepaid.update_columns(billing_interval: MembershipOffer::ONE_TIME)
+        active_offer.update_columns(billing_interval: MembershipOffer::MONTH)
+
+        get :index, params: datatable_params(status_scope: 'active'), format: :json
+        types = response.parsed_body['data'].to_h { |row| [row['id'].to_i, row['membership_type']] }
+
+        expect(types[prepaid.id]).to include('production', 'One-time')
+        expect(types[active_offer.id]).to eq('production')
+      end
+
       it 'returns all offers when status_scope is omitted' do
         get :index, params: datatable_params, format: :json
 
@@ -76,6 +88,23 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
 
   describe 'GET #show', :membership_cards do
     render_views
+
+    it 'labels a one-time (prepaid) offer in the header and on its Type' do
+      active_offer.update_columns(billing_interval: MembershipOffer::ONE_TIME)
+
+      get :show, params: { id: active_offer.id }
+
+      expect(response.body.scan('>One-time<').size).to eq(2)
+      expect(response.body).to include('One-time payment (from Stripe)', '12 months term, paid once; does not renew')
+    end
+
+    it 'shows no One-time label for a subscription offer' do
+      active_offer.update_columns(billing_interval: MembershipOffer::MONTH)
+
+      get :show, params: { id: active_offer.id }
+
+      expect(response.body).not_to include('>One-time<')
+    end
 
     it 'shows no card block while no background is attached' do
       get :show, params: { id: active_offer.id }
