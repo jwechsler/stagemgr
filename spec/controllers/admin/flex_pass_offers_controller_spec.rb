@@ -20,7 +20,7 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
                                           active: false, on_sale_to_public: false)
     end
 
-    def datatable_params(status_scope: nil)
+    def datatable_params(status_scope: nil, outstanding: nil)
       columns = %w[offer price qty public restrictions actions]
                 .each_with_index.to_h do |col, i|
         [i.to_s, { data: col, searchable: 'true', orderable: 'true',
@@ -29,6 +29,7 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
       params = { draw: '1', start: '0', length: '25',
                  search: { value: '', regex: 'false' }, columns: columns }
       params[:status_scope] = status_scope if status_scope
+      params[:outstanding] = outstanding if outstanding
       params
     end
 
@@ -69,6 +70,34 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
         get :index, params: datatable_params(status_scope: 'inactive'), format: :json
 
         expect(listed_actions).not_to include('Create Order')
+      end
+
+      context 'with the outstanding filter' do
+        before do
+          allow(Resque).to receive(:enqueue_in)
+          FactoryBot.create(:flex_pass_order, flex_pass_offer: active_offer)
+          FactoryBot.create(:flex_pass_offer, name: 'Silver Pass', theater: theater)
+        end
+
+        it 'lists only active offers with something outstanding for outstanding=with' do
+          get :index, params: datatable_params(status_scope: 'active', outstanding: 'with'), format: :json
+
+          expect(listed_names).to include('Live Pass')
+          expect(listed_names).not_to include('Silver Pass')
+        end
+
+        it 'lists only active offers with nothing outstanding for outstanding=without' do
+          get :index, params: datatable_params(status_scope: 'active', outstanding: 'without'), format: :json
+
+          expect(listed_names).to include('Silver Pass')
+          expect(listed_names).not_to include('Live Pass')
+        end
+
+        it 'ignores an unrecognised outstanding value' do
+          get :index, params: datatable_params(status_scope: 'active', outstanding: 'bogus'), format: :json
+
+          expect(listed_names).to include('Live Pass', 'Silver Pass')
+        end
       end
 
       it 'returns all offers when status_scope is omitted' do

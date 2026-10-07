@@ -55,3 +55,25 @@ table.dataTable thead .sorting_asc_disabled {
 table.dataTable thead .sorting_desc_disabled {
   background-image: image-url("datatables/sort_desc_disabled.png");
 }
+
+// Outstanding filter on the admin offer index tables (initOfferTable). Floated
+// after the search box, so it sits right-aligned at the end of the toolbar's
+// open space; its buttons drop Foundation's margin to line up with the inputs.
+.dataTables_wrapper .offer-outstanding-filter {
+  float: right;
+  margin-right: 1rem;
+
+  .button-group {
+    margin-bottom: 0;
+  }
+
+  // DataTables stacks and centres the length and search controls below 640px.
+  @media screen and (max-width: 640px) {
+    float: none;
+    margin: 0.5rem 0 0;
+
+    .button-group {
+      justify-content: center;
+    }
+  }
+}

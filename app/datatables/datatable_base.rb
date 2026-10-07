@@ -17,6 +17,18 @@ class DatatableBase < AjaxDatatablesRails::ActiveRecord
 
   private
 
+  # The admin offer index's "outstanding" filter: 'with' keeps offers that
+  # still have an outstanding pass or membership, 'without' those that have
+  # none; anything else leaves +scope+ alone. The offer model defines what
+  # outstanding means (with_outstanding / without_outstanding scopes).
+  def filter_by_outstanding(scope)
+    case params[:outstanding]
+    when 'with' then scope.with_outstanding
+    when 'without' then scope.without_outstanding
+    else scope
+    end
+  end
+
   # Renders a record name followed by its tag pills, escaping the name.
   def name_with_tag_pills(name, tags)
     pills = @view.render(

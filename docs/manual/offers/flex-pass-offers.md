@@ -174,6 +174,18 @@ The offers list is divided into two tabs:
 
 Each tab has its own search box, column sorting, and paging, so you can filter one list without affecting the other. The searches and sort order you set are remembered separately per tab, and the tab you last viewed stays selected when you return to the page during the same browser session.
 
+### Filtering by Outstanding Passes
+
+The **Active** tab has a filter beside its search box:
+
+| Button | Shows |
+|--------|-------|
+| **All** | Every active offer (the default). |
+| **Outstanding passes** | Offers with at least one outstanding pass: active, not yet expired, and with tickets left to redeem. |
+| **No outstanding passes** | Offers whose passes are all used up, expired or deactivated, or that have never been sold -- candidates to deactivate. |
+
+These are the same passes listed under *Outstanding passes* on the offer's detail page. The filter works together with the search box, and your choice is remembered with the tab's other settings.
+
 ![Inactive tab of the flex pass offers list, where rows offer only Edit and Destroy buttons](../assets/images/screenshots/offers-flex-pass-list-inactive-tab.png)
 
 ### Row Actions

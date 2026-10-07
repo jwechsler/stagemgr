@@ -36,6 +36,7 @@
       ];
 
       initOfferStatusTabs('membership_offers');
-      initOfferTable('#active_membership_offer_listing', offerColumns, {"lengthMenu": "_MENU_ entries"});
+      initOfferTable('#active_membership_offer_listing', offerColumns, {"lengthMenu": "_MENU_ entries"},
+                     {with: 'Active members', without: 'No active members'});
       initOfferTable('#inactive_membership_offer_listing', offerColumns, {"lengthMenu": "_MENU_ entries"});
     });

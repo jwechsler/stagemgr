@@ -66,6 +66,25 @@ RSpec.describe MembershipOffer do
     end
   end
 
+  describe '.with_outstanding and .without_outstanding' do
+    let!(:current) { FactoryBot.create(:membership_offer, name: 'Current') }
+    let!(:lapsed) { FactoryBot.create(:membership_offer, name: 'Lapsed') }
+    let!(:unsold) { FactoryBot.create(:membership_offer, name: 'Unsold') }
+
+    before do
+      FactoryBot.create(:membership, membership_offer: current, status: Membership::ACTIVE)
+      FactoryBot.create(:membership, membership_offer: current, status: Membership::CANCELED)
+      [Membership::CANCELED, Membership::SUSPENDED, Membership::PENDING, Membership::EXPIRED].each do |status|
+        FactoryBot.create(:membership, membership_offer: lapsed, status: status)
+      end
+    end
+
+    it 'counts only Active memberships as outstanding' do
+      expect(MembershipOffer.with_outstanding).to contain_exactly(current)
+      expect(MembershipOffer.without_outstanding).to contain_exactly(lapsed, unsold)
+    end
+  end
+
   describe '#usage_date_range' do
     it 'returns [nil, nil] for an offer with neither payments nor memberships' do
       offer = FactoryBot.create(:membership_offer, :timed)

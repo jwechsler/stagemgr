@@ -41,6 +41,7 @@
       var offerLanguage = {"lengthMenu": "_MENU_", "search": "_INPUT_"};
 
       initOfferStatusTabs('flex_pass_offers');
-      initOfferTable('#active_flex_pass_offer_listing', offerColumns, offerLanguage);
+      initOfferTable('#active_flex_pass_offer_listing', offerColumns, offerLanguage,
+                     {with: 'Outstanding passes', without: 'No outstanding passes'});
       initOfferTable('#inactive_flex_pass_offer_listing', offerColumns, offerLanguage);
     });

@@ -26,6 +26,30 @@ RSpec.describe FlexPassOffer, type: :model do
     end
   end
 
+  describe '.with_outstanding and .without_outstanding' do
+    let(:outstanding_offer) { FactoryBot.create(:flex_pass_offer, name: 'Outstanding', number_of_tickets: 2) }
+    let(:spent_offer) { FactoryBot.create(:flex_pass_offer, name: 'Spent', number_of_tickets: 2) }
+    let(:unsold_offer) { FactoryBot.create(:flex_pass_offer, name: 'Unsold') }
+
+    before { allow(Resque).to receive(:enqueue_in) }
+
+    def sell_pass(offer)
+      FactoryBot.create(:flex_pass_order, flex_pass_offer: offer).flex_pass_line_item.flex_pass
+    end
+
+    it 'counts an offer outstanding only while one of its passes is FlexPass.outstanding' do
+      sell_pass(outstanding_offer)
+      sell_pass(spent_offer).update_columns(expiration_date: Date.current - 1)
+      sell_pass(spent_offer).update_columns(active: false)
+      exhausted = sell_pass(spent_offer)
+      FactoryBot.create(:flex_pass_payment, order: exhausted.order, flex_pass: exhausted, number_of_tickets: 2)
+      unsold_offer
+
+      expect(FlexPassOffer.with_outstanding).to contain_exactly(outstanding_offer)
+      expect(FlexPassOffer.without_outstanding).to contain_exactly(spent_offer, unsold_offer)
+    end
+  end
+
   describe 'validations' do
     describe 'price' do
       it 'accepts decimal values' do

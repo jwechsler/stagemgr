@@ -8,6 +8,12 @@ class MembershipOffer < ApplicationRecord
 
   scope :status_active,   -> { where(status: ACTIVE) }
   scope :status_inactive, -> { where(status: INACTIVE) }
+  # Offers with / without an outstanding membership: one whose status is
+  # Active. Named to match FlexPassOffer's pair (see there).
+  scope :with_outstanding, -> { where(id: Membership.where(status: Membership::ACTIVE).select(:membership_offer_id)) }
+  scope :without_outstanding, lambda {
+    where.not(id: Membership.where(status: Membership::ACTIVE).select(:membership_offer_id))
+  }
 
   # Offers a member of the public may actually buy right now: the query form of
   # #on_sale_to_public?, condition for condition. Used by the public index and

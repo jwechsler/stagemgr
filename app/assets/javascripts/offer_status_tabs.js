@@ -40,8 +40,14 @@ function initOfferStatusTabs(pageKey) {
 
 // Standard server-side datatable configuration shared by the offer index
 // tables. Column definitions and language quirks stay with each page.
-function initOfferTable(selector, columns, language) {
-  $(selector).dataTable({
+//
+// Pass outstandingLabels ({with: '...', without: '...'}) to add the
+// All / with / without outstanding filter, right-aligned beside the search
+// box. Its value goes to the server as the `outstanding` param (see
+// DatatableBase#filter_by_outstanding) and is kept in the saved table state.
+function initOfferTable(selector, columns, language, outstandingLabels) {
+  var outstanding = '';
+  var options = {
     "processing": true,
     "serverSide": true,
     "stateSave": true,
@@ -49,5 +55,53 @@ function initOfferTable(selector, columns, language) {
     "pagingType": 'full_numbers',
     "language": language,
     columns: columns
+  };
+
+  if (outstandingLabels) {
+    $.extend(options, {
+      "dom": 'lf<"offer-outstanding-filter">rtip',
+      "ajax": {
+        url: $(selector).data('source'),
+        data: function (data) { data.outstanding = outstanding; }
+      },
+      stateSaveParams: function (settings, data) { data.outstanding = outstanding; },
+      stateLoadParams: function (settings, data) { outstanding = data.outstanding || ''; }
+    });
+  }
+
+  var table = $(selector).DataTable(options);
+  if (outstandingLabels) {
+    buildOutstandingFilter(table, outstandingLabels, function () { return outstanding; },
+                           function (value) { outstanding = value; });
+  }
+}
+
+// Renders the outstanding filter's button group into the table's toolbar slot
+// and redraws the table when a choice is made.
+function buildOutstandingFilter(table, labels, getValue, setValue) {
+  var choices = [['', 'All'], ['with', labels.with], ['without', labels.without]];
+  var $group = $('<div class="button-group tiny" role="group" aria-label="Filter by outstanding"></div>');
+
+  choices.forEach(function (choice) {
+    $('<button type="button" class="button"></button>')
+      .attr('data-outstanding', choice[0])
+      .text(choice[1])
+      .appendTo($group);
   });
+
+  function markSelected() {
+    $group.find('button').each(function () {
+      var isSelected = $(this).attr('data-outstanding') === getValue();
+      $(this).toggleClass('hollow', !isSelected).attr('aria-pressed', isSelected ? 'true' : 'false');
+    });
+  }
+
+  $group.on('click', 'button', function () {
+    setValue($(this).attr('data-outstanding'));
+    markSelected();
+    table.draw();
+  });
+
+  markSelected();
+  $(table.table().container()).find('div.offer-outstanding-filter').append($group);
 }
