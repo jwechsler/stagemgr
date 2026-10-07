@@ -5,7 +5,8 @@
 
 .grid-x.grid-padding-x
   .small-12.cell
-    %table#membership-listing{:data=>{:source=>"#{admin_memberships_path(format: :json)}"}}
+    - status_choices = [['', 'All']] + MembershipDatatable::STATUS_PRIORITY.map { |status| [status, status] }
+    %table#membership-listing{ data: { source: admin_memberships_path(format: :json), status_choices: status_choices } }
       %thead
         %tr
           %th Member Code
@@ -14,15 +15,21 @@
           %th Status
           %th Start
           %th Membership End
+          %th Duration (months)
           %th
       %tbody
 
-    = link_to "New Membership", new_admin_membership_path, :class=>'button' if can? :create, Membership
 
 = content_for :js do
   :javascript
     $(document).ready(function() {
-      $('#membership-listing').dataTable({
+      var statusFilter = datatableChoiceFilter({
+        param: 'status',
+        choices: $('#membership-listing').data('status-choices'),
+        ariaLabel: 'Filter by status',
+        slotClass: 'table-choice-filter'
+      });
+      var table = $('#membership-listing').DataTable(statusFilter.configure({
         "processing": true,
         "serverSide": true,
         "stateSave": true,
@@ -38,8 +45,10 @@
           {data: 'status'},
           {data: 'start'},
           {data: 'membership_end'},
+          {data: 'duration', searchable: false},
           {data: 'actions', orderable: false, searchable: false}
         ],
         order: [[3, 'asc'], [2, 'asc']]
-      });
+      }));
+      statusFilter.attach(table);
     });

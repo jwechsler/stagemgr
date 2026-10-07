@@ -31,6 +31,12 @@ RSpec.describe Admin::AddressesController, type: :controller do
 
       expect(response.body).to include(%(<a href="#{admin_membership_path(issued)}">NOORDER1</a>))
     end
+
+    it 'offers no Issue Membership button; memberships come from orders or Issue Pass' do
+      get :show, params: { id: address.id }
+
+      expect(response.body).not_to include('Issue Membership', new_admin_membership_path)
+    end
   end
 
   describe '#update' do

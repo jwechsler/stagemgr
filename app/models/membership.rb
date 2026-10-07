@@ -227,6 +227,21 @@ class Membership < ApplicationRecord
     membership_order
   end
 
+  # Months from the start (Stripe start, else member_since) to the end: today
+  # while Active, otherwise ended_at. A partial month counts as a full one
+  # (Jan 15 - Feb 8 is 1, Jan 15 - Feb 20 is 2), and an end before the start
+  # is 0. Nil while there is no end date (e.g. Pending).
+  # MembershipDatatable::DURATION_SQL sorts by the same rule.
+  def duration_months
+    starts_on = start_date || member_since
+    ends_on = active? ? Date.current : ended_at
+    return if starts_on.nil? || ends_on.nil?
+
+    months = ((ends_on.year * 12) + ends_on.month) - ((starts_on.year * 12) + starts_on.month)
+    months += 1 if ends_on.day > starts_on.day
+    [months, 0].max
+  end
+
   private
 
   # Stripe-managed memberships get ended_at from subscription sync

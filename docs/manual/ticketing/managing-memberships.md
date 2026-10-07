@@ -18,11 +18,12 @@ The Memberships list shows every individual membership in the system -- one row 
 | Column | Description |
 |--------|-------------|
 | **Member Code** | The membership's unique code. Click it to open the membership detail page. |
-| **Offer** | The [membership offer](../offers/membership-offers.md) the membership was purchased or issued under, with its type (`production` or `timed`) in parentheses. |
+| **Offer** | The [membership offer](../offers/membership-offers.md) the membership was purchased or issued under, followed by its type labels as on the Membership Offers list: **Production** or **Timed**, plus **Prepaid** for a one-time offer. |
 | **Member** | The patron's name. Searching by first or last name matches this column. |
 | **Status** | `Active`, `Suspended`, `Canceled`, `Pending`, or `Expired`. |
 | **Start** | When the membership began -- the billing subscription's start date when one exists, otherwise the date the membership record was created. |
 | **Membership End** | When the membership ended or will end. See below. |
+| **Duration (months)** | How long the membership has run, in months. See below. |
 
 ### How Membership End is determined
 
@@ -31,8 +32,16 @@ The Memberships list shows every individual membership in the system -- one row 
 - For an active [one-time membership](#one-time-memberships), its last valid day is shown with an **Expires** label.
 - A blank value means the membership is ongoing with no scheduled end.
 
-## Sorting and Searching
+### How Duration is counted
 
+- It runs from **Start** to the membership's end: today for an Active membership, otherwise the date it closed.
+- A partial month counts as a full month: January 5 to January 30 is 1, January 15 to February 8 is 1, and January 15 to February 20 is 2.
+- It is never less than 0, and it is blank when a membership that is not Active has no end date (for example, Pending).
+- You can sort by it, but the search box does not match it.
+
+## Filtering, Sorting and Searching
+
+- The buttons above the search box show only memberships with one status: **All**, **Active**, **Suspended**, **Canceled**, **Pending** or **Expired**. **All** is the default, and your choice is remembered between visits.
 - **Default order** puts memberships in status priority -- Active first, then Suspended, then Canceled -- with members alphabetical within each status.
 - Click any column header to sort by that column instead; click again to reverse.
 - The **Search** box matches member codes (by prefix), member first/last names, offer names, and statuses, narrowing as you type.
@@ -109,7 +118,7 @@ the button, with a link to the offer's edit form for administrators.
 
 ## Creating a Membership
 
-The **New Membership** button below the list creates a membership record directly -- without a purchase order. This is how staff issue shared [library passes](../offers/membership-offers.md) and complimentary memberships. For a paid membership, use **Create Order** on the [Membership Offers list](../offers/membership-offers.md#the-membership-offers-list) instead so billing is set up.
+Memberships are not created from this list. A paid membership comes from a membership order: use **Create Order** on the [Membership Offers list](../offers/membership-offers.md#the-membership-offers-list) so billing is set up. A shared [library pass](../offers/membership-offers.md) is issued with **Issue Pass** on its timed offer.
 
 !!! note "Email list sync"
     When a membership becomes Active, the member's address is automatically added to the offer's MyEmma email group (if one is configured); when it is canceled, suspended or expired, the address is removed -- unless the patron still holds another current membership. The sync runs as a background job. See [Membership Offers -- Email Integration](../offers/membership-offers.md#email-integration).

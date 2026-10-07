@@ -20,7 +20,7 @@ RSpec.describe Admin::MembershipsController, type: :controller do
   end
 
   def datatable_params(search: '', order: nil)
-    columns = %w[member_code offer member status start membership_end actions]
+    columns = %w[member_code offer member status start membership_end duration actions]
               .each_with_index.to_h do |col, i|
       [i.to_s, { data: col, searchable: 'true', orderable: 'true',
                  search: { value: '', regex: 'false' } }]
@@ -36,6 +36,11 @@ RSpec.describe Admin::MembershipsController, type: :controller do
       get :index
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('membership-listing')
+    end
+
+    it 'offers no New Membership button; memberships come from orders or Issue Pass' do
+      get :index
+      expect(response.body).not_to include(new_admin_membership_path)
     end
 
     it 'returns memberships as JSON with a membership_end column' do
@@ -89,6 +94,64 @@ RSpec.describe Admin::MembershipsController, type: :controller do
       get :index, params: datatable_params(order: { '0' => { column: '3', dir: 'asc' } }), format: :json
       statuses = response.parsed_body['data'].pluck('status')
       expect(statuses).to eq([Membership::ACTIVE, Membership::SUSPENDED, Membership::CANCELED])
+    end
+
+    it 'labels the offer with its type labels, not a parenthesised type' do
+      timed_offer.update_columns(name: 'Library <Pass>', billing_interval: MembershipOffer::ONE_TIME)
+
+      get :index, params: datatable_params, format: :json
+      offer = response.parsed_body['data'].first['offer']
+      expect(offer).to start_with('Library &lt;Pass&gt; ')
+      expect(offer).to include('>Timed<', '>Prepaid<')
+      expect(offer).not_to include('(')
+    end
+
+    it 'shows the duration in months and sorts by it' do
+      travel_to(Date.new(2026, 10, 7))
+      membership.update!(status: Membership::CANCELED, member_since: Date.new(2026, 1, 15),
+                         ended_at: Date.new(2026, 6, 20))
+      FactoryBot.create(:membership, membership_offer: timed_offer, member_code: 'TW-ACT02',
+                                     member_since: Date.new(2024, 10, 1))
+      FactoryBot.create(:membership, membership_offer: timed_offer, member_code: 'TW-PEN02',
+                                     status: Membership::PENDING, member_since: Date.new(2025, 10, 7))
+
+      get :index, params: datatable_params(order: { '0' => { column: '6', dir: 'desc' } }), format: :json
+      durations = response.parsed_body['data'].map { |row| [row['member_code'][/TW-\w+/], row['duration']] }
+      expect(durations).to eq([%w[TW-ACT02 25], %w[TW-LIB01 6], ['TW-PEN02', '']])
+    end
+
+    context 'with the status filter' do
+      before do
+        FactoryBot.create(:membership, membership_offer: timed_offer,
+                                       member_code: 'TW-CAN01', status: Membership::CANCELED)
+      end
+
+      def listed_codes(status)
+        get :index, params: datatable_params.merge(status: status), format: :json
+        response.parsed_body['data'].pluck('member_code').join
+      end
+
+      it 'returns only memberships with the chosen status' do
+        codes = listed_codes(Membership::CANCELED)
+        expect(codes).to include('TW-CAN01')
+        expect(codes).not_to include('TW-LIB01')
+      end
+
+      it 'returns every status when the filter is blank' do
+        expect(listed_codes('')).to include('TW-CAN01', 'TW-LIB01')
+      end
+
+      it 'ignores a status that is not a membership status' do
+        expect(listed_codes('Bogus')).to include('TW-CAN01', 'TW-LIB01')
+      end
+    end
+
+    it 'offers All and each status, in priority order, as filter choices' do
+      get :index
+
+      choices = Nokogiri::HTML(response.body).at_css('#membership-listing')['data-status-choices']
+      expect(JSON.parse(choices)).to eq([['', 'All'], %w[Active Active], %w[Suspended Suspended],
+                                         %w[Canceled Canceled], %w[Pending Pending], %w[Expired Expired]])
     end
   end
 
