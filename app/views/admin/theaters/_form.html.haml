@@ -11,7 +11,9 @@
     .cell.medium-6.small-12
       = f.input :theater_class, :as => :select, :collection => Theater::THEATER_CLASSES
     .cell.medium-6.small-12
-      = f.input :status, :as=>:select, :collection=>Theater::THEATER_STATUSES, :selected=>Theater::THEATER_STATUSES.first
+      -# Shows the stored status; only a new theater defaults to Active.
+      = f.input :status, as: :select, collection: Theater::THEATER_STATUSES, include_blank: false,
+                         selected: theater.status.presence || Theater::ACTIVE
     
     .cell.small-12.medium-6
       .grid-padding-x.grid-x
