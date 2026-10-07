@@ -137,6 +137,30 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       expect(response.body).to include('No activity in this range, so not shown:', 'Retired Membership')
     end
 
+    it 'renders a Passes table for a timed offer, apart from the membership tables' do
+      library_offer = FactoryBot.create(:membership_offer, :timed, name: 'Library Pass')
+      FactoryBot.create(:library_pass, membership_offer: library_offer, member_code: 'LIB-1',
+                                       member_since: Date.new(2026, 2, 1))
+
+      get :memberships, params: valid_params.merge(membership_offer_ids: ['', gold_offer.id.to_s, library_offer.id.to_s])
+
+      page = Capybara.string(response.body)
+      expect(page).to have_css('h5', text: 'Library passes')
+      expect(page).to have_css('tr.membership-analysis__total td', text: 'Passes')
+      expect(page).to have_css('tr td', text: 'Library Pass')
+      expect(assigns(:results).total.memberships_in_range).to eq(1)
+    end
+
+    it 'shows only the Passes table when every selected offer is timed' do
+      library_offer = FactoryBot.create(:membership_offer, :timed, name: 'Library Pass')
+      FactoryBot.create(:library_pass, membership_offer: library_offer, member_since: Date.new(2026, 2, 1))
+
+      get :memberships, params: valid_params.merge(membership_offer_ids: ['', library_offer.id.to_s])
+
+      expect(response.body).to include('Library passes')
+      expect(response.body).not_to include('Per-membership economics')
+    end
+
     it 'says so when none of the selected offers had activity in the range' do
       get :memberships, params: valid_params.merge(membership_offer_ids: ['', retired_offer.id.to_s])
 

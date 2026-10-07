@@ -19,12 +19,12 @@
 
 - if @results
   #membership-analysis-results
-    - if @results.by_offer.empty?
+    - if @results.activity?
+      = render 'membership_results', results: @results
+    - else
       .callout.secondary
         None of the selected offers had any memberships or payments between
         #{@starting_date.to_formatted_s(:long)} and #{@ending_date.to_formatted_s(:long)}.
-    - else
-      = render 'membership_results', results: @results
 
 -#
   Results describe the offers and dates they were run with, so any change to

@@ -15,7 +15,8 @@ offer bring in, what did its members redeem, and what is one membership worth?"*
 
 It uses the same rules as the [Membership Usage report](../reports/membership-reports.md#membership-usage),
 so its memberships, members, Collected and $ redeemed figures agree with that report's
-Memberships, Members, Collected and Paid for the same offers and dates. Where the report
+Memberships, Members, Collected and Paid for the same offers and dates, and its library
+pass figures agree with the report's Passes and Pass Redeemed. Where the report
 works month by month, this page looks at the whole range at once and adds tenure and
 per-membership figures.
 
@@ -49,7 +50,7 @@ colleague.
 
 ## Results
 
-Each table starts with a bold **Total** row across all the selected offers, followed by one
+Each table starts with a bold **Total** row across all the selected membership offers, followed by one
 row per offer. Totals are worked out across every membership in the selection: the Total
 average is the average over all those memberships, not an average of the offer averages.
 
@@ -140,6 +141,20 @@ How the figures are worked out:
 
 The Money table above is unaffected: its Collected is still the cash taken in during
 the range.
+
+### Library passes
+
+Library passes (offers whose type is **timed**) are free and staff-issued, so they are
+left out of the membership tables above, including the Total row and the economics. When
+the selection includes a timed offer, a separate **Library passes** table starts with a
+bold **Passes** row across every selected timed offer, followed by one row per timed offer:
+
+| Column | Meaning |
+|---|---|
+| **Passes in range** | Passes active at any point between the From and To dates. Each pass counts once, however many seats it admits. |
+| **Passes active at end** | Passes active on the **To** date. |
+| **Orders paid with pass** | Ticket orders paid with one of the passes during the range, counted like **Orders paid with membership**. |
+| **$ redeemed** | The ticket value redeemed with the passes during the range. |
 
 ## Tips
 
