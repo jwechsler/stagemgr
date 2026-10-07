@@ -44,8 +44,8 @@ function initOfferStatusTabs(pageKey) {
 // Options:
 //   selectable: true -- rows select as on the orders list: click one,
 //     Cmd/Ctrl- or Shift-click for more. The first cell is excluded because
-//     Responsive's expand control lives there. Selection survives redraws
-//     because the datatable sends each row's DT_RowId.
+//     Responsive's expand control lives there. Selection survives a reload
+//     of the same view because the datatable sends each row's DT_RowId.
 //   outstandingLabels: {with: '...', without: '...'} -- adds the
 //     All / with / without outstanding filter, right-aligned beside the
 //     search box. Its value goes to the server as the `outstanding` param
@@ -66,15 +66,8 @@ function initOfferTable(selector, columns, language, tableOptions) {
   };
 
   if (config.selectable) {
+    // Safari Shift-click and clearing on view changes: datatables_select_defaults.js
     options.select = { style: 'os', selector: 'td:not(:first-child)' };
-    // Safari extends the page's text selection on a Shift mousedown, and the
-    // Shift-click range select then never happens (Chrome is unaffected).
-    // Cancelling that default leaves the click to Select.
-    $(selector).on('mousedown', 'tbody td:not(:first-child)', function (e) {
-      if (e.shiftKey) {
-        e.preventDefault();
-      }
-    });
   }
 
   if (outstandingLabels) {
