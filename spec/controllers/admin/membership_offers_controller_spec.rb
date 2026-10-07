@@ -168,6 +168,25 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
       expect(response.body).to include('card-artwork__thumb')
       expect(response.body).to include('alt="bg.png"')
     end
+
+    it 'links the Notification tab to its panel and previews the confirmation email text' do
+      active_offer.update_columns(email_html: 'Welcome, **member**!')
+
+      get :show, params: { id: active_offer.id }
+
+      expect(response.body).to match(/data-tabs-content=['"]offertab['"]/)
+      expect(response.body).to match(/href=['"]#mo-panel-2['"]/).and match(/id=['"]mo-panel-2['"]/)
+      expect(response.body).to include('<strong>member</strong>')
+    end
+
+    it 'omits the Notification tab and panel when the confirmation email text is blank' do
+      active_offer.update_columns(email_html: '  ')
+
+      get :show, params: { id: active_offer.id }
+
+      expect(response.body).not_to include('Notification')
+      expect(response.body).not_to include('mo-panel-2')
+    end
   end
 
   describe 'GET #edit', :membership_cards do
