@@ -32,11 +32,18 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
   end
 
   # GET /flex_pass_offers/1
+  # GET /flex_pass_offers/1.json -- feeds the outstanding-passes table, as the
+  #   membership page's redemptions table does
   # GET /flex_pass_offers/1.xml
   def show
     respond_to do |format|
-      format.html # show.html.erb
-      format.xml  { render xml: @flex_pass_offer }
+      format.html { @usage = FlexPassOfferUsage.new(@flex_pass_offer) }
+      format.json do
+        params.permit!
+        render json: FlexPassOfferPassesDatatable.new(params, current_user: current_user,
+                                                              flex_pass_offer: @flex_pass_offer)
+      end
+      format.xml { render xml: @flex_pass_offer }
     end
   end
 

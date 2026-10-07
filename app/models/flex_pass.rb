@@ -4,6 +4,28 @@ class FlexPass < ApplicationRecord
   belongs_to :flex_pass_line_item, inverse_of: :flex_pass
 
   has_many :flex_pass_payments, inverse_of: :flex_pass
+
+  CODE_SUFFIX_LENGTH = 6
+
+  # Tickets redeemed against each pass, as a correlated subquery so the
+  # relation stays ungrouped (ajax-datatables-rails counts with count(:all),
+  # which a GROUP BY turns into a Hash). Raw SQL gets no STI condition, so
+  # the type is spelled out: an ExchangePayment can carry a flex_pass_id too.
+  TICKETS_REDEEMED_SQL = <<~SQL.squish.freeze
+    (SELECT COALESCE(SUM(payments.number_of_tickets), 0) FROM payments
+     WHERE payments.flex_pass_id = flex_passes.id
+     AND payments.type = '#{FlexPassPayment.sti_name}')
+  SQL
+
+  scope :with_tickets_redeemed, -> { select('flex_passes.*', "#{TICKETS_REDEEMED_SQL} AS tickets_redeemed") }
+  scope :unexpired, -> { where(expiration_date: Date.current..) }
+  scope :expired, -> { where(expiration_date: ...Date.current) }
+  # Active, unexpired passes with tickets left to redeem.
+  scope :outstanding, lambda {
+    where(active: true).unexpired.joins(:flex_pass_offer)
+                       .where("flex_pass_offers.number_of_tickets > #{TICKETS_REDEEMED_SQL}")
+  }
+
   before_validation :create_code, on: :create
   before_create :set_expiration_date
   before_destroy :has_no_placed_orders?
@@ -20,7 +42,7 @@ class FlexPass < ApplicationRecord
   delegate :order, to: :flex_pass_line_item
 
   # Generates a random string from a set of easily readable characters
-  def create_code(size = 6)
+  def create_code(size = CODE_SUFFIX_LENGTH)
     charset = %w[2 3 4 6 7 9 A C D E F G H J K L M N P Q R T V W X Y Z]
     while code.nil? || !FlexPass.find_by_code(code).nil?
       self.code = (flex_pass_offer.code_prefix.presence || '') + (0...size).map {

@@ -1,14 +1,14 @@
 class FlexPassOfferDecorator < ApplicationDecorator
   delegate_all
 
-  # Define presentation-specific methods here. Helpers are accessed through
-  # `helpers` (aka `h`). You can override attributes, for example:
-  #
-  #   def created_at
-  #     helpers.content_tag :span, class: 'time' do
-  #       object.created_at.strftime("%a %m/%d/%y")
-  #     end
-  #   end
+  # What each payout field means; shown as hints on the offer form and beside
+  # the figures on the show page.
+  PAYOUT_HINTS = {
+    flat_payout: 'Per pass sold. Owed to the producer whether or not the pass is used; not recovered at expiry.',
+    spiff: 'Per pass sold. Added to the amount due to the facility.',
+    facility_fee: "Per pass sold. The facility's share, kept at sale; not recovered at expiry."
+  }.freeze
+
   def name
     h.link_to(object.name, [:admin, object])
   end
@@ -63,8 +63,6 @@ class FlexPassOfferDecorator < ApplicationDecorator
     h.safe_join(actions, ' ')
   end
 
-  private
-
   def restriction_text
     if object.theater.blank?
       ''
@@ -72,6 +70,66 @@ class FlexPassOfferDecorator < ApplicationDecorator
       "All but #{object.theater.name}"
     else
       "Only #{object.theater.name}"
+    end
+  end
+
+  # --- Show page ---
+
+  def theater_scope_text
+    restriction_text.presence || 'Any theater'
+  end
+
+  def status_labels
+    labels = [active_label, sale_label]
+    labels << h.ui_label('Festival pass', variant: :info) if object.festival
+    labels << h.ui_label('Autofulfill', variant: :info) if object.autofulfill?
+    h.safe_join(labels, ' ')
+  end
+
+  # Per-production / per-performance caps; nil or 0 means uncapped.
+  def uses_cap_text(limit)
+    limit.to_i.positive? ? h.pluralize(limit, 'ticket') : 'No limit'
+  end
+
+  def expiration_text
+    "#{h.pluralize(object.months_till_expiration.to_i, 'month')} after purchase"
+  end
+
+  def code_format_example
+    "#{object.code_prefix}#{'X' * FlexPass::CODE_SUFFIX_LENGTH}"
+  end
+
+  def recoverable_at_expiry
+    h.number_to_currency(object.recoverable_at_expiry)
+  end
+
+  def public_purchase_url
+    h.new_flex_pass_offer_order_url(object)
+  end
+
+  # Full-size Edit / Create Order buttons; Destroy stays on the index.
+  def show_actions
+    actions = []
+    if h.current_user.can? :update, FlexPassOffer
+      actions << h.link_to('Edit', h.edit_admin_flex_pass_offer_path(object), class: 'button')
+    end
+    if h.current_user.can?(:create, FlexPassOrder) && object.active?
+      actions << h.link_to('Create Order', [:new, :admin, object, :order], class: 'button')
+    end
+    h.safe_join(actions, ' ')
+  end
+
+  private
+
+  def active_label
+    object.active? ? h.ui_label('Active', variant: :success) : h.ui_label('Inactive', variant: :alert)
+  end
+
+  def sale_label
+    if object.on_sale_to_public?
+      h.ui_label('On sale to public', variant: :primary)
+    else
+      h.ui_label('Box office only', variant: :secondary)
     end
   end
 end

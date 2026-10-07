@@ -140,5 +140,6 @@ where the dates represent the start and end dates of the report range.
 ## Related Pages
 
 - [Reports Overview](reports-overview.md)
+- [Flex Pass Offers -- The Offer Detail Page](../offers/flex-pass-offers.md#the-offer-detail-page) -- per-offer sales and usage counts and outstanding passes
 - [Membership Reports](membership-reports.md)
 - [Weekly Box Office](weekly-box-office.md)

@@ -1,0 +1,15 @@
+-# How each pass's price splits for settlement.
+%h4 Payout per pass sold
+- FlexPassOfferDecorator::PAYOUT_HINTS.each do |field, hint|
+  %p
+    %strong #{FlexPassOffer.human_attribute_name(field)}:
+    = offer.public_send(field)
+    %br
+    %small.help-text= hint
+%p
+  %strong Recoverable at expiry if unused:
+  = offer.recoverable_at_expiry
+  %br
+  %small.help-text Price − flat payout − facility fee, never below zero.
+%p
+  = link_to 'Flex Pass Usage report', admin_reports_path

@@ -1,0 +1,22 @@
+-# Where and how often the pass may be redeemed.
+%h4 Redemption rules
+%p
+  %strong Max per production:
+  = offer.uses_cap_text(offer.maximum_uses_per_production)
+%p
+  %strong Max per performance:
+  = offer.uses_cap_text(offer.maximum_uses_per_performance)
+%p
+  %strong Theater:
+  = offer.theater_scope_text
+%p
+  %strong Festival:
+  - if offer.festival
+    = link_to offer.festival.name, admin_festival_path(offer.festival)
+  - else
+    Any
+%p
+  %strong Redeem immediately:
+  = offer.redeem_immediately? ? 'Yes' : 'No'
+- if offer.autofulfill?
+  = render 'autofulfill_list', offer: offer

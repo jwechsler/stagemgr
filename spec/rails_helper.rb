@@ -82,6 +82,12 @@ RSpec.configure do |config|
     end
   end
 
+  # Draper keeps its view context in RequestStore, which no request clears
+  # between examples here. A mailer spec otherwise leaves a mailer view
+  # context behind, and a later datatable or decorator calling admin route
+  # helpers through it fails depending on example order.
+  config.before { Draper::ViewContext.clear! }
+
   RSpec::Expectations.configuration.on_potential_false_positives = :nothing
 
   # See spec/support/bare_time_to_s_detector.rb (remove on Rails 7.1+).
