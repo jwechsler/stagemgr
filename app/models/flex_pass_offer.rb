@@ -36,6 +36,26 @@ class FlexPassOffer < ApplicationRecord
     autofulfill_performance_code_list.any?
   end
 
+  # What the house keeps when a pass expires unused: the price less the
+  # producer's flat payout and the facility fee, never below zero.
+  def recoverable_at_expiry
+    [price.to_d - flat_payout.to_d - facility_fee.to_d, 0].max
+  end
+
+  # Tickets each purchase redeems automatically.
+  def autofulfill_tickets_required
+    autofulfill_performance_code_list.uniq.size * maximum_uses_per_performance.to_i
+  end
+
+  # [[code, Performance or nil], ...] in list order; nil marks a code with no
+  # matching performance (e.g. one deleted after the offer was saved).
+  def autofulfill_performances_by_code
+    codes = autofulfill_performance_code_list
+    performances = Performance.includes(production: :theater).where(performance_code: codes)
+                              .index_by { |performance| performance.performance_code.upcase }
+    codes.map { |code| [code, performances[code]] }
+  end
+
   def formatted_price
     ActionController::Base.helpers.number_to_currency(price || 0)
   end
@@ -80,9 +100,9 @@ class FlexPassOffer < ApplicationRecord
 
     performances = validate_autofulfill_performances(codes)
 
-    if codes.uniq.size * maximum_uses_per_performance > number_of_tickets.to_i
+    if autofulfill_tickets_required > number_of_tickets.to_i
       errors.add(:autofulfill_performance_codes,
-                 "requires #{codes.uniq.size * maximum_uses_per_performance} tickets " \
+                 "requires #{autofulfill_tickets_required} tickets " \
                  "(#{codes.uniq.size} performances x #{maximum_uses_per_performance} uses) " \
                  "but the pass only has #{number_of_tickets.to_i}")
     end

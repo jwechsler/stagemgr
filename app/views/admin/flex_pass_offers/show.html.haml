@@ -1,41 +1,29 @@
+- offer = @flex_pass_offer.decorate
+= content_for :title do
+  Flex Pass Offer
+= content_for :breadcrumbs do
+  = render 'shared/components/breadcrumb',
+           items: [{ label: 'Flex Pass Offers', path: admin_flex_pass_offers_path }, { label: @flex_pass_offer.name }]
+
+= render 'header', offer: offer
+
 .grid-x.grid-padding-x
-  .small-12.cell
-    = content_for :title do
-      Flex Pass Offer
-    = content_for :breadcrumbs do
-      = render "shared/components/breadcrumb", items: [{ label: 'Flex Pass Offers', path: admin_flex_pass_offers_path }, { label: @flex_pass_offer.name }]
+  .small-12.medium-6.cell
+    = render 'patron_terms', offer: offer
+    = render 'payout', offer: offer
+  .small-12.medium-6.cell
+    = render 'redemption_rules', offer: offer
+    = render 'availability', offer: offer
+
+- if @flex_pass_offer.description.present?
+  .grid-x.grid-padding-x
+    .small-12.cell
+      %h4 Description
+      = display_markdown @flex_pass_offer.description
+
+= render 'usage_summary', offer: offer, usage: @usage
+= render 'passes', offer: offer
 
 .grid-x.grid-padding-x
   .small-12.cell
-
-    %h2= @flex_pass_offer.name
-
-    %p
-      - unless @flex_pass_offer.theater.nil?
-        %b Only for Theater:
-        =h @flex_pass_offer.theater.name
-        %br
-      %b Price:
-      = @flex_pass_offer.formatted_price
-      %br
-      %b= "Number of tickets (redeemed as #{@flex_pass_offer.use_ticket_class_code}): "
-      =h @flex_pass_offer.number_of_tickets
-      %br
-      - if @flex_pass_offer.facility_fee.present?
-        %b Facility Fee:
-        = @flex_pass_offer.formatted_facility_fee
-        %br
-      - if @flex_pass_offer.spiff.present?
-        %b Spiff:
-        = @flex_pass_offer.formatted_spiff
-        %br
-      - if @flex_pass_offer.flat_payout.present?
-        %b Flat Payout:
-        = @flex_pass_offer.formatted_flat_payout
-        %br
-    = render 'admin/tags/pills', tags: @flex_pass_offer.flex_pass_offer_tags
-.grid-x.grid-padding-x
-  .small-12.cell
-    = link_to 'Edit', edit_admin_flex_pass_offer_path(@flex_pass_offer)
-  </div>
-</div>
+    = offer.show_actions

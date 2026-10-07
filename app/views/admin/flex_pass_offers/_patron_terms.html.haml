@@ -1,0 +1,16 @@
+-# What a patron buying this pass gets.
+%h4 What the patron gets
+%p
+  %strong Price:
+  = offer.price
+%p
+  %strong Tickets:
+  #{offer.number_of_tickets.to_i}, redeemed as #{offer.use_ticket_class_code}
+%p
+  %strong Expires:
+  = offer.expiration_text
+%p
+  %strong Code format:
+  %code= offer.code_format_example
+  - prefix_text = offer.code_prefix.present? ? 'Prefix' : 'No prefix'
+  %small.help-text #{prefix_text} plus #{FlexPass::CODE_SUFFIX_LENGTH} random characters

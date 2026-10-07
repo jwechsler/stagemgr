@@ -1,0 +1,8 @@
+-# Offer name, status labels, short description and tags.
+.grid-x.grid-padding-x
+  .small-12.cell
+    %h2= offer.object.name
+    %p= offer.status_labels
+    - if offer.short_description.present?
+      %p.subheader= offer.short_description
+    = render 'admin/tags/pills', tags: offer.flex_pass_offer_tags

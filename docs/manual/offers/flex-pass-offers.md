@@ -198,6 +198,77 @@ An offer can show several labels at once -- for example, a festival pass restric
 
 ---
 
+## The Offer Detail Page
+
+Click an offer's name in the Flex Pass Offers list to open its detail page. It gathers everything about the offer in one place: what the patron gets, how the pass may be redeemed, how its price splits for settlement, where it is sold, and how many passes are out there.
+
+![Flex pass offer detail page showing status labels, What the patron gets, Redemption rules, Payout per pass sold and Where it's sold](../assets/images/screenshots/offers-flex-pass-detail.png)
+
+### Status Labels
+
+Labels under the offer name summarize its state at a glance:
+
+| Label | Meaning |
+|-------|---------|
+| Green **Active** / Red **Inactive** | Whether the offer can currently be purchased and redeemed. |
+| Blue **On sale to public** | Patrons can buy the pass themselves on the public website. |
+| Grey **Box office only** | The pass can only be sold through the box office. |
+| **Festival pass** | Redemption is restricted to a festival (**Restrict to festival**). |
+| **Autofulfill** | Purchases automatically reserve tickets for listed performances. |
+
+The short description and any tags appear beneath the labels.
+
+### Page Sections
+
+| Section | Shows |
+|---------|-------|
+| **What the patron gets** | Price; number of tickets and the ticket class they are redeemed as; how long after purchase the pass expires; and the pass code format -- the **Code Prefix** followed by six random characters (shown as `X`s). |
+| **Redemption rules** | Maximum tickets per production and per performance ("No limit" when blank or 0); which theaters accept the pass ("Any theater", "Only [Theater]" or "All but [Theater]"); the festival it is restricted to, linked to the festival, or "Any"; and whether it is redeemed immediately at purchase. Autofulfilling offers also list each performance, linked to the performance page, with how many tickets each purchase reserves. A code that no longer matches a performance is flagged **Unknown code**. |
+| **Payout per pass sold** | Flat payout, spiff and facility fee, each with a reminder of what it means, plus the amount recoverable at expiry and a link to the reports page for the FlexPass Usage Report. |
+| **Where it's sold** | The public purchase page link when the offer is on sale to the public, or **Box office only**. |
+| **Description** | The offer's long description, as patrons see it. |
+
+**Recoverable at expiry if unused** is the price less the flat payout and facility fee (never below zero): the most that can be recovered if a pass expires without any tickets redeemed. Each redemption reduces what is recovered for that pass. See the [FlexPass Usage Report](../reports/flex-pass-reports.md#flexpass-sales).
+
+!!! note "Unknown codes"
+    An **Unknown code** label means a performance listed under **Autofulfill against performances** has been deleted or recoded since the offer was saved. Purchases will fail until the code is corrected or removed -- edit the offer to fix the list.
+
+### Sales & Usage
+
+![Sales and usage tiles above the outstanding passes table on a flex pass offer detail page](../assets/images/screenshots/offers-flex-pass-detail-usage.png)
+
+Four tiles count the offer's passes:
+
+| Tile | Counts |
+|------|--------|
+| **Passes sold** | Every pass ever issued under this offer. |
+| **Outstanding** | Passes still usable: active, not yet expired, and with tickets left. A pass expiring today is still outstanding. |
+| **Expired** | Passes whose expiration date has passed. |
+| **Tickets redeemed** | Tickets redeemed across all passes, out of the total issued (passes sold x tickets per pass). |
+
+When no passes have been sold, the tiles show zero, a note reads "No passes have been sold yet.", and the table below is empty.
+
+The **Outstanding passes** table lists the same passes the **Outstanding** tile counts, soonest-expiring first:
+
+| Column | Shows |
+|--------|-------|
+| **Code** | The pass code. |
+| **Patron** | The pass holder, linked to their address record. |
+| **Order** | The purchase order, linked to the flex pass order. |
+| **Purchased** | Date the pass was issued. |
+| **Expires** | Expiration date. |
+| **Uses remaining** | Tickets still available on the pass. |
+| **Status** | An **Unfulfilled** label when the purchase order has not yet been marked Fulfilled; blank once it has. |
+
+Use the search box to find a pass by code or patron name. Click a column heading to re-sort (Order, Uses remaining and Status cannot be sorted). The patron shown is the one on the purchase order; older passes with no order on record show a dash.
+
+!!! tip "Fully used and cancelled passes"
+    Passes with no tickets left, and cancelled (inactive) passes, are not outstanding and do not appear in the table. They are still counted under **Passes sold**.
+
+The **Edit** button at the bottom opens the offer form; **Create Order** starts a box office sale of the pass and appears only for active offers.
+
+---
+
 ## Managing Flex Pass Offers
 
 - **Deactivate** an offer by unchecking the **Active** checkbox. It moves to the **Inactive** tab, **On Sale to Public** is unchecked along with it, and existing purchased passes remain valid until they expire.

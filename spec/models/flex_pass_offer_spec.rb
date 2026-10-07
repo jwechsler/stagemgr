@@ -298,4 +298,54 @@ RSpec.describe FlexPassOffer, type: :model do
       expect(offer).to be_valid
     end
   end
+
+  describe '#recoverable_at_expiry' do
+    it 'is the price less the flat payout and facility fee' do
+      offer = FactoryBot.build(:flex_pass_offer, price: 25, flat_payout: 10, facility_fee: 2.5, spiff: 4)
+
+      expect(offer.recoverable_at_expiry).to eq(BigDecimal('12.5'))
+    end
+
+    it 'floors at zero' do
+      offer = FactoryBot.build(:flex_pass_offer, price: 0, flat_payout: 10, facility_fee: 2)
+
+      expect(offer.recoverable_at_expiry).to eq(0)
+    end
+
+    it 'treats nil fees as zero' do
+      offer = FactoryBot.build(:flex_pass_offer, price: 25, flat_payout: nil, facility_fee: nil)
+
+      expect(offer.recoverable_at_expiry).to eq(BigDecimal('25'))
+    end
+  end
+
+  describe 'autofulfill helpers' do
+    let(:production) { FactoryBot.create(:production) }
+    let!(:first) { FactoryBot.create(:general_admission, production: production, performance_time: Time.current) }
+    let!(:second) do
+      FactoryBot.create(:general_admission, production: production, performance_time: 30.minutes.from_now)
+    end
+
+    it 'requires unique codes times uses per performance' do
+      offer = FactoryBot.build(:flex_pass_offer, maximum_uses_per_performance: 2,
+                                                 autofulfill_performance_codes: 'ABC01,abc01,DEF02')
+
+      expect(offer.autofulfill_tickets_required).to eq(4)
+    end
+
+    it 'is zero without autofulfill codes or a per-performance cap' do
+      expect(FactoryBot.build(:flex_pass_offer, maximum_uses_per_performance: 2).autofulfill_tickets_required).to eq(0)
+      expect(FactoryBot.build(:flex_pass_offer, autofulfill_performance_codes: 'ABC01').autofulfill_tickets_required)
+        .to eq(0)
+    end
+
+    it 'pairs each code with its performance in list order, nil when unknown' do
+      offer = FactoryBot.build(:flex_pass_offer,
+                               autofulfill_performance_codes: "#{second.performance_code},NOSUCH99,#{first.performance_code}")
+
+      expect(offer.autofulfill_performances_by_code).to eq(
+        [[second.performance_code, second], ['NOSUCH99', nil], [first.performance_code, first]]
+      )
+    end
+  end
 end

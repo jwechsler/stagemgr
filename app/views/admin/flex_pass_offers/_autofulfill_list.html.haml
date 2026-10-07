@@ -1,0 +1,21 @@
+-#
+  Performances each purchase reserves tickets for automatically. A code
+  with no matching performance (e.g. deleted since) is flagged, not linked.
+%p
+  %strong Autofulfills:
+%ul
+  - offer.autofulfill_performances_by_code.each do |code, perf|
+    %li
+      - if perf
+        :ruby
+          production = perf.production
+          date = perf.performance_date.to_formatted_s(:long)
+          time = perf.performance_time.to_formatted_s(:hour_min).lstrip
+        = link_to "#{code} — #{production.name}, #{date} #{time}",
+                  admin_theater_production_performance_path(production.theater, production, perf)
+      - else
+        = code
+        = ui_label('Unknown code', variant: :warning)
+- per_performance = pluralize(offer.maximum_uses_per_performance.to_i, 'ticket')
+%p
+  %small.help-text #{per_performance} each; #{offer.autofulfill_tickets_required} reserved per purchase

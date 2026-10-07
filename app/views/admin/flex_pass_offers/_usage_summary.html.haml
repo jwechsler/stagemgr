@@ -1,0 +1,22 @@
+-# Sales and redemption counts (FlexPassOfferUsage).
+.grid-x.grid-padding-x
+  .small-12.cell
+    %h4 Sales & usage
+- tiles = [['Passes sold', usage.passes_sold],
+           ['Outstanding', usage.outstanding_count],
+           ['Expired', usage.expired_count],
+           ['Tickets redeemed', usage.tickets_redeemed, "of #{usage.tickets_issued} issued"]]
+.grid-x.grid-padding-x
+  - tiles.each do |label, value, note|
+    .small-6.medium-3.cell
+      .callout.text-center.offer-usage
+        .offer-usage__value= value
+        = label
+        - if note
+          %br
+          %small= note
+- unless usage.passes?
+  .grid-x.grid-padding-x
+    .small-12.cell
+      = render 'shared/components/callout', variant: 'secondary' do
+        No passes have been sold yet.

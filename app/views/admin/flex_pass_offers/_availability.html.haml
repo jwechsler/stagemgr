@@ -1,0 +1,9 @@
+-# Whether patrons can buy the pass themselves.
+%h4 Where it's sold
+- if offer.on_sale_to_public?
+  %p
+    %strong Public purchase page:
+    %br
+    = link_to offer.public_purchase_url, offer.public_purchase_url
+- else
+  %p= ui_label('Box office only')

@@ -1,0 +1,46 @@
+-#
+  Outstanding passes (active, unexpired, tickets left), fed by
+  FlexPassOfferPassesDatatable; copies admin/memberships/_redemptions.
+.grid-x.grid-padding-x
+  .small-12.cell
+    %h5 Outstanding passes
+    %table#flex-pass-offer-passes-listing{ 'data-source': admin_flex_pass_offer_path(offer, format: :json) }
+      %thead
+        %tr
+          %th Code
+          %th Patron
+          %th Order
+          %th Purchased
+          %th Expires
+          %th Uses remaining
+          %th Status
+      %tbody
+
+= content_for :js do
+  :javascript
+    jQuery(document).ready(function() {
+      $('#flex-pass-offer-passes-listing').dataTable({
+        stateSave: true,
+        searching: true,
+        order: [[4, "asc"]],
+        columnDefs: [{ orderable: false, targets: [2, 5, 6] }],
+        processing: true,
+        ajax: $('#flex-pass-offer-passes-listing').data('source'),
+        pagingType: 'full_numbers',
+        serverSide: true,
+        language: {
+          lengthMenu: "_MENU_",
+          search: "_INPUT_",
+          emptyTable: "No outstanding passes."
+        },
+        columns: [
+          {data: 'code'},
+          {data: 'patron'},
+          {data: 'order'},
+          {data: 'purchased'},
+          {data: 'expires'},
+          {data: 'uses_remaining'},
+          {data: 'fulfillment'}
+        ]
+      });
+    });
