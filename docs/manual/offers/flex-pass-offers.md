@@ -176,7 +176,7 @@ Each tab has its own search box, column sorting, and paging, so you can filter o
 
 ### Filtering by Outstanding Passes
 
-The **Active** tab has a filter beside its search box:
+The **Active** tab has a filter above its search box:
 
 | Button | Shows |
 |--------|-------|
@@ -187,6 +187,19 @@ The **Active** tab has a filter beside its search box:
 These are the same passes listed under *Outstanding passes* on the offer's detail page. The filter works together with the search box, and your choice is remembered with the tab's other settings.
 
 ![Inactive tab of the flex pass offers list, where rows offer only Edit and Destroy buttons](../assets/images/screenshots/offers-flex-pass-list-inactive-tab.png)
+
+### Selecting Offers and Changing Their Status
+
+Rows on both tabs can be selected the same way as on the Orders list. Click a row (anywhere except its first cell) to select it, Cmd/Ctrl-click to add or remove rows, and Shift-click to select a range. A selection lasts until you change what the table shows: a new search, filter, sort, page, or page size clears it.
+
+Administrators get a button above the table that acts on the selection:
+
+| Tab | Button | Effect |
+|-----|--------|--------|
+| **Active** | **Make Inactive** | Deactivates the selected offers after you confirm. Inactive offers also come off public sale. |
+| **Inactive** | **Make Active** | Reactivates the selected offers. They do not go back on public sale; turn that on per offer if needed. |
+
+The button is greyed out until at least one row is selected. A message above the table reports how many offers changed and lists any that could not be saved, with the reason. Box office users don't see these buttons and change an offer's status from its **Edit** page.
 
 ### Row Actions
 

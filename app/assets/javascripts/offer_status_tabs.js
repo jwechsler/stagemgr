@@ -47,10 +47,16 @@ function initOfferStatusTabs(pageKey) {
 //     Responsive's expand control lives there. Selection survives a reload
 //     of the same view because the datatable sends each row's DT_RowId.
 //   outstandingLabels: {with: '...', without: '...'} -- adds the
-//     All / with / without outstanding filter, right-aligned beside the
-//     search box. Its value goes to the server as the `outstanding` param
-//     (see DatatableBase#filter_by_outstanding) and is kept in the saved
-//     table state.
+//     All / with / without outstanding filter, on its own row right-aligned
+//     above the search box. Its value goes to the server as the
+//     `outstanding` param (see DatatableBase#filter_by_outstanding) and is
+//     kept in the saved table state.
+//   bulkActions: [{text, url, confirm}] -- buttons that act on the selected
+//     rows, right-aligned above the table as Fulfill Selected is on the orders
+//     list (on a row of their own, below the search box) and enabled only
+//     while rows are selected. Each POSTs the selected ids to +url+ (after
+//     confirm(count) returns a question the user accepts, when given) and
+//     expects {updated, failed: [{name, errors}]} back. Needs selectable.
 function initOfferTable(selector, columns, language, tableOptions) {
   var config = tableOptions || {};
   var outstandingLabels = config.outstandingLabels;
@@ -70,9 +76,23 @@ function initOfferTable(selector, columns, language, tableOptions) {
     options.select = { style: 'os', selector: 'td:not(:first-child)' };
   }
 
+  var bulkActions = config.bulkActions || [];
+  // Three rows: the outstanding filter above the length and search controls,
+  // then the bulk action buttons on their own row just above the table, so
+  // narrowing the list and acting on it stay visually apart.
+  options.dom = (outstandingLabels ? '<"offer-outstanding-filter">' : '') + 'lfr' +
+                (bulkActions.length ? '<"offer-bulk-actions"B>' : '') + 'tip';
+  if (bulkActions.length) {
+    options.buttons = bulkActions.map(function (bulkAction) {
+      return {
+        text: bulkAction.text,
+        action: function (e, dt) { runOfferBulkAction(dt, bulkAction); }
+      };
+    });
+  }
+
   if (outstandingLabels) {
     $.extend(options, {
-      "dom": 'lf<"offer-outstanding-filter">rtip',
       "ajax": {
         url: $(selector).data('source'),
         data: function (data) { data.outstanding = outstanding; }
@@ -87,6 +107,63 @@ function initOfferTable(selector, columns, language, tableOptions) {
     buildOutstandingFilter(table, outstandingLabels, function () { return outstanding; },
                            function (value) { outstanding = value; });
   }
+  if (bulkActions.length) {
+    // Lets the stylesheet move the buttons below the paging on phones.
+    $(table.table().container()).addClass('offer-table--bulk-actions');
+    // draw too: rows that leave the page in a server redraw drop out of the
+    // selection without a deselect event.
+    var updateBulkButtons = function () {
+      table.buttons().enable(table.rows({ selected: true }).any());
+    };
+    table.on('select deselect draw', updateBulkButtons);
+    updateBulkButtons();
+  }
+}
+
+// POSTs the selected rows' ids for one bulk action, reports the outcome above
+// the table and redraws every offer table, since changed offers move tabs.
+function runOfferBulkAction(table, bulkAction) {
+  var ids = table.rows({ selected: true }).ids().toArray();
+  if (!ids.length) {
+    return;
+  }
+  if (bulkAction.confirm && !window.confirm(bulkAction.confirm(ids.length))) {
+    return;
+  }
+
+  table.buttons().disable();
+  $.ajax({ url: bulkAction.url, type: 'POST', dataType: 'json', data: { ids: ids } })
+    .done(function (result) {
+      showOfferBulkResult(table, bulkAction, result);
+      $.fn.dataTable.tables({ api: true }).draw(false);
+    })
+    .fail(function () {
+      showOfferBulkResult(table, bulkAction, null);
+      table.buttons().enable();
+    });
+}
+
+// Fills (creating on first use) a status callout above the table. Text only:
+// offer names are user-entered.
+function showOfferBulkResult(table, bulkAction, result) {
+  var $container = $(table.table().container());
+  var $callout = $container.prev('.offer-bulk-result');
+  if (!$callout.length) {
+    $callout = $('<div class="callout small offer-bulk-result" role="status"></div>').insertBefore($container);
+  }
+
+  $callout.removeClass('success warning alert').empty();
+  if (!result) {
+    $callout.addClass('alert').text(bulkAction.text + ' failed. Please reload the page and try again.');
+    return;
+  }
+
+  var noun = result.updated === 1 ? ' offer' : ' offers';
+  $callout.addClass(result.failed.length ? 'warning' : 'success')
+          .append($('<p></p>').text(bulkAction.text + ': ' + result.updated + noun + ' updated.'));
+  result.failed.forEach(function (failure) {
+    $callout.append($('<p></p>').text('Not changed: ' + failure.name + ' (' + failure.errors + ')'));
+  });
 }
 
 // Renders the outstanding filter's button group into the table's toolbar slot

@@ -40,10 +40,26 @@
 
       var offerLanguage = {"lengthMenu": "_MENU_", "search": "_INPUT_"};
 
+      // Bulk status changes are admin-only; box office users edit offers one at a time.
+      var canBulkUpdate = #{can?(:bulk_update, FlexPassOffer) ? 'true' : 'false'};
+      var makeInactive = {
+        text: 'Make Inactive',
+        url: '#{deactivate_selected_admin_flex_pass_offers_path}',
+        confirm: function (count) {
+          return 'Make ' + count + ' offer' + (count === 1 ? '' : 's') + ' inactive? ' +
+                 'Inactive offers also come off public sale.';
+        }
+      };
+      var makeActive = {text: 'Make Active', url: '#{activate_selected_admin_flex_pass_offers_path}'};
+
       initOfferStatusTabs('flex_pass_offers');
       initOfferTable('#active_flex_pass_offer_listing', offerColumns, offerLanguage, {
         selectable: true,
+        bulkActions: canBulkUpdate ? [makeInactive] : [],
         outstandingLabels: {with: 'Outstanding passes', without: 'No outstanding passes'}
       });
-      initOfferTable('#inactive_flex_pass_offer_listing', offerColumns, offerLanguage, {selectable: true});
+      initOfferTable('#inactive_flex_pass_offer_listing', offerColumns, offerLanguage, {
+        selectable: true,
+        bulkActions: canBulkUpdate ? [makeActive] : []
+      });
     });

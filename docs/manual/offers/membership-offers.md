@@ -258,7 +258,7 @@ Each tab has its own search box, column sorting, and paging, so you can filter o
 
 ### Filtering by Active Members
 
-The **Active** tab has a filter beside its search box:
+The **Active** tab has a filter above its search box:
 
 | Button | Shows |
 |--------|-------|
