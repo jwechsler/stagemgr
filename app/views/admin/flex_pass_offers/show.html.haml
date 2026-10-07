@@ -5,21 +5,29 @@
   = render 'shared/components/breadcrumb',
            items: [{ label: 'Flex Pass Offers', path: admin_flex_pass_offers_path }, { label: @flex_pass_offer.name }]
 
-= render 'header', offer: offer
-
+-#
+  Key facts in the left column and rules in tabs, as on the production page;
+  sales and the outstanding passes run full width below.
 .grid-x.grid-padding-x
-  .small-12.medium-6.cell
+  .small-12.medium-8.cell
+    = render 'header', offer: offer
     = render 'patron_terms', offer: offer
-    = render 'payout', offer: offer
-  .small-12.medium-6.cell
-    = render 'redemption_rules', offer: offer
     = render 'availability', offer: offer
-
-- if @flex_pass_offer.description.present?
-  .grid-x.grid-padding-x
-    .small-12.cell
+    - if @flex_pass_offer.description.present?
       %h4 Description
       = display_markdown @flex_pass_offer.description
+
+  .small-12.medium-4.cell
+    %ul.tabs#flex-pass-offer-tabs{ data: { tabs: true } }
+      %li.tabs-title.is-active
+        %a{ href: '#flex-pass-offer-rules', 'aria-selected': 'true' } Redemption Rules
+      %li.tabs-title
+        %a{ href: '#flex-pass-offer-payout' } Payout
+    .tabs-content{ 'data-tabs-content': 'flex-pass-offer-tabs' }
+      .tabs-panel.is-active#flex-pass-offer-rules
+        = render 'redemption_rules', offer: offer
+      .tabs-panel#flex-pass-offer-payout
+        = render 'payout', offer: offer
 
 = render 'usage_summary', offer: offer, usage: @usage
 = render 'passes', offer: offer
