@@ -14,7 +14,6 @@
         %legend Active Memberships
         - active = @address.memberships.select(&:active?)
         = safe_join(active.map { |m| link_to(m.member_code, [:admin, m.membership_order || m]) }, ', ')
-    = link_to 'Issue Membership', new_admin_membership_path(address_id: @address.id), :class=>'tiny button' if can? :create, Membership
     - if @address.is_current_flex_pass_holder?
       %fieldset.fieldset
         %legend Active Flex Passes

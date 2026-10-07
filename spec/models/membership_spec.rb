@@ -268,6 +268,50 @@ RSpec.describe Membership do
     end
   end
 
+  describe '#duration_months' do
+    def membership(**attrs)
+      described_class.new({ status: Membership::CANCELED, member_since: Date.new(2025, 3, 15) }.merge(attrs))
+    end
+
+    around { |example| travel_to(Date.new(2026, 10, 7)) { example.run } }
+
+    it 'counts an active membership through the current date' do
+      expect(membership(status: Membership::ACTIVE).duration_months).to eq(19)
+    end
+
+    it 'counts an active membership through today even when it has an ended_at' do
+      expect(membership(status: Membership::ACTIVE, ended_at: Date.new(2025, 6, 1)).duration_months).to eq(19)
+    end
+
+    it 'counts a closed membership through ended_at' do
+      expect(membership(ended_at: Date.new(2026, 3, 15)).duration_months).to eq(12)
+    end
+
+    {
+      [Date.new(2026, 1, 5), Date.new(2026, 1, 30)] => 1,
+      [Date.new(2026, 1, 15), Date.new(2026, 2, 8)] => 1,
+      [Date.new(2026, 1, 15), Date.new(2026, 2, 15)] => 1,
+      [Date.new(2026, 1, 15), Date.new(2026, 2, 20)] => 2,
+      [Date.new(2026, 1, 15), Date.new(2026, 1, 15)] => 0
+    }.each do |(starts_on, ends_on), months|
+      it "counts a partial month as a full month: #{starts_on} to #{ends_on} is #{months}" do
+        expect(membership(member_since: starts_on, ended_at: ends_on).duration_months).to eq(months)
+      end
+    end
+
+    it 'is 0 when the end is before the start' do
+      expect(membership(member_since: Date.new(2026, 3, 1), ended_at: Date.new(2026, 1, 20)).duration_months).to eq(0)
+    end
+
+    it 'starts from the Stripe start_date when present' do
+      expect(membership(start_date: Date.new(2025, 9, 15), ended_at: Date.new(2026, 3, 15)).duration_months).to eq(6)
+    end
+
+    it 'is nil when an inactive membership has no end date' do
+      expect(membership(status: Membership::PENDING).duration_months).to be_nil
+    end
+  end
+
   describe '#patron_member_since_year' do
     let(:address) { FactoryBot.create(:address) }
     let(:offer)   { FactoryBot.create(:membership_offer) }

@@ -1,6 +1,7 @@
 // Shared behavior for the admin offer index pages (Special Offers,
 // Membership Offers, Flex Pass Offers), which all present an Active and an
 // Inactive tab (#offer-status-tabs) with one server-side datatable per panel.
+// datatableChoiceFilter, at the end, is also used by the memberships list.
 //
 // Call from the page's ready handler BEFORE initializing the datatables, so a
 // restored tab is already visible when its table lays out:
@@ -60,7 +61,6 @@ function initOfferStatusTabs(pageKey) {
 function initOfferTable(selector, columns, language, tableOptions) {
   var config = tableOptions || {};
   var outstandingLabels = config.outstandingLabels;
-  var outstanding = '';
   var options = {
     "processing": true,
     "serverSide": true,
@@ -80,8 +80,7 @@ function initOfferTable(selector, columns, language, tableOptions) {
   // Three rows: the outstanding filter above the length and search controls,
   // then the bulk action buttons on their own row just above the table, so
   // narrowing the list and acting on it stay visually apart.
-  options.dom = (outstandingLabels ? '<"offer-outstanding-filter">' : '') + 'lfr' +
-                (bulkActions.length ? '<"offer-bulk-actions"B>' : '') + 'tip';
+  options.dom = 'lfr' + (bulkActions.length ? '<"offer-bulk-actions"B>' : '') + 'tip';
   if (bulkActions.length) {
     options.buttons = bulkActions.map(function (bulkAction) {
       return {
@@ -91,21 +90,19 @@ function initOfferTable(selector, columns, language, tableOptions) {
     });
   }
 
-  if (outstandingLabels) {
-    $.extend(options, {
-      "ajax": {
-        url: $(selector).data('source'),
-        data: function (data) { data.outstanding = outstanding; }
-      },
-      stateSaveParams: function (settings, data) { data.outstanding = outstanding; },
-      stateLoadParams: function (settings, data) { outstanding = data.outstanding || ''; }
-    });
+  var outstandingFilter = outstandingLabels && datatableChoiceFilter({
+    param: 'outstanding',
+    choices: [['', 'All'], ['with', outstandingLabels.with], ['without', outstandingLabels.without]],
+    ariaLabel: 'Filter by outstanding',
+    slotClass: 'offer-outstanding-filter'
+  });
+  if (outstandingFilter) {
+    options = outstandingFilter.configure(options);
   }
 
   var table = $(selector).DataTable(options);
-  if (outstandingLabels) {
-    buildOutstandingFilter(table, outstandingLabels, function () { return outstanding; },
-                           function (value) { outstanding = value; });
+  if (outstandingFilter) {
+    outstandingFilter.attach(table);
   }
   if (bulkActions.length) {
     // Lets the stylesheet move the buttons below the paging on phones.
@@ -166,32 +163,65 @@ function showOfferBulkResult(table, bulkAction, result) {
   });
 }
 
-// Renders the outstanding filter's button group into the table's toolbar slot
-// and redraws the table when a choice is made.
-function buildOutstandingFilter(table, labels, getValue, setValue) {
-  var choices = [['', 'All'], ['with', labels.with], ['without', labels.without]];
-  var $group = $('<div class="button-group tiny" role="group" aria-label="Filter by outstanding"></div>');
+// A button-group filter for a server-side datatable, rendered on its own row
+// right-aligned above the search box (see datatables.scss). The chosen value
+// goes to the server as +param+ on every request and is kept in the saved
+// table state. Build the DataTable options, pass them through configure, then
+// attach the filter to the new table:
+//
+//   var filter = datatableChoiceFilter({
+//     param: 'status', choices: [['', 'All'], ['Active', 'Active']],
+//     ariaLabel: 'Filter by status', slotClass: 'table-choice-filter'
+//   });
+//   filter.attach($(selector).DataTable(filter.configure(options)));
+function datatableChoiceFilter(filterOptions) {
+  var param = filterOptions.param;
+  var choices = filterOptions.choices;
+  var value = '';
 
-  choices.forEach(function (choice) {
-    $('<button type="button" class="button"></button>')
-      .attr('data-outstanding', choice[0])
-      .text(choice[1])
-      .appendTo($group);
-  });
+  function isChoice(candidate) {
+    return choices.some(function (choice) { return choice[0] === candidate; });
+  }
 
-  function markSelected() {
-    $group.find('button').each(function () {
-      var isSelected = $(this).attr('data-outstanding') === getValue();
-      $(this).toggleClass('hollow', !isSelected).attr('aria-pressed', isSelected ? 'true' : 'false');
+  function configure(options) {
+    var source = options.ajax;
+    var url = typeof source === 'string' ? source : source.url;
+    return $.extend({}, options, {
+      dom: '<"' + filterOptions.slotClass + '">' + (options.dom || 'lfrtip'),
+      ajax: { url: url, data: function (data) { data[param] = value; } },
+      stateSaveParams: function (settings, data) { data[param] = value; },
+      // A saved value that is no longer offered falls back to All.
+      stateLoadParams: function (settings, data) { value = isChoice(data[param]) ? data[param] : ''; }
     });
   }
 
-  $group.on('click', 'button', function () {
-    setValue($(this).attr('data-outstanding'));
-    markSelected();
-    table.draw();
-  });
+  function attach(table) {
+    var $group = $('<div class="button-group tiny" role="group"></div>')
+      .attr('aria-label', filterOptions.ariaLabel);
 
-  markSelected();
-  $(table.table().container()).find('div.offer-outstanding-filter').append($group);
+    choices.forEach(function (choice) {
+      $('<button type="button" class="button"></button>')
+        .attr('data-' + param, choice[0])
+        .text(choice[1])
+        .appendTo($group);
+    });
+
+    function markSelected() {
+      $group.find('button').each(function () {
+        var isSelected = $(this).attr('data-' + param) === value;
+        $(this).toggleClass('hollow', !isSelected).attr('aria-pressed', isSelected ? 'true' : 'false');
+      });
+    }
+
+    $group.on('click', 'button', function () {
+      value = $(this).attr('data-' + param);
+      markSelected();
+      table.draw();
+    });
+
+    markSelected();
+    $(table.table().container()).find('div.' + filterOptions.slotClass).append($group);
+  }
+
+  return { configure: configure, attach: attach };
 }

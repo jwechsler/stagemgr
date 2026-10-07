@@ -7,8 +7,11 @@ class MembershipDecorator < ApplicationDecorator
     h.link_to(object.member_code, [:admin, object])
   end
 
+  # The offer name followed by its type labels (Production, Timed, Prepaid),
+  # styled as on the membership offers list. safe_join escapes the name.
   def offer_label
-    "#{object.membership_offer.name} (#{object.membership_offer.membership_type})"
+    offer = object.membership_offer
+    h.safe_join([offer.name, offer.decorate.membership_type_display], ' ')
   end
 
   def member_name

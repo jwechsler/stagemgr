@@ -56,11 +56,13 @@ table.dataTable thead .sorting_desc_disabled {
   background-image: image-url("datatables/sort_desc_disabled.png");
 }
 
-// Outstanding filter on the admin offer index tables (initOfferTable): its own
-// row above the length and search controls, right-aligned over the search box,
-// so filtering reads as part of searching and stays apart from the bulk action
-// buttons below.
-.dataTables_wrapper .offer-outstanding-filter {
+// Button-group filters (datatableChoiceFilter): the outstanding filter on the
+// admin offer index tables and the status filter on the memberships list. Its
+// own row above the length and search controls, right-aligned over the search
+// box, so filtering reads as part of searching and stays apart from the bulk
+// action buttons below.
+.dataTables_wrapper .offer-outstanding-filter,
+.dataTables_wrapper .table-choice-filter {
   margin-bottom: 0.5rem;
 
   .button-group {
