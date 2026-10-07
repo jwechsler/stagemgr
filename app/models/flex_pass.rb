@@ -9,8 +9,8 @@ class FlexPass < ApplicationRecord
 
   # Tickets redeemed against each pass, as a correlated subquery so the
   # relation stays ungrouped (ajax-datatables-rails counts with count(:all),
-  # which a GROUP BY turns into a Hash). The type is pinned because
-  # Payment.descendants makes FlexPassPayment scopes match every payment type.
+  # which a GROUP BY turns into a Hash). Raw SQL gets no STI condition, so
+  # the type is spelled out: an ExchangePayment can carry a flex_pass_id too.
   TICKETS_REDEEMED_SQL = <<~SQL.squish.freeze
     (SELECT COALESCE(SUM(payments.number_of_tickets), 0) FROM payments
      WHERE payments.flex_pass_id = flex_passes.id

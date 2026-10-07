@@ -24,11 +24,8 @@ class FlexPassOfferUsage
     passes_sold * offer.number_of_tickets.to_i
   end
 
-  # Pin the STI type: Payment.descendants makes FlexPassPayment scopes match
-  # every payment type.
   def tickets_redeemed
-    @tickets_redeemed ||= FlexPassPayment.where(type: FlexPassPayment.sti_name,
-                                                flex_pass_id: offer.flex_passes.select(:id))
+    @tickets_redeemed ||= FlexPassPayment.where(flex_pass_id: offer.flex_passes.select(:id))
                                          .sum(:number_of_tickets)
   end
 
