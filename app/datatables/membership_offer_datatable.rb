@@ -19,7 +19,7 @@ class MembershipOfferDatatable < DatatableBase
         on_sale: record.decorate.on_sale?,
         membership_type: record.decorate.membership_type_display,
         status: record.decorate.dt_actions,
-        DT_RowID: record.id
+        DT_RowId: record.id
       }
     end
   end

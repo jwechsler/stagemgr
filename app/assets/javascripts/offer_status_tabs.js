@@ -6,7 +6,7 @@
 // restored tab is already visible when its table lays out:
 //
 //   initOfferStatusTabs('flex_pass_offers');
-//   initOfferTable('#active_flex_pass_offer_listing', columns, language);
+//   initOfferTable('#active_flex_pass_offer_listing', columns, language, {selectable: true});
 //   initOfferTable('#inactive_flex_pass_offer_listing', columns, language);
 
 // Restores the last tab the user selected on this page (sticky for the
@@ -41,11 +41,19 @@ function initOfferStatusTabs(pageKey) {
 // Standard server-side datatable configuration shared by the offer index
 // tables. Column definitions and language quirks stay with each page.
 //
-// Pass outstandingLabels ({with: '...', without: '...'}) to add the
-// All / with / without outstanding filter, right-aligned beside the search
-// box. Its value goes to the server as the `outstanding` param (see
-// DatatableBase#filter_by_outstanding) and is kept in the saved table state.
-function initOfferTable(selector, columns, language, outstandingLabels) {
+// Options:
+//   selectable: true -- rows select as on the orders list: click one,
+//     Cmd/Ctrl- or Shift-click for more. The first cell is excluded because
+//     Responsive's expand control lives there. Selection survives redraws
+//     because the datatable sends each row's DT_RowId.
+//   outstandingLabels: {with: '...', without: '...'} -- adds the
+//     All / with / without outstanding filter, right-aligned beside the
+//     search box. Its value goes to the server as the `outstanding` param
+//     (see DatatableBase#filter_by_outstanding) and is kept in the saved
+//     table state.
+function initOfferTable(selector, columns, language, tableOptions) {
+  var config = tableOptions || {};
+  var outstandingLabels = config.outstandingLabels;
   var outstanding = '';
   var options = {
     "processing": true,
@@ -56,6 +64,18 @@ function initOfferTable(selector, columns, language, outstandingLabels) {
     "language": language,
     columns: columns
   };
+
+  if (config.selectable) {
+    options.select = { style: 'os', selector: 'td:not(:first-child)' };
+    // Safari extends the page's text selection on a Shift mousedown, and the
+    // Shift-click range select then never happens (Chrome is unaffected).
+    // Cancelling that default leaves the click to Select.
+    $(selector).on('mousedown', 'tbody td:not(:first-child)', function (e) {
+      if (e.shiftKey) {
+        e.preventDefault();
+      }
+    });
+  }
 
   if (outstandingLabels) {
     $.extend(options, {

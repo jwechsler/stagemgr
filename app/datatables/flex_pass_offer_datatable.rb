@@ -21,7 +21,7 @@ class FlexPassOfferDatatable < DatatableBase
         public: flex_pass_offer.decorate.on_sale_to_public?,
         restrictions: flex_pass_offer.decorate.restrictions,
         actions: flex_pass_offer.decorate.dt_actions,
-        DT_RowID: flex_pass_offer.id
+        DT_RowId: flex_pass_offer.id
       }
     end
   end

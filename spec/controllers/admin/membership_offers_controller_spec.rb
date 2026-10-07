@@ -89,6 +89,14 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
         expect(row['membership_type']).to include('>Timed<')
       end
 
+      # DataTables reads DT_RowId (exact case) as the row id; Select needs it
+      # to keep rows selected across server-side redraws.
+      it 'identifies each row by DT_RowId' do
+        get :index, params: datatable_params(status_scope: 'active'), format: :json
+
+        expect(response.parsed_body['data'].pluck('DT_RowId').map(&:to_s)).to include(active_offer.id.to_s)
+      end
+
       context 'with the outstanding filter' do
         before do
           FactoryBot.create(:membership, membership_offer: active_offer)
