@@ -30,7 +30,7 @@ class Admin::UsersController < Admin::ApplicationController
   end
 
   def update
-    @user.update(user_params)
+    @user.update(update_params)
     if @user.save
       flash[:notice] = 'Account updated!'
       redirect_to admin_users_path
@@ -56,5 +56,16 @@ class Admin::UsersController < Admin::ApplicationController
 
   def user_params
     params.require(:user).permit(:email, :password, :status, :is_administrator, :is_box_office_user, theater_ids: [])
+  end
+
+  # The form lists only active theaters, to keep the list short, so a user's
+  # links to inactive theaters are never submitted. Keep them rather than let
+  # saving the form drop a historical link.
+  def update_params
+    permitted = user_params
+    return permitted unless permitted.key?(:theater_ids)
+
+    inactive_ids = @user.theaters.where.not(status: Theater::ACTIVE).ids
+    permitted.merge(theater_ids: permitted[:theater_ids].compact_blank.map(&:to_i) | inactive_ids)
   end
 end
