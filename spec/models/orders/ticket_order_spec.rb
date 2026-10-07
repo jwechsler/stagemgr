@@ -1515,4 +1515,34 @@ RSpec.describe TicketOrder do
       expect(order.contains_printable_tickets?).to be false
     end
   end
+
+  describe '#all_tickets_complimentary?' do
+    let(:order) { FactoryBot.create(:ticket_order, :for_three_tickets, :paid_with_cash) }
+    let(:ticket_classes) { order.ticket_line_items.map(&:ticket_class).uniq }
+
+    it 'is true when every ticket class on the order is complimentary' do
+      ticket_classes.each { |tc| tc.update_column(:complimentary, true) }
+
+      expect(order.reload.all_tickets_complimentary?).to be true
+    end
+
+    # Regression: this was true when any ticket was complimentary, so a mixed
+    # order was filed as a comp buyer on the mailing lists.
+    it 'is false when only some of the tickets are complimentary' do
+      expect(ticket_classes.size).to eq(2)
+      ticket_classes.first.update_column(:complimentary, true)
+
+      expect(order.reload.all_tickets_complimentary?).to be false
+    end
+
+    it 'is false when no ticket is complimentary' do
+      expect(order.all_tickets_complimentary?).to be false
+    end
+
+    it 'is false for an order with no tickets' do
+      order.ticket_line_items.destroy_all
+
+      expect(order.reload.all_tickets_complimentary?).to be false
+    end
+  end
 end

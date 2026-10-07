@@ -415,11 +415,14 @@ end
     end
   end
 
-  ##
-  # Check if there is any ticket line item whose ticket class is not complementary
-
+  # True only when every ticket on the order is on a complimentary ticket
+  # class. The mailing lists file such orders as comp buyers and a refund of
+  # one sends no box-office alert. Until 2026-10 this was true when *any*
+  # ticket was complimentary, so a mixed order (one comp, one paid) counted as
+  # a comp buyer. An order with no tickets is not complimentary.
   def all_tickets_complimentary?
-    ticket_line_items.joins(:ticket_class).where.not(ticket_classes: { complimentary: false }).exists?
+    flags = ticket_line_items.joins(:ticket_class).pluck('ticket_classes.complimentary')
+    flags.any? && flags.all?
   end
 
   def number_of_tickets
@@ -1036,8 +1039,11 @@ end
     super
   end
 
+  # Asks the box office to destroy the printed tickets of a refunded fulfilled
+  # order. An all-comp order is skipped. A $0 payment is not the test: tickets
+  # paid by a third party book $0 at sale time and still get the alert.
   def create_notify_refund_task
-    unless Rails.configuration.x.email_address.nil? || !do_not_create_tasks.nil?
+    unless Rails.configuration.x.email_address.nil? || !do_not_create_tasks.nil? || all_tickets_complimentary?
       tasks << NotificationTask.new(:execute_at => Time.now, :notifications => [Rails.configuration.x.email_address['box_office'], Rails.configuration.x.email_address['supervisor_notifications']].join(','),
                                     :method_symbol => :refunded_fulfilled_item_alert)
     end
