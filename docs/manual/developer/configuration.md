@@ -112,7 +112,7 @@ a variable was unset fails loudly instead.
 | `RAILS_ENV` | `development`, `test` or `production` |
 | `SECRET_KEY_BASE` | Session/cookie signing key. `rake setup:secret_key_base` fills it in; `bundle exec rails secret` generates one by hand |
 | `RAILS_MASTER_KEY` | Alternative to shipping `config/master.key`/`config/credentials/<env>.key` as a file. See [Credentials](credentials.md) |
-| `STAGEMGR_SUB_URI` | Sub-path the app is mounted at, e.g. `/tickets`. Compose passes it through as `RAILS_RELATIVE_URL_ROOT`; it must agree with `server.yml`'s `sub_uri` |
+| `STAGEMGR_SUB_URI` | Sub-path the app is mounted at, e.g. `/tickets`. Compose passes it through as `RAILS_RELATIVE_URL_ROOT`. Optional: `server.yml`'s `sub_uri` fills the setting when the variable is absent, and the two must agree when both are set |
 | `RAILS_SERVE_STATIC_FILES` | Serve `public/` from Rails instead of from Nginx/Apache |
 | `RAILS_LOG_TO_STDOUT` | Log to stdout for a container or journald log driver |
 | `RAILS_MAX_THREADS`, `WEB_CONCURRENCY`, `PORT` | Puma only; the Docker image runs Passenger |

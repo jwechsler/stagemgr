@@ -120,14 +120,20 @@ Outside production it starts a single worker on `QUEUE=*`, honouring whatever
 
 ### Serving under a sub-path
 
-Theater Wit serves the app at `/tickets` under a marketing site. Three things
-must agree:
+Theater Wit integrates the app into the theater's full web site, mapped to the
+sub-URI `/tickets`. Two things must agree:
 
 | Where | Value |
 |---|---|
 | `config/server.yml` | `sub_uri: "/tickets"` |
-| The process environment | `RAILS_RELATIVE_URL_ROOT=/tickets` (Passenger sets this from `passenger_base_uri`; Compose passes `STAGEMGR_SUB_URI` through) |
 | The web server | `passenger_base_uri /tickets`, as `docker/nginx.foundation.conf` does |
+
+`config/application.rb` fills `config.relative_url_root` from `sub_uri`
+whenever `RAILS_RELATIVE_URL_ROOT` is absent from the process environment, so
+`bin/deploy`'s `assets:precompile` and the Resque workers see the mount point
+without any shell setup. Passenger still exports the variable from
+`passenger_base_uri`, and Compose passes `STAGEMGR_SUB_URI` through as it; when
+the variable is set it wins, so keep it in agreement with `sub_uri`.
 
 `sub_uri` is passed to ActionMailer as `:script_name` rather than being folded
 into `:host`. Route helpers only know about the mount when the process exports

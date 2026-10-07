@@ -26,8 +26,10 @@ all:
   # standalone install: it is folded into every mailed URL, so a stray "/tickets"
   # here sends patrons to a 404. Set it to "/tickets" only when the web server
   # actually mounts the app there (e.g. behind a separately built marketing
-  # site — see docker/nginx.foundation.conf), and keep it in agreement with
-  # RAILS_RELATIVE_URL_ROOT / STAGEMGR_SUB_URI.
+  # site — see docker/nginx.foundation.conf). It also sets Rails'
+  # relative_url_root (asset URLs, assets:precompile) whenever
+  # RAILS_RELATIVE_URL_ROOT / STAGEMGR_SUB_URI is absent from the environment;
+  # when that variable is set it wins, so keep the two in agreement.
   sub_uri:
   # required protocol
   host_protocol: "https"
