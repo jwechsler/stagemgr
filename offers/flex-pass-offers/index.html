@@ -1623,6 +1623,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#the-offer-detail-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Offer Detail Page
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Offer Detail Page">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#status-labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status Labels
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#page-sections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page Sections
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sales-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sales &amp; Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#managing-flex-pass-offers" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4287,7 +4337,7 @@
 </tr>
 <tr>
 <td><strong>On Sale to Public</strong></td>
-<td>Whether the offer appears on the public-facing website. When unchecked, the pass can only be sold through the box office.</td>
+<td>Whether the offer appears on the public-facing website. When unchecked, the pass can only be sold through the box office. Checking it also makes the offer active.</td>
 </tr>
 </tbody>
 </table>
@@ -4511,9 +4561,157 @@ price after facility fee, flat payout and redemptions is recovered when the pass
 <p>An offer can show several labels at once -- for example, a festival pass restricted to one theater with both redemption caps set:</p>
 <p><img alt="Flex pass offers list filtered to festival passes, showing theater-restriction and Max-per-production/performance labels together" src="../../assets/images/screenshots/offers-flex-pass-caps-labels.png" /></p>
 <hr />
+<h2 id="the-offer-detail-page">The Offer Detail Page<a class="headerlink" href="#the-offer-detail-page" title="Permanent link">&para;</a></h2>
+<p>Click an offer's name in the Flex Pass Offers list to open its detail page. It gathers everything about the offer in one place: what the patron gets, how the pass may be redeemed, how its price splits for settlement, where it is sold, and how many passes are out there.</p>
+<p><img alt="Flex pass offer detail page showing status labels, What the patron gets, Redemption rules, Payout per pass sold and Where it's sold" src="../../assets/images/screenshots/offers-flex-pass-detail.png" /></p>
+<h3 id="status-labels">Status Labels<a class="headerlink" href="#status-labels" title="Permanent link">&para;</a></h3>
+<p>Labels under the offer name summarize its state at a glance:</p>
+<table>
+<thead>
+<tr>
+<th>Label</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Green <strong>Active</strong> / Red <strong>Inactive</strong></td>
+<td>Whether the offer can currently be purchased and redeemed.</td>
+</tr>
+<tr>
+<td>Blue <strong>On sale to public</strong></td>
+<td>Patrons can buy the pass themselves on the public website.</td>
+</tr>
+<tr>
+<td>Grey <strong>Box office only</strong></td>
+<td>The pass can only be sold through the box office.</td>
+</tr>
+<tr>
+<td><strong>Festival pass</strong></td>
+<td>Redemption is restricted to a festival (<strong>Restrict to festival</strong>).</td>
+</tr>
+<tr>
+<td><strong>Autofulfill</strong></td>
+<td>Purchases automatically reserve tickets for listed performances.</td>
+</tr>
+</tbody>
+</table>
+<p>The short description and any tags appear beneath the labels.</p>
+<h3 id="page-sections">Page Sections<a class="headerlink" href="#page-sections" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>What the patron gets</strong></td>
+<td>Price; number of tickets and the ticket class they are redeemed as; how long after purchase the pass expires; and the pass code format -- the <strong>Code Prefix</strong> followed by six random characters (shown as <code>X</code>s).</td>
+</tr>
+<tr>
+<td><strong>Redemption rules</strong></td>
+<td>Maximum tickets per production and per performance ("No limit" when blank or 0); which theaters accept the pass ("Any theater", "Only [Theater]" or "All but [Theater]"); the festival it is restricted to, linked to the festival, or "Any"; and whether it is redeemed immediately at purchase. Autofulfilling offers also list each performance, linked to the performance page, with how many tickets each purchase reserves. A code that no longer matches a performance is flagged <strong>Unknown code</strong>.</td>
+</tr>
+<tr>
+<td><strong>Payout per pass sold</strong></td>
+<td>Flat payout, spiff and facility fee, each with a reminder of what it means, plus the amount recoverable at expiry and a link to the reports page for the FlexPass Usage Report.</td>
+</tr>
+<tr>
+<td><strong>Where it's sold</strong></td>
+<td>The public purchase page link when the offer is on sale to the public, or <strong>Box office only</strong>.</td>
+</tr>
+<tr>
+<td><strong>Description</strong></td>
+<td>The offer's long description, as patrons see it.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recoverable at expiry if unused</strong> is the price less the flat payout and facility fee (never below zero): the most that can be recovered if a pass expires without any tickets redeemed. Each redemption reduces what is recovered for that pass. See the <a href="../../reports/flex-pass-reports/#flexpass-sales">FlexPass Usage Report</a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Unknown codes</p>
+<p>An <strong>Unknown code</strong> label means a performance listed under <strong>Autofulfill against performances</strong> has been deleted or recoded since the offer was saved. Purchases will fail until the code is corrected or removed -- edit the offer to fix the list.</p>
+</div>
+<h3 id="sales-usage">Sales &amp; Usage<a class="headerlink" href="#sales-usage" title="Permanent link">&para;</a></h3>
+<p><img alt="Sales and usage tiles above the outstanding passes table on a flex pass offer detail page" src="../../assets/images/screenshots/offers-flex-pass-detail-usage.png" /></p>
+<p>Four tiles count the offer's passes:</p>
+<table>
+<thead>
+<tr>
+<th>Tile</th>
+<th>Counts</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Passes sold</strong></td>
+<td>Every pass ever issued under this offer.</td>
+</tr>
+<tr>
+<td><strong>Outstanding</strong></td>
+<td>Passes still usable: active, not yet expired, and with tickets left. A pass expiring today is still outstanding.</td>
+</tr>
+<tr>
+<td><strong>Expired</strong></td>
+<td>Passes whose expiration date has passed.</td>
+</tr>
+<tr>
+<td><strong>Tickets redeemed</strong></td>
+<td>Tickets redeemed across all passes, out of the total issued (passes sold x tickets per pass).</td>
+</tr>
+</tbody>
+</table>
+<p>When no passes have been sold, the tiles show zero, a note reads "No passes have been sold yet.", and the table below is empty.</p>
+<p>The <strong>Outstanding passes</strong> table lists the same passes the <strong>Outstanding</strong> tile counts, soonest-expiring first:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Code</strong></td>
+<td>The pass code.</td>
+</tr>
+<tr>
+<td><strong>Patron</strong></td>
+<td>The pass holder, linked to their address record.</td>
+</tr>
+<tr>
+<td><strong>Order</strong></td>
+<td>The purchase order, linked to the flex pass order.</td>
+</tr>
+<tr>
+<td><strong>Purchased</strong></td>
+<td>Date the pass was issued.</td>
+</tr>
+<tr>
+<td><strong>Expires</strong></td>
+<td>Expiration date.</td>
+</tr>
+<tr>
+<td><strong>Uses remaining</strong></td>
+<td>Tickets still available on the pass.</td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td>An <strong>Unfulfilled</strong> label when the purchase order has not yet been marked Fulfilled; blank once it has.</td>
+</tr>
+</tbody>
+</table>
+<p>Use the search box to find a pass by code or patron name. Click a column heading to re-sort (Order, Uses remaining and Status cannot be sorted). The patron shown is the one on the purchase order; older passes with no order on record show a dash.</p>
+<div class="admonition tip">
+<p class="admonition-title">Fully used and cancelled passes</p>
+<p>Passes with no tickets left, and cancelled (inactive) passes, are not outstanding and do not appear in the table. They are still counted under <strong>Passes sold</strong>.</p>
+</div>
+<p>The <strong>Edit</strong> button at the bottom opens the offer form; <strong>Create Order</strong> starts a box office sale of the pass and appears only for active offers.</p>
+<hr />
 <h2 id="managing-flex-pass-offers">Managing Flex Pass Offers<a class="headerlink" href="#managing-flex-pass-offers" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Deactivate</strong> an offer by unchecking the <strong>Active</strong> checkbox. It moves to the <strong>Inactive</strong> tab, and existing purchased passes remain valid until they expire.</li>
+<li><strong>Deactivate</strong> an offer by unchecking the <strong>Active</strong> checkbox. It moves to the <strong>Inactive</strong> tab, <strong>On Sale to Public</strong> is unchecked along with it, and existing purchased passes remain valid until they expire.</li>
 <li><strong>Remove from public sale</strong> by unchecking <strong>On Sale to Public</strong> while keeping the offer active for box office sales.</li>
 <li>Changes to an offer (price, number of tickets) apply only to future purchases and do not affect already-sold passes.</li>
 </ul>
