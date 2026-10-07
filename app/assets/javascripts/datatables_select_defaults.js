@@ -26,3 +26,44 @@ $(document).on('mousedown', 'table.dataTable > tbody > tr > td', function (e) {
     e.preventDefault();
   }
 });
+
+// A selection lasts until the user changes what they are looking at. With
+// server-side processing only the current page's rows exist in the browser:
+// after a redraw Select re-selects the rows that come back and silently
+// drops the rest, so a new search, filter, sort, page or page size would
+// leave a partial selection. Instead, when the request for the new page
+// differs from the last one in anything but its draw counter, the whole
+// selection is cleared once the page has drawn. A reload of the same view
+// (e.g. after Fulfill Selected) keeps it.
+//
+// These handlers are on document, so they run after Select's own
+// table-level preXhr/draw handlers (which re-select the returning rows).
+var SELECT_IGNORED_REQUEST_KEYS = ['draw', '_'];
+
+function selectViewKey(data) {
+  var view = $.extend({}, data);
+  SELECT_IGNORED_REQUEST_KEYS.forEach(function (key) { delete view[key]; });
+  return JSON.stringify(view);
+}
+
+function usesMouseSelect(settings) {
+  var api = new $.fn.dataTable.Api(settings);
+  return api.select && api.select.style() !== 'api';
+}
+
+$(document).on('preXhr.dt', function (e, settings, data) {
+  if (!usesMouseSelect(settings)) {
+    return;
+  }
+
+  var key = selectViewKey(data);
+  settings._selectViewChanged = settings._selectViewKey !== undefined && settings._selectViewKey !== key;
+  settings._selectViewKey = key;
+});
+
+$(document).on('draw.dt', function (e, settings) {
+  if (settings._selectViewChanged) {
+    settings._selectViewChanged = false;
+    new $.fn.dataTable.Api(settings).rows({ selected: true }).deselect();
+  }
+});

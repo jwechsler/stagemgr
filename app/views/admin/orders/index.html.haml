@@ -100,7 +100,9 @@
      });
 
      update_buttons(oListing);
-     oListing.on('select deselect', function() {
+     // draw too: rows that leave the page in a server redraw drop out of the
+     // selection without a deselect event.
+     oListing.on('select deselect draw', function() {
        update_buttons(oListing);
      });
 
