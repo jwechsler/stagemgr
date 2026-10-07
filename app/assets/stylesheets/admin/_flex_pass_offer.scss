@@ -4,3 +4,8 @@
   font-weight: bold;
   line-height: 1.2;
 }
+
+/* The public purchase link sits in the narrow left column; let it wrap. */
+.offer-purchase-url {
+  overflow-wrap: anywhere;
+}

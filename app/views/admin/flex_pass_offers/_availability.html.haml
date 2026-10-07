@@ -4,6 +4,6 @@
   %p
     %strong Public purchase page:
     %br
-    = link_to offer.public_purchase_url, offer.public_purchase_url
+    = link_to offer.public_purchase_url, offer.public_purchase_url, class: 'offer-purchase-url'
 - else
   %p= ui_label('Box office only')

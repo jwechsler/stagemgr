@@ -227,7 +227,7 @@ An offer can show several labels at once -- for example, a festival pass restric
 
 Click an offer's name in the Flex Pass Offers list to open its detail page. It gathers everything about the offer in one place: what the patron gets, how the pass may be redeemed, how its price splits for settlement, where it is sold, and how many passes are out there.
 
-![Flex pass offer detail page showing status labels, What the patron gets, Redemption rules, Payout per pass sold and Where it's sold](../assets/images/screenshots/offers-flex-pass-detail.png)
+![Flex pass offer detail page: status labels, What the patron gets, Where it's sold and the description on the left; Redemption Rules and Payout tabs on the right](../assets/images/screenshots/offers-flex-pass-detail.png)
 
 ### Status Labels
 
@@ -244,6 +244,10 @@ Labels under the offer name summarize its state at a glance:
 The short description and any tags appear beneath the labels.
 
 ### Page Sections
+
+The left column holds what the patron gets, where the pass is sold and the description. **Redemption rules** and **Payout per pass sold** are tabs on the right (**Redemption Rules** and **Payout**). **Sales & Usage** and the outstanding passes table run full width below.
+
+![The Payout tab of a flex pass offer detail page](../assets/images/screenshots/offers-flex-pass-detail-payout.png)
 
 | Section | Shows |
 |---------|-------|
