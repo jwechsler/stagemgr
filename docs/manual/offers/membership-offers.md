@@ -256,6 +256,18 @@ The offers list is divided into two tabs:
 
 Each tab has its own search box, column sorting, and paging, so you can filter one list without affecting the other. The searches and sort order you set are remembered separately per tab, and the tab you last viewed stays selected when you return to the page during the same browser session.
 
+### Filtering by Active Members
+
+The **Active** tab has a filter above its search box:
+
+| Button | Shows |
+|--------|-------|
+| **All** | Every active offer (the default). |
+| **Active members** | Offers that at least one membership with `Active` status still belongs to. |
+| **No active members** | Offers with no `Active` memberships -- candidates to retire. |
+
+Canceled, Suspended, Pending and Expired memberships do not count. The filter works together with the search box, and your choice is remembered with the tab's other settings.
+
 ![Inactive tab of the membership offers list, where rows offer only Edit and Usage buttons](../assets/images/screenshots/offers-membership-list-inactive-tab.png)
 
 ### Row Actions

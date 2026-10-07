@@ -169,6 +169,8 @@ Rails.application.routes.draw do
 
     resources :flex_pass_offers do
       collection do
+        post :activate_selected
+        post :deactivate_selected
         get :autocomplete_tag
         get :search
         get :resolve_group

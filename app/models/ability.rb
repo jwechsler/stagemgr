@@ -97,6 +97,7 @@ class Ability
     can :cru, FlexPassOrder
     can :manage, TicketClass
     can :manage, FlexPassOffer
+    cannot :bulk_update, FlexPassOffer # Make Active/Inactive on a selection: admins only (granted below)
     can %i[read cru], Festival
     can :view_email, Address
     can %i[box_office_reports house_management_reports membership_reports reconciliation_reports], Report
@@ -144,5 +145,6 @@ class Ability
     can %i[membership_reports fulfill_donations mine_customer_data], Report
     can :manage, DefaultTicketClass
     can :manage, ResourcedTicketClass
+    can :bulk_update, FlexPassOffer
   end
 end

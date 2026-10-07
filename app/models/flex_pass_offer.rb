@@ -12,6 +12,11 @@ class FlexPassOffer < ApplicationRecord
   # boolean active attribute and stays parallel with SpecialOffer's scopes.
   scope :status_active,   -> { where(active: true) }
   scope :status_inactive, -> { where(active: false) }
+  # Offers with / without a FlexPass.outstanding pass (active, unexpired,
+  # tickets left). Named to match MembershipOffer's pair so the admin offer
+  # datatables share one filter (DatatableBase#filter_by_outstanding).
+  scope :with_outstanding, -> { where(id: FlexPass.outstanding.select(:flex_pass_offer_id)) }
+  scope :without_outstanding, -> { where.not(id: FlexPass.outstanding.select(:flex_pass_offer_id)) }
 
   validates :price, :number_of_tickets, numericality: { null: false }
   validates :price, numericality: { greater_than_or_equal_to: 0 }

@@ -15,7 +15,7 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
   describe 'GET #index' do
     render_views
 
-    def datatable_params(status_scope: nil)
+    def datatable_params(status_scope: nil, outstanding: nil)
       columns = %w[name on_sale membership_type status]
                 .each_with_index.to_h do |col, i|
         [i.to_s, { data: col, searchable: 'true', orderable: 'true',
@@ -24,6 +24,7 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
       params = { draw: '1', start: '0', length: '25',
                  search: { value: '', regex: 'false' }, columns: columns }
       params[:status_scope] = status_scope if status_scope
+      params[:outstanding] = outstanding if outstanding
       params
     end
 
@@ -86,6 +87,41 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
         row = response.parsed_body['data'].find { |r| r['id'].to_i == timed.id }
 
         expect(row['membership_type']).to include('>Timed<')
+      end
+
+      # DataTables reads DT_RowId (exact case) as the row id; Select needs it
+      # to keep rows selected across server-side redraws.
+      it 'identifies each row by DT_RowId' do
+        get :index, params: datatable_params(status_scope: 'active'), format: :json
+
+        expect(response.parsed_body['data'].pluck('DT_RowId').map(&:to_s)).to include(active_offer.id.to_s)
+      end
+
+      context 'with the outstanding filter' do
+        before do
+          FactoryBot.create(:membership, membership_offer: active_offer)
+          FactoryBot.create(:membership_offer, name: 'Silver Membership')
+        end
+
+        it 'lists only active offers with something outstanding for outstanding=with' do
+          get :index, params: datatable_params(status_scope: 'active', outstanding: 'with'), format: :json
+
+          expect(listed_names).to include('Gold Membership')
+          expect(listed_names).not_to include('Silver Membership')
+        end
+
+        it 'lists only active offers with nothing outstanding for outstanding=without' do
+          get :index, params: datatable_params(status_scope: 'active', outstanding: 'without'), format: :json
+
+          expect(listed_names).to include('Silver Membership')
+          expect(listed_names).not_to include('Gold Membership')
+        end
+
+        it 'ignores an unrecognised outstanding value' do
+          get :index, params: datatable_params(status_scope: 'active', outstanding: 'bogus'), format: :json
+
+          expect(listed_names).to include('Gold Membership', 'Silver Membership')
+        end
       end
 
       it 'returns all offers when status_scope is omitted' do

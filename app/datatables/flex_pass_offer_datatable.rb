@@ -21,7 +21,7 @@ class FlexPassOfferDatatable < DatatableBase
         public: flex_pass_offer.decorate.on_sale_to_public?,
         restrictions: flex_pass_offer.decorate.restrictions,
         actions: flex_pass_offer.decorate.dt_actions,
-        DT_RowID: flex_pass_offer.id
+        DT_RowId: flex_pass_offer.id
       }
     end
   end
@@ -37,7 +37,9 @@ class FlexPassOfferDatatable < DatatableBase
   end
 
   def get_raw_records
-    scope = FlexPassOffer.accessible_by(current_user.ability, :read).includes(:flex_pass_offer_tags)
+    scope = filter_by_outstanding(
+      FlexPassOffer.accessible_by(current_user.ability, :read).includes(:flex_pass_offer_tags)
+    )
     case params[:status_scope]
     when 'active' then scope.status_active
     when 'inactive' then scope.status_inactive

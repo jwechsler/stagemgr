@@ -1,7 +1,7 @@
 class Admin::FlexPassOffersController < Admin::ApplicationController
   include ReturnsToIndex
 
-  load_and_authorize_resource except: %i[autocomplete_tag search resolve_group]
+  load_and_authorize_resource except: %i[autocomplete_tag search resolve_group activate_selected deactivate_selected]
 
   def autocomplete_tag
     term = params[:term].to_s
@@ -29,6 +29,19 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
         render json: FlexPassOfferDatatable.new(params, view_context: view_context, current_user: current_user)
       end
     end
+  end
+
+  # POST /flex_pass_offers/activate_selected and deactivate_selected -- the
+  #   index's Make Active / Make Inactive buttons (admins only). Each offer
+  #   saves on its own, so one invalid offer does not block the rest;
+  #   deactivating also takes an offer off public sale
+  #   (FlexPassOffer#sync_active_with_public_sale).
+  def activate_selected
+    set_active_for_selected(true)
+  end
+
+  def deactivate_selected
+    set_active_for_selected(false)
   end
 
   # GET /flex_pass_offers/1
@@ -105,6 +118,16 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
   end
 
   private
+
+  def set_active_for_selected(active)
+    authorize! :bulk_update, FlexPassOffer
+    offers = FlexPassOffer.accessible_by(current_ability, :update).where(id: Array(params[:ids]))
+    failed = offers.reject { |offer| offer.update(active: active) }
+    render json: {
+      updated: offers.size - failed.size,
+      failed: failed.map { |offer| { id: offer.id, name: offer.name, errors: offer.errors.full_messages.to_sentence } }
+    }
+  end
 
   def flex_pass_offer_params
     params.require(:flex_pass_offer).permit(:name, :price, :number_of_tickets, :use_ticket_class_code, :flat_payout, :spiff, :facility_fee,

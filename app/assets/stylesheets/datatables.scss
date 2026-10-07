@@ -55,3 +55,55 @@ table.dataTable thead .sorting_asc_disabled {
 table.dataTable thead .sorting_desc_disabled {
   background-image: image-url("datatables/sort_desc_disabled.png");
 }
+
+// Outstanding filter on the admin offer index tables (initOfferTable): its own
+// row above the length and search controls, right-aligned over the search box,
+// so filtering reads as part of searching and stays apart from the bulk action
+// buttons below.
+.dataTables_wrapper .offer-outstanding-filter {
+  margin-bottom: 0.5rem;
+
+  .button-group {
+    justify-content: flex-end;
+    margin-bottom: 0;
+  }
+
+  // DataTables stacks and centres the length and search controls below 640px.
+  @media screen and (max-width: 640px) {
+    .button-group {
+      justify-content: center;
+    }
+  }
+}
+
+// Bulk action buttons on the admin offer index tables (initOfferTable): a row
+// of their own between the search controls and the table, right-aligned like
+// Fulfill Selected on the orders list.
+.dataTables_wrapper .offer-bulk-actions {
+  clear: both;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5rem 0;
+
+  .dt-buttons {
+    float: none;
+  }
+
+  @media screen and (max-width: 640px) {
+    justify-content: center;
+  }
+}
+
+// On phones the controls stack in one column, so the buttons that change
+// records move below the paging, away from the search and filter controls at
+// the top. Flex order only reorders the display; DOM and tab order are unchanged.
+@media screen and (max-width: 640px) {
+  .dataTables_wrapper.offer-table--bulk-actions {
+    display: flex;
+    flex-direction: column;
+
+    .offer-bulk-actions {
+      order: 1;
+    }
+  }
+}

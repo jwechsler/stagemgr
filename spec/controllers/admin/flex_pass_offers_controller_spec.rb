@@ -20,7 +20,7 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
                                           active: false, on_sale_to_public: false)
     end
 
-    def datatable_params(status_scope: nil)
+    def datatable_params(status_scope: nil, outstanding: nil)
       columns = %w[offer price qty public restrictions actions]
                 .each_with_index.to_h do |col, i|
         [i.to_s, { data: col, searchable: 'true', orderable: 'true',
@@ -29,6 +29,7 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
       params = { draw: '1', start: '0', length: '25',
                  search: { value: '', regex: 'false' }, columns: columns }
       params[:status_scope] = status_scope if status_scope
+      params[:outstanding] = outstanding if outstanding
       params
     end
 
@@ -71,11 +72,116 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
         expect(listed_actions).not_to include('Create Order')
       end
 
+      # DataTables reads DT_RowId (exact case) as the row id; Select needs it
+      # to keep rows selected across server-side redraws.
+      it 'identifies each row by DT_RowId' do
+        get :index, params: datatable_params(status_scope: 'active'), format: :json
+
+        expect(response.parsed_body['data'].pluck('DT_RowId').map(&:to_s)).to include(active_offer.id.to_s)
+      end
+
+      context 'with the outstanding filter' do
+        before do
+          allow(Resque).to receive(:enqueue_in)
+          FactoryBot.create(:flex_pass_order, flex_pass_offer: active_offer)
+          FactoryBot.create(:flex_pass_offer, name: 'Silver Pass', theater: theater)
+        end
+
+        it 'lists only active offers with something outstanding for outstanding=with' do
+          get :index, params: datatable_params(status_scope: 'active', outstanding: 'with'), format: :json
+
+          expect(listed_names).to include('Live Pass')
+          expect(listed_names).not_to include('Silver Pass')
+        end
+
+        it 'lists only active offers with nothing outstanding for outstanding=without' do
+          get :index, params: datatable_params(status_scope: 'active', outstanding: 'without'), format: :json
+
+          expect(listed_names).to include('Silver Pass')
+          expect(listed_names).not_to include('Live Pass')
+        end
+
+        it 'ignores an unrecognised outstanding value' do
+          get :index, params: datatable_params(status_scope: 'active', outstanding: 'bogus'), format: :json
+
+          expect(listed_names).to include('Live Pass', 'Silver Pass')
+        end
+      end
+
       it 'returns all offers when status_scope is omitted' do
         get :index, params: datatable_params, format: :json
 
         expect(listed_names).to include('Live Pass', 'Retired Pass')
       end
+    end
+  end
+
+  describe 'POST #deactivate_selected and #activate_selected' do
+    let(:box_office_user) { FactoryBot.create(:user, is_box_office_user: true) }
+    let!(:on_sale) { FactoryBot.create(:flex_pass_offer, name: 'On Sale', on_sale_to_public: true) }
+    let!(:private_offer) { FactoryBot.create(:flex_pass_offer, name: 'Private', on_sale_to_public: false) }
+    let!(:untouched) { FactoryBot.create(:flex_pass_offer, name: 'Untouched') }
+
+    # The real ability decides here, not the file-wide authorize! stub.
+    before { allow(controller).to receive(:authorize!).and_call_original }
+
+    it 'makes only the selected offers inactive and takes them off public sale' do
+      post :deactivate_selected, params: { ids: [on_sale.id, private_offer.id] }, format: :json
+
+      expect(response.parsed_body).to eq('updated' => 2, 'failed' => [])
+      expect(on_sale.reload).not_to be_active
+      expect(on_sale).not_to be_on_sale_to_public
+      expect(private_offer.reload).not_to be_active
+      expect(untouched.reload).to be_active
+    end
+
+    it 'makes the selected inactive offers active' do
+      private_offer.update!(active: false)
+
+      post :activate_selected, params: { ids: [private_offer.id] }, format: :json
+
+      expect(response.parsed_body['updated']).to eq(1)
+      expect(private_offer.reload).to be_active
+    end
+
+    it 'reports an offer that fails validation and still updates the rest' do
+      private_offer.update_columns(price: -1)
+
+      post :deactivate_selected, params: { ids: [on_sale.id, private_offer.id] }, format: :json
+
+      expect(response.parsed_body['updated']).to eq(1)
+      expect(response.parsed_body['failed']).to contain_exactly(
+        a_hash_including('id' => private_offer.id, 'name' => 'Private')
+      )
+      expect(on_sale.reload).not_to be_active
+      expect(private_offer.reload).to be_active
+    end
+
+    it 'refuses box office users and changes nothing' do
+      allow(controller).to receive(:current_user).and_return(box_office_user)
+
+      post :deactivate_selected, params: { ids: [on_sale.id] }, format: :json
+
+      expect(response).to redirect_to(root_path)
+      expect(on_sale.reload).to be_active
+    end
+  end
+
+  describe 'GET #index bulk buttons' do
+    render_views
+
+    it 'offers Make Inactive and Make Active to administrators' do
+      get :index
+
+      expect(response.body).to include("canBulkUpdate = true")
+    end
+
+    it 'hides them from box office users' do
+      allow(controller).to receive(:current_user).and_return(FactoryBot.create(:user, is_box_office_user: true))
+
+      get :index
+
+      expect(response.body).to include("canBulkUpdate = false")
     end
   end
 
