@@ -32,7 +32,7 @@ class OrdersDatatable < DatatableBase
         total: order.decorate.total_paid,
         description: order.decorate.description_with_placed_date,
         order_id: order.id,
-        DT_RowID: order.id
+        DT_RowId: order.id
       }
     end
   rescue StandardError => e

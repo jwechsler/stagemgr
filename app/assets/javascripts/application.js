@@ -5,6 +5,7 @@
 //= require jquery_ujs
 //= require datatables
 //= require datatables_responsive_defaults
+//= require datatables_select_defaults
 //= require what-input/dist/what-input
 //= require foundation-sites/dist/js/foundation
 //= require jquery.dataTables.yadcf
