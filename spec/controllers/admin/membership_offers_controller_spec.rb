@@ -164,6 +164,14 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
       expect(response.body).to include('name="membership_offer[card_background]"')
     end
 
+    it 'shows the type but does not let it be changed' do
+      get :edit, params: { id: active_offer.id }
+
+      select = Nokogiri::HTML(response.body).at_css('select[name="membership_offer[membership_type]"]')
+      expect(select['disabled']).to be_present
+      expect(response.body).to include('it cannot be changed')
+    end
+
     it 'carries return_to into the form when the edit came from the index' do
       get :edit, params: { id: active_offer.id, return_to: 'index' }
 
@@ -222,10 +230,11 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
   end
 
   describe 'PATCH #update' do
-    it 'permits membership_type' do
+    it 'refuses to change membership_type' do
       patch :update, params: { id: active_offer.id, membership_offer: { membership_type: MembershipOffer::TIMED } }
 
-      expect(active_offer.reload.membership_type).to eq(MembershipOffer::TIMED)
+      expect(active_offer.reload.membership_type).to eq(MembershipOffer::PRODUCTION)
+      expect(assigns(:membership_offer).errors[:membership_type]).to include(a_string_including('cannot be changed'))
     end
 
     context 'when returning to the screen the edit came from' do
