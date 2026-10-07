@@ -17,6 +17,11 @@ class MembershipOffer < ApplicationRecord
   # that is off sale or timed.
   scope :on_sale_to_public, -> { status_active.where(on_sale: true, membership_type: PRODUCTION) }
 
+  # Offers staff may issue a membership under directly, with no order: active
+  # and with no Stripe price, i.e. nothing to charge (library passes). A
+  # priced offer must be sold through a membership order so billing is set up.
+  scope :issuable_without_order, -> { status_active.where(price_id: [nil, '']) }
+
   # 'production' memberships are the classic single-member subscription, good
   # for tickets_per_performance seats per production. 'timed' offers are
   # library passes: shared between patrons, staff-issued with no Stripe

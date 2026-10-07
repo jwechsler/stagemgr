@@ -32,6 +32,12 @@ class Admin::MembershipsController < ApplicationController
   def edit; end
 
   def create
+    unless MembershipOffer.issuable_without_order.exists?(@membership.membership_offer_id)
+      @membership.errors.add(:membership_offer, 'must be an active offer with no Stripe price; sell priced offers ' \
+                                                'through a membership order')
+      return render action: 'new'
+    end
+
     if @membership.save
       redirect_to [:admin, @membership], notice: 'Successfully created membership.'
     else
