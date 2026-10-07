@@ -210,6 +210,21 @@ RSpec.describe Admin::MembershipsController, type: :controller do
     end
   end
 
+  describe 'GET #new offer choices' do
+    it 'lists only active offers with no Stripe price' do
+      FactoryBot.create(:membership_offer, name: 'Gold Membership', price_id: 'price_123')
+      FactoryBot.create(:membership_offer, name: 'Blank Price Pass', membership_type: MembershipOffer::TIMED,
+                                           price_id: '')
+      FactoryBot.create(:membership_offer, name: 'Retired Pass', membership_type: MembershipOffer::TIMED,
+                                           price_id: nil, status: MembershipOffer::INACTIVE)
+
+      get :new
+      options = Nokogiri::HTML(response.body).css('#membership_membership_offer_id option').map(&:text)
+
+      expect(options).to contain_exactly(a_string_including('Library Pass'), a_string_including('Blank Price Pass'))
+    end
+  end
+
   describe 'POST #create' do
     let(:valid_params) do
       { membership: { address_id: address.id, membership_offer_id: timed_offer.id, status: Membership::ACTIVE,
@@ -231,6 +246,15 @@ RSpec.describe Admin::MembershipsController, type: :controller do
     it 'redirects to the membership' do
       post :create, params: valid_params
       expect(response).to redirect_to(admin_membership_path(Membership.last))
+    end
+
+    it 'refuses an offer with a Stripe price, which must be sold through an order' do
+      priced = FactoryBot.create(:membership_offer, name: 'Gold Membership', price_id: 'price_123')
+      params = valid_params.deep_merge(membership: { membership_offer_id: priced.id })
+
+      expect { post :create, params: params }.not_to change(Membership, :count)
+      expect(response).to render_template(:new)
+      expect(assigns(:membership).errors[:membership_offer].join).to include('no Stripe price')
     end
 
     context 'without an address' do

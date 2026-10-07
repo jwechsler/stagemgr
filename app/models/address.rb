@@ -332,6 +332,9 @@ end
     attendance_code
   end
 
+  # Members are patrons with an Active membership bought through an order.
+  # Holders of a staff-issued library pass (no order) are deliberately not
+  # members here or in active_memberships, nor in the reports built on them.
   def is_current_member?
     !MembershipLineItem.joins(:order, :membership).references(:order, :membership).where(
       "orders.address_id = :address_id AND memberships.status = :active", address_id: id, active: Membership::ACTIVE

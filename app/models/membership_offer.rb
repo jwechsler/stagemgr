@@ -23,6 +23,11 @@ class MembershipOffer < ApplicationRecord
   # that is off sale or timed.
   scope :on_sale_to_public, -> { status_active.where(on_sale: true, membership_type: PRODUCTION) }
 
+  # Offers staff may issue a membership under directly, with no order: active
+  # and with no Stripe price, i.e. nothing to charge (library passes). A
+  # priced offer must be sold through a membership order so billing is set up.
+  scope :issuable_without_order, -> { status_active.where(price_id: [nil, '']) }
+
   # 'production' memberships are the classic single-member subscription, good
   # for tickets_per_performance seats per production. 'timed' offers are
   # library passes: shared between patrons, staff-issued with no Stripe
@@ -42,6 +47,7 @@ class MembershipOffer < ApplicationRecord
   validates_presence_of :price_id, :if => :requires_price_id?
   validates_numericality_of :tickets_per_performance
   validates :membership_type, inclusion: { in: MEMBERSHIP_TYPES }
+  validate :membership_type_unchanged, on: :update
   before_save :take_inactive_off_sale, :unless => :active?
   before_save :take_timed_off_sale, :if => :timed?
   # A cached billing period never outlives the price it was read from.
@@ -239,6 +245,12 @@ class MembershipOffer < ApplicationRecord
   end
 
   private
+
+  # The type decides how existing memberships redeem (email check, weekly limit)
+  # and whether they bill, so it is fixed once the offer exists.
+  def membership_type_unchanged
+    errors.add(:membership_type, 'cannot be changed after the offer is created') if membership_type_changed?
+  end
 
   # A recurring gift's length as [count, unit]: max_cycles_if_gift billing
   # periods of the synced interval (not synced means assumed monthly), or nil

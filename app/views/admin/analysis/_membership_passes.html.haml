@@ -1,0 +1,22 @@
+%h5 Library passes
+%p.help-text
+  Timed offers are free, staff-issued passes, so they are left out of the membership figures.
+  Each pass counts once however many seats it admits; $ redeemed is the ticket value redeemed with
+  passes in range.
+.table-scroll
+  %table.hover
+    %thead
+      %tr
+        %th Offer
+        %th Passes in range
+        %th Passes active at end
+        %th Orders paid with pass
+        %th $ redeemed
+    %tbody
+      - ([results.passes] + results.pass_offers).each do |stats|
+        %tr{ class: total_row_class(stats) }
+          %td= stats.offer ? membership_offer_cell(stats.offer) : 'Passes'
+          %td= stats.passes_in_range
+          %td= stats.passes_active_at_end
+          %td= stats.redeemed_orders
+          %td= membership_money(stats.redeemed_amount)

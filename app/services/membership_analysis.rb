@@ -12,10 +12,29 @@
 # those rates averaged over the span's days. Total averages, minimums and
 # maximums pool every membership of the selected offers; they are never
 # averages of the per-offer figures.
+#
+# Timed offers (library passes) are free, staff-issued and shared, so they are
+# kept out of the membership figures: total and by_offer cover production
+# memberships only, and passes and pass_offers report the passes on their own
+# (how many, and what their holders redeemed).
 class MembershipAnalysis
-  # by_offer holds only offers with activity in the range; idle_offers are the
-  # selected offers that had none (listed by name, not as empty rows).
-  Result = Struct.new(:total, :by_offer, :idle_offers, keyword_init: true)
+  # by_offer (production offers) and pass_offers (timed offers) hold only
+  # offers with activity in the range; idle_offers are the selected offers of
+  # either kind that had none (listed by name, not as empty rows). passes is
+  # the pass figures across every selected timed offer.
+  Result = Struct.new(:total, :by_offer, :passes, :pass_offers, :idle_offers, keyword_init: true) do
+    def activity?
+      by_offer.any? || pass_offers.any?
+    end
+  end
+
+  # Pass figures for one timed offer, or (offer nil) across all of them.
+  PassStats = Struct.new(:offer, :passes_in_range, :passes_active_at_end, :redeemed_orders, :redeemed_amount,
+                         keyword_init: true) do
+    def activity?
+      passes_in_range.positive? || !redeemed_amount.zero? || redeemed_orders.positive?
+    end
+  end
 
   OfferStats = Struct.new(
     :offer, :memberships_in_range, :memberships_active_at_start, :memberships_active_at_end,
@@ -113,17 +132,34 @@ class MembershipAnalysis
   def compute
     rows = membership_rows
     order_offers = redeemed_order_offers
-    sorted_offers = offers.values.sort_by { |offer| [offer.active? ? 0 : 1, offer.name.to_s] }
+    timed_offers, membership_offers = sorted_offers.partition(&:timed?)
+    timed_ids = timed_offers.to_set(&:id)
+    pass_rows, member_rows = rows.partition { |row| timed_ids.include?(row.offer_id) }
+    pass_orders, member_orders = order_offers.partition { |_order_id, offer_id| timed_ids.include?(offer_id) }
 
-    by_offer = sorted_offers.map do |offer|
-      stats_for(offer, rows.select { |row| row.offer_id == offer.id },
-                order_offers.select { |_order_id, offer_id| offer_id == offer.id })
-    end
-    active, idle = by_offer.partition(&:activity?)
-    Result.new(total: stats_for(nil, rows, order_offers), by_offer: active, idle_offers: idle.map(&:offer))
+    by_offer = membership_offers.map { |offer| stats_for(offer, *for_offer(offer, rows, order_offers)) }
+    pass_offers = timed_offers.map { |offer| pass_stats_for(offer, *for_offer(offer, rows, order_offers)) }
+    idle = (by_offer + pass_offers).reject(&:activity?).map(&:offer)
+    Result.new(total: stats_for(nil, member_rows, member_orders), by_offer: by_offer.select(&:activity?),
+               passes: pass_stats_for(nil, pass_rows, pass_orders), pass_offers: pass_offers.select(&:activity?),
+               idle_offers: sort_offers(idle))
   end
 
   private
+
+  def sorted_offers
+    sort_offers(offers.values)
+  end
+
+  def sort_offers(list)
+    list.sort_by { |offer| [offer.active? ? 0 : 1, offer.name.to_s] }
+  end
+
+  # The membership rows and redeemed [order_id, offer_id] pairs of one offer.
+  def for_offer(offer, rows, order_offers)
+    [rows.select { |row| row.offer_id == offer.id },
+     order_offers.select { |_order_id, offer_id| offer_id == offer.id }]
+  end
 
   # Payments are bounded by processed_on < the day after the end date.
   def payments_end
@@ -277,6 +313,12 @@ class MembershipAnalysis
       avg_length_days: average((ended | active_at_end).map { |row| length_days(row) }),
       economics_per_month: economics(in_range)
     )
+  end
+
+  # One per pass, not per seat: a pass admitting two is still one pass.
+  def pass_stats_for(offer, rows, order_offers)
+    PassStats.new(offer: offer, passes_in_range: rows.count(&:in_range), passes_active_at_end: rows.count(&:active_at_end),
+                  redeemed_orders: order_offers.map(&:first).uniq.size, redeemed_amount: rows.sum(0.to_d, &:redeemed))
   end
 
   # Memberships that began after the start date. One that began on the start

@@ -573,6 +573,56 @@ RSpec.describe MembershipAnalysis do
     end
   end
 
+  describe 'library passes (timed offers)' do
+    let(:library_offer) do
+      FactoryBot.create(:membership_offer, :timed, name: 'Library Pass', tickets_per_performance: 2)
+    end
+
+    around { |example| travel_to(Time.zone.local(2026, 10, 7, 12, 0, 0)) { example.run } }
+
+    before do
+      gold = membership_with_order(gold_offer, code: 'GOLD1', collected: [[35, in_range]])
+      redeem(gold, 20, in_range)
+      pass = FactoryBot.create(:library_pass, membership_offer: library_offer, member_code: 'LIB1',
+                                              member_since: Date.new(2026, 1, 15))
+      FactoryBot.create(:library_pass, membership_offer: library_offer, member_code: 'LIB2',
+                                       member_since: Date.new(2026, 2, 1), ended_at: Date.new(2026, 4, 1),
+                                       status: Membership::CANCELED)
+      redeem(pass, 24, in_range)
+    end
+
+    let(:result) { analyze([gold_offer, library_offer]) }
+
+    it 'leaves passes out of the total membership counts and economics' do
+      expect(result.total).to have_attributes(memberships_in_range: 1, members_in_range: 2,
+                                              memberships_active_at_end: 1, new_count: 1, dropped_count: 0,
+                                              collected: 35, redeemed_amount: 20, redeemed_orders: 1)
+      expect(result.total.economics_per_month.membership_count).to eq(1)
+    end
+
+    it 'reports pass figures across the timed offers, one per pass' do
+      expect(result.passes).to have_attributes(offer: nil, passes_in_range: 2, passes_active_at_end: 1,
+                                               redeemed_orders: 1, redeemed_amount: 24)
+    end
+
+    it 'gives the timed offer a pass row instead of a membership row' do
+      expect(result.by_offer.map(&:offer)).to eq([gold_offer])
+      expect(result.pass_offers.size).to eq(1)
+      expect(result.pass_offers.first).to have_attributes(offer: library_offer, passes_in_range: 2,
+                                                          passes_active_at_end: 1, redeemed_orders: 1,
+                                                          redeemed_amount: 24)
+      expect(result.pass_offers.first).not_to respond_to(:collected)
+    end
+
+    it 'lists an idle timed offer with the idle offers' do
+      idle_result = analyze([gold_offer, library_offer], from: Date.new(2025, 1, 1), to: Date.new(2025, 6, 30))
+
+      expect(idle_result.pass_offers).to be_empty
+      expect(idle_result.idle_offers).to contain_exactly(gold_offer, library_offer)
+      expect(idle_result).not_to be_activity
+    end
+  end
+
   describe '.offer_ids_for_groups' do
     let(:retired_offer) do
       FactoryBot.create(:membership_offer, name: 'Retired', status: MembershipOffer::INACTIVE)

@@ -38,7 +38,7 @@ RSpec.describe MembershipUsageReport do
     end
 
     it 'includes an Offer column in the headers' do
-      expect(headers).to eq(%i[Month Offer Memberships Members Collected Paid])
+      expect(headers).to eq([:Month, :Offer, :Memberships, :Members, :Collected, :Paid, :Passes, :'Pass Redeemed'])
     end
 
     it 'breaks out each month by membership offer' do
@@ -245,11 +245,11 @@ RSpec.describe MembershipUsageReport do
       create_membership_payment_for(library_pass, paid: 24.0, processed_on: in_may)
     end
 
-    it 'counts the pass as a membership with its redemptions in Paid and nothing Collected' do
+    it 'counts the pass under Passes with its redemptions in Pass Redeemed, leaving the membership columns blank' do
       library_row = rows.find { |row| row[:Month] == '2026-05' && row[:Offer] == 'Library Pass' }
 
-      expect(library_row).to include(Memberships: 1, Collected: 0.to_money, Paid: 24.to_money,
-                                     display_class: :report_detail_row)
+      expect(library_row).to include(Memberships: '', Members: '', Collected: '', Paid: '',
+                                     Passes: 1, 'Pass Redeemed': 24.to_money, display_class: :report_detail_row)
     end
 
     it 'stops counting the pass after staff cancel it' do
@@ -259,6 +259,49 @@ RSpec.describe MembershipUsageReport do
                                  .select { |row| row[:display_class] == :report_detail_row }
 
       expect(june_rows).to be_empty
+    end
+  end
+
+  describe '#create with a production offer and a timed offer in the same month' do
+    let(:library_offer) do
+      FactoryBot.create(:membership_offer, :timed, name: 'Library Pass', tickets_per_performance: 2)
+    end
+
+    subject(:rows) { described_class.new(starting_date, ending_date).create.last }
+
+    around { |example| travel_to(Time.zone.local(2026, 10, 7, 12, 0, 0)) { example.run } }
+
+    before do
+      gold_order = create_membership_order_for(gold_offer, collected: 50.0, processed_on: in_may)
+      create_membership_payment_for(gold_order.membership, paid: 20.0, processed_on: in_may)
+      library_pass = FactoryBot.create(:library_pass, membership_offer: library_offer,
+                                                      member_since: Date.new(2026, 5, 3))
+      create_membership_payment_for(library_pass, paid: 24.0, processed_on: in_may)
+    end
+
+    def row_for(offer_name)
+      rows.find { |row| row[:Month] == '2026-05' && row[:Offer] == offer_name }
+    end
+
+    it 'fills only the membership columns for the production offer' do
+      expect(row_for('Gold')).to include(Memberships: 1, Members: 2, Collected: 50.to_money, Paid: 20.to_money,
+                                         Passes: '', 'Pass Redeemed': '')
+    end
+
+    it 'counts a two-seat pass as one pass and fills only the pass columns for the timed offer' do
+      expect(row_for('Library Pass')).to include(Memberships: '', Members: '', Collected: '', Paid: '',
+                                                 Passes: 1, 'Pass Redeemed': 24.to_money)
+    end
+
+    it 'adds each column separately in the All Offers row' do
+      expect(row_for(MembershipUsageReport::ALL_OFFERS_LABEL))
+        .to include(Memberships: 1, Members: 2, Collected: 50.to_money, Paid: 20.to_money,
+                    Passes: 1, 'Pass Redeemed': 24.to_money)
+    end
+
+    it 'sums Pass Redeemed apart from Paid in the Total row and leaves Passes blank' do
+      expect(rows.last).to include(Month: 'Total', Memberships: '', Members: '', Passes: '',
+                                   Collected: 50.to_money, Paid: 20.to_money, 'Pass Redeemed': 24.to_money)
     end
   end
 

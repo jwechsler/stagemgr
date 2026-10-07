@@ -22,13 +22,15 @@
       #mo-panel-1.tabs-panel.is-active
         .grid-x.grid-padding-x
           .small-12.cell
-            %p
-              %strong Price ID:
-              %a{:href=>PaymentProcessing.product_url(@membership_offer.price_id)}
-                =@membership_offer.price_id
-            %p
-              %strong Billing period:
-              = @membership_offer.billing_period_label
+            -# A timed (library) pass or an unpriced offer has no Stripe price to bill.
+            - if @membership_offer.price_id.present? && !@membership_offer.timed?
+              %p
+                %strong Price ID:
+                %a{ href: PaymentProcessing.product_url(@membership_offer.price_id) }
+                  = @membership_offer.price_id
+              %p
+                %strong Billing period:
+                = @membership_offer.billing_period_label
             %p
               %strong Tickets/performance:
               = @membership_offer.tickets_per_performance

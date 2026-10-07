@@ -1,56 +1,10 @@
-- rows = [results.total] + results.by_offer
-
 .grid-x.grid-padding-x
   .small-12.cell
     - if results.idle_offers.any?
       %p.help-text
         No activity in this range, so not shown:
         = results.idle_offers.map(&:name).to_sentence
-    %h5 Memberships &amp; members
-    .table-scroll
-      %table.hover
-        %thead
-          %tr
-            %th Offer
-            %th Memberships in range
-            %th Members in range
-            %th Memberships active at end
-            %th Members active at end
-            %th New memberships
-            %th Dropped memberships
-            %th{ title: 'Change from memberships active on the From date to those active on the To date' } % change
-            %th Average length
-        %tbody
-          - rows.each do |stats|
-            %tr{ class: total_row_class(stats) }
-              %td= membership_offer_cell(stats.offer)
-              %td= stats.memberships_in_range
-              %td= stats.members_in_range
-              %td= stats.memberships_active_at_end
-              %td= stats.members_active_at_end
-              %td= stats.new_count
-              %td= stats.dropped_count
-              %td= membership_change(stats.membership_change_percent)
-              %td= membership_length(stats.avg_length_days)
-
-    %h5 Money
-    .table-scroll
-      %table.hover
-        %thead
-          %tr
-            %th Offer
-            %th Collected
-            %th Orders paid with membership
-            %th $ redeemed
-            %th Net
-        %tbody
-          - rows.each do |stats|
-            %tr{ class: total_row_class(stats) }
-              %td= membership_offer_cell(stats.offer)
-              %td= membership_money(stats.collected)
-              %td= stats.redeemed_orders
-              %td= membership_money(stats.redeemed_amount)
-              %td= membership_money(stats.net)
-
-    = render 'membership_economics',
-             rows: rows, economics: :economics_per_month, title: 'Per-membership economics, per month'
+    - if results.by_offer.any?
+      = render 'membership_tables', rows: [results.total] + results.by_offer
+    - if results.pass_offers.any?
+      = render 'membership_passes', results: results
