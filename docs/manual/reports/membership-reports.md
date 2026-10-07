@@ -64,11 +64,20 @@ followed by an **All Offers** summary row that totals that month across every of
 | **Members** | Number of people those memberships admit -- each membership counts its offer's tickets-per-performance, so a dual membership counts as two members. |
 | **Collected** | Total amount collected on membership orders. |
 | **Paid** | Ticket value members redeemed with their memberships. An exchanged order counts once: the exchange credit cancels the original order's redemption, leaving only the replacement order's. |
+| **Passes** | Number of library passes (timed offers) active in that month. Each pass counts once, however many seats it admits. |
+| **Pass Redeemed** | Ticket value redeemed with library passes, counted the same way as **Paid**. |
+
+Library passes are free and staff-issued, so they are kept out of the membership columns:
+a timed offer's row fills only **Passes** and **Pass Redeemed**, and a membership offer's
+row leaves those two blank. The **All Offers** and **Total** rows add each column
+separately, so **Memberships**, **Members**, **Collected** and **Paid** never include
+passes.
 
 !!! note "The Total row does not total the count columns"
     **Memberships** and **Members** are active-during-month counts. Adding them across months
     would count every membership once per month it spans, so the grand **Total** row leaves
-    those two columns blank and totals only **Collected** and **Paid**.
+    those two columns and **Passes** blank and totals only **Collected**, **Paid** and
+    **Pass Redeemed**.
 
 When the report is limited with the offer picker, detail rows cover only the selected
 offers, the monthly **All Offers** summary rows total just that selection, and the on-screen
