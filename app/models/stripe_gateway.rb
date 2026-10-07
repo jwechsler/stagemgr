@@ -139,7 +139,7 @@ class StripeGateway < ActiveMerchant::Billing::StripePaymentIntentsGateway
   # customer's default, which both the subscription and the one-time invoice
   # charge. Returns the updated Stripe customer.
   def prepare_customer(order)
-    payment_method = create_payment_method(order)
+    payment_method = create_order_payment_method(order)
     customer = find_or_create_customer(order.address)
     order.address.processor_id = customer.id
     Stripe::PaymentMethod.attach(payment_method.id, { customer: customer.id })
@@ -155,7 +155,7 @@ class StripeGateway < ActiveMerchant::Billing::StripePaymentIntentsGateway
                             })
   end
 
-  def create_payment_method(order)
+  def create_order_payment_method(order)
     f_name, l_name = order.address.parse_full_name
     order.credit_card_expiration_year = Order.fix_expiration_year(order.credit_card_expiration_year.to_s)
     credit_card = PaymentProcessing.credit_card(order.credit_card_type,

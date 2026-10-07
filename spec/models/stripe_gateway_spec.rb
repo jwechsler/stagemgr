@@ -519,4 +519,20 @@ RSpec.describe StripeGateway, type: :model do
       expect(gateway.price_billing_period("price_once")).to eq(interval: "one_time", interval_count: nil)
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # Inherited ActiveMerchant methods
+  # ---------------------------------------------------------------------------
+  # ActiveMerchant's #purchase calls its own private helpers by name, so a
+  # StripeGateway helper with the same name silently replaces them and breaks
+  # every card sale (a one-argument create_payment_method did exactly that).
+  describe "inherited ActiveMerchant methods" do
+    it "are not shadowed by StripeGateway's own methods" do
+      own = described_class.instance_methods(false) + described_class.private_instance_methods(false)
+      parent = described_class.superclass
+      inherited = parent.instance_methods + parent.private_instance_methods
+
+      expect(own & inherited).to be_empty
+    end
+  end
 end
