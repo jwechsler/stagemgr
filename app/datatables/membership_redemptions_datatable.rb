@@ -25,10 +25,8 @@ class MembershipRedemptionsDatatable < AddressesOrdersDatatable
 
   private
 
-  # Pin the STI type: Payment.descendants makes MembershipPayment scopes
-  # match every payment type.
   def redemptions
-    MembershipPayment.where(type: MembershipPayment.sti_name, membership_id: membership.id)
+    MembershipPayment.where(membership_id: membership.id)
   end
 
   def membership_paid_by_order(order_ids)
