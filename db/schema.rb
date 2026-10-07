@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_10_06_140000) do
+ActiveRecord::Schema.define(version: 2026_10_07_120000) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -215,6 +215,7 @@ ActiveRecord::Schema.define(version: 2026_10_06_140000) do
     t.integer "flex_pass_line_item_id"
     t.date "expiration_date"
     t.boolean "active", default: true
+    t.index ["flex_pass_offer_id"], name: "index_flex_passes_on_flex_pass_offer_id"
   end
 
   create_table "house_counts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -438,6 +439,7 @@ ActiveRecord::Schema.define(version: 2026_10_06_140000) do
     t.decimal "processing_fee", precision: 8, scale: 2
     t.decimal "amount", precision: 8, scale: 2, default: "0.0"
     t.string "stripe_refund_id"
+    t.index ["flex_pass_id"], name: "index_payments_on_flex_pass_id"
     t.index ["ipn_track_id"], name: "index_payments_on_ipn_track_id"
     t.index ["membership_id"], name: "index_payments_on_membership_id"
     t.index ["order_id"], name: "index_payments_on_order_id"
