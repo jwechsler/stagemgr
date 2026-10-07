@@ -8,7 +8,7 @@ RSpec.describe Membership do
       expect { membership.update!(status: Membership::CANCELED) }.not_to raise_error
     end
 
-    it 'cancels cleanly even when it has an outstanding reservation' do
+    it 'releases its upcoming reservation when canceled' do
       travel_to(Date.new(2025, 6, 11)) do
         membership = FactoryBot.create(:library_pass)
         order = FactoryBot.create(:ticket_order, :for_a_single_ticket,
@@ -20,7 +20,9 @@ RSpec.describe Membership do
         order.status = Order::PROCESSED
         order.save!(validate: false)
 
-        expect { membership.update!(status: Membership::CANCELED) }.not_to raise_error
+        membership.update!(status: Membership::CANCELED)
+
+        expect(order.reload).to be_refunded
       end
     end
 

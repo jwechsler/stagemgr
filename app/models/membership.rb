@@ -207,9 +207,12 @@ class Membership < ApplicationRecord
   end
 
   # The last date reservations made with this membership stay valid when staff
-  # cancel it. A one-time membership was paid through expires_on; otherwise
-  # the last redemption plus a month (the assumed billing period).
+  # cancel it. A timed (library) pass is free, so nothing is paid ahead and its
+  # upcoming reservations end now. A one-time membership was paid through
+  # expires_on; otherwise the last redemption plus a month (the assumed
+  # billing period).
   def last_effective_date
+    return Time.current if membership_offer&.timed?
     return expires_on if one_time?
 
     lp = membership_payments.max_by { |payment| payment.processed_on.to_date }
