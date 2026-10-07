@@ -72,18 +72,21 @@ module Stagemgr
     # does not have: `assets:precompile` run from bin/deploy baked font and
     # image URLs into the stylesheets without the prefix, so Font Awesome
     # icons rendered as empty boxes (2026-10). The environment file loads
-    # server.yml; this fills the setting from it when the variable is absent.
-    # ENV still wins when both are set, so a Passenger base URI is never
-    # overridden. Skipped in test: the suite's server.yml.example sets sub_uri
-    # to exercise the mailer's sub-path handling, but its requests are made
-    # against unmounted routes and would all 404 under a global prefix.
+    # server.yml; this fills the setting from it when the variable is absent
+    # or blank. Blank counts as absent, as it does for AppSecrets: Compose
+    # exports RAILS_RELATIVE_URL_ROOT="" when STAGEMGR_SUB_URI is unset, and
+    # Rails seeds the setting from the variable verbatim. A non-blank value
+    # still wins, so a Passenger base URI is never overridden. Skipped in
+    # test: the suite's server.yml.example sets sub_uri to exercise the
+    # mailer's sub-path handling, but its requests are made against unmounted
+    # routes and would all 404 under a global prefix.
     initializer :relative_url_root_from_server_yml,
                 after: :load_environment_config,
                 before: :load_environment_hook do |app|
       next if Rails.env.test?
 
       sub_uri = app.config.x.server_config&.dig('sub_uri').presence
-      app.config.relative_url_root ||= sub_uri if sub_uri
+      app.config.relative_url_root = sub_uri if sub_uri && app.config.relative_url_root.blank?
     end
 
     # Configure the default encoding used in templates for Ruby 1.9.

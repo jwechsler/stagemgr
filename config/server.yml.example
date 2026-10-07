@@ -28,8 +28,8 @@ all:
   # actually mounts the app there (e.g. behind a separately built marketing
   # site — see docker/nginx.foundation.conf). It also sets Rails'
   # relative_url_root (asset URLs, assets:precompile) whenever
-  # RAILS_RELATIVE_URL_ROOT / STAGEMGR_SUB_URI is absent from the environment;
-  # when that variable is set it wins, so keep the two in agreement.
+  # RAILS_RELATIVE_URL_ROOT / STAGEMGR_SUB_URI is absent from the environment
+  # or blank; a non-blank variable wins, so keep the two in agreement.
   sub_uri:
   # required protocol
   host_protocol: "https"
