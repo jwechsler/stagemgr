@@ -417,7 +417,11 @@ class Order < ApplicationRecord
     # Read before the status flips to REFUNDED: checking fulfilled? after that
     # line (as this did from 2022-09 to 2026-09) is always false, so the
     # box-office alert for a refunded fulfilled order was never queued.
-    was_fulfilled = fulfilled?
+    #
+    # The alert asks the box office to destroy printed tickets that money (or
+    # pass tickets) went back for. A comp order's $0 payments have nothing to
+    # return, so refund_tenders is empty and no alert is sent.
+    alert_box_office = fulfilled? && refund_tenders.any?
     Order.transaction do
       # Callers check refund_blockers first; this catches a second submission
       # or an exchange begun since.
@@ -427,7 +431,7 @@ class Order < ApplicationRecord
       refund_payments!(notes)
       all_line_items.each { |li| refund_line_items (li.refund!) if li.respond_to? :refund! }
       self.status = REFUNDED
-      create_notify_refund_task if was_fulfilled
+      create_notify_refund_task if alert_box_office
       save!
     end
   end
