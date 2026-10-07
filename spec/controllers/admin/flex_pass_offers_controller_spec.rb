@@ -14,8 +14,8 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
 
     let!(:active_offer) { FactoryBot.create(:flex_pass_offer, name: 'Live Pass', theater: theater) }
     let!(:inactive_offer) do
-      # on_sale_to_public must also be false: set_public_sale_by_active
-      # re-enables active from on_sale_to_public otherwise.
+      # on_sale_to_public must also be false: sync_active_with_public_sale
+      # activates a new offer that is on public sale.
       FactoryBot.create(:flex_pass_offer, name: 'Retired Pass', theater: theater,
                                           active: false, on_sale_to_public: false)
     end
@@ -206,6 +206,45 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
       it 'redirects to the flex pass offer' do
         patch :update, params: update_params
         expect(response).to redirect_to(admin_flex_pass_offer_path(flex_pass_offer))
+      end
+    end
+
+    context 'when returning to the screen the edit came from' do
+      let(:params) { { id: flex_pass_offer.id, flex_pass_offer: { name: 'Renamed Pass' } } }
+
+      it 'returns to the index when the edit came from the index' do
+        patch :update, params: params.merge(return_to: 'index')
+        expect(response).to redirect_to(admin_flex_pass_offers_path)
+      end
+
+      it 'returns to the show page when no return_to is given' do
+        patch :update, params: params
+        expect(response).to redirect_to(admin_flex_pass_offer_path(flex_pass_offer))
+      end
+
+      it 'ignores an unrecognised return_to rather than redirecting to it' do
+        patch :update, params: params.merge(return_to: 'https://evil.example.com')
+        expect(response).to redirect_to(admin_flex_pass_offer_path(flex_pass_offer))
+      end
+    end
+
+    context 'GET #edit from the index' do
+      render_views
+
+      it 'carries return_to into the form' do
+        get :edit, params: { id: flex_pass_offer.id, return_to: 'index' }
+        expect(response.body).to include('name="return_to"').and include('value="index"')
+      end
+    end
+
+    context 'when unchecking active on an offer that is on sale to the public' do
+      it 'deactivates the offer and takes it off public sale' do
+        patch :update, params: { id: flex_pass_offer.id,
+                                 flex_pass_offer: { active: '0', on_sale_to_public: '1' } }
+
+        flex_pass_offer.reload
+        expect(flex_pass_offer).not_to be_active
+        expect(flex_pass_offer).not_to be_on_sale_to_public
       end
     end
 

@@ -1,6 +1,31 @@
 require 'rails_helper'
 
 RSpec.describe FlexPassOffer, type: :model do
+  describe 'active and on-sale-to-public' do
+    it 'activates an offer that is put on sale to the public' do
+      offer = FactoryBot.create(:flex_pass_offer, active: false, on_sale_to_public: true)
+
+      expect(offer.reload).to be_active
+    end
+
+    it 'stays inactive and comes off public sale when an on-sale offer is deactivated' do
+      offer = FactoryBot.create(:flex_pass_offer, active: true, on_sale_to_public: true)
+
+      offer.update!(active: false)
+
+      expect(offer.reload).not_to be_active
+      expect(offer).not_to be_on_sale_to_public
+    end
+
+    it 'keeps an inactive offer that is not on public sale inactive' do
+      offer = FactoryBot.create(:flex_pass_offer, active: true, on_sale_to_public: false)
+
+      offer.update!(active: false)
+
+      expect(offer.reload).not_to be_active
+    end
+  end
+
   describe 'validations' do
     describe 'price' do
       it 'accepts decimal values' do

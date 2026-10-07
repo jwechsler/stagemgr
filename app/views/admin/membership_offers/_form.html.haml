@@ -1,6 +1,7 @@
 
 = simple_form_for [:admin, membership_offer] do |f|
   = token_tag
+  = render 'shared/return_to_field'
   .grid-x.grid-padding-x
     .small-12.medium-6.cell
       = f.input :name

@@ -1,4 +1,6 @@
 class Admin::FlexPassOffersController < Admin::ApplicationController
+  include ReturnsToIndex
+
   load_and_authorize_resource except: %i[autocomplete_tag search resolve_group]
 
   def autocomplete_tag
@@ -70,7 +72,7 @@ class Admin::FlexPassOffersController < Admin::ApplicationController
     respond_to do |format|
       if @flex_pass_offer.save
         flash[:notice] = 'FlexPassOffer was successfully updated.'
-        format.html { redirect_to([:admin, @flex_pass_offer]) }
+        format.html { redirect_to(return_to_index_or([:admin, @flex_pass_offer], admin_flex_pass_offers_path)) }
         format.xml  { head :ok }
       else
         format.html { render action: 'edit' }

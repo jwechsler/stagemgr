@@ -146,6 +146,12 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
       expect(response.body).to include('bg.png')
       expect(response.body).to include('name="membership_offer[card_background]"')
     end
+
+    it 'carries return_to into the form when the edit came from the index' do
+      get :edit, params: { id: active_offer.id, return_to: 'index' }
+
+      expect(response.body).to include('name="return_to"').and include('value="index"')
+    end
   end
 
   describe 'GET #search' do
@@ -203,6 +209,25 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
       patch :update, params: { id: active_offer.id, membership_offer: { membership_type: MembershipOffer::TIMED } }
 
       expect(active_offer.reload.membership_type).to eq(MembershipOffer::TIMED)
+    end
+
+    context 'when returning to the screen the edit came from' do
+      let(:params) { { id: active_offer.id, membership_offer: { name: 'Renamed Membership' } } }
+
+      it 'returns to the index when the edit came from the index' do
+        patch :update, params: params.merge(return_to: 'index')
+        expect(response).to redirect_to(admin_membership_offers_path)
+      end
+
+      it 'returns to the show page when no return_to is given' do
+        patch :update, params: params
+        expect(response).to redirect_to(admin_membership_offer_path(active_offer))
+      end
+
+      it 'ignores an unrecognised return_to rather than redirecting to it' do
+        patch :update, params: params.merge(return_to: 'https://evil.example.com')
+        expect(response).to redirect_to(admin_membership_offer_path(active_offer))
+      end
     end
   end
 end

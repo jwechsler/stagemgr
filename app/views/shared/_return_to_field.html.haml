@@ -1,0 +1,3 @@
+-# Carries an Edit link's return_to through the form (see ReturnsToIndex).
+- if params[:return_to].present?
+  = hidden_field_tag :return_to, params[:return_to]
