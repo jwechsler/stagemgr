@@ -116,6 +116,23 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
       expect(response.body).not_to include('>Prepaid<')
     end
 
+    it 'shows the Stripe price and billing period for a priced production offer' do
+      active_offer.update_columns(price_id: 'price_123')
+
+      get :show, params: { id: active_offer.id }
+
+      expect(response.body).to include('Price ID:', 'price_123', 'Billing period:')
+    end
+
+    it 'omits the Stripe price and billing period for a timed pass with no price' do
+      active_offer.update_columns(membership_type: MembershipOffer::TIMED, price_id: '')
+
+      get :show, params: { id: active_offer.id }
+
+      expect(response.body).not_to include('Price ID:')
+      expect(response.body).not_to include('Billing period:')
+    end
+
     it 'shows no card block while no background is attached' do
       get :show, params: { id: active_offer.id }
 
