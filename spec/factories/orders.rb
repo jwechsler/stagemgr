@@ -9,17 +9,20 @@ FactoryBot.define do
     order
     status { Order::NEW }
 
+    # These traits build, not create, their line items: the order has no id yet
+    # and line_items.order_id is NOT NULL, so the association saves them once
+    # the order is saved.
     trait :with_twenty_dollar_service_item do
       before(:create) do |ticket_order, _evaluator|
-        ticket_order.service_line_items << FactoryBot.create(:service_line_item, facility_fee: 2.00, amount: 20.00,
-                                                                                 order: ticket_order)
+        ticket_order.service_line_items << FactoryBot.build(:service_line_item, facility_fee: 2.00, amount: 20.00,
+                                                                                order: ticket_order)
       end
     end
 
     trait :with_wierd_special_offer do
       before(:create) do |ticket_order, _evaluator|
-        ticket_order.special_offer_line_item = FactoryBot.create(:special_offer_line_item, order: ticket_order,
-                                                                                           special_offer: FactoryBot.create(:percent_off_special_offer, code: 'WEIRDOFFER', amount: 17))
+        ticket_order.special_offer_line_item = FactoryBot.build(:special_offer_line_item, order: ticket_order,
+                                                                                          special_offer: FactoryBot.create(:percent_off_special_offer, code: 'WEIRDOFFER', amount: 17))
       end
     end
 

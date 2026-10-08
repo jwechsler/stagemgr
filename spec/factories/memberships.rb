@@ -33,8 +33,10 @@ FactoryBot.define do
       membership_offer = FactoryBot.create(:membership_offer)
       membership = FactoryBot.create(:membership, address: membership_order.address,
                                                   membership_offer: membership_offer)
-      membership_order.membership_line_item = FactoryBot.create(:membership_line_item, order: membership_order,
-                                                                                       address: membership_order.address, membership_offer: membership_offer, membership: membership)
+      # build, not create: the order has no id yet, and line_items.order_id is
+      # NOT NULL. The has_one saves the line item once the order is saved.
+      membership_order.membership_line_item = FactoryBot.build(:membership_line_item, order: membership_order,
+                                                                                      address: membership_order.address, membership_offer: membership_offer, membership: membership)
       membership_order.payments << FactoryBot.build(:credit_card_payment,
                                                     amount: 5.00,
                                                     transaction_id: 'TEST_TRANSACTION',
