@@ -209,3 +209,26 @@ RSpec.describe Performance, '#active_special_features' do
     expect(performance.special_features).to include(retired) # still attached
   end
 end
+
+RSpec.describe Performance, '#destroy' do
+  it 'is refused while the performance has ticket orders' do
+    order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+    performance = order.performance
+
+    expect(performance.destroy).to be false
+    expect(Performance.exists?(performance.id)).to be true
+    expect(TicketClassAllocation.where(performance_id: performance.id)).to exist
+  end
+
+  it 'destroys its ticket class allocations when nothing has sold' do
+    production = FactoryBot.create(:production)
+    performance = FactoryBot.create(:performance, production: production)
+    ticket_class = FactoryBot.create(:ticket_class, production: production, class_code: 'PDEL')
+    performance.ticket_class_allocations.find_or_create_by!(ticket_class: ticket_class)
+
+    expect(performance.destroy).to be_truthy
+    expect(Performance.exists?(performance.id)).to be false
+    expect(TicketClassAllocation.where(performance_id: performance.id)).to be_empty
+    expect(TicketClass.exists?(ticket_class.id)).to be true
+  end
+end

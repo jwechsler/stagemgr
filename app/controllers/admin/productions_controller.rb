@@ -111,7 +111,10 @@ class Admin::ProductionsController < Admin::ApplicationController
   # DELETE /productions/1
   # DELETE /productions/1.xml
   def destroy
-    @production.destroy
+    unless @production.destroy
+      flash[:error] = @production.errors.full_messages.to_sentence
+      return redirect_to(admin_theater_production_path(@production.theater, @production))
+    end
 
     respond_to do |format|
       format.html { redirect_to(admin_theater_path(@production.theater)) }

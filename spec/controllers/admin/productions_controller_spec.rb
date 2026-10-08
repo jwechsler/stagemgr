@@ -172,4 +172,19 @@ RSpec.describe Admin::ProductionsController, type: :controller do
       expect(production.reload.read_attribute(:capacity)).to eq(100)
     end
   end
+
+  describe 'DELETE #destroy' do
+    before { allow(controller).to receive(:current_user).and_return(admin_user) }
+
+    it 'redirects back with the errors when a production with ticket orders cannot be destroyed' do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+      sold = order.performance.production
+
+      delete :destroy, params: { theater_id: sold.theater_id, id: sold.id }
+
+      expect(response).to redirect_to(admin_theater_production_path(sold.theater, sold))
+      expect(flash[:error]).to be_present
+      expect(Production.exists?(sold.id)).to be true
+    end
+  end
 end

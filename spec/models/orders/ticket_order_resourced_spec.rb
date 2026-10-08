@@ -329,7 +329,7 @@ RSpec.describe 'TicketOrder resourced equipment limits' do
     end
 
     it 'refuses a manual destroy' do
-      expect { shadow.destroy }.to raise_error(UncaughtThrowError)
+      expect(shadow.destroy).to be false
       expect(TicketClass.find_by(id: shadow.id)).to be_present
     end
   end

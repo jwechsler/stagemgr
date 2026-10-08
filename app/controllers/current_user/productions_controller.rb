@@ -1,6 +1,6 @@
 class CurrentUser::ProductionsController < CurrentUser::ApplicationController
   prepend_before_action :find_theater
-  before_action :find_production, only: %i[show edit update destroy]
+  before_action :find_production, only: %i[show]
 
   # GET /productions/1
   # GET /productions/1.xml
@@ -21,8 +21,6 @@ class CurrentUser::ProductionsController < CurrentUser::ApplicationController
     end
   end
 
-  def edit; end
-
   # POST /productions
   # POST /productions.xml
   def create
@@ -38,32 +36,6 @@ class CurrentUser::ProductionsController < CurrentUser::ApplicationController
         format.html { render action: 'new' }
         format.xml  { render xml: @production.errors, status: :unprocessable_entity }
       end
-    end
-  end
-
-  # PUT /productions/1
-  # PUT /productions/1.xml
-  def update
-    respond_to do |format|
-      if @production.update(params[:production])
-        flash[:notice] = 'Production was successfully updated.'
-        format.html { redirect_to(edit_theater_path(@production.theater)) }
-        format.xml  { head :ok }
-      else
-        format.html { render action: 'edit' }
-        format.xml  { render xml: @production.errors, status: :unprocessable_entity }
-      end
-    end
-  end
-
-  # DELETE /productions/1
-  # DELETE /productions/1.xml
-  def destroy
-    @production.destroy
-
-    respond_to do |format|
-      format.html { redirect_to(edit_theater_path(@production.theater)) }
-      format.xml  { head :ok }
     end
   end
 

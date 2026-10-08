@@ -118,4 +118,23 @@ RSpec.describe TicketClass do
       expect(ticket_class.reload.purchase_page_annotation).to eq(typography)
     end
   end
+
+  describe 'destroy' do
+    it 'destroys an unsold ticket class and its allocations' do
+      ticket_class = FactoryBot.create(:ticket_class, production: @production, class_code: 'UNSOLD')
+      allocation = @performance.ticket_class_allocations.find_or_create_by!(ticket_class: ticket_class)
+
+      expect(ticket_class.destroy).to be_truthy
+      expect(TicketClass.exists?(ticket_class.id)).to be false
+      expect(TicketClassAllocation.exists?(allocation.id)).to be false
+    end
+
+    it 'is refused once the class has sold tickets' do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+      ticket_class = order.ticket_line_items.first.ticket_class
+
+      expect(ticket_class.destroy).to be false
+      expect(TicketClass.exists?(ticket_class.id)).to be true
+    end
+  end
 end
