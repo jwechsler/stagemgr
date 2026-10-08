@@ -29,12 +29,8 @@ module CallbackHaltingLint
 
   module_function
 
-  # Rails.application.eager_load! skips app/models here (the autoload_paths
-  # glob adds "app/models/", which Zeitwerk then excludes from eager loading),
-  # so load every model file explicitly.
   def load_models
-    loader = Rails.autoloaders.main
-    Dir[File.join(APP_ROOT, 'models/**/*.rb')].each { |file| loader.load_file(file) }
+    Rails.application.eager_load!
     ApplicationRecord.descendants.reject(&:abstract_class?).sort_by(&:name)
   end
 

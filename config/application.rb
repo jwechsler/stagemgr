@@ -23,7 +23,12 @@ module Stagemgr
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 6.0
 
-    config.autoload_paths += Dir[Rails.root.join('app/models/**/')]
+    # app/models/<dir>/ only groups files: orders/ticket_order.rb defines
+    # TicketOrder, not Orders::TicketOrder. Collapse the folders rather than adding
+    # each as an autoload path -- Rails leaves autoload-only paths out of eager
+    # loading, so production would load these models lazily and STI parents
+    # (CurrencyPayment, PassPayment) would query only the subclasses loaded so far.
+    Rails.autoloaders.main.collapse(Dir[Rails.root.join('app/models/*/')] - [Rails.root.join('app/models/concerns/').to_s])
     config.autoload_paths << "#{config.root}/lib"
     # config.eager_load_paths << "#{config.root}/lib"
 
