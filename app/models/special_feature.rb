@@ -44,7 +44,6 @@ class SpecialFeature < ApplicationRecord
       perf.special_feature_display_markdown = append_markdown(display, description)
       perf.save!
     end
-    true
   end
 
   private

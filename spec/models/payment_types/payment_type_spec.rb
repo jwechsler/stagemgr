@@ -75,4 +75,19 @@ RSpec.describe 'a payment type'  do
     order.transition_to!(Order::PROCESSED)
     expect(order.status).to eq(Order::PROCESSED)
   end
+
+  it 'cannot be deleted once payments use it, but can be deleted before' do
+    unused = ExternalPaymentType.create!(display_name: 'Unused Tender')
+    expect(unused.destroy).to be_truthy
+
+    used = ExternalPaymentType.create!(display_name: 'Used Tender')
+    performance = FactoryBot.create(:performance, production: FactoryBot.create(:production, capacity: 4))
+    order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance)
+    order.payment_type = used
+    order.transition_to!(Order::PROCESSED)
+    expect(Payment.where(payment_type_id: used.id)).to exist
+
+    expect(used.destroy).to be false
+    expect(PaymentType.exists?(used.id)).to be true
+  end
 end

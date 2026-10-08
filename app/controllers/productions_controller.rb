@@ -10,7 +10,7 @@ class ProductionsController < ApplicationController
   FestivalImage = Struct.new(:festival)
 
   prepend_before_action :find_theater, except: %i[index upcoming now_playing box_office show]
-  before_action :find_production, only: %i[edit update destroy]
+  before_action :find_production, only: %i[edit update]
 
   def index
     now_playing
@@ -106,17 +106,6 @@ class ProductionsController < ApplicationController
         format.html { render action: 'edit' }
         format.xml  { render xml: @production.errors, status: :unprocessable_entity }
       end
-    end
-  end
-
-  # DELETE /productions/1
-  # DELETE /productions/1.xml
-  def destroy
-    @production.destroy
-
-    respond_to do |format|
-      format.html { redirect_to(theater_path(@production.theater)) }
-      format.xml  { head :ok }
     end
   end
 

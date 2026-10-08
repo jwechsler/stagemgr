@@ -112,6 +112,17 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
       end
     end
 
+    describe 'DELETE #destroy' do
+      it 'redirects with an error when the map cannot be deleted' do
+        FactoryBot.create(:production, seat_map: seat_map, venue: venue)
+
+        delete :destroy, params: { venue_id: venue.id, id: seat_map.id }
+
+        expect(response).to redirect_to(admin_venue_path(venue))
+        expect(flash[:error]).to be_present
+      end
+    end
+
     describe 'GET #show' do
       it 'redirects to the seat map editor' do
         get :show, params: { venue_id: venue.id, id: seat_map.id }

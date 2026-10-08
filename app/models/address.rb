@@ -176,7 +176,10 @@ end
   end
 
   def ensure_no_finalized_orders
-    raise "Cannot delete an address associated with orders" if orders.reload.any?
+    return unless orders.reload.any?
+
+    errors.add(:base, 'Cannot delete an address associated with orders.')
+    throw(:abort)
   end
 
   def update_from(newer)
@@ -248,7 +251,7 @@ end
       # update_from re-parented every tag the keeper lacked; whatever remains
       # on from_address duplicates a tag already on the keeper.
       from_address.address_tags.destroy_all
-      from_address.destroy
+      from_address.destroy!
     end
   end
 

@@ -2,9 +2,9 @@ class Seat < ApplicationRecord
   belongs_to :seat_map, inverse_of: :seats
 
   validates :location, :row, :seat_number, presence: true
-  before_validation :set_standard_location
   before_validation :normalize_zone
-  before_destroy :verify_unassigned
+  # prepend: must run before the seat_assignments dependent: :destroy cascade.
+  before_destroy :verify_unassigned, prepend: true
   validates :location, uniqueness: { scope: [:seat_map_id] }
   # Zoned pricing: 1-2 chars of A-Z/0-9; the wildcard "*" is class-only and
   # deliberately rejected here. Defaulted (never blank) so a zoned map always
@@ -29,12 +29,11 @@ class Seat < ApplicationRecord
 
   private
 
-  def set_standard_location
-    location = "#{row}#{seat_number}" if location.blank? || location.original.eql?("#{row.original}#{seat_number.original}")
-  end
-
   def verify_unassigned
-    return SeatAssignment.where(seat_id: self.id).where.not(order_uuid: [nil, ""]).count.eql?(0)
+    return unless SeatAssignment.where(seat_id: id).where.not(order_uuid: [nil, '']).exists?
+
+    errors.add(:base, "Seat #{location} has sold tickets and cannot be deleted.")
+    throw(:abort)
   end
 
   def normalize_zone

@@ -111,7 +111,10 @@ class Admin::AddressesController < Admin::ApplicationController
   # DELETE /admin/addresses/1.xml
   def destroy
     @address = Address.find(params[:id])
-    @address.destroy
+    unless @address.destroy
+      flash[:error] = @address.errors.full_messages.to_sentence
+      return redirect_to(admin_address_path(@address))
+    end
 
     respond_to do |format|
       format.html { redirect_to(admin_addresses_url) }

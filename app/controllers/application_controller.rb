@@ -95,7 +95,6 @@ class ApplicationController < ActionController::Base
         render xml: user.errors, status: :unauthorized
       end
     end
-    false
   end
 
   def current_user_session

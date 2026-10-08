@@ -127,7 +127,7 @@ export function zonesOf(store, keys) {
 }
 
 // Suggest properties for a seat added at (x, y): row from the nearest seat,
-// next seat number in that row, location mirroring Seat#set_standard_location.
+// next seat number in that row, location defaulting to row + seat number.
 export function suggestNewSeat(store, x, y) {
   let nearest = null
   let nearestDist = Infinity

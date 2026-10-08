@@ -57,7 +57,6 @@ class TicketOrder < Order
   # and exchanges save while EXCHANGING in begin_exchange!.
   validate :ticket_stock_available, :unless => -> { allow_deletion? || settled? }
   validate :seat_assignments_complete?, :if => :seating_check_required?
-  validate :payments_exist?, :if => :processed?
   validates :uuid, presence: true
 
   validates_each :status do |record, _attr, value|
@@ -116,10 +115,6 @@ class TicketOrder < Order
                    "There #{seats_left == 1 ? "is" : "are"} only #{seats_left} reservation#{"s" unless seats_left == 1} remaining for the #{performance.performance_date} performance at #{performance.performance_time.to_formatted_s(:standard_time)}.")
       end
     
-  end
-
-  def payments_exist?
-    !payments.empty?
   end
 
   # Frees every seat this order holds and every seat link on its line items;
