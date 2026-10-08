@@ -190,6 +190,30 @@ is the default `DATABASE_USER`. Substitute your own if you changed either --
 and note the values are whatever the volume was **initialized** with, not
 whatever `.env` says now.
 
+### Parallel worktrees
+
+RSpec and Cucumber truncate every table between examples, so two checkouts
+running specs against the same test database break each other's runs. To work
+on several branches at once, give each its own git worktree and test database:
+
+```sh
+bin/worktree-setup <name> [branch] [base]   # ../stagemgr-<name>, base defaults to master
+bin/worktree-teardown <name> [--force]      # drops its database, removes the worktree
+```
+
+`worktree-setup` checks out `<branch>` (default `<name>`, created from `<base>`
+if it does not exist) in `../stagemgr-<name>`, copies the gitignored config
+files and `.env` from the main checkout, links its `vendor/bundle` and
+`node_modules`, and creates `stagemgr_test_<name>`. It records that name in
+the worktree's `.env.test.local`, which `dotenv-rails` loads in the test
+environment, so `bundle exec rspec` and `bundle exec cucumber` there use it
+without further setup. Both scripts run specs on the host, with gems installed
+in the main checkout's `vendor/bundle`, and need the `stagemgr_test%` grant
+above.
+
+`worktree-teardown` refuses a worktree with uncommitted changes unless you
+pass `--force`, and keeps the branch.
+
 ### What lives where
 
 - The checkout is bind-mounted at `/var/www/stagemgr`. `config/*.yml`, `.env`,
