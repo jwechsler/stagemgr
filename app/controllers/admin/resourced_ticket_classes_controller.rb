@@ -1,4 +1,4 @@
-class Admin::ResourcedTicketClassesController < ApplicationController
+class Admin::ResourcedTicketClassesController < Admin::ApplicationController
   load_and_authorize_resource
 
   def index

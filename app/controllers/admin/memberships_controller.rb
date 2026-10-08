@@ -1,4 +1,4 @@
-class Admin::MembershipsController < ApplicationController
+class Admin::MembershipsController < Admin::ApplicationController
   load_and_authorize_resource
 
   def index

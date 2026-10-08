@@ -1,4 +1,4 @@
-class Admin::VenuesController < ApplicationController
+class Admin::VenuesController < Admin::ApplicationController
   load_and_authorize_resource
 
   def index

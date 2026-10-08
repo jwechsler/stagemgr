@@ -49,6 +49,8 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
       user_double = double('User', id: 1, email: 'admin@example.com', role: User::ADMIN,
                                    theater_ids: [], is_box_office_user?: false,
                                    is_theater_user?: false, is_resident?: false, can?: true)
+      # Admin::ApplicationController#current_ability asks the user, like User#ability.
+      allow(user_double).to receive(:ability).and_return(Ability.new(user_double))
       allow(controller).to receive(:current_user).and_return(user_double)
       allow(controller).to receive(:authorize!).and_return(true)
     end
