@@ -1,4 +1,4 @@
-class Admin::MembershipOffersController < ApplicationController
+class Admin::MembershipOffersController < Admin::ApplicationController
   include ReturnsToIndex
 
   load_and_authorize_resource except: %i[autocomplete_tag search resolve_group]

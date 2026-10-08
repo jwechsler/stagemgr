@@ -3,6 +3,13 @@ class ApplicationController < ActionController::Base
   helper_method :current_user_session, :current_user, :logged_in?, :current_user_is_admin?, :payment_types_for,
                 :backend_user?
 
+  # RAILS_RAISE_ERRORS disables the global rescue so the real exception (with
+  # backtrace) surfaces in test runs instead of collapsing into a redirect loop.
+  rescue_from StandardError, with: :handle_exception unless Rails.env.development? || ENV['RAILS_RAISE_ERRORS'].present?
+
+  # Must stay below the StandardError rescue: Rails tries handlers last-declared
+  # first, so declared above it this was shadowed and every denial was mailed
+  # to ExceptionNotifier as an unexpected error.
   rescue_from CanCan::AccessDenied do |exception|
     respond_to do |format|
       format.json { head :forbidden, content_type: 'text/html' }
@@ -10,10 +17,6 @@ class ApplicationController < ActionController::Base
       format.js   { head :forbidden, content_type: 'text/html' }
     end
   end
-
-  # RAILS_RAISE_ERRORS disables the global rescue so the real exception (with
-  # backtrace) surfaces in test runs instead of collapsing into a redirect loop.
-  rescue_from StandardError, with: :handle_exception unless Rails.env.development? || ENV['RAILS_RAISE_ERRORS'].present?
 
   attr_accessor :markdown
 

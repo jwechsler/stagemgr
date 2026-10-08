@@ -1,4 +1,4 @@
-class Admin::DefaultTicketClassesController < ApplicationController
+class Admin::DefaultTicketClassesController < Admin::ApplicationController
   authorize_resource
   def index
     @default_ticket_classes = DefaultTicketClass.all
