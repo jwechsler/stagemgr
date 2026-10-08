@@ -107,12 +107,11 @@ class TicketClass < ApplicationRecord
   end
 
   def prevent_price_changes_after_sales
-    if ticket_type != DONATION && (ticket_price_was != ticket_price) && !TicketLineItem.where(ticket_class_id: id).empty?
-      errors.add(:base,
-                 "Cannot change ticket price from #{ticket_price_was} to #{ticket_price} if sales have already occurred")
-      return false
-    end
-    true
+    return unless ticket_type != DONATION && (ticket_price_was != ticket_price) &&
+                  TicketLineItem.exists?(ticket_class_id: id)
+
+    errors.add(:base,
+               "Cannot change ticket price from #{ticket_price_was} to #{ticket_price} if sales have already occurred")
   end
 
   def number_taken(performance, exclude_order = nil)
@@ -177,7 +176,7 @@ class TicketClass < ApplicationRecord
   # withdraws the class from sale. Deleting the whole production (which the
   # production only allows when nothing has sold) takes its shadow rows along.
   def prevent_manual_destroy_of_resourced_class
-    return true unless resourced? && !synced_from_resource && !destroyed_with_production?
+    return unless resourced? && !synced_from_resource && !destroyed_with_production?
 
     errors.add(:base,
                'Cannot delete a globally resourced ticket class here; ' \

@@ -28,7 +28,7 @@ class FlexPass < ApplicationRecord
 
   before_validation :create_code, on: :create
   before_create :set_expiration_date
-  before_destroy :has_no_placed_orders?
+  before_destroy :prevent_destroy_with_placed_orders
   # after_commit (not after_create) so a purchase that rolls back — e.g. an
   # autofulfill ticket order or card decline aborting the transition
   # transaction — never enqueues an orphan ExpireFlexPass job. The job's
@@ -87,9 +87,13 @@ class FlexPass < ApplicationRecord
 
   def self.fix_mangled_passes
     passes = FlexPass.all
-    passes.select { |p| p.flex_pass_line_item.nil? }.each { |p| p.destroy }
+    passes.select { |p| p.flex_pass_line_item.nil? }.each do |p|
+      Rails.logger.warn("Kept mangled flex pass #{p.id}: #{p.errors.full_messages.to_sentence}") unless p.destroy
+    end
     passes = FlexPass.all
     passes.each do |p|
+      next if p.flex_pass_line_item.nil? # kept above: used on orders
+
       p.order = p.flex_pass_line_item.order
       p.address = p.order.address
       p.expiration_date = p.created_at.to_date + p.flex_pass_offer.months_till_expiration.months
@@ -118,8 +122,11 @@ class FlexPass < ApplicationRecord
     ticket_orders.attending.joins(:performance).where('performance_date < ?', Date.current)
   end
 
-  def has_no_placed_orders?
-    !has_placed_orders?
+  def prevent_destroy_with_placed_orders
+    return unless has_placed_orders?
+
+    errors.add(:base, 'Cannot delete a flex pass that has been used on orders.')
+    throw(:abort)
   end
 
   def has_no_outstanding_orders?

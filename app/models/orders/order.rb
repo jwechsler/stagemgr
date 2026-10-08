@@ -606,16 +606,19 @@ class Order < ApplicationRecord
   def self.delete_unprocessed_orders
     orders = Order.transitory.where("updated_at < :window and type != 'MembershipOrder'",
                                     { :window => Time.now - 20.minutes })
-    orders.each do |order|
-      order.destroy
-    end
+    orders.each { |order| destroy_unprocessed_order(order) }
 
     orders = Order.transitory.where("updated_at < :window and type = 'MembershipOrder'",
                                     { :window => Time.now - 8.hours })
-    orders.each do |order|
-      order.destroy
-    end
+    orders.each { |order| destroy_unprocessed_order(order) }
   end
+
+  def self.destroy_unprocessed_order(order)
+    return if order.destroy
+
+    Rails.logger.warn("Could not delete unprocessed order #{order.id}: #{order.errors.full_messages.to_sentence}")
+  end
+  private_class_method :destroy_unprocessed_order
 
   def self.fix_expiration_year(expiration_year)
     unless expiration_year.blank? || expiration_year.length > 2
@@ -717,13 +720,10 @@ class Order < ApplicationRecord
   end
 
   def prevent_status_rollbacks
-    if status_changed? && status_was.present?
-      if unprocessed? && UNPROCESSED_STATUSES.exclude?(status_was)
-        errors.add(:error,
-                   "Cannot reprocess orders")
-      end
-    end
-    true
+    return unless status_changed? && status_was.present?
+    return unless unprocessed? && UNPROCESSED_STATUSES.exclude?(status_was)
+
+    errors.add(:error, 'Cannot reprocess orders')
   end
 
   def refund_line_items(reversing_entries); end

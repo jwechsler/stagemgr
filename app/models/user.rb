@@ -59,7 +59,6 @@ class User < ApplicationRecord
   def set_defaults
     self.is_administrator = false if is_administrator.nil?
     self.is_box_office_user = false if is_box_office_user.nil?
-    true
   end
 
   def is_theater_user?

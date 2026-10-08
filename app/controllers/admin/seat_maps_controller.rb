@@ -56,7 +56,7 @@ class Admin::SeatMapsController < Admin::ApplicationController
   end
 
   def destroy
-    @seat_map.destroy
+    flash[:error] = @seat_map.errors.full_messages.to_sentence unless @seat_map.destroy
     respond_to do |format|
       format.html { redirect_to(admin_venue_path(@venue)) }
     end

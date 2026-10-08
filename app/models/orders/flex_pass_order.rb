@@ -8,7 +8,8 @@ class FlexPassOrder < Order
 
   validates_associated :flex_pass_line_item
 
-  before_destroy :has_no_placed_orders?
+  # prepend: must run before the flex_pass_line_item dependent: :destroy.
+  before_destroy :prevent_destroy_with_placed_orders, prepend: true
 
   def associated_theater_id
     if flex_pass_line_item.nil?
@@ -81,11 +82,15 @@ class FlexPassOrder < Order
   end
 
   def has_placed_orders?
-    FlexPassPayment.where(flex_pass_id: flex_pass).count > 0
+    pass = flex_pass_line_item&.flex_pass
+    pass.present? && FlexPassPayment.exists?(flex_pass_id: pass)
   end
 
-  def has_no_placed_orders?
-    !has_placed_orders?
+  def prevent_destroy_with_placed_orders
+    return unless has_placed_orders?
+
+    errors.add(:base, 'Cannot delete a flex pass order whose pass has been used on orders.')
+    throw(:abort)
   end
 
   protected

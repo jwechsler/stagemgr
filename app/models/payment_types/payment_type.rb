@@ -8,7 +8,8 @@ class PaymentType < ApplicationRecord
     attributes['task_type'].blank?
   }, allow_destroy: true
 
-  before_destroy :prevent_orphans
+  # prepend: must run before the dependent: :destroy associations above.
+  before_destroy :prevent_orphans, prepend: true
 
   validates :display_name, uniqueness: true
 
@@ -67,12 +68,10 @@ class PaymentType < ApplicationRecord
   end
 
   def prevent_orphans
-    if payments.count > 0
-      errors.where(:base) << "#{display_name} has payments associated with it.  Cannot be deleted"
-      false
-    else
-      true
-    end
+    return unless payments.exists?
+
+    errors.add(:base, "#{display_name} has payments associated with it and cannot be deleted.")
+    throw(:abort)
   end
 
   def build_exchange_offset_payments(source_payments)

@@ -9,7 +9,9 @@ class SeatMap < ApplicationRecord
   has_one_attached :base_image_map
   validates :base_image_map, blob: { content_type: :image }
   # validates_attachment_content_type :base_image_map, content_type: /\Aimage\/.*\z/
-  before_destroy :prevent_deletion_when_assigned_to_production
+  # prepend: must run before the seats' dependent: :destroy cascade, or the
+  # seats and their seat assignments would be deleted before the check.
+  before_destroy :prevent_deletion_while_in_use, prepend: true
   before_save :save_image_dimensions
 
   def save_image_dimensions
@@ -52,10 +54,20 @@ class SeatMap < ApplicationRecord
 
   private
 
-  def prevent_deletion_when_assigned_to_production
-    return true if productions.count == 0
+  # A map that productions still use, or whose seats were sold (e.g. under a
+  # production since moved to another map), keeps its seats. The sold-seat
+  # check also gives a clean error where the cascade would otherwise raise
+  # RecordNotDestroyed from Seat#verify_unassigned.
+  def prevent_deletion_while_in_use
+    if productions.exists?
+      errors.add(:base, 'Cannot delete a seat map that is assigned to a production.')
+    elsif sold_seat_assignments.exists?
+      errors.add(:base, 'Cannot delete a seat map with sold seats.')
+    end
+    throw(:abort) if errors.any?
+  end
 
-    errors.add(:base, "Cannot delete seat map with existing production assignments")
-    false
+  def sold_seat_assignments
+    SeatAssignment.where(seat_id: seats.select(:id)).where.not(order_uuid: [nil, ''])
   end
 end

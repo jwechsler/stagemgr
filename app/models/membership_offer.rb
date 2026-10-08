@@ -83,12 +83,10 @@ class MembershipOffer < ApplicationRecord
 
   def take_inactive_off_sale
     self.on_sale = false
-    true
   end
 
   def take_timed_off_sale
     self.on_sale = false
-    true
   end
 
   def clear_billing_period

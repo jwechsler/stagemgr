@@ -279,7 +279,6 @@ class Membership < ApplicationRecord
         end
       end
     end
-    true
   end
 
   def to_s

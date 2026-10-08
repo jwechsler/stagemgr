@@ -228,6 +228,9 @@ class SeatAssignment < ApplicationRecord
   end
 
   def verify_unused
-    order_uuid.blank?
+    return if order_uuid.blank?
+
+    errors.add(:base, 'Cannot delete a seat assignment that belongs to an order.')
+    throw(:abort)
   end
 end

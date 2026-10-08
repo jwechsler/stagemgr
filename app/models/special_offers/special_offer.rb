@@ -59,23 +59,17 @@ class SpecialOffer < ApplicationRecord
     when 'Theater'
       (self.theater = Theater.find(i)) ||
         errors.add(:base, "Can't find Theater with id: #{i}")
-      !theater.nil?
     when 'Production'
       (self.production = Production.find_by_production_code(i)) ||
         errors.add(:base, "Can't find Production with code: #{i}")
-      !production.nil?
     when 'Performance'
       (self.performance = Performance.find_by_performance_code(i)) ||
         errors.add(:base, "Can't find Performance with code: #{i}")
-      !performance.nil?
     when '', nil
       errors.add(:base, "You didn't pick the type but you entered the id of: #{i}")
-      false
     else
       errors.add(:base, 'You tried to use an unknown type')
-      false
     end
-    true
   end
 
   def limiting_model_type

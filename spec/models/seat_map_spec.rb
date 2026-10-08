@@ -80,4 +80,23 @@ RSpec.describe SeatMap, type: :model do
       expect(performance.seat_assignments.count).to eq(8)
     end
   end
+
+  context 'deletion' do
+    it 'is refused while a production uses the map, but allowed for an unassigned map' do
+      seat_map = FactoryBot.create(:seat_map, seat_count: 2)
+      production = FactoryBot.create(:production, venue: seat_map.venue, seat_map: seat_map)
+      performance = FactoryBot.create(:performance, production: production)
+      sold = SeatAssignment.find_or_initialize_by(seat: seat_map.seats.first, performance: performance)
+      sold.update!(status: SeatAssignment::ASSIGNED, order_uuid: SecureRandom.uuid)
+
+      expect(seat_map.destroy).to be false
+      expect(SeatMap.exists?(seat_map.id)).to be true
+      expect(seat_map.seats.count).to eq(2)
+      expect(SeatAssignment.exists?(sold.id)).to be true
+
+      unassigned = FactoryBot.create(:seat_map, seat_count: 2)
+      expect(unassigned.destroy).to be_truthy
+      expect(Seat.where(seat_map_id: unassigned.id)).to be_empty
+    end
+  end
 end
