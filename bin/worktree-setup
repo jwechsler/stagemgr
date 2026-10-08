@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# Create a git worktree that can run RSpec and Cucumber alongside this checkout.
+#
+#   bin/worktree-setup <name> [branch] [base]
+#
+# Makes ../stagemgr-<name> on <branch> (default: <name>), creating the branch
+# from <base> (default: master) if it does not exist yet. The worktree shares
+# this checkout's installed gems and node_modules, gets copies of the
+# gitignored config files, and gets its own test database,
+# stagemgr_test_<name>, recorded in .env.test.local so rspec and cucumber pick
+# it up automatically. The suites truncate every table between examples, so
+# two checkouts must never share a test database.
+#
+# Needs the stagemgr_test% grant described in
+# docs/manual/developer/installation.md. Remove with bin/worktree-teardown.
+set -euo pipefail
+
+usage() {
+  echo "usage: bin/worktree-setup <name> [branch] [base]" >&2
+  exit 64
+}
+
+[[ $# -ge 1 && $# -le 3 ]] || usage
+name=$1
+branch=${2:-$name}
+base=${3:-master}
+
+# The primary checkout (not this worktree): it holds the installed gems,
+# node_modules and the gitignored config that every worktree borrows.
+main=$(cd "$(git -C "$(dirname "$0")" rev-parse --path-format=absolute --git-common-dir)/.." && pwd -P)
+path="$(dirname "$main")/stagemgr-${name//\//-}"
+database="stagemgr_test_$(tr -c 'A-Za-z0-9\n' '_' <<<"$name" | tr 'A-Z' 'a-z')"
+
+[[ -e $path ]] && { echo "$path already exists" >&2; exit 1; }
+
+echo "== Worktree $path on $branch"
+if git -C "$main" show-ref --verify --quiet "refs/heads/$branch"; then
+  git -C "$main" worktree add "$path" "$branch"
+else
+  git -C "$main" worktree add -b "$branch" "$path" "$base"
+fi
+
+echo "== Copying gitignored config"
+cd "$main"
+while IFS= read -r file; do
+  [[ -e $path/$file ]] && continue
+  mkdir -p "$path/$(dirname "$file")"
+  cp -p "$file" "$path/$file"
+done < <(git ls-files --others --ignored --exclude-standard config)
+for file in .env .bundle/config; do
+  [[ -e $file && ! -e $path/$file ]] || continue
+  mkdir -p "$path/$(dirname "$file")"
+  cp -p "$file" "$path/$file"
+done
+
+echo "== Sharing installed gems and node_modules"
+for dir in vendor/bundle node_modules; do
+  if [[ -e $main/$dir && ! -e $path/$dir ]]; then
+    ln -s "$main/$dir" "$path/$dir"
+  fi
+done
+
+echo "== Test database $database"
+echo "TEST_DATABASE_NAME=$database" >"$path/.env.test.local"
+cd "$path"
+RAILS_ENV=test bundle exec rails db:create db:schema:load
+
+echo
+echo "Ready: cd $path"
+echo "rspec and cucumber there use $database."

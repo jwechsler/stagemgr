@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Remove a worktree made by bin/worktree-setup, and drop its test database.
+#
+#   bin/worktree-teardown <name> [--force]
+#
+# --force removes the worktree even with uncommitted changes (they are lost).
+# The branch itself is kept.
+set -euo pipefail
+
+usage() {
+  echo "usage: bin/worktree-teardown <name> [--force]" >&2
+  exit 64
+}
+
+[[ $# -ge 1 && $# -le 2 ]] || usage
+name=$1
+force=
+if [[ $# -eq 2 ]]; then
+  [[ $2 == --force ]] || usage
+  force=--force
+fi
+
+# The primary checkout; worktrees sit beside it.
+main=$(cd "$(git -C "$(dirname "$0")" rev-parse --path-format=absolute --git-common-dir)/.." && pwd -P)
+path="$(dirname "$main")/stagemgr-${name//\//-}"
+[[ -d $path ]] || { echo "no worktree at $path" >&2; exit 1; }
+
+# Refuse up front, so the database is not dropped and then the remove fails.
+if [[ -z $force && -n $(git -C "$path" status --porcelain) ]]; then
+  echo "$path has uncommitted changes; commit them or pass --force" >&2
+  exit 1
+fi
+
+database=$(sed -n 's/^TEST_DATABASE_NAME=//p' "$path/.env.test.local" 2>/dev/null || true)
+case $database in
+  stagemgr_test_?*)
+    echo "== Dropping $database"
+    (cd "$path" && RAILS_ENV=test bundle exec rails db:drop)
+    ;;
+  *)
+    echo "== No per-worktree test database recorded; leaving databases alone"
+    ;;
+esac
+
+echo "== Removing $path"
+git -C "$main" worktree remove $force "$path"
