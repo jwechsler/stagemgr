@@ -26,4 +26,17 @@ RSpec.describe Admin::TheatersController, type: :controller do
 
     expect(selected_status).to eq(Theater::ACTIVE)
   end
+
+  describe 'DELETE #destroy' do
+    it 'redirects back with the errors when a theater with productions cannot be destroyed' do
+      theater = FactoryBot.create(:theater, name: 'Busy House')
+      FactoryBot.create(:production, theater: theater)
+
+      delete :destroy, params: { id: theater.id }
+
+      expect(response).to redirect_to(admin_theater_path(theater))
+      expect(flash[:error]).to be_present
+      expect(Theater.exists?(theater.id)).to be true
+    end
+  end
 end

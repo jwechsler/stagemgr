@@ -72,7 +72,10 @@ class Admin::TheatersController < Admin::ApplicationController
   # DELETE /theaters/1
   # DELETE /theaters/1.xml
   def destroy
-    @theater.destroy
+    unless @theater.destroy
+      flash[:error] = @theater.errors.full_messages.to_sentence
+      return redirect_to(admin_theater_path(@theater))
+    end
 
     respond_to do |format|
       format.html { redirect_to(admin_theaters_url) }

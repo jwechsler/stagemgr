@@ -96,7 +96,7 @@ class Admin::PerformancesController < Admin::ApplicationController
   # DELETE /performances/1.xml
   def destroy
     production = @performance.production
-    @performance.destroy
+    flash[:error] = @performance.errors.full_messages.to_sentence unless @performance.destroy
 
     respond_to do |format|
       format.html { redirect_to(admin_theater_production_path(production.theater, production)) }

@@ -15,7 +15,7 @@ class Theater < ApplicationRecord
   validates :name, uniqueness: true
   validates :name, presence: true
 
-  has_many :productions, inverse_of: :theater
+  has_many :productions, inverse_of: :theater, dependent: :restrict_with_error
   has_many :special_offers, inverse_of: :theaters
   has_many :flex_pass_offers, inverse_of: :theater
   has_many :orders, inverse_of: :theater

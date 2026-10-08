@@ -96,8 +96,7 @@ class ResourcedTicketClass < ApplicationRecord
   #
   # The check lives here rather than in a before_destroy callback on purpose:
   # `throw :abort` from a callback rolls the whole destroy transaction back,
-  # which would undo the decommission we just performed. Mirrors the existing
-  # TicketClass#destroy override.
+  # which would undo the decommission we just performed.
   # rubocop:disable Rails/ActiveRecordOverride
   def destroy
     sold = shadow_classes_with_sales
@@ -288,13 +287,11 @@ class ResourcedTicketClass < ApplicationRecord
 
     # No sales anywhere, so nothing to preserve: drop the shadow rows.
     #
-    # These rows are deleted rather than destroyed on purpose.
-    # TicketClass#destroy runs check_for_processed_tickets OUTSIDE a callback
-    # chain, and that guard is inverted -- it throws :abort for a class with NO
-    # line items, which surfaces as UncaughtThrowError. Fixing that guard is a
-    # separate change with app-wide reach. We have already proven there are no
-    # line items here, so we destroy the dependent allocations ourselves (the
-    # only `dependent: :destroy` association) and delete the rows.
+    # These rows are deleted rather than destroyed: TicketClass refuses to
+    # destroy a shadow row it was not told is a resource sync, and we have
+    # already proven there are no line items here. Destroy the dependent
+    # allocations ourselves (the only `dependent: :destroy` association) and
+    # delete the rows.
     shadow_ids = shadows.map(&:id)
     TicketClassAllocation.where(ticket_class_id: shadow_ids).destroy_all
     TicketClass.where(id: shadow_ids).delete_all

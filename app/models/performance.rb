@@ -9,9 +9,13 @@ class Performance < ApplicationRecord
 
   belongs_to               :production, inverse_of: :performances
   has_many                 :special_offers, inverse_of: :performance
-  has_many                 :ticket_class_allocations, -> { includes :ticket_class }, inverse_of: :performance
+  has_many                 :ticket_class_allocations, -> { includes :ticket_class }, inverse_of: :performance,
+                                                                                     dependent: :destroy
   has_many                 :ticket_classes, :through => :ticket_class_allocations, inverse_of: :performances
-  has_many                 :seat_assignments, -> { includes :seat }, inverse_of: :performance
+  # Per-seat inventory. delete_all is safe: protect_performances_with_orders has
+  # already refused the destroy if anything was sold or held.
+  has_many                 :seat_assignments, -> { includes :seat }, inverse_of: :performance,
+                                                                     dependent: :delete_all
   has_many                 :seats, :through => :seat_assignments
   has_one                  :seat_map, :through => :production
   has_many                 :orders, :class_name => 'TicketOrder', inverse_of: :performance
@@ -49,7 +53,8 @@ class Performance < ApplicationRecord
   before_save                     :manage_seat_inventory, :unless => proc { |p|
     p.production.nil? || p.production.seat_map.nil?
   }
-  before_destroy                  :protect_performances_with_orders
+  # Prepended so it halts before the dependent destroys declared above.
+  before_destroy                  :protect_performances_with_orders, prepend: true
   after_create                    :create_metrics
   after_save                      :propagate_requested_allocation_availability
   accepts_nested_attributes_for   :ticket_class_allocations
@@ -538,8 +543,10 @@ class Performance < ApplicationRecord
   end
 
   def protect_performances_with_orders
-    errors.add(:performance_code, " has associated ticket orders and cannot be deleted") unless orders.empty?
-    orders.size.eql?(0)
+    return unless orders.exists?
+
+    errors.add(:performance_code, 'has associated ticket orders and cannot be deleted')
+    throw(:abort)
   end
 
   def create_metrics

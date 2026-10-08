@@ -373,8 +373,10 @@ Rails.application.routes.draw do
   end
 
   namespace :current_user do
-    resources :theaters do
-      resources :productions do
+    # Editing and deleting theaters/productions is admin-only (Admin::); these
+    # controllers only check that someone is logged in.
+    resources :theaters, except: %i[edit update destroy] do
+      resources :productions, except: %i[edit update destroy] do
         resources :performances
       end
     end

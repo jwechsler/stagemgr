@@ -46,13 +46,17 @@ class Production < ApplicationRecord
   validate :correct_promo_mime_type
   include ProductionCapacityFloor
 
-  before_destroy :ensure_no_performances
+  # Prepended so it runs before the dependent destroys below. Performances are
+  # declared (and so destroyed) before ticket classes: that removes their
+  # allocations first, so no shift_to_code still points at a class by the time
+  # TicketClass#check_for_shift_to_codes runs.
+  before_destroy :ensure_no_ticket_orders, prepend: true
   belongs_to :venue, inverse_of: :productions
   belongs_to :theater, inverse_of: :productions
   belongs_to :seat_map, optional: true, inverse_of: :productions
   has_many :special_offers, inverse_of: :production
-  has_many :performances, inverse_of: :production
-  has_many :ticket_classes, inverse_of: :production
+  has_many :performances, inverse_of: :production, dependent: :destroy
+  has_many :ticket_classes, inverse_of: :production, dependent: :destroy
   has_many :ticket_orders, :source => :orders, :through => :performances
   before_validation :clean_values, :downcase_for_db
   before_validation :default_running_time, on: :create
@@ -70,7 +74,9 @@ class Production < ApplicationRecord
   before_save :update_performance_codes, :if => :production_code_changed?
   belongs_to :festival, optional: true, inverse_of: :productions
   has_and_belongs_to_many :addresses
-  has_many :rate_of_sales
+  # Derived daily metrics; meaningless once the production is gone (and the
+  # foreign key would otherwise refuse the delete).
+  has_many :rate_of_sales, dependent: :delete_all
 
   # has_attached_file :promo, :path=>":rails_root/public/system/:attachment/:id/:style/:filename"
   has_one_attached :promo
@@ -108,11 +114,11 @@ class Production < ApplicationRecord
     [theater, self]
   end
 
-  def ensure_no_performances
-    return if performances.count == 0
-      errors.add(:base, " cannot be deleted due to associated performances")
-      throw(:abort)
-    
+  def ensure_no_ticket_orders
+    return unless ticket_orders.exists?
+
+    errors.add(:base, 'Cannot delete a production with ticket orders')
+    throw(:abort)
   end
 
   # Display label used by the production picker typeahead.

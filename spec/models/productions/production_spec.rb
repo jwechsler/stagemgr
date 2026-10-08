@@ -130,4 +130,29 @@ RSpec.describe 'a production' do
                                  resourced_ticket_class_id: elsewhere.id)).to be_nil
     end
   end
+
+  describe 'destroy' do
+    it 'is refused while the production has ticket orders' do
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+      production = order.performance.production
+
+      expect(production.destroy).to be false
+      expect(Production.exists?(production.id)).to be true
+      expect(Performance.exists?(order.performance_id)).to be true
+    end
+
+    it 'takes its performances, allocations and ticket classes with it when nothing has sold' do
+      production = FactoryBot.create(:production)
+      ticket_class = FactoryBot.create(:ticket_class, production: production, class_code: 'DELA')
+      performance = FactoryBot.create(:performance, production: production)
+      performance.ticket_class_allocations.find_or_create_by!(ticket_class: ticket_class)
+      production.reload # as the admin controller loads it; the factories leave stale associations
+
+      expect(production.destroy).to be_truthy
+      expect(Production.exists?(production.id)).to be false
+      expect(Performance.exists?(performance.id)).to be false
+      expect(TicketClassAllocation.where(performance_id: performance.id)).to be_empty
+      expect(TicketClass.where(production_id: production.id)).to be_empty
+    end
+  end
 end

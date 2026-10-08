@@ -49,11 +49,7 @@ class Admin::TicketClassesController < Admin::ApplicationController
   end
 
   def destroy
-    begin
-      @ticket_class.destroy
-    rescue Exception => e
-      flash[:error] = e.message
-    end
+    flash[:error] = @ticket_class.errors.full_messages.to_sentence unless @ticket_class.destroy
     respond_to do |format|
       format.html { redirect_to(admin_theater_production_ticket_classes_path(@theater, @production)) }
       format.xml  { head :ok }

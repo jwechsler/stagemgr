@@ -142,27 +142,22 @@ class TicketClass < ApplicationRecord
       .limit(10)
   end
 
-  def destroy
-    super if check_for_processed_tickets || check_for_shift_to_codes
-  end
+  private
 
   def check_for_processed_tickets
-    return true if ticket_line_items.count > 0
+    return unless ticket_line_items.exists?
 
-    errors.add(:deletion_status, 'Cannot delete a ticket class with processed orders')
+    errors.add(:base, 'Cannot delete a ticket class with processed orders')
     throw :abort
   end
 
   def check_for_shift_to_codes
-    return true if TicketClassAllocation.joins(:performance).where(
-      'performances.production_id = :prod_id and shift_to_code = :shift_to', prod_id: production_id, shift_to: class_code
-    ).count > 0
+    return unless TicketClassAllocation.joins(:performance)
+                                       .exists?(performances: { production_id: production_id }, shift_to_code: class_code)
 
-    errors.add(:deletion_status, 'Cannot delete a ticket class that can be shifted to for dynamic pricing')
+    errors.add(:base, 'Cannot delete a ticket class that can be shifted to for dynamic pricing')
     throw :abort
   end
-
-  private
 
   # Shadow rows are owned by their ResourcedTicketClass: price, name,
   # web_visible, auto_attach and the rest are pushed down by
@@ -179,14 +174,19 @@ class TicketClass < ApplicationRecord
   # Resourced rows are never deleted per-production. Removing the venue from the
   # resource (or deleting the resource) decommissions them instead --
   # ResourcedTicketClass.decommission_shadow_classes keeps the history and just
-  # withdraws the class from sale.
+  # withdraws the class from sale. Deleting the whole production (which the
+  # production only allows when nothing has sold) takes its shadow rows along.
   def prevent_manual_destroy_of_resourced_class
-    return true unless resourced? && !synced_from_resource
+    return true unless resourced? && !synced_from_resource && !destroyed_with_production?
 
-    errors.add(:deletion_status,
+    errors.add(:base,
                'Cannot delete a globally resourced ticket class here; ' \
                'remove the venue from the resource instead.')
     throw :abort
+  end
+
+  def destroyed_with_production?
+    destroyed_by_association&.active_record == Production
   end
 
   def sync_allocations_async
