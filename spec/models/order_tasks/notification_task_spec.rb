@@ -38,6 +38,29 @@ RSpec.describe NotificationTask, type: :model do
       expect(refund_alert_tasks).to be_empty
     end
 
+    it 'is not queued when every ticket on the fulfilled order is complimentary' do
+      order.ticket_line_items.each { |tli| tli.ticket_class.update_column(:complimentary, true) }
+      order.payments.each { |payment| payment.update_column(:amount, 0) }
+      order.reload
+
+      Audited.audit_class.as_user(refunder) { order.refund! }
+
+      expect(order.reload.status).to eq(Order::REFUNDED)
+      expect(refund_alert_tasks).to be_empty
+    end
+
+    # Some tickets are paid by a third party and book $0 at sale time; they
+    # are not comps, so their printed tickets still need destroying.
+    it 'is queued for a $0 fulfilled order whose tickets are not complimentary' do
+      order.payments.each { |payment| payment.update_column(:amount, 0) }
+      order.reload
+
+      Audited.audit_class.as_user(refunder) { order.refund! }
+
+      expect(order.reload.status).to eq(Order::REFUNDED)
+      expect(refund_alert_tasks.count).to eq(1)
+    end
+
     # Regression: the alert lived on OrderMailer, so NotificationTask's
     # NotificationMailer.send raised NoMethodError on every attempt.
     it 'delivers the alert to the box office and supervisor when run' do
