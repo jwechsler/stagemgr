@@ -1,8 +1,17 @@
 name: Test
 
 on:
+  # Branch pushes are covered by pull_request; a bare push trigger ran the
+  # suite twice for every PR commit. Unopened branches: use workflow_dispatch.
   push:
+    branches: [main, master]
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: test-${{ github.ref }}
+  # Supersede stale PR runs; let every master commit finish.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   rspec-cucumber:
