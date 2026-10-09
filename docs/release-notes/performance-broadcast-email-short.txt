@@ -30,7 +30,7 @@ No order details or ticket information - just your message.
 
 The system automatically filters to only send to confirmed orders in Held, Processed or Fulfilled states with valid email addresses, and shows you the recipient count before you send.
 
-Full documentation: /docs/feature-announcements/performance-broadcast-email.md
+Full documentation: /docs/release-notes/performance-broadcast-email.md
 
 Questions? Let me know.
 
