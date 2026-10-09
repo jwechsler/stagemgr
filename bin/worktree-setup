@@ -4,7 +4,8 @@
 #   bin/worktree-setup <name> [branch] [base]
 #
 # Makes ../stagemgr-<name> on <branch> (default: <name>), creating the branch
-# from <base> (default: master) if it does not exist yet. The worktree shares
+# from <base> if it does not exist yet. <base> defaults to the newest
+# release/* branch on origin, or master when there is none. The worktree shares
 # this checkout's installed gems and node_modules, gets copies of the
 # gitignored config files, and gets its own test database,
 # stagemgr_test_<name>, recorded in .env.test.local so rspec and cucumber pick
@@ -20,10 +21,17 @@ usage() {
   exit 64
 }
 
+# Release branches are named release/YYYY-MM<letter>, so the newest sorts last.
+current_release_branch() {
+  local newest
+  newest=$(git -C "$(dirname "$0")" for-each-ref --sort=refname --format='%(refname:short)' 'refs/remotes/origin/release' | tail -1)
+  echo "${newest:-master}"
+}
+
 [[ $# -ge 1 && $# -le 3 ]] || usage
 name=$1
 branch=${2:-$name}
-base=${3:-master}
+base=${3:-$(current_release_branch)}
 
 # The primary checkout (not this worktree): it holds the installed gems,
 # node_modules and the gitignored config that every worktree borrows.
@@ -37,7 +45,7 @@ echo "== Worktree $path on $branch"
 if git -C "$main" show-ref --verify --quiet "refs/heads/$branch"; then
   git -C "$main" worktree add "$path" "$branch"
 else
-  git -C "$main" worktree add -b "$branch" "$path" "$base"
+  git -C "$main" worktree add --no-track -b "$branch" "$path" "$base"
 fi
 
 echo "== Copying gitignored config"

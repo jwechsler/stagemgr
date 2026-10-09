@@ -138,6 +138,7 @@ nav:
     - Credentials & Secrets: developer/credentials.md
     - Site Theming: developer/theming.md
     - Deployment: developer/deployment.md
+    - Branches & Releases: developer/releases.md
     - Membership Card Spec: developer/membership-card-spec.md
     - Troubleshooting: developer/troubleshooting.md
   - Reference:

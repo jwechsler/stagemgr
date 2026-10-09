@@ -2,15 +2,17 @@ name: Test
 
 on:
   # Branch pushes are covered by pull_request; a bare push trigger ran the
-  # suite twice for every PR commit. Unopened branches: use workflow_dispatch.
+  # suite twice for every PR commit. Release branches take direct commits the
+  # way master does, so they run on push too. Unopened branches: use
+  # workflow_dispatch.
   push:
-    branches: [main, master]
+    branches: [main, master, 'release/**']
   pull_request:
   workflow_dispatch:
 
 concurrency:
   group: test-${{ github.ref }}
-  # Supersede stale PR runs; let every master commit finish.
+  # Supersede stale PR runs; let every master and release-branch commit finish.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
