@@ -80,11 +80,29 @@ RSpec.describe Admin::TheatersController, type: :controller do
     end
   end
 
-  it 'shows the stored donation appeals as markdown on the theater page' do
-    theater = FactoryBot.create(:theater, name: 'Shown House', donation_appeal: 'Love **us**')
+  describe 'GET #show appeals tab' do
+    it 'shows the stored default appeal as markdown' do
+      theater = FactoryBot.create(:theater, name: 'Shown House', donation_appeal: 'Love **us**')
 
-    get :show, params: { id: theater.id }
+      get :show, params: { id: theater.id }
 
-    expect(response.body).to include('Default appeal').and include('<strong>us</strong>')
+      expect(response.body).to include('Default appeal').and include('<strong>us</strong>')
+    end
+
+    it 'shows the secondary appeal for the default theater' do
+      default_theater = FactoryBot.create(:theater, name: 'Default House', theater_class: Theater::DEFAULT)
+
+      get :show, params: { id: default_theater.id }
+
+      expect(response.body).to include('Secondary appeal')
+    end
+
+    it 'omits the secondary appeal for any other theater' do
+      visiting = FactoryBot.create(:theater, name: 'Visiting House', theater_class: Theater::VISITING)
+
+      get :show, params: { id: visiting.id }
+
+      expect(response.body).not_to include('Secondary appeal')
+    end
   end
 end

@@ -33,11 +33,12 @@
         - else
           %p.subheader Not set. The standard wording applies:
           = display_markdown(Theater::DEFAULT_DONATION_APPEAL)
-        %h5 Secondary appeal
-        - if @theater.secondary_donation_appeal.present?
-          = display_markdown(@theater.secondary_donation_appeal)
-        - else
-          %p.subheader Not set. The default appeal applies.
+        - if @theater.is_default?
+          %h5 Secondary appeal
+          - if @theater.secondary_donation_appeal.present?
+            = display_markdown(@theater.secondary_donation_appeal)
+          - else
+            %p.subheader Not set. The default appeal applies.
 
       .tabs-panel#theaterpanel-templates
         - { 'New orders' => @theater.default_service_items,
