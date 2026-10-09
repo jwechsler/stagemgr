@@ -1,5 +1,5 @@
 class Admin::TheatersController < Admin::ApplicationController
-  include ReturnsToIndex
+  include ReturnsToOrigin
 
   before_action :remove_empty_logo
   load_and_authorize_resource except: [:autocomplete_tag]
@@ -62,7 +62,7 @@ class Admin::TheatersController < Admin::ApplicationController
     respond_to do |format|
       if @theater.update(theater_params)
         flash[:notice] = 'Theater was successfully updated.'
-        format.html { redirect_to return_to_index_or(admin_theater_path(@theater), admin_theaters_path) }
+        format.html { redirect_to return_to_path(admin_theater_path(@theater)) }
         format.xml  { head :ok }
       else
         format.html { render action: 'edit' }

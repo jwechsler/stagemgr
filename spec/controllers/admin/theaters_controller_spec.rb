@@ -21,12 +21,22 @@ RSpec.describe Admin::TheatersController, type: :controller do
     expect(selected_status).to eq(Theater::INACTIVE)
   end
 
-  it 'carries return_to into the edit form when the edit came from the index' do
+  it 'carries the referring page into the edit form as return_to' do
     theater = FactoryBot.create(:theater, name: 'Linked House')
 
-    get :edit, params: { id: theater.id, return_to: 'index' }
+    request.env['HTTP_REFERER'] = 'http://test.host/admin/theaters'
+    get :edit, params: { id: theater.id }
 
-    expect(response.body).to include('name="return_to"').and include('value="index"')
+    expect(response.body).to include('name="return_to"').and include('value="/admin/theaters"')
+  end
+
+  it 'does not carry the edit page itself as return_to on a reload' do
+    theater = FactoryBot.create(:theater, name: 'Reloaded House')
+
+    request.env['HTTP_REFERER'] = "http://test.host/admin/theaters/#{theater.id}/edit"
+    get :edit, params: { id: theater.id }
+
+    expect(response.body).not_to include('name="return_to"')
   end
 
   it 'defaults a new theater to Active' do
@@ -49,13 +59,14 @@ RSpec.describe Admin::TheatersController, type: :controller do
   end
 
   describe 'PATCH #update' do
-    context 'when returning to the screen the edit came from' do
-      let(:theater) { FactoryBot.create(:theater, name: 'Returning House') }
-      let(:params)  { { id: theater.id, theater: { name: 'Renamed House' } } }
+    let(:theater) { FactoryBot.create(:theater, name: 'Returning House') }
 
-      it 'returns to the index when the edit came from the index' do
-        patch :update, params: params.merge(return_to: 'index')
-        expect(response).to redirect_to(admin_theaters_path)
+    context 'when returning to the page the edit came from' do
+      let(:params) { { id: theater.id, theater: { name: 'Renamed House' } } }
+
+      it 'returns to the page carried in return_to' do
+        patch :update, params: params.merge(return_to: '/admin/theaters?scope=analysis')
+        expect(response).to redirect_to('/admin/theaters?scope=analysis')
       end
 
       it 'returns to the show page when no return_to is given' do
@@ -63,8 +74,11 @@ RSpec.describe Admin::TheatersController, type: :controller do
         expect(response).to redirect_to(admin_theater_path(theater))
       end
 
-      it 'ignores an unrecognised return_to rather than redirecting to it' do
+      it 'ignores an off-site return_to rather than redirecting to it' do
         patch :update, params: params.merge(return_to: 'https://evil.example.com')
+        expect(response).to redirect_to(admin_theater_path(theater))
+
+        patch :update, params: params.merge(return_to: '//evil.example.com/x')
         expect(response).to redirect_to(admin_theater_path(theater))
       end
     end

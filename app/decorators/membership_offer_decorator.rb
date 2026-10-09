@@ -68,8 +68,7 @@ class MembershipOfferDecorator < ApplicationDecorator
     # Membership offers are administrator-managed; box office staff only view
     # them and create orders.
     if h.current_user.can?(:update, object)
-      edit_path = h.edit_admin_membership_offer_path(object, return_to: ReturnsToIndex::RETURN_TO_INDEX)
-      actions << h.link_to('Edit', edit_path, class: 'tiny button')
+      actions << h.link_to('Edit', [:edit, :admin, object], class: 'tiny button')
     end
     actions << h.link_to('Usage', h.membership_offer_usage_admin_reports_path(object), class: 'tiny button')
     # Inactive offers render in their own datatable tab, so the disabled

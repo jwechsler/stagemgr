@@ -227,10 +227,18 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
       expect(response.body).to include('it cannot be changed')
     end
 
-    it 'carries return_to into the form when the edit came from the index' do
-      get :edit, params: { id: active_offer.id, return_to: 'index' }
+    it 'carries the referring page into the form as return_to' do
+      request.env['HTTP_REFERER'] = 'http://test.host/admin/membership_offers?scope=analysis'
+      get :edit, params: { id: active_offer.id }
 
-      expect(response.body).to include('name="return_to"').and include('value="index"')
+      expect(response.body).to include('name="return_to"').and include('value="/admin/membership_offers?scope=analysis"')
+    end
+
+    it 'does not carry an off-site referer' do
+      request.env['HTTP_REFERER'] = 'https://evil.example.com/admin/membership_offers'
+      get :edit, params: { id: active_offer.id }
+
+      expect(response.body).not_to include('name="return_to"')
     end
   end
 
@@ -292,12 +300,12 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
       expect(assigns(:membership_offer).errors[:membership_type]).to include(a_string_including('cannot be changed'))
     end
 
-    context 'when returning to the screen the edit came from' do
+    context 'when returning to the page the edit came from' do
       let(:params) { { id: active_offer.id, membership_offer: { name: 'Renamed Membership' } } }
 
-      it 'returns to the index when the edit came from the index' do
-        patch :update, params: params.merge(return_to: 'index')
-        expect(response).to redirect_to(admin_membership_offers_path)
+      it 'returns to the page carried in return_to' do
+        patch :update, params: params.merge(return_to: '/admin/membership_offers?scope=analysis')
+        expect(response).to redirect_to('/admin/membership_offers?scope=analysis')
       end
 
       it 'returns to the show page when no return_to is given' do
@@ -305,8 +313,11 @@ RSpec.describe Admin::MembershipOffersController, type: :controller do
         expect(response).to redirect_to(admin_membership_offer_path(active_offer))
       end
 
-      it 'ignores an unrecognised return_to rather than redirecting to it' do
+      it 'ignores an off-site return_to rather than redirecting to it' do
         patch :update, params: params.merge(return_to: 'https://evil.example.com')
+        expect(response).to redirect_to(admin_membership_offer_path(active_offer))
+
+        patch :update, params: params.merge(return_to: '//evil.example.com/x')
         expect(response).to redirect_to(admin_membership_offer_path(active_offer))
       end
     end

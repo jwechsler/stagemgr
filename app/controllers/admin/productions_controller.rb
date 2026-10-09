@@ -1,5 +1,5 @@
 class Admin::ProductionsController < Admin::ApplicationController
-  include ReturnsToIndex
+  include ReturnsToOrigin
 
   prepend_before_action :find_theater, if: -> { params[:theater_id].present? }
   before_action :find_context, only: %i[show allocation_sync_status]
@@ -95,10 +95,7 @@ class Admin::ProductionsController < Admin::ApplicationController
     respond_to do |format|
       if saved
         flash[:notice] = "#{@production.name} was successfully updated."
-        format.html do
-          redirect_to return_to_index_or(admin_theater_production_path(@production.theater, @production),
-                                         admin_theater_path(@production.theater))
-        end
+        format.html { redirect_to return_to_path(admin_theater_production_path(@production.theater, @production)) }
         format.xml  { head :ok }
       else
         format.html { render action: 'edit' }
