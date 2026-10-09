@@ -157,6 +157,34 @@ RSpec.describe Admin::ProductionsController, type: :controller do
     end
   end
 
+  describe 'PATCH #update returning to the page the edit came from' do
+    before { allow(controller).to receive(:current_user).and_return(admin_user) }
+
+    let(:params) { { theater_id: theater.id, id: production.id, production: { name: 'Renamed Production' } } }
+
+    it 'returns to the page carried in return_to, such as the global productions list' do
+      patch :update, params: params.merge(return_to: '/admin/productions')
+      expect(response).to redirect_to('/admin/productions')
+    end
+
+    it 'returns to the production page when no return_to is given' do
+      patch :update, params: params
+      expect(response).to redirect_to(admin_theater_production_path(theater, production))
+    end
+
+    it 'ignores an off-site return_to rather than redirecting to it' do
+      patch :update, params: params.merge(return_to: 'https://evil.example.com')
+      expect(response).to redirect_to(admin_theater_production_path(theater, production))
+    end
+
+    it 'carries the referring theater page into the edit form as return_to' do
+      request.env['HTTP_REFERER'] = "http://test.host/admin/theaters/#{theater.id}"
+      get :edit, params: { theater_id: theater.id, id: production.id }
+
+      expect(response.body).to include('name="return_to"').and include(%(value="/admin/theaters/#{theater.id}"))
+    end
+  end
+
   describe 'PATCH #update capacity' do
     before do
       allow(controller).to receive(:current_user).and_return(admin_user)

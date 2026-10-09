@@ -1,4 +1,6 @@
 class Admin::TheatersController < Admin::ApplicationController
+  include ReturnsToOrigin
+
   before_action :remove_empty_logo
   load_and_authorize_resource except: [:autocomplete_tag]
 
@@ -60,7 +62,7 @@ class Admin::TheatersController < Admin::ApplicationController
     respond_to do |format|
       if @theater.update(theater_params)
         flash[:notice] = 'Theater was successfully updated.'
-        format.html { redirect_to(admin_theaters_path) }
+        format.html { redirect_to return_to_path(admin_theater_path(@theater)) }
         format.xml  { head :ok }
       else
         format.html { render action: 'edit' }
@@ -94,6 +96,7 @@ class Admin::TheatersController < Admin::ApplicationController
 
   def theater_params
     params.require(:theater).permit(:name, :url, :theater_class, :logo, :status, :default_service_items,
-                                    :default_first_exchange_items, :default_addl_exchange_items, :accepts_donations, :myemma_attendee_group, :tag_names)
+                                    :default_first_exchange_items, :default_addl_exchange_items, :accepts_donations, :myemma_attendee_group, :tag_names,
+                                    :donation_appeal, :secondary_donation_appeal)
   end
 end

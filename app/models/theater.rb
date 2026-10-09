@@ -10,6 +10,9 @@ class Theater < ApplicationRecord
   LOGO_SIZES = (
     MEDIUM, THUMB = [250, 250], [125, 125]
   )
+  # Markdown donation appeals may use these; each expands to a theater name.
+  DONATION_APPEAL_PLACEHOLDERS = %w[theater company].freeze
+  DEFAULT_DONATION_APPEAL = 'Yes! I love {{theater}}. Please add a tax-deductible contribution to this order.'.freeze
   validates :theater_class, inclusion: { :in => THEATER_CLASSES }
   validates :status,        inclusion: { :in => THEATER_STATUSES }
   validates :name, uniqueness: true
@@ -101,7 +104,24 @@ end
     Theater.where(theater_class: Theater::DEFAULT).order(:id).first
   end
 
+  # The appeal shown when this theater asks for a donation on its own order,
+  # as markdown with its placeholders expanded.
+  def donation_appeal_for(company: nil)
+    expand_appeal(donation_appeal.presence || DEFAULT_DONATION_APPEAL, company)
+  end
+
+  # The default theater's appeal on a resident, visiting or guest company's
+  # order. Never used for a co-production. Falls back to the default appeal.
+  def secondary_donation_appeal_for(company:)
+    expand_appeal(secondary_donation_appeal.presence || donation_appeal.presence || DEFAULT_DONATION_APPEAL, company)
+  end
+
   private
+
+  def expand_appeal(text, company)
+    names = { 'theater' => name.to_s.strip, 'company' => company&.name.to_s.strip }
+    DONATION_APPEAL_PLACEHOLDERS.reduce(text) { |appeal, key| appeal.gsub("{{#{key}}}", names.fetch(key)) }
+  end
 
   def service_item_template_list(service_item_list)
     itm = service_item_list.nil? ? '' : service_item_list

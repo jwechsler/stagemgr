@@ -45,8 +45,7 @@ class FlexPassOfferDecorator < ApplicationDecorator
   def dt_actions
     actions = []
     if h.current_user.can? :update, FlexPassOffer
-      edit_path = h.edit_admin_flex_pass_offer_path(object, return_to: ReturnsToIndex::RETURN_TO_INDEX)
-      actions << h.link_to('Edit', edit_path, class: 'tiny button')
+      actions << h.link_to('Edit', [:edit, :admin, object], class: 'tiny button')
     end
 
     if h.current_user.can? :destroy, FlexPassOffer

@@ -1,33 +1,55 @@
-= content_for :breadcrumbs do
-  = render "shared/components/breadcrumb", items: [{ label: 'Theaters', path: admin_theaters_path }, { label: @theater.name }]
+- content_for :title do
+  = @theater.name
+- content_for :breadcrumbs do
+  = render "shared/components/breadcrumb",
+           items: [{ label: 'Theaters', path: admin_theaters_path }, { label: @theater.name }]
 
-.grid-x
-  .small-10.cell.left
-    .grid-x.grid-padding-x
-      - if @theater.logo.attached?
-        - colsize = 8
-        .small-2.medium-2.cell.hide-for-small-only
-          = @theater.decorate.logo(Theater::MEDIUM)
+.grid-x.grid-padding-x
+  .small-12.medium-4.cell
+    %h3= @theater.name
+    %p
+      = ui_label @theater.theater_class
+      = ui_label @theater.status
+      = render 'admin/tags/pills', tags: @theater.theater_tags
+    - if @theater.logo.attached?
+      %p= @theater.decorate.logo(Theater::MEDIUM)
+    - if @theater.url.present?
+      %p= link_to(@theater.url, @theater.url)
+    - if can? :update, Theater
+      = ui_button 'Edit theater', edit_admin_theater_path(@theater), size: :small
 
-      - else
-        - colsize = 10
+  .small-12.medium-8.cell
+    %ul.tabs#theatertabs{ data: { tabs: true } }
+      %li.tabs-title.is-active
+        %a{ href: '#theaterpanel-appeals', 'aria-selected' => 'true' } Appeals
+      %li.tabs-title
+        %a{ href: '#theaterpanel-templates' } Service Templates
 
-      .small.cell{:class=>"small-#{colsize} medium-#{colsize}"}
-        %h3
-          = @theater.name
-          = render 'admin/tags/pills', tags: @theater.theater_tags
-        = link_to(@theater.url, @theater.url) unless @theater.url.blank?
+    .tabs-content{ 'data-tabs-content' => 'theatertabs' }
+      .tabs-panel.is-active#theaterpanel-appeals
+        %h5 Default appeal
+        - if @theater.donation_appeal.present?
+          = display_markdown(@theater.donation_appeal)
+        - else
+          %p.subheader Not set. The standard wording applies:
+          = display_markdown(Theater::DEFAULT_DONATION_APPEAL)
+        - if @theater.is_default?
+          %h5 Secondary appeal
+          - if @theater.secondary_donation_appeal.present?
+            = display_markdown(@theater.secondary_donation_appeal)
+          - else
+            %p.subheader Not set. The default appeal applies.
 
+      .tabs-panel#theaterpanel-templates
+        - { 'New orders' => @theater.default_service_items,
+            'First exchange' => @theater.default_first_exchange_items,
+            'Additional exchanges' => @theater.default_addl_exchange_items }.each do |label, names|
+          %p
+            %strong #{label}:
+            = names.presence || 'None'
 
-
-  .small-2.cell.right
-    %span.secondary.label= @theater.theater_class
-    %span.secondary.label= @theater.status
-
-  .cell
+  .small-12.cell
     %h4 Productions
-    = render :partial => 'production_listing'
-
-
-  - if can? :create, Production then
-    = ui_button 'Add production', [:new, :admin, @theater, :production]
+    = render partial: 'production_listing'
+    - if can? :create, Production
+      = ui_button 'Add production', [:new, :admin, @theater, :production]

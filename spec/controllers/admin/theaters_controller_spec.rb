@@ -21,6 +21,24 @@ RSpec.describe Admin::TheatersController, type: :controller do
     expect(selected_status).to eq(Theater::INACTIVE)
   end
 
+  it 'carries the referring page into the edit form as return_to' do
+    theater = FactoryBot.create(:theater, name: 'Linked House')
+
+    request.env['HTTP_REFERER'] = 'http://test.host/admin/theaters'
+    get :edit, params: { id: theater.id }
+
+    expect(response.body).to include('name="return_to"').and include('value="/admin/theaters"')
+  end
+
+  it 'does not carry the edit page itself as return_to on a reload' do
+    theater = FactoryBot.create(:theater, name: 'Reloaded House')
+
+    request.env['HTTP_REFERER'] = "http://test.host/admin/theaters/#{theater.id}/edit"
+    get :edit, params: { id: theater.id }
+
+    expect(response.body).not_to include('name="return_to"')
+  end
+
   it 'defaults a new theater to Active' do
     get :new
 
@@ -37,6 +55,68 @@ RSpec.describe Admin::TheatersController, type: :controller do
       expect(response).to redirect_to(admin_theater_path(theater))
       expect(flash[:error]).to be_present
       expect(Theater.exists?(theater.id)).to be true
+    end
+  end
+
+  describe 'PATCH #update' do
+    let(:theater) { FactoryBot.create(:theater, name: 'Returning House') }
+
+    context 'when returning to the page the edit came from' do
+      let(:params) { { id: theater.id, theater: { name: 'Renamed House' } } }
+
+      it 'returns to the page carried in return_to' do
+        patch :update, params: params.merge(return_to: '/admin/theaters?scope=analysis')
+        expect(response).to redirect_to('/admin/theaters?scope=analysis')
+      end
+
+      it 'returns to the show page when no return_to is given' do
+        patch :update, params: params
+        expect(response).to redirect_to(admin_theater_path(theater))
+      end
+
+      it 'ignores an off-site return_to rather than redirecting to it' do
+        patch :update, params: params.merge(return_to: 'https://evil.example.com')
+        expect(response).to redirect_to(admin_theater_path(theater))
+
+        patch :update, params: params.merge(return_to: '//evil.example.com/x')
+        expect(response).to redirect_to(admin_theater_path(theater))
+      end
+    end
+
+    it 'saves both donation appeals' do
+      theater = FactoryBot.create(:theater, name: 'Appealing House')
+
+      patch :update, params: { id: theater.id, theater: { donation_appeal: 'Love **{{theater}}**',
+                                                          secondary_donation_appeal: 'We host {{company}}' } }
+
+      expect(theater.reload).to have_attributes(donation_appeal: 'Love **{{theater}}**',
+                                                secondary_donation_appeal: 'We host {{company}}')
+    end
+  end
+
+  describe 'GET #show appeals tab' do
+    it 'shows the stored default appeal as markdown' do
+      theater = FactoryBot.create(:theater, name: 'Shown House', donation_appeal: 'Love **us**')
+
+      get :show, params: { id: theater.id }
+
+      expect(response.body).to include('Default appeal').and include('<strong>us</strong>')
+    end
+
+    it 'shows the secondary appeal for the default theater' do
+      default_theater = FactoryBot.create(:theater, name: 'Default House', theater_class: Theater::DEFAULT)
+
+      get :show, params: { id: default_theater.id }
+
+      expect(response.body).to include('Secondary appeal')
+    end
+
+    it 'omits the secondary appeal for any other theater' do
+      visiting = FactoryBot.create(:theater, name: 'Visiting House', theater_class: Theater::VISITING)
+
+      get :show, params: { id: visiting.id }
+
+      expect(response.body).not_to include('Secondary appeal')
     end
   end
 end
