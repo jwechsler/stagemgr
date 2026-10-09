@@ -197,7 +197,7 @@ running specs against the same test database break each other's runs. To work
 on several branches at once, give each its own git worktree and test database:
 
 ```sh
-bin/worktree-setup <name> [branch] [base]   # ../stagemgr-<name>, base defaults to master
+bin/worktree-setup <name> [branch] [base]   # ../stagemgr-<name>, base defaults to the current release branch
 bin/worktree-teardown <name> [--force]      # drops its database, removes the worktree
 ```
 
