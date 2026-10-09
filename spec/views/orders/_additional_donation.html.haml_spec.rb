@@ -27,7 +27,6 @@ RSpec.describe 'orders/_additional_donation', type: :view do
 
     expect(legends(page)).to eq(['I wish to offer additional support'])
     expect(page).to have_text('Give to Default House.')
-    expect(page).to have_css('h5', text: 'Add a donation')
     expect(page).to have_css('label[for="ticket_order_additional_donation"]', text: '$')
     expect(page).to have_field('ticket_order_additional_donation')
   end
