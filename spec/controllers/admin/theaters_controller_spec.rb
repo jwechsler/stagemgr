@@ -21,6 +21,14 @@ RSpec.describe Admin::TheatersController, type: :controller do
     expect(selected_status).to eq(Theater::INACTIVE)
   end
 
+  it 'carries return_to into the edit form when the edit came from the index' do
+    theater = FactoryBot.create(:theater, name: 'Linked House')
+
+    get :edit, params: { id: theater.id, return_to: 'index' }
+
+    expect(response.body).to include('name="return_to"').and include('value="index"')
+  end
+
   it 'defaults a new theater to Active' do
     get :new
 
@@ -41,6 +49,26 @@ RSpec.describe Admin::TheatersController, type: :controller do
   end
 
   describe 'PATCH #update' do
+    context 'when returning to the screen the edit came from' do
+      let(:theater) { FactoryBot.create(:theater, name: 'Returning House') }
+      let(:params)  { { id: theater.id, theater: { name: 'Renamed House' } } }
+
+      it 'returns to the index when the edit came from the index' do
+        patch :update, params: params.merge(return_to: 'index')
+        expect(response).to redirect_to(admin_theaters_path)
+      end
+
+      it 'returns to the show page when no return_to is given' do
+        patch :update, params: params
+        expect(response).to redirect_to(admin_theater_path(theater))
+      end
+
+      it 'ignores an unrecognised return_to rather than redirecting to it' do
+        patch :update, params: params.merge(return_to: 'https://evil.example.com')
+        expect(response).to redirect_to(admin_theater_path(theater))
+      end
+    end
+
     it 'saves both donation appeals' do
       theater = FactoryBot.create(:theater, name: 'Appealing House')
 

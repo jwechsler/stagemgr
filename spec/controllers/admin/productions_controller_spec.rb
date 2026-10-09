@@ -157,6 +157,33 @@ RSpec.describe Admin::ProductionsController, type: :controller do
     end
   end
 
+  describe 'PATCH #update returning to the screen the edit came from' do
+    before { allow(controller).to receive(:current_user).and_return(admin_user) }
+
+    let(:params) { { theater_id: theater.id, id: production.id, production: { name: 'Renamed Production' } } }
+
+    it 'returns to the theater page when the edit came from its production list' do
+      patch :update, params: params.merge(return_to: 'index')
+      expect(response).to redirect_to(admin_theater_path(theater))
+    end
+
+    it 'returns to the production page when no return_to is given' do
+      patch :update, params: params
+      expect(response).to redirect_to(admin_theater_production_path(theater, production))
+    end
+
+    it 'ignores an unrecognised return_to rather than redirecting to it' do
+      patch :update, params: params.merge(return_to: 'https://evil.example.com')
+      expect(response).to redirect_to(admin_theater_production_path(theater, production))
+    end
+
+    it 'carries return_to into the edit form when the edit came from the list' do
+      get :edit, params: { theater_id: theater.id, id: production.id, return_to: 'index' }
+
+      expect(response.body).to include('name="return_to"').and include('value="index"')
+    end
+  end
+
   describe 'PATCH #update capacity' do
     before do
       allow(controller).to receive(:current_user).and_return(admin_user)

@@ -12,7 +12,8 @@ class ProductionDecorator < ApplicationDecorator
                  end
     end
     if h.current_user.can? :edit, Production
-      actions << h.link_to('Edit', [:edit, :admin, object.theater, object], class: 'tiny button')
+      edit_path = h.edit_admin_theater_production_path(object.theater, object, return_to: ReturnsToIndex::RETURN_TO_INDEX)
+      actions << h.link_to('Edit', edit_path, class: 'tiny button')
     end
     if h.current_user.can? :read, TicketClass
       actions << h.link_to('Ticket Classes', [:admin, object.theater, object, :ticket_classes], class: 'tiny button')

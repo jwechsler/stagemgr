@@ -5,8 +5,8 @@ class TheaterDecorator < ApplicationDecorator
     links = []
     links << (if h.current_user.can?(:edit,
                                      object)
-                h.link_to('Edit', [:edit, :admin, object], id: "edit_#{object.name.downcase.gsub(' ', '_')}",
-                                                           class: 'tiny button')
+                h.link_to('Edit', h.edit_admin_theater_path(object, return_to: ReturnsToIndex::RETURN_TO_INDEX),
+                          id: "edit_#{object.name.downcase.gsub(' ', '_')}", class: 'tiny button')
               else
                 ''
               end)

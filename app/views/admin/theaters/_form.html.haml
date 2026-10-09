@@ -1,5 +1,6 @@
 = simple_form_for([:admin, theater], :html => { :multipart => true }) do |f|
   = token_tag
+  = render 'shared/return_to_field'
   .grid-padding-x.grid-x
     .cell.medium-6.small-12
       = f.input :name

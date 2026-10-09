@@ -4,6 +4,7 @@
     %br
   = simple_form_for([:admin, production.theater, production], :html=>{:multipart=>true}) do |f|
     = token_tag
+    = render 'shared/return_to_field'
     .grid-x.grid-padding-x
       .small-8.cell
         .grid-x.grid-padding-x
