@@ -1,10 +1,11 @@
 -#
   A donation appeal (markdown, placeholders already expanded) beside the
-  amount box, which sits against the fieldset's right edge.
-  Locals: text, order_form, field.
+  amount box, which sits against the fieldset's right edge. The two columns
+  hold at every width: on phones the text shrinks (frontend.css) rather than
+  the box dropping below it. Locals: text, order_form, field.
 .grid-x.grid-padding-x.align-middle.donation-appeal
-  .small-12.medium-8.cell
+  .small-8.medium-9.cell.donation-appeal__text
     = display_markdown(text)
-  .small-12.medium-4.cell.text-right.donation-appeal__amount
+  .small-4.medium-3.cell.text-right.donation-appeal__amount
     = order_form.label field, '$', class: 'inline', style: 'display:inline'
     = order_form.input_field field, size: 8, style: 'display:inline; width:auto'
