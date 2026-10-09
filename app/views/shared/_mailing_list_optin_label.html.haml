@@ -5,11 +5,15 @@
 -# `other_theater:` (optional) is a second house whose list the same checkbox
 -# subscribes the patron to -- a visiting company renting the stage, or the
 -# company a FlexPass is good at. Nil, or omitted, means the house alone.
+-# `lead:` (optional) replaces the "Join the ... mailing list." sentence, for
+-# a page with its own reason to join (the membership checkout).
 -#
 -# The sentence under it is a fact (theater: mailing_list_blurb:), because what
 -# a house promises to send is a promise it wants to word itself.
 - other_theater = local_assigns[:other_theater]
-- if other_theater
+- if local_assigns[:lead]
+  = local_assigns[:lead]
+- elsif other_theater
   = "Join the #{theater_info.name} and #{other_theater.name} mailing lists."
 - else
   = "Join the #{theater_info.name} mailing list."
