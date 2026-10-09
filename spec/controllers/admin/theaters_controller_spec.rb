@@ -57,6 +57,6 @@ RSpec.describe Admin::TheatersController, type: :controller do
 
     get :show, params: { id: theater.id }
 
-    expect(response.body).to include('Donation appeals').and include('<strong>us</strong>')
+    expect(response.body).to include('Default appeal').and include('<strong>us</strong>')
   end
 end
