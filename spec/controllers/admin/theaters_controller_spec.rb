@@ -39,4 +39,24 @@ RSpec.describe Admin::TheatersController, type: :controller do
       expect(Theater.exists?(theater.id)).to be true
     end
   end
+
+  describe 'PATCH #update' do
+    it 'saves both donation appeals' do
+      theater = FactoryBot.create(:theater, name: 'Appealing House')
+
+      patch :update, params: { id: theater.id, theater: { donation_appeal: 'Love **{{theater}}**',
+                                                          secondary_donation_appeal: 'We host {{company}}' } }
+
+      expect(theater.reload).to have_attributes(donation_appeal: 'Love **{{theater}}**',
+                                                secondary_donation_appeal: 'We host {{company}}')
+    end
+  end
+
+  it 'shows the stored donation appeals as markdown on the theater page' do
+    theater = FactoryBot.create(:theater, name: 'Shown House', donation_appeal: 'Love **us**')
+
+    get :show, params: { id: theater.id }
+
+    expect(response.body).to include('Donation appeals').and include('<strong>us</strong>')
+  end
 end

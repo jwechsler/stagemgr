@@ -30,6 +30,16 @@
         .cell.small-12
           = f.input :accepts_donations, label: "Is 501(c)(3)", as: :boolean
     .cell.small-12
+      :ruby
+        appeal_hint = "Shown in the donation section of this theater's ticket orders. Markdown enabled. " \
+                      "{{theater}} inserts this theater's name. Blank uses the standard wording."
+        secondary_hint = 'Used only by the default theater, on orders for resident, visiting and guest ' \
+                         'productions (not co-productions). {{company}} inserts that company\'s name. ' \
+                         'Blank uses the default appeal.'
+      = f.input :donation_appeal, as: :markdown, input_html: { rows: 4 }, label: 'Default appeal', hint: appeal_hint
+      = f.input :secondary_donation_appeal, as: :markdown, input_html: { rows: 4 }, label: 'Secondary appeal',
+                                            hint: secondary_hint
+    .cell.small-12
       %h5 Tags
       = render 'admin/tags/tag_input', f: f, autocomplete_url: autocomplete_tag_admin_theaters_path
     .cell.small-12

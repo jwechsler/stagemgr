@@ -1,0 +1,8 @@
+-#
+  A donation appeal (markdown, placeholders already expanded) above the
+  amount box. Locals: text, order_form, field.
+.donation-appeal
+  = display_markdown(text)
+  %p.donation-appeal__amount
+    = order_form.label field, 'Add a donation: $', class: 'inline', style: 'display:inline'
+    = order_form.input_field field, size: 8, style: 'display:inline; width:auto'

@@ -95,6 +95,30 @@ Check this box if the theater is a registered 501(c)(3) nonprofit organization. 
 - Donation orders can be created for this theater
 - Donation receipts include appropriate nonprofit tax language
 
+### Default appeal
+
+The message that asks patrons for a donation in the donation section of this theater's ticket orders. It appears above an **Add a donation: $** box. Markdown is enabled, and `{{theater}}` is replaced with this theater's name.
+
+Where it appears:
+
+- **Default theater:** in the "I wish to offer additional support" box on its own productions' orders, and in the donation box of the flex pass checkout
+- **Co-production:** in the "Make a donation to ..." box on the co-production's orders
+- **Resident company, visiting company or guest artist that is a 501(c)(3):** in the "Donate to ..." box on its productions' orders
+
+Leave it blank to use the standard wording: *Yes! I love {{theater}}. Please add a tax-deductible contribution to this order.*
+
+### Secondary appeal
+
+Used only by the default theater. It is the default theater's own appeal on orders for resident company, visiting company and guest artist productions, shown in the "Make a donation to ..." box alongside that company's own appeal. Co-production orders never show it; they show the co-producing theater's default appeal instead.
+
+Markdown is enabled. `{{theater}}` is replaced with the default theater's name and `{{company}}` with the name of the company whose production is being ordered. For example:
+
+```
+In addition to its own programming, {{theater}} subsidizes facilities and support for groups like {{company}}. Please add a tax-deductible contribution to this order.
+```
+
+Leave it blank to use the default theater's default appeal.
+
 ### Tags
 
 Tags are free-form labels you can attach to a theater to group it for analysis and reporting. Unlike Theater Class -- which is a fixed list with built-in behavior -- tags are arbitrary text you define and can change at any time. Typical uses include grouping by neighborhood, genre, partnership type, or any other attribute you want to slice by later.

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_10_08_150000) do
+ActiveRecord::Schema.define(version: 2026_10_09_150000) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -736,6 +736,8 @@ ActiveRecord::Schema.define(version: 2026_10_08_150000) do
     t.string "default_addl_exchange_items"
     t.string "myemma_attendee_group"
     t.boolean "accepts_donations", default: false
+    t.text "donation_appeal"
+    t.text "secondary_donation_appeal"
   end
 
   create_table "theaters_users", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|

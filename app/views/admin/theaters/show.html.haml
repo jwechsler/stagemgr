@@ -24,6 +24,16 @@
     %span.secondary.label= @theater.theater_class
     %span.secondary.label= @theater.status
 
+  - if @theater.donation_appeal.present? || @theater.secondary_donation_appeal.present?
+    .cell
+      %h4 Donation appeals
+      - if @theater.donation_appeal.present?
+        %h5 Default appeal
+        = display_markdown(@theater.donation_appeal)
+      - if @theater.secondary_donation_appeal.present?
+        %h5 Secondary appeal
+        = display_markdown(@theater.secondary_donation_appeal)
+
   .cell
     %h4 Productions
     = render :partial => 'production_listing'
