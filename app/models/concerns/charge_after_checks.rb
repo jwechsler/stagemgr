@@ -5,9 +5,14 @@
 module ChargeAfterChecks
   extend ActiveSupport::Concern
 
-  # Start of the line appended to an order's notes when an additional
-  # donation could not be processed after the order itself was paid.
-  DONATION_NOT_PROCESSED_NOTE = 'Additional donation not processed'.freeze
+  # A failed additional donation that the patron can fix or the box office can
+  # explain: a decline, a mistyped card or a donation that failed validation.
+  # Anything else is a bug and also goes to the developers.
+  EXPECTED_DONATION_ERRORS = [CannotProcessPayment, InvalidCreditCard, ActiveRecord::RecordInvalid].freeze
+
+  # The box office alert's reason for an unexpected error, whose own message
+  # may carry internals (an order dump) that do not belong in that email.
+  UNEXPECTED_DONATION_ERROR_REASON = 'system error, the developers have been notified'.freeze
 
   # Gateway note on a charge returned because its order rolled back.
   CHARGE_REVERSAL_NOTE = 'Order rolled back after the charge'.freeze
@@ -15,8 +20,14 @@ module ChargeAfterChecks
   # A run of 12+ digits (spaces or dashes allowed) that could be a card number.
   CARD_NUMBER_PATTERN = /\d(?:[ -]?\d){11,}/
 
+  included do
+    # After commit, so the alert never goes out for an order that rolled back.
+    after_commit :send_additional_donation_failed_alert, if: :additional_donation_alert_pending?
+  end
+
   # Additional donations that failed after this order was paid, as
-  # { amount:, reason: } hashes, so the checkout can tell the patron.
+  # { amount:, theater:, reason: } hashes, so the checkout can tell the patron
+  # and the box office alert can list them.
   def additional_donation_failures
     @additional_donation_failures ||= []
   end
@@ -133,6 +144,10 @@ module ChargeAfterChecks
     amount.present? && amount.to_i != 0
   end
 
+  def any_additional_donation_requested?
+    [additional_donation, additional_donation_for_other].any? { |amount| additional_donation_requested?(amount) }
+  end
+
   # Each donation charges separately after this order is paid. A failure rolls
   # back only that donation (its savepoint) and is flagged for the box office;
   # the paid order stands.
@@ -147,16 +162,18 @@ module ChargeAfterChecks
     end
   end
 
+  # Logs the failure and queues it for the box office alert. An unexpected
+  # error is also reported to the developers.
   def flag_failed_additional_donation(donation, error)
     amount = donation.donation_line_items.sum { |item| item.amount.to_d }
-    reason = error.message.to_s.gsub(CARD_NUMBER_PATTERN, '[redacted]')
+    message = error.message.to_s.gsub(CARD_NUMBER_PATTERN, '[redacted]')
     Rails.logger.error("Order #{id}: additional donation of $#{format('%.2f', amount)} failed after the order " \
-                       "was charged (#{error.class}): #{reason}")
-    note = "#{DONATION_NOT_PROCESSED_NOTE}: $#{format('%.2f', amount)} to #{donation.theater&.name} " \
-           "on #{Date.current} (#{reason}). The box office will follow up."
-    update_columns(notes: [notes, note].compact_blank.join("\n"))
-    additional_donation_failures << { amount: amount, reason: reason }
-    notify_box_office_of_failed_donation
+                       "was charged (#{error.class}): #{message}")
+    expected = EXPECTED_DONATION_ERRORS.any? { |type| error.is_a?(type) }
+    report_to_developers(error, donation_amount: amount, theater: donation.theater&.name) unless expected
+    additional_donation_failures << { amount: amount, theater: donation.theater&.name,
+                                      reason: expected ? message : UNEXPECTED_DONATION_ERROR_REASON }
+    @additional_donation_alert_pending = true
   end
 
   def reverse_charge(payment, error)
@@ -185,11 +202,26 @@ module ChargeAfterChecks
                        "($#{format('%.2f', amount)}): #{message}")
   end
 
-  def notify_box_office_of_failed_donation
+  def additional_donation_alert_pending?
+    @additional_donation_alert_pending == true
+  end
+
+  # Sent at once rather than queued: the failures live only on this instance.
+  # A mail failure must not surface to the patron, whose order is paid.
+  def send_additional_donation_failed_alert
+    @additional_donation_alert_pending = false
     box_office = Rails.configuration.x.email_address&.dig('box_office')
     return if box_office.blank?
 
-    tasks << NotificationTask.new(execute_at: Time.current, notifications: box_office,
-                                  method_symbol: :additional_donation_failed_alert)
+    NotificationMailer.additional_donation_failed_alert(self, box_office, additional_donation_failures).deliver_now
+  rescue StandardError => e
+    Rails.logger.error("Order #{id}: additional donation failure alert not sent (#{e.class}): #{e.message}")
+    report_to_developers(e)
+  end
+
+  def report_to_developers(error, data = {})
+    return unless defined?(ExceptionNotifier)
+
+    ExceptionNotifier.notify_exception(error, data: data.merge(order_id: id))
   end
 end

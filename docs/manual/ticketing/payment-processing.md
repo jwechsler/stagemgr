@@ -37,12 +37,15 @@ Credit card payments are processed through Stripe, Stagemgr's primary payment ga
 
 ### Additional Donations
 
-An additional donation added to a ticket order is charged separately, after the tickets have been paid for. If the donation is declined:
+An additional donation added to a ticket order is charged separately, after the tickets have been paid for.
+
+When the tickets are paid with a membership or flex pass, the pass covers only the tickets. The public order page shows the card fields as soon as a donation is entered, the review page says which card the donation will be charged to, and the order cannot be placed without a card.
+
+If the donation is declined:
 
 - The ticket order still goes through and keeps its tickets and payment
 - The on-screen notice after the order is placed adds *Your additional donation could not be processed; the box office will follow up with you.*
-- A note starting *Additional donation not processed* is added to the order's notes, with the amount and reason
-- An *Additional donation not processed* alert email goes to the box office address, with a link to the order and the patron's contact details
+- An *Additional donation not processed* alert email goes to the box office address, with the amount, the theater, the reason, a link to the order and the patron's contact details. If the donation failed because of a system error rather than the card, the reason says so and the developers are notified
 
 Follow up with the patron to take the donation another way.
 

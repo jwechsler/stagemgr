@@ -135,6 +135,24 @@ RSpec.describe NotificationMailer, type: :mailer do
     end
   end
 
+  describe '#additional_donation_failed_alert' do
+    let(:order) { FactoryBot.create(:ticket_order) }
+    let(:failures) do
+      [{ amount: 25.to_d, theater: 'Box Office Theater', reason: 'card_declined' },
+       { amount: 10.to_d, theater: 'Visiting Theater', reason: ChargeAfterChecks::UNEXPECTED_DONATION_ERROR_REASON }]
+    end
+    let(:mail) { described_class.additional_donation_failed_alert(order, 'boxoffice@example.com', failures) }
+
+    it 'lists each failed donation passed in, with its amount, theater and reason' do
+      body = mail.body.encoded
+
+      expect(mail.to).to eq(['boxoffice@example.com'])
+      expect(mail.subject).to include("Order #{order.id}")
+      expect(body).to include('$25.00 to Box Office Theater (card_declined)')
+      expect(body).to include('$10.00 to Visiting Theater (system error, the developers have been notified)')
+    end
+  end
+
   describe '#refunded_fulfilled_item_alert' do
     let(:order) { FactoryBot.create(:ticket_order) }
     let(:recipient) { 'boxoffice@example.com' }

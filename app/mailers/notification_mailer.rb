@@ -22,12 +22,11 @@ class NotificationMailer < ActionMailer::Base
          tag: 'Recurring Payment')
   end
 
-  # The paid order's notes carry each failure's amount and reason (see
-  # ChargeAfterChecks#flag_failed_additional_donation); no card data is kept.
-  def additional_donation_failed_alert(order, recipient)
+  # Sent by ChargeAfterChecks#send_additional_donation_failed_alert. Each
+  # failure is { amount:, theater:, reason: }; no card data is kept.
+  def additional_donation_failed_alert(order, recipient, failures)
     @order = order
-    @failures = order.notes.to_s.lines.map(&:strip)
-                     .select { |line| line.start_with?(Order::DONATION_NOT_PROCESSED_NOTE) }
+    @failures = failures
     mail(to: recipient,
          from: Rails.configuration.x.email_address['software_address'],
          subject: "Additional donation not processed / Order #{order.id} / #{order.address.full_name}",

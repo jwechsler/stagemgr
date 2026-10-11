@@ -175,3 +175,16 @@ end
 Given('I enter {string} as a visiting company donation') do |string|
   fill_in 'ticket_order_additional_donation_for_other', with: string
 end
+
+Given('I enter member code {string} as payment') do |member_code|
+  choose 'Membership'
+  fill_in 'Member code', with: member_code
+end
+
+Then('the card fields should be hidden') do
+  expect(page).to have_css('#credit_card_payment_form', visible: :hidden)
+end
+
+Then('the card fields should be visible') do
+  expect(page).to have_css('#credit_card_payment_form', visible: :visible)
+end

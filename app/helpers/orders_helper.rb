@@ -175,6 +175,18 @@ module OrdersHelper
     end
   end
 
+  # Confirm page line for a pass-paid order with a donation: the pass covers
+  # the tickets and the donation goes on the card (Order#build_additional_donation_order).
+  def pass_donation_charge_text(order)
+    return unless order.payment_type.is_a?(PassPaymentType)
+
+    donation = [order.additional_donation, order.additional_donation_for_other].sum(&:to_d)
+    return unless donation.positive?
+
+    "Your #{order.payment_type.pass_name} covers the tickets; #{number_to_currency(donation)} will be charged " \
+      "to your card ending #{order.credit_card_number.to_s.last(4)}."
+  end
+
   def special_feature_footnotes_for(performance, footnotes)
     text = ''
     performance.active_special_features.each do |feature|

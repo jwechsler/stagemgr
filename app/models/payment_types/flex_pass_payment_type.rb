@@ -1,4 +1,9 @@
 class FlexPassPaymentType < PassPaymentType
+  # How the checkout names this pass to the patron.
+  def pass_name
+    'flex pass'
+  end
+
   def payment_classes
     super + [FlexPassPayment.class]
   end
