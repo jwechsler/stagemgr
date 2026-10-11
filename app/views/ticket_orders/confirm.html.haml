@@ -93,6 +93,10 @@
             %td
               %strong.right Total Charge
             %td.currency= number_to_currency(total)
+          - pass_donation_text = pass_donation_charge_text(@ticket_order)
+          - if pass_donation_text
+            %tr
+              %td{ colspan: 3 }= pass_donation_text
       = render partial: '/ticket_orders/pass_through_fields', locals:{order_form: order_form}
       #submit-control
         %p

@@ -958,9 +958,15 @@ class Order < ApplicationRecord
     build_additional_donation_order(donation_amount, credit_to_theater).transition_to!(Order::PROCESSED)
   end
 
+  # A pass covers only tickets, so a pass-paid order's donation is charged to
+  # the card entered with it (TicketOrder#donation_card_present) and carries
+  # no pass code.
   def build_additional_donation_order(donation_amount, credit_to_theater = nil)
-    donation = DonationOrder.new(:address => address, :payment_type => payment_type, :status => Order::NEW)
+    pass_paid = payment_type.is_a?(PassPaymentType)
+    donation = DonationOrder.new(:address => address, :status => Order::NEW,
+                                 :payment_type => pass_paid ? CreditCardPaymentType.first! : payment_type)
     donation.copy_payment_information(self)
+    donation.flex_pass_code = donation.member_code = nil if pass_paid
     donation.campaign = performance.production.name unless performance.nil?
     donation.theater = credit_to_theater.nil? ? theater : credit_to_theater
     donation.donation_line_items.build(:amount => donation_amount)

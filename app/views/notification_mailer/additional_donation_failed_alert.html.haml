@@ -3,7 +3,7 @@
   donation made with it could not be processed. The patron was told the box office will follow up.
 %ul
   - @failures.each do |failure|
-    %li= failure
+    %li #{number_to_currency(failure[:amount])} to #{failure[:theater]} (#{failure[:reason]})
 - address = @order.address
 - unless address.nil?
   %p

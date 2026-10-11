@@ -182,3 +182,18 @@ Given(/^a ticket order for performance "(.*)" paid with cash exists$/) do |perf_
   perf = Performance.find_by_performance_code(perf_code)
   @ticket_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, performance: perf)
 end
+
+# The member's email matches the one 'I enter my contact information' types.
+Given('a membership exists with member code {string}') do |member_code|
+  member = FactoryBot.create(:address, email: 'test@theaterwit.org')
+  FactoryBot.create(:membership, member_code: member_code, address: member)
+end
+
+Then('membership {string} has been used for {int} tickets') do |member_code, ticket_count|
+  payments = MembershipPayment.joins(:membership).where(memberships: { member_code: member_code })
+  expect(payments.sum(:number_of_tickets)).to eq(ticket_count)
+end
+
+Then('membership {string} has not been used') do |member_code|
+  expect(MembershipPayment.joins(:membership).where(memberships: { member_code: member_code })).to be_empty
+end

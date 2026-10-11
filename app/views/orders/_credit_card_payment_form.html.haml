@@ -1,4 +1,11 @@
 %div#credit_card_payment_form
+  -# Shown by payments.js when a pass pays for the tickets and a donation is entered.
+  %p#pass-donation-caption{ hidden: true }
+    Your
+    %span.pass-name
+    covers the tickets. Your
+    %span.donation-amount
+    donation will be charged to this card:
   .grid-x.grid-padding-x.collapse
     .small-4.medium-1.cell
       = f.label :credit_card_type, :label=>"Card Type", :class=>'left prefix'

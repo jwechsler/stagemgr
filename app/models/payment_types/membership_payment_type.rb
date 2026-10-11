@@ -1,4 +1,9 @@
 class MembershipPaymentType < PassPaymentType
+  # How the checkout names this pass to the patron.
+  def pass_name
+    'membership'
+  end
+
   def payment_types
     super + [MembershipPayment.class]
   end
