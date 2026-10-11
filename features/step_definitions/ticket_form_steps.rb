@@ -188,3 +188,7 @@ end
 Then('the card fields should be visible') do
   expect(page).to have_css('#credit_card_payment_form', visible: :visible)
 end
+
+Then('the {string} payment option should be selected') do |label|
+  expect(page).to have_checked_field(label)
+end

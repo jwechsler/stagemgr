@@ -44,3 +44,19 @@ Feature: Membership ticket ordering
      When I choose "Credit Card"
      Then the card fields should be visible
       And I should not see "covers the tickets"
+
+  Scenario: A rejected membership order keeps the membership selected
+    Given I go to new web order for production "Production One" and performance "TEST01"
+      And I enter my contact information
+      And I fill in "Email" with "not-the-member@example.org"
+      And I select "2" from "ticket_order_ticket_line_items_attributes_0_ticket_count"
+      And I enter member code "TESTMEM" as payment
+      And I press "Review Order"
+      And I press "Order Tickets"
+     Then I should see "Member ID does not match provided email address"
+      And the "Membership" payment option should be selected
+     When I fill in "Email" with "test@theaterwit.org"
+      And I press "Review Order"
+      And I press "Order Tickets"
+     Then I should see "Your ticket reservation has been made"
+      And membership "TESTMEM" has been used for 2 tickets
