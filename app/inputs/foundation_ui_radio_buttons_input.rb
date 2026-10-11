@@ -3,8 +3,10 @@ class FoundationUiRadioButtonsInput < SimpleForm::Inputs::CollectionRadioButtons
 
   def input(_wrapper_options)
     label_method, value_method = detect_collection_methods
+    # The caller names the checked value (:checked); it was hard-coded to 1,
+    # so every re-shown order form switched to Credit Card.
     iopts = {
-      checked: 1,
+      checked: options[:checked],
       collection_wrapper_tag: 'div'
     }
     @builder.send(

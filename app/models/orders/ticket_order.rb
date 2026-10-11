@@ -58,6 +58,9 @@ class TicketOrder < Order
   validate :ticket_stock_available, :unless => -> { allow_deletion? || settled? }
   validate :seat_assignments_complete?, :if => :seating_check_required?
   validates :uuid, presence: true
+  # Checked at Review Order (PROCESSING) and again before the pass is redeemed
+  # (PROCESSED, ChargeAfterChecks#ready_to_charge?).
+  validate :donation_card_present, if: -> { [PROCESSING, PROCESSED].include?(status) }
 
   validates_each :status do |record, _attr, value|
     unless record.allow_deletion?
@@ -82,6 +85,15 @@ class TicketOrder < Order
       errors.add(:base,
                  "Missing allocation for #{performance.performance_code} / #{tli.ticket_class.nil? ? 'NIL' : tli.ticket_class.class_code}")
     end
+  end
+
+  # A pass pays only for tickets: a donation made with it is charged to a card
+  # (Order#build_additional_donation_order), so one must be entered.
+  def donation_card_present
+    return unless payment_type.is_a?(PassPaymentType) && any_additional_donation_requested?
+    return if credit_card_number.present?
+
+    errors.add(:base, 'Please enter a card for your donation.')
   end
 
   def ticket_stock_available

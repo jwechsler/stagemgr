@@ -1,4 +1,8 @@
 - paytype = payment_types(order_form.object, local_assigns[:allowed_payment_types], true)
+-# A form shown again (after Review Order, or a rejected Order Tickets) keeps
+-# the payment type already chosen.
+- chosen_type_id = order_form.object.payment_type_id
+- chosen_type_id = paytype.first.id unless paytype.map(&:id).include?(chosen_type_id)
 -# Public order pages use the Foundation site wrapper (not the application
 -# layout), which emits yield :js — this is where they pick up the shared
 -# order-form JS. Every public order form renders this partial exactly once.
@@ -10,10 +14,12 @@
       .small-12.medium-2.cell
         = order_form.label :payment_type, "Pay using", :class=>'left'
       .small-12.medium-10.cell.payment_type_choice{:class=>"#{'hide' if paytype.size==1}"}
-        = order_form.association :payment_type, :label=>'', :include_blank=>false, :as=>:foundation_ui_radio_buttons, :collection=>paytype, :checked=>(order_form.object.payment_type.nil? ? paytype.first.id : 1)
+        = order_form.association :payment_type, :label=>'', :include_blank=>false, :as=>:foundation_ui_radio_buttons, :collection=>paytype, :checked=>chosen_type_id
       .medium-2.hide-for-small-only.cell
       .small-12.medium-10.cell
-        #payment_forms
+        -# The passes on offer, by id, so payments.js can show the card form for a donation made with one.
+        - pass_names = paytype.grep(PassPaymentType).to_h { |pt| [pt.id, pt.pass_name] }
+        #payment_forms{ data: { pass_names: pass_names.to_json } }
           = render '/orders/credit_card_payment_form', :f=>order_form
           = render '/orders/flex_pass_payment_form', :f => order_form
           = render '/orders/membership_payment_form', :f => order_form

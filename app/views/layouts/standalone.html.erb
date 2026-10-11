@@ -47,6 +47,9 @@
     </div>
   </div>
 
+  <%# The public order pages' JS (orders_common, via yield :js) needs jQuery,
+      which an external site wrapper supplies itself. %>
+  <%= javascript_include_tag 'jquery' %>
   <%= yield(:js) %>
 </body>
 </html>

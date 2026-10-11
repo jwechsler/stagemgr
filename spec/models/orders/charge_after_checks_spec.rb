@@ -193,29 +193,83 @@ RSpec.describe 'Charging only after every check' do
         expect(order.payments.map(&:class)).to eq([CreditCardPayment])
         expect(DonationOrder.count).to eq(0)
         expect(CreditCardPayment.count).to eq(1)
-        expect(order.additional_donation_failures).to eq([{ amount: 25, reason: 'card_declined' }])
+        expect(order.additional_donation_failures)
+          .to eq([{ amount: 25, theater: Theater.default_theater.name, reason: 'card_declined' }])
       end
 
-      it 'notes the failure on the order and alerts the box office' do
-        order.transition_to!(Order::PROCESSED)
+      it 'emails the box office the failure once the order commits, and writes no note' do
+        expect { order.transition_to!(Order::PROCESSED) }.to change { ActionMailer::Base.deliveries.count }.by(1)
 
-        expect(order.reload.notes).to match(/Additional donation not processed: \$25\.00 .*\(card_declined\)/)
-        task = NotificationTask.find_by!(order: order, method_symbol: 'additional_donation_failed_alert')
-        expect(task.notifications).to eq(Rails.configuration.x.email_address['box_office'])
-      end
-
-      it 'sends an alert with the amount, order and reason but no card number' do
-        order.transition_to!(Order::PROCESSED)
-
-        mail = NotificationMailer.additional_donation_failed_alert(order.reload, 'boxoffice@example.org')
-        body = mail.body.encoded
+        mail = ActionMailer::Base.deliveries.last
+        expect(mail.to).to eq([Rails.configuration.x.email_address['box_office']])
         expect(mail.subject).to include("Order #{order.id}")
-        expect(body).to include('$25.00').and include('card_declined')
-        expect(body).not_to include('4111')
+        expect(mail.body.encoded).to include('$25.00').and include('card_declined')
+        expect(mail.body.encoded).not_to include('4111')
+        expect(order.reload.notes).to be_blank
+        expect(NotificationTask.where(order: order)).to be_empty
+      end
+
+      it 'does not report a decline to the developers' do
+        allow(ExceptionNotifier).to receive(:notify_exception)
+
+        order.transition_to!(Order::PROCESSED)
+
+        expect(ExceptionNotifier).not_to have_received(:notify_exception)
+      end
+
+      it 'sends no alert when the ticket order then rolls back' do
+        allow(gateway).to receive(:refund).and_return(double('refund', success?: true, message: 'Refunded'))
+        allow(order).to receive(:process_additional_donation_orders).and_wrap_original do |original, *args|
+          original.call(*args)
+          raise ActiveRecord::StatementInvalid, 'lost connection'
+        end
+
+        expect { order.transition_to!(Order::PROCESSED) }.to raise_error(ActiveRecord::StatementInvalid)
+        expect(ActionMailer::Base.deliveries).to be_empty
+      end
+
+      it 'keeps the paid order when the alert cannot be sent, and reports the mail failure' do
+        allow(ExceptionNotifier).to receive(:notify_exception)
+        allow(NotificationMailer).to receive(:additional_donation_failed_alert).and_raise(Net::SMTPFatalError, 'nope')
+
+        expect { order.transition_to!(Order::PROCESSED) }.not_to raise_error
+
+        expect(order.reload).to be_processed
+        expect(ExceptionNotifier).to have_received(:notify_exception)
+          .with(an_instance_of(Net::SMTPFatalError), data: { order_id: order.id })
       end
     end
 
-    it 'redacts anything shaped like a card number from the recorded reason' do
+    context 'when the donation fails unexpectedly' do
+      let(:order) { card_order.tap { |o| o.additional_donation = '25' } }
+
+      before do
+        allow(ExceptionNotifier).to receive(:notify_exception)
+        allow_any_instance_of(DonationOrder).to receive(:transition_to!)
+          .and_raise(NoMethodError, 'undefined method `oops\' for #<DonationOrder id: nil, notes: nil>')
+      end
+
+      it 'reports the error to the developers and keeps the paid ticket order' do
+        order.transition_to!(Order::PROCESSED)
+
+        expect(order.reload).to be_processed
+        expect(ExceptionNotifier).to have_received(:notify_exception).with(
+          an_instance_of(NoMethodError),
+          data: { donation_amount: 25, theater: Theater.default_theater.name, order_id: order.id }
+        )
+      end
+
+      it 'tells the box office without the raw error or an order dump' do
+        order.transition_to!(Order::PROCESSED)
+
+        body = ActionMailer::Base.deliveries.last.body.encoded
+        expect(body).to include(ChargeAfterChecks::UNEXPECTED_DONATION_ERROR_REASON)
+        expect(body).not_to include('DonationOrder')
+        expect(body).not_to include('oops')
+      end
+    end
+
+    it 'redacts anything shaped like a card number from the reason' do
       order = card_order
       order.additional_donation = '25'
       card_error = double('response', success?: false, authorization: nil, params: {},
@@ -224,8 +278,100 @@ RSpec.describe 'Charging only after every check' do
 
       order.transition_to!(Order::PROCESSED)
 
-      expect(order.reload.notes).to include('Card [redacted] declined')
-      expect(order.notes).not_to include('4111')
+      expect(order.additional_donation_failures.first[:reason]).to eq('Card [redacted] declined')
+      expect(ActionMailer::Base.deliveries.last.body.encoded).not_to include('4111')
+    end
+  end
+
+  describe 'an additional donation on a pass-paid order' do
+    before { card_type }
+
+    def with_pass_ticket_class(order, class_code)
+      pass_class = FactoryBot.create(:ticket_class, class_code: class_code, class_name: 'Pass Ticket', ticket_price: 0,
+                                                    web_visible: false, software_managed: true,
+                                                    production: order.performance.production)
+      order.performance.ticket_class_allocations << FactoryBot.build(:ticket_class_allocation,
+                                                                     available: true, ticket_class: pass_class)
+      order
+    end
+
+    def membership_paid_order
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
+                                payment_type: FactoryBot.create(:membership_payment_type))
+      membership = FactoryBot.create(:membership, address: order.address)
+      order.member_code = membership.member_code
+      with_pass_ticket_class(order, membership.membership_offer.use_ticket_class_code)
+    end
+
+    def flex_pass_paid_order
+      # An offer with no theater, so the pass is good for any production.
+      flex_pass = FactoryBot.create(:flex_pass_order, flex_pass_offer: FactoryBot.create(:flex_pass_offer)).flex_pass
+      order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets,
+                                payment_type: FactoryBot.create(:flex_pass_payment_type))
+      order.flex_pass_code = flex_pass.code
+      with_pass_ticket_class(order, flex_pass.flex_pass_offer.use_ticket_class_code)
+    end
+
+    shared_examples 'a pass that covers only the tickets' do |pass_payment_class|
+      it 'redeems the pass for the tickets and charges the donation to the card' do
+        order = with_card(paid_order)
+        order.additional_donation = '25'
+
+        order.transition_to!(Order::PROCESSED)
+
+        expect(gateway).to have_received(:purchase).once.with(2500, anything, anything)
+        expect(order.reload).to be_processed
+        expect(order.payments.map(&:class)).to eq([pass_payment_class])
+        expect(DonationOrder.count).to eq(1)
+        donation = DonationOrder.first
+        expect(donation).to be_processed
+        expect(donation.payment_type).to be_a(CreditCardPaymentType)
+        expect(donation.payments.map(&:class)).to eq([CreditCardPayment])
+        expect(donation.total_paid).to eq(25)
+        expect(order.additional_donation_failures).to be_empty
+        expect(order.notes).to be_blank
+      end
+
+      it 'asks for a card at Review Order, before the pass is redeemed' do
+        order = paid_order
+        order.additional_donation = '25'
+
+        expect { order.transition_to!(Order::PROCESSING) }.to raise_error(ActiveRecord::RecordInvalid)
+        expect(order.errors[:base]).to include('Please enter a card for your donation.')
+      end
+
+      it 'refuses to redeem the pass when no card was entered' do
+        order = paid_order
+        order.additional_donation = '25'
+
+        expect { order.transition_to!(Order::PROCESSED) }.to raise_error(StandardError)
+
+        expect(order.errors[:base]).to include('Please enter a card for your donation.')
+        expect(pass_payment_class.count).to eq(0)
+        expect(gateway).not_to have_received(:purchase)
+        expect(DonationOrder.count).to eq(0)
+      end
+
+      it 'needs no card when there is no donation' do
+        order = paid_order
+
+        order.transition_to!(Order::PROCESSED)
+
+        expect(order.reload).to be_processed
+        expect(gateway).not_to have_received(:purchase)
+      end
+    end
+
+    context 'with a membership' do
+      let(:paid_order) { membership_paid_order }
+
+      it_behaves_like 'a pass that covers only the tickets', MembershipPayment
+    end
+
+    context 'with a flex pass' do
+      let(:paid_order) { flex_pass_paid_order }
+
+      it_behaves_like 'a pass that covers only the tickets', FlexPassPayment
     end
   end
 

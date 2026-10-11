@@ -192,12 +192,42 @@ RSpec.describe OrdersHelper, type: :helper do
     end
   end
 
+  describe '#pass_donation_charge_text' do
+    def order_paid_with(payment_type, donation: '15', donation_for_other: nil)
+      TicketOrder.new(payment_type: payment_type, additional_donation: donation,
+                      additional_donation_for_other: donation_for_other, credit_card_number: '4111111111114242')
+    end
+
+    it 'says the membership covers the tickets and the donation goes on the card' do
+      order = order_paid_with(FactoryBot.create(:membership_payment_type))
+
+      expect(helper.pass_donation_charge_text(order))
+        .to eq('Your membership covers the tickets; $15.00 will be charged to your card ending 4242.')
+    end
+
+    it 'names a flex pass and totals both donations' do
+      order = order_paid_with(FactoryBot.create(:flex_pass_payment_type), donation_for_other: '10')
+
+      expect(helper.pass_donation_charge_text(order))
+        .to eq('Your flex pass covers the tickets; $25.00 will be charged to your card ending 4242.')
+    end
+
+    it 'says nothing without a donation' do
+      expect(helper.pass_donation_charge_text(order_paid_with(FactoryBot.create(:membership_payment_type),
+                                                              donation: ''))).to be_nil
+    end
+
+    it 'says nothing for a card-paid order' do
+      expect(helper.pass_donation_charge_text(order_paid_with(FactoryBot.create(:credit_card_payment_type)))).to be_nil
+    end
+  end
+
   describe '#process_order success notice' do
     let(:order) { FactoryBot.create(:ticket_order, :for_a_pair_of_tickets) }
 
     it 'tells the patron when an additional donation could not be processed' do
       allow(order).to receive(:transition_processing_to_processed!).and_wrap_original do |original, *args|
-        original.call(*args).tap { order.additional_donation_failures << { amount: 25, reason: 'card_declined' } }
+        original.call(*args).tap { order.additional_donation_failures << { amount: 25, theater: 'Test Theater', reason: 'card_declined' } }
       end
 
       expect(helper.process_order(order, Order::PROCESSED)).to be(true)
