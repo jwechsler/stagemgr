@@ -6,9 +6,10 @@
 
 **Navigation:** Admin Menu > Analysis
 
-The Analysis page has two tabs: **Production Sales** (the default), which holds Rate of
-Sales, Ticket Revenue and Audience, and **Pass Sales**, which holds Membership Analysis.
-The Pass Sales tab is for **Admin** users only; Theater users see Production Sales alone.
+The Analysis page has three tabs: **Production Sales** (the default), which holds Rate of
+Sales, Ticket Revenue and Audience; **Advance Sales**, which looks at how far ahead
+tickets are bought; and **Pass Sales**, which holds Membership Analysis. The Pass Sales
+tab is for **Admin** users only; Theater users see Production Sales and Advance Sales.
 
 ---
 
@@ -96,6 +97,18 @@ See [Audience Analysis](audience.md) for full details.
     yet because they need comparison shows you have to pick by hand.
 
 ![Analysis selection page](../assets/images/screenshots/analysis-selection-empty.png)
+
+### Advance Sales
+
+Looks at *when* tickets were bought relative to the performance: the share of a group's
+final sales already in hand 60, 30, 14, 7 and fewer days out, and how much sold in each
+window. Compare seasons, theaters or productions, with single tickets and passes drawn
+separately. A week-by-week table per production shows how each run sold and flags
+performances added after opening, and a **Pace** column on the production page projects
+upcoming performances from the theater's own history. Open it from the **Advance Sales**
+tab, or from the **Advance Sales** button on a production page.
+
+See [Advance Sales Analysis](advance-sales.md) for full details.
 
 ### Membership Analysis
 
