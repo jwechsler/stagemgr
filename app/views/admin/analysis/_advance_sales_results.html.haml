@@ -3,6 +3,11 @@
   .small-12.cell
     %fieldset.fieldset
       %legend Share of final sales in hand
+      - if results.series.any?(&:in_progress?)
+        = render "shared/components/callout", variant: "warning" do
+          Series marked “in progress” include performances that haven't played yet, so only their early buyers are
+          counted so far. Their curves will move toward same-day as the run completes; compare finished seasons for a
+          fair read.
       - chart_options = { xtitle: 'Days before performance', ytitle: '% of final sales in hand', suffix: '%', max: 100,
                           library: { scales: { x: { type: 'category' } } } }
       = line_chart advance_sales_chart_data(results.series), **chart_options
@@ -12,14 +17,16 @@
             %tr
               %th Series
               %th Tickets
+              %th Still to play
               - AdvanceSalesCurve::TABLE_THRESHOLDS.each do |days|
                 %th ≥#{days}d
               %th= Admin::AdvanceSalesHelper::SAME_DAY_LABEL
           %tbody
             - results.series.each do |series|
-              %tr
+              %tr{ class: ('in-progress' if series.in_progress?) }
                 %td= series.label
                 %td= advance_sales_count(series.tickets)
+                %td= advance_sales_still_to_play(series)
                 - AdvanceSalesCurve::TABLE_THRESHOLDS.each do |days|
                   %td= advance_sales_share(series.curve.share_at(days))
                 %td= advance_sales_share(series.curve.same_day_share)

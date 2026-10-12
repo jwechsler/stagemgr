@@ -279,26 +279,26 @@ RSpec.describe Admin::AnalysisController, type: :controller do
 
     let(:admin) { FactoryBot.create(:admin_user) }
     let(:venue) { FactoryBot.create(:venue) }
-    let(:show_date) { Date.current + 30.days }
+    let(:show_date) { Date.current - 30.days } # played, so series are finished unless an example says otherwise
 
     def next_seq
       @seq = (@seq || 0) + 1
     end
 
-    # A production with one seat-holding class and one performance on show_date.
-    def make_performance(theater, season:)
+    # A production with one seat-holding class and one performance on +on+.
+    def make_performance(theater, season:, on: show_date)
       n = next_seq
       production = Production.create!(
         name: "Advance Ctl #{n}", production_code: "AK#{n.to_s.rjust(4, '0')}", capacity: 100,
-        opening_at: show_date, first_preview_at: show_date, press_opening_at: show_date,
-        closing_at: show_date + 30.days, season: season, status: Production::ACTIVE, theater: theater, venue: venue
+        opening_at: on, first_preview_at: on, press_opening_at: on,
+        closing_at: on + 30.days, season: season, status: Production::ACTIVE, theater: theater, venue: venue
       )
       TicketClass.create!(production: production, class_code: "AK#{n.to_s.rjust(4, '0')}", class_name: "Class #{n}",
                           ticket_type: 'Fixed', ticket_price: 25.0, ticketing_fee: 0.0, complimentary: false,
                           holds_seats: true, web_visible: true, auto_attach: false, software_managed: false)
       Performance.create!(performance_code: "#{production.production_code}01", production: production,
-                          performance_date: show_date, status: Performance::PERFORMANCE_STATUSES.first,
-                          performance_time: Time.zone.local(show_date.year, show_date.month, show_date.day, 19, 30))
+                          performance_date: on, status: Performance::PERFORMANCE_STATUSES.first,
+                          performance_time: Time.zone.local(on.year, on.month, on.day, 19, 30))
     end
 
     def sell(performance, tickets:, days_before:)
@@ -306,7 +306,7 @@ RSpec.describe Admin::AnalysisController, type: :controller do
                                   payment_type: FactoryBot.create(:cash_payment_type))
       TicketLineItem.create!(order: order, ticket_class: performance.production.ticket_classes.first,
                              ticket_count: tickets)
-      day = show_date - days_before
+      day = performance.performance_date - days_before
       order.update_columns(status: Order::PROCESSED, created_at: Time.zone.local(day.year, day.month, day.day, 12))
       order
     end
@@ -352,6 +352,36 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       page = Capybara.string(response.body)
       expect(page).to have_css('#advance-sales-results table td', text: '2025 – single tickets')
       expect(page).to have_css('#advance-sales-results .accordion-title', text: performance.production.picker_label)
+    end
+
+    it 'warns when a series is in progress' do
+      performance = make_performance(theater, season: 2025, on: Date.current + 7.days)
+      sell(performance, tickets: 3, days_before: 10)
+
+      get :advance_sales, params: { seasons: ['2025'] }
+
+      expect(assigns(:results).in_progress?).to be(true)
+      expect(response.body).to include('in progress', 'Still to play')
+      page = Capybara.string(response.body)
+      expect(page).to have_css('#advance-sales-results .callout.warning',
+                               text: "include performances that haven't played yet")
+      expect(page).to have_css('#advance-sales-results tr.in-progress td', text: '2025 – single tickets (in progress)')
+      expect(page).to have_css('#advance-sales-results tr.in-progress td', exact_text: '1 of 1')
+      expect(page).to have_css('#advance-sales-results .accordion-title .label', text: 'in progress')
+      expect(page).to have_css('#advance-sales-results td .label', exact_text: '1 to play')
+    end
+
+    it 'does not warn when every performance has played' do
+      sell(make_performance(theater, season: 2025), tickets: 3, days_before: 10)
+
+      get :advance_sales, params: { seasons: ['2025'] }
+
+      expect(assigns(:results).in_progress?).to be(false)
+      page = Capybara.string(response.body)
+      expect(page).to have_css('#advance-sales-results th', text: 'Still to play')
+      expect(page).not_to have_text("include performances that haven't played yet")
+      expect(page).not_to have_css('#advance-sales-results tr.in-progress')
+      expect(page).not_to have_css('#advance-sales-results .accordion-title .label', text: 'in progress')
     end
 
     it 'rejects a submission with no seasons' do

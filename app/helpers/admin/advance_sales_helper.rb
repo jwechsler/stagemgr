@@ -8,13 +8,26 @@ module Admin::AdvanceSalesHelper
     share.nil? ? EMPTY_CELL : "#{(share * 100).round}%"
   end
 
+  IN_PROGRESS_DASH = [6, 4].freeze
+
   # One line per series: the percent of its final sales in hand at each
-  # AdvanceSalesCurve::THRESHOLDS point.
+  # AdvanceSalesCurve::THRESHOLDS point. An in-progress series is dashed.
   def advance_sales_chart_data(series)
     series.map do |s|
-      { name: s.label,
-        data: AdvanceSalesCurve::THRESHOLDS.map { |d| [advance_sales_days_label(d), (s.curve.share_at(d) * 100).round(1)] } }
+      line = { name: s.label,
+               data: AdvanceSalesCurve::THRESHOLDS.map { |d| [advance_sales_days_label(d), (s.curve.share_at(d) * 100).round(1)] } }
+      s.in_progress? ? line.merge(dataset: { borderDash: IN_PROGRESS_DASH }) : line
     end
+  end
+
+  # "3 of 40" performances still to play, or a dash for a finished series.
+  def advance_sales_still_to_play(series)
+    series.in_progress? ? "#{series.upcoming_performance_count} of #{series.performance_count}" : EMPTY_CELL
+  end
+
+  # A "2 to play" label for a run week with performances still to come.
+  def advance_sales_week_marker(week)
+    ui_label "#{week.upcoming_count} to play", variant: :secondary if week.upcoming_count.positive?
   end
 
   def advance_sales_days_label(days)

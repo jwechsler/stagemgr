@@ -5,7 +5,8 @@ require 'rails_helper'
 RSpec.describe AdvanceSalesAnalysis, type: :service do
   let(:venue)   { FactoryBot.create(:venue) }
   let(:theater) { FactoryBot.create(:theater, name: 'AS Middle Theater') }
-  let(:run_start) { Date.current + 30.days }
+  # Past by default so series are finished; the in-progress examples date performances from today.
+  let(:run_start) { Date.current - 120.days }
 
   def next_seq
     @seq = (@seq || 0) + 1
@@ -263,6 +264,92 @@ RSpec.describe AdvanceSalesAnalysis, type: :service do
       end
     end
 
+    describe 'in progress' do
+      let(:production) { make_production(theater: theater, season: 2025) }
+
+      def only(list)
+        expect(list.size).to eq(1)
+        list.first
+      end
+
+      it 'marks a series in progress and suffixes its label when a performance is dated today or later' do
+        stub_rows(row(make_performance(production, on: Date.current - 1.day), lead_days: 3, tickets: 2),
+                  row(make_performance(production, on: Date.current), lead_days: 3, tickets: 1))
+
+        series = only(analysis(segment: 'single').compute.series)
+
+        expect(series.in_progress?).to be(true)
+        expect(series.label).to eq("2025#{described_class::IN_PROGRESS_SUFFIX}")
+        expect(series.label).to eq('2025 (in progress)')
+      end
+
+      it 'puts the in-progress suffix after the segment suffix' do
+        stub_rows(row(make_performance(production, on: Date.current + 3.days), lead_days: 3, tickets: 2))
+
+        expect(analysis.compute.series.map(&:label)).to eq(['2025 – single tickets (in progress)'])
+      end
+
+      it 'leaves a series with only past performances unmarked, with the plain label' do
+        stub_rows(row(make_performance(production, on: Date.current - 1.day), lead_days: 3, tickets: 2))
+
+        series = only(analysis(segment: 'single').compute.series)
+
+        expect(series.in_progress?).to be(false)
+        expect(series.label).to eq('2025')
+        expect(series).to have_attributes(performance_count: 1, upcoming_performance_count: 0)
+      end
+
+      it 'counts performances and upcoming performances per series' do
+        past = [-10, -3].map { |offset| make_performance(production, on: Date.current + offset.days) }
+        upcoming = make_performance(production, on: Date.current + 5.days)
+        stub_rows(past.map { |perf| row(perf, lead_days: 1, tickets: 1) },
+                  row(past.first, lead_days: 4, tickets: 2),
+                  row(upcoming, lead_days: 2, tickets: 1))
+
+        series = only(analysis(segment: 'single').compute.series)
+
+        expect(series).to have_attributes(performance_count: 3, upcoming_performance_count: 1, tickets: 5)
+      end
+
+      it 'counts upcoming performances per run week and flags the run as in progress' do
+        production.update_columns(first_preview_at: Date.current - 3.days, press_opening_at: Date.current - 3.days,
+                                  opening_at: Date.current - 3.days)
+        played = make_performance(production, on: Date.current - 3.days)
+        make_performance(production, on: Date.current)
+        make_performance(production, on: Date.current + 2.days)
+        make_performance(production, on: Date.current + 5.days)
+        stub_rows(row(played, lead_days: 1, tickets: 1))
+
+        run = only(analysis.compute.productions)
+
+        expect(run.in_progress?).to be(true)
+        expect(run.weeks.map { |week| [week.index, week.performance_count, week.upcoming_count] })
+          .to eq([[0, 3, 2], [1, 1, 1]])
+      end
+
+      it 'does not flag a run whose performances have all played' do
+        stub_rows(row(make_performance(production, on: Date.current - 1.day), lead_days: 1, tickets: 1))
+
+        run = only(analysis.compute.productions)
+
+        expect(run.in_progress?).to be(false)
+        expect(run.weeks.map(&:upcoming_count)).to eq([0])
+      end
+
+      it 'reports in_progress? on the result when any series is' do
+        played = make_performance(make_production(theater: theater, season: 2024), on: Date.current - 30.days)
+        stub_rows(row(played, lead_days: 1, tickets: 1))
+        expect(analysis(seasons: [2024, 2025], segment: 'single').compute.in_progress?).to be(false)
+
+        stub_rows(row(played, lead_days: 1, tickets: 1),
+                  row(make_performance(production, on: Date.current + 1.day), lead_days: 1, tickets: 1))
+        result = analysis(seasons: [2024, 2025], segment: 'single').compute
+
+        expect(result.series.map(&:in_progress?)).to eq([true, false])
+        expect(result.in_progress?).to be(true)
+      end
+    end
+
     describe 'caching' do
       let(:store) { ActiveSupport::Cache::MemoryStore.new }
 
@@ -280,6 +367,15 @@ RSpec.describe AdvanceSalesAnalysis, type: :service do
         expect(second.tickets).to eq(first.tickets)
 
         analysis(segment: 'single').compute
+        expect(AdvanceSalesRows).to have_received(:fetch).twice
+      end
+
+      it 'caches separately on different days' do
+        travel_to(Time.zone.local(2026, 3, 10, 12)) { analysis.compute }
+        travel_to(Time.zone.local(2026, 3, 10, 12, 30)) { analysis.compute }
+        expect(AdvanceSalesRows).to have_received(:fetch).once
+
+        travel_to(Time.zone.local(2026, 3, 11, 12)) { analysis.compute }
         expect(AdvanceSalesRows).to have_received(:fetch).twice
       end
     end

@@ -8,6 +8,8 @@
           %li.accordion-item{ data: { accordion_item: '' } }
             %a.accordion-title{ href: '#' }
               #{run.production.picker_label} — #{advance_sales_count(run.tickets)} tickets
+              - if run.in_progress?
+                = ui_label 'in progress', variant: :secondary
               - if run.added_later_count.positive?
                 = ui_label "#{run.added_later_count} added after opening", variant: :warning
             .accordion-content{ data: { tab_content: '' } }
@@ -26,7 +28,9 @@
                   %tbody
                     - run.weeks.each do |week|
                       %tr
-                        %td= advance_sales_week_label(week)
+                        %td
+                          = advance_sales_week_label(week)
+                          = advance_sales_week_marker(week)
                         %td= week.starts_on.to_formatted_s(:short)
                         %td= week.performance_count
                         %td= week.added_later_count

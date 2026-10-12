@@ -8,21 +8,34 @@
 # is the first seven days, negative weeks are earlier, and anything before
 # PRE_RUN_WEEK_FLOOR collapses into that week. A performance was "added
 # later" when it was first activated after the run had started.
+#
+# A series or run week is "in progress" when any of its performances is dated
+# today or later: only its early buyers exist so far, so its curve reads as
+# buying further ahead than it will once those performances have played, and
+# shifts toward same-day as the run completes.
 class AdvanceSalesAnalysis
   COMPARE_BY         = %w[season theater production].freeze
   PRE_RUN_WEEK_FLOOR = -2       # performances earlier than this collapse into one pre-run week
   MAX_SERIES         = 16       # beyond this the chart is unreadable; keep the first MAX_SERIES
   CACHE_TTL          = 1.hour
-  CACHE_PREFIX       = 'advance_sales_analysis/v1'.freeze
+  CACHE_PREFIX       = 'advance_sales_analysis/v2'.freeze
   DAYS_PER_WEEK      = 7
   SEGMENT_SUFFIXES   = { 'single' => ' – single tickets', 'pass' => ' – pass redemptions' }.freeze
+  IN_PROGRESS_SUFFIX = ' (in progress)'.freeze
 
   Result = Struct.new(:series, :productions, :tickets, :truncated, keyword_init: true) do
     def activity? = tickets.positive?
+    def in_progress? = series.any?(&:in_progress?)
   end
-  Series = Struct.new(:key, :label, :segment, :tickets, :curve, keyword_init: true) # curve: AdvanceSalesCurve
-  ProductionRun = Struct.new(:production, :tickets, :added_later_count, :weeks, keyword_init: true)
-  RunWeek = Struct.new(:index, :starts_on, :performance_count, :added_later_count, :tickets,
+  # curve: AdvanceSalesCurve
+  Series = Struct.new(:key, :label, :segment, :tickets, :curve, :performance_count, :upcoming_performance_count,
+                      keyword_init: true) do
+    def in_progress? = upcoming_performance_count.to_i.positive?
+  end
+  ProductionRun = Struct.new(:production, :tickets, :added_later_count, :weeks, keyword_init: true) do
+    def in_progress? = weeks.any? { |week| week.upcoming_count.positive? }
+  end
+  RunWeek = Struct.new(:index, :starts_on, :performance_count, :added_later_count, :upcoming_count, :tickets,
                        :avg_lead_days, :same_day_share, :over_two_weeks_share, keyword_init: true)
 
   def initialize(theater_ids:, seasons:, compare_by:, segment:, include_external: false)
@@ -45,8 +58,9 @@ class AdvanceSalesAnalysis
     raise ArgumentError, "unknown segment #{@segment.inspect}" unless AdvanceSalesCurve::SEGMENT_CHOICES.include?(@segment)
   end
 
+  # Date.current is in the key because "in progress" depends on it.
   def cache_key
-    params = [@theater_ids, @seasons, @compare_by, @segment, @include_external].inspect
+    params = [@theater_ids, @seasons, @compare_by, @segment, @include_external, Date.current].inspect
     "#{CACHE_PREFIX}/#{Digest::MD5.hexdigest(params)}"
   end
 
@@ -57,18 +71,30 @@ class AdvanceSalesAnalysis
 
     rows = AdvanceSalesRows.fetch(theater_ids: @theater_ids, seasons: @seasons, include_external: @include_external)
     productions = Production.where(id: rows.map(&:production_id).uniq).includes(:theater).index_by(&:id)
-    series = build_series(rows, productions)
+    performances = performances_for(productions)
+    series = build_series(rows, productions, performances.to_h { |(id, _, date, _)| [id, date] })
     Result.new(series: series.first(MAX_SERIES), truncated: series.size > MAX_SERIES,
-               productions: build_production_runs(rows, productions), tickets: rows.sum(&:tickets))
+               productions: build_production_runs(rows, productions, performances), tickets: rows.sum(&:tickets))
+  end
+
+  # [id, production_id, performance_date, activated_at] for every performance
+  # of the given productions, shared by the series and the production runs.
+  def performances_for(productions)
+    Performance.unscoped.where(production_id: productions.keys)
+               .pluck(:id, :production_id, :performance_date, :activated_at)
+  end
+
+  def upcoming?(date)
+    date.present? && date >= Date.current
   end
 
   # :section: Series
 
-  def build_series(rows, productions)
+  def build_series(rows, productions, performance_dates)
     labels = group_labels(rows, productions)
     grouped = rows.group_by { |row| group_key(row) }
     ordered_keys(labels.keys, productions).flat_map do |key|
-      segments.filter_map { |segment| series_for(key, labels[key], segment, grouped[key]) }
+      segments.filter_map { |segment| series_for(key, labels[key], segment, grouped[key], performance_dates) }
     end
   end
 
@@ -76,17 +102,21 @@ class AdvanceSalesAnalysis
     @segment == 'both' ? AdvanceSalesRows::SEGMENTS : [@segment]
   end
 
-  def series_for(key, group_label, segment, group_rows)
+  def series_for(key, group_label, segment, group_rows, performance_dates)
     segment_rows = group_rows.select { |row| row.segment == segment }
     tickets = segment_rows.sum(&:tickets)
     return nil if tickets.zero?
 
-    Series.new(key: key, label: series_label(group_label, segment), segment: segment, tickets: tickets,
-               curve: AdvanceSalesCurve.from_rows(segment_rows, source: :rows))
+    performance_ids = segment_rows.map(&:performance_id).uniq
+    upcoming = performance_ids.count { |id| upcoming?(performance_dates[id]) }
+    Series.new(key: key, label: series_label(group_label, segment, upcoming.positive?), segment: segment,
+               tickets: tickets, curve: AdvanceSalesCurve.from_rows(segment_rows, source: :rows),
+               performance_count: performance_ids.size, upcoming_performance_count: upcoming)
   end
 
-  def series_label(group_label, segment)
-    @segment == 'both' ? "#{group_label}#{SEGMENT_SUFFIXES.fetch(segment)}" : group_label
+  def series_label(group_label, segment, in_progress)
+    label = @segment == 'both' ? "#{group_label}#{SEGMENT_SUFFIXES.fetch(segment)}" : group_label
+    in_progress ? "#{label}#{IN_PROGRESS_SUFFIX}" : label
   end
 
   def group_key(row)
@@ -122,10 +152,8 @@ class AdvanceSalesAnalysis
 
   # :section: Production runs
 
-  def build_production_runs(rows, productions)
-    performances = Performance.unscoped.where(production_id: productions.keys)
-                              .pluck(:id, :production_id, :performance_date, :activated_at)
-                              .group_by(&:second)
+  def build_production_runs(rows, productions, performances)
+    performances = performances.group_by(&:second)
     rows_by_performance = rows.group_by(&:performance_id)
     production_order(productions.values).map do |production|
       production_run(production, performances.fetch(production.id, []), rows_by_performance)
@@ -159,6 +187,7 @@ class AdvanceSalesAnalysis
     tickets = week_rows.sum(&:tickets)
     RunWeek.new(index: index, starts_on: start + index.weeks, performance_count: perfs.size,
                 added_later_count: perfs.count { |(_, _, _, activated_at)| added_later?(activated_at, start) },
+                upcoming_count: perfs.count { |(_, _, date, _)| upcoming?(date) },
                 tickets: tickets, **lead_stats(week_rows, tickets))
   end
 

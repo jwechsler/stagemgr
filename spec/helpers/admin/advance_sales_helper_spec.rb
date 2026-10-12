@@ -62,6 +62,50 @@ RSpec.describe Admin::AdvanceSalesHelper, type: :helper do
       expect(data.first[:data].to_h).to include('60d' => 0.0, '30d' => 33.3, '1d' => 33.3, 'Same day' => 100.0)
       expect(data.last[:data].to_h).to include('2d' => 0.0, '1d' => 100.0, 'Same day' => 100.0)
     end
+
+    it 'dashes the chart line for an in-progress series only' do
+      rows = [row(lead_days: 3, tickets: 1)]
+      running = series('2026 (in progress)', rows).tap do |s|
+        s.performance_count = 4
+        s.upcoming_performance_count = 2
+      end
+      finished = series('2025', rows).tap do |s|
+        s.performance_count = 4
+        s.upcoming_performance_count = 0
+      end
+
+      data = helper.advance_sales_chart_data([running, finished])
+
+      expect(data.first[:dataset]).to eq(borderDash: Admin::AdvanceSalesHelper::IN_PROGRESS_DASH)
+      expect(data.last).not_to have_key(:dataset)
+    end
+
+    it 'leaves a series without performance counts undashed' do
+      expect(helper.advance_sales_chart_data([series('2025', [row(lead_days: 1, tickets: 1)])]).first)
+        .not_to have_key(:dataset)
+    end
+  end
+
+  describe '#advance_sales_still_to_play' do
+    def series(upcoming)
+      AdvanceSalesAnalysis::Series.new(label: 'S', performance_count: 40, upcoming_performance_count: upcoming)
+    end
+
+    it 'reports still-to-play as "n of m" for an in-progress series and a dash otherwise' do
+      expect(helper.advance_sales_still_to_play(series(3))).to eq('3 of 40')
+      expect(helper.advance_sales_still_to_play(series(0))).to eq('—')
+      expect(helper.advance_sales_still_to_play(AdvanceSalesAnalysis::Series.new(label: 'S'))).to eq('—')
+    end
+  end
+
+  describe '#advance_sales_week_marker' do
+    it 'labels a week with performances still to play and returns nil otherwise' do
+      html = helper.advance_sales_week_marker(AdvanceSalesAnalysis::RunWeek.new(index: 0, upcoming_count: 2))
+
+      expect(html).to have_css('span.label.secondary', exact_text: '2 to play')
+      expect(helper.advance_sales_week_marker(AdvanceSalesAnalysis::RunWeek.new(index: 0, upcoming_count: 0)))
+        .to be_nil
+    end
   end
 
   describe '#advance_sales_pace_cell' do
