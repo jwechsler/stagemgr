@@ -43,16 +43,15 @@ RSpec.describe AdvanceSalesRows, type: :service do
   end
 
   # A ticket order with one line item, stamped with its purchase time and status.
-  # created_at is written as a naive Central wall-clock string: with
-  # default_timezone :local a Time would be shifted to the process zone
-  # (UTC under TZ=UTC), whereas production stores Central wall clock.
+  # bought_at is a zoned Time; with default_timezone :local ActiveRecord stores
+  # it in the process's system zone (UTC under the suite), as production does.
   def sell(performance, tickets:, bought_at:, status: Order::PROCESSED, ticket_class: nil)
     ticket_class ||= performance.production.ticket_classes.find_by(holds_seats: true, complimentary: false) ||
                      make_ticket_class(performance.production)
     order = TicketOrder.create!(status: Order::NEW, performance: performance, address: FactoryBot.create(:address),
                                 payment_type: FactoryBot.create(:cash_payment_type))
     TicketLineItem.create!(order: order, ticket_class: ticket_class, ticket_count: tickets)
-    order.update_columns(status: status, created_at: bought_at.strftime('%Y-%m-%d %H:%M:%S'))
+    order.update_columns(status: status, created_at: bought_at)
     order
   end
 
@@ -197,10 +196,25 @@ RSpec.describe AdvanceSalesRows, type: :service do
       expect(tickets_by_lead(described_class.fetch)).to eq(0 => 2)
     end
 
-    it 'uses the Central date of the purchase' do
+    it 'uses the app zone date of the purchase' do
       sell(performance, tickets: 2, bought_at: bought(1, hour: 23, min: 30), ticket_class: seat_class)
 
       expect(tickets_by_lead(described_class.fetch)).to eq(1 => 2)
+    end
+
+    it 'converts from the storage zone to the app zone' do
+      allow(described_class).to receive(:storage_time_zone).and_return('UTC')
+      march_first = make_performance(production, on: Date.new(2026, 3, 1))
+      order = sell(march_first, tickets: 2, bought_at: Time.zone.local(2026, 2, 28, 12), ticket_class: seat_class)
+      # A raw UTC wall clock: 04:30 UTC is 22:30 Central on Feb 28.
+      order.update_columns(created_at: '2026-03-01 04:30:00')
+
+      expect(tickets_by_lead(described_class.fetch)).to eq(1 => 2)
+    end
+
+    # CI loads these into the MySQL service in .github/workflows/test.yml.
+    it 'has the MySQL time-zone tables it needs' do
+      expect(described_class.time_zone_tables_loaded?).to be true
     end
 
     context 'with a theater whose sales are recorded externally' do

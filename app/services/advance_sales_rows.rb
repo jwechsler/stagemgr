@@ -2,8 +2,9 @@
 # HouseCount basis: TicketOrders in TicketOrderMergeable::SOLD_STATUSES, TicketLineItems with
 # ticket_count > 0 on seat-holding, non-complimentary classes. The sale date
 # is the root purchase: exchange_source_id / split_source_id are walked back
-# to the first order and its created_at (app-local wall clock, so DATE() is
-# the Central date) is used. lead_days = performance_date - that date,
+# to the first order and its created_at, converted from the host's storage
+# zone to the app zone (Time.zone), gives the sale date. lead_days =
+# performance_date - that date,
 # floored at 0. Segment is 'pass' when the order or its root carries a
 # Membership or FlexPass payment for at least one ticket, otherwise
 # 'single'. Theaters flagged sales_recorded_externally are left out unless
@@ -34,8 +35,29 @@ class AdvanceSalesRows
                                     include_external: include_external)
     sql = base_sql.sub("/* filters */", clauses.map { |c| "AND #{c}" }.join(" "))
     ActiveRecord::Base.sanitize_sql_array(
-      [sql, binds.merge(max_depth: MAX_CHAIN_DEPTH, pass_types: PASS_PAYMENT_TYPES, sold: TicketOrderMergeable::SOLD_STATUSES)]
+      [sql, binds.merge(max_depth: MAX_CHAIN_DEPTH, pass_types: PASS_PAYMENT_TYPES,
+                        sold: TicketOrderMergeable::SOLD_STATUSES,
+                        storage_tz: storage_time_zone, app_tz: app_time_zone)]
     )
+  end
+
+  # True when MySQL can convert into the app zone by name. Without the
+  # time-zone tables CONVERT_TZ returns NULL and fetch falls back to the raw
+  # storage-zone date; the spec asserts this so CI fails loudly instead.
+  def self.time_zone_tables_loaded?
+    conn = ActiveRecord::Base.connection
+    conn.select_value("SELECT CONVERT_TZ('2000-01-01 00:00:00', 'UTC', #{conn.quote(app_time_zone)})").present?
+  end
+
+  # created_at is written in the process's system zone (default_timezone
+  # :local). A host is either UTC or runs in the app zone; TZ overrides.
+  def self.storage_time_zone
+    # Time.now on purpose: the system clock's zone is the one we need, not Time.zone.
+    ENV['TZ'].presence || (Time.now.utc_offset.zero? ? 'UTC' : Time.zone.tzinfo.identifier)
+  end
+
+  def self.app_time_zone
+    Time.zone.tzinfo.identifier # e.g. America/Chicago
   end
 
   def self.filter_clauses(theater_ids:, seasons:, before_season:, production_ids:, from_date:, include_external:)
@@ -93,7 +115,8 @@ class AdvanceSalesRows
                SELECT 1 FROM payments rpay
                WHERE rpay.order_id = r.root_id AND rpay.type IN (:pass_types) AND rpay.number_of_tickets > 0
              ) THEN 'pass' ELSE 'single' END AS segment,
-             GREATEST(DATEDIFF(pf.performance_date, DATE(COALESCE(ro.created_at, o.created_at))), 0) AS lead_days,
+             GREATEST(DATEDIFF(pf.performance_date, DATE(COALESCE(CONVERT_TZ(COALESCE(ro.created_at, o.created_at), :storage_tz, :app_tz),
+                                                   COALESCE(ro.created_at, o.created_at)))), 0) AS lead_days,
              SUM(li.ticket_count) AS tickets
       FROM productions pr
       JOIN theaters th       ON th.id = pr.theater_id
@@ -111,5 +134,5 @@ class AdvanceSalesRows
     SQL
   end
 
-  private_class_method :filter_clauses, :build_row, :base_sql
+  private_class_method :filter_clauses, :build_row, :base_sql, :storage_time_zone, :app_time_zone
 end

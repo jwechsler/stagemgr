@@ -87,6 +87,13 @@ jobs:
       - name: Generate config files from templates
         run: bundle exec rake setup:config
 
+      - name: Load MySQL time-zone tables
+        # CONVERT_TZ with named zones (Advance Sales lead-time dates) needs them;
+        # the stock mysql image ships without.
+        run: |
+          docker exec ${{ job.services.mysql.id }} sh -c \
+            'mysql_tzinfo_to_sql /usr/share/zoneinfo 2>/dev/null | mysql -uroot -proot mysql'
+
       - name: Load the test database schema
         run: bundle exec rails db:create db:schema:load
 
