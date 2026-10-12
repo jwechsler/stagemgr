@@ -1,6 +1,7 @@
 module Admin::AdvanceSalesHelper
   EMPTY_CELL = Admin::MembershipAnalysisHelper::EMPTY_CELL
   SAME_DAY_LABEL = 'Same day'.freeze
+  TOO_EARLY_LABEL = 'Too early'.freeze
 
   # "42%", or a dash when there were no tickets to take a share of.
   def advance_sales_share(share)
@@ -36,5 +37,27 @@ module Admin::AdvanceSalesHelper
 
   def advance_sales_count(count)
     number_with_delimiter(count)
+  end
+
+  # Performance listing cell for an AdvanceSalesPace::Reading: a dash with no
+  # reading, "Too early" when the share in hand is too small to project, else
+  # "~84 (84% of capacity)". The title explains the basis either way.
+  def advance_sales_pace_cell(reading)
+    return EMPTY_CELL if reading.nil?
+
+    title = advance_sales_pace_title(reading)
+    return content_tag(:span, TOO_EARLY_LABEL, title: title) if reading.projected_final.nil?
+
+    text = "~#{number_with_delimiter(reading.projected_final)}"
+    text += " (#{(reading.projected_pct_of_capacity * 100).round}% of capacity)" if reading.capacity.to_i.positive?
+    content_tag(:span, text, title: title)
+  end
+
+  private
+
+  def advance_sales_pace_title(reading)
+    share = (reading.typical_share.to_f * 100).round
+    title = "Sold #{reading.sold}; this house typically has #{share}% in hand #{reading.days_out} days out"
+    reading.source == :building ? "#{title} (building-wide curve)" : title
   end
 end

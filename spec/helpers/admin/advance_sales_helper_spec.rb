@@ -63,4 +63,48 @@ RSpec.describe Admin::AdvanceSalesHelper, type: :helper do
       expect(data.last[:data].to_h).to include('2d' => 0.0, '1d' => 100.0, 'Same day' => 100.0)
     end
   end
+
+  describe '#advance_sales_pace_cell' do
+    def reading(**attrs)
+      AdvanceSalesPace::Reading.new(performance_id: 1, days_out: 7, sold: 20, typical_share: 0.5,
+                                    projected_final: 40, capacity: 100, projected_pct_of_capacity: 0.4,
+                                    source: :theater, **attrs)
+    end
+
+    it 'shows the empty cell when there is no reading' do
+      expect(helper.advance_sales_pace_cell(nil)).to eq('—')
+    end
+
+    it 'says too early, with the basis in the title, when there is no projection' do
+      html = helper.advance_sales_pace_cell(reading(days_out: 30, sold: 5, typical_share: 0.05,
+                                                    projected_final: nil, projected_pct_of_capacity: nil))
+
+      expect(html).to have_css('span[title="Sold 5; this house typically has 5% in hand 30 days out"]',
+                               text: 'Too early')
+    end
+
+    it 'shows the projection against capacity' do
+      html = helper.advance_sales_pace_cell(reading(projected_final: 1234, capacity: 2000,
+                                                    projected_pct_of_capacity: 0.617))
+
+      expect(html).to have_css('span[title="Sold 20; this house typically has 50% in hand 7 days out"]',
+                               exact_text: '~1,234 (62% of capacity)')
+    end
+
+    it 'notes the building-wide curve in the title' do
+      html = helper.advance_sales_pace_cell(reading(source: :building))
+
+      expect(html).to have_css(
+        'span[title="Sold 20; this house typically has 50% in hand 7 days out (building-wide curve)"]',
+        exact_text: '~40 (40% of capacity)'
+      )
+    end
+
+    it 'leaves out the capacity part when there is no capacity' do
+      expect(helper.advance_sales_pace_cell(reading(capacity: nil, projected_pct_of_capacity: nil)))
+        .to have_css('span', exact_text: '~40')
+      expect(helper.advance_sales_pace_cell(reading(capacity: 0, projected_pct_of_capacity: nil)))
+        .to have_css('span', exact_text: '~40')
+    end
+  end
 end
