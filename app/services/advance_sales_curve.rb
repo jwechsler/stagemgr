@@ -12,7 +12,7 @@ class AdvanceSalesCurve
   OVER_TWO_WEEKS   = 14
   CACHE_TTL        = 1.hour
   SEGMENT_CHOICES  = %w[both single pass].freeze
-  CACHE_PREFIX     = 'advance_sales_curve/v1'.freeze
+  CACHE_PREFIX     = 'advance_sales_curve/v2'.freeze
 
   attr_reader :tickets, :performance_count, :source # source: :theater | :building | :rows
 

@@ -18,7 +18,7 @@ class AdvanceSalesAnalysis
   PRE_RUN_WEEK_FLOOR = -2       # performances earlier than this collapse into one pre-run week
   MAX_SERIES         = 16       # beyond this the chart is unreadable; keep the first MAX_SERIES
   CACHE_TTL          = 1.hour
-  CACHE_PREFIX       = 'advance_sales_analysis/v2'.freeze
+  CACHE_PREFIX       = 'advance_sales_analysis/v3'.freeze
   DAYS_PER_WEEK      = 7
   SEGMENT_SUFFIXES   = { 'single' => ' – single tickets', 'pass' => ' – subscription passes' }.freeze
   IN_PROGRESS_SUFFIX = ' (in progress)'.freeze
