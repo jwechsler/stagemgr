@@ -1,0 +1,55 @@
+-#
+  Current show plus the comparison group of theaters, which defaults to the
+  show's own theater. Locals: target (Production or nil), theaters (Array<Theater>).
+= form_tag(audience_admin_analysis_index_path, method: :get, id: 'audience-form',
+                                               data: { target_production_id: target&.id,
+                                                       target_theater_id: target&.theater_id,
+                                                       target_theater_name: target&.theater&.name,
+                                                       comparison_theater_ids: theaters.map(&:id),
+                                                       search_url: search_theaters_admin_analysis_index_path }) do
+  -# Marks a real submission; a target-only link just pre-fills the form.
+  = hidden_field_tag 'comparison_theater_ids[]', '', id: nil
+  .grid-x.grid-padding-x
+    .small-12.medium-6.cell
+      %fieldset.fieldset
+        %legend Current show
+        %p.help-text Select the show you want to analyze
+        = render 'shared/components/production_picker',
+                 field_name: 'target_production_id',
+                 scope: :analysis,
+                 selected: target,
+                 required: true
+
+  .grid-x.grid-padding-x
+    .small-12.cell
+      %fieldset.fieldset
+        %legend Comparison group
+        %p.help-text
+          Select one or more theaters to compare against. Defaults to the selected production's theater.
+          The facility-wide metrics are always shown alongside.
+        .grid-x.grid-margin-x
+          .cell.auto
+            = text_field_tag :comparison_theater_search, nil, id: 'comparison-theater-search', name: nil,
+                                                              placeholder: 'Type a theater name or tag...',
+                                                              class: 'input-group-field', autocomplete: 'off'
+          .cell.shrink
+            %a.button.alert.small.hide#remove-all-comparison-theaters{ href: '#' } Remove all
+        %table.hover#comparison-theaters-table
+          %thead
+            %tr
+              %th Theater
+              %th
+          %tbody
+            - theaters.each do |t|
+              %tr{ data: { theater_id: t.id } }
+                %td= t.name
+                %td
+                  %a.remove-comparison-theater.alert{ href: '#' } remove
+                  %input{ type: 'hidden', name: 'comparison_theater_ids[]', value: t.id }
+
+  .grid-x.grid-padding-x
+    .small-12.cell
+      = submit_tag 'Run analysis', class: 'button', name: nil, id: 'run-analysis-btn',
+                                   disabled: target.nil? || theaters.empty?
+
+= render 'audience_form_script'

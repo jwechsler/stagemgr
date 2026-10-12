@@ -1,0 +1,52 @@
+-#
+  Current show plus an optional historical production to compare it with.
+  Locals: target (Production or nil), comparison (Production or nil).
+= form_tag(ticket_revenue_admin_analysis_index_path, method: :get, id: 'ticket-revenue-form',
+                                                     data: { target_production_id: target&.id }) do
+  .grid-x.grid-padding-x
+    .small-12.medium-6.cell
+      %fieldset.fieldset
+        %legend Current show
+        %p.help-text Select the show you want to analyze
+        = render 'shared/components/production_picker',
+                 field_name: 'target_production_id',
+                 scope: :analysis,
+                 selected: target,
+                 required: true,
+                 exclude_field: 'input[name="comparison_production_id"]'
+
+    .small-12.medium-6.cell
+      %fieldset.fieldset
+        %legend Historical production (optional)
+        %p.help-text Select one historical production to compare
+        = render 'shared/components/production_picker',
+                 field_name: 'comparison_production_id',
+                 scope: :analysis,
+                 selected: comparison,
+                 exclude_field: 'input[name="target_production_id"]'
+
+  .grid-x.grid-padding-x
+    .small-12.cell
+      = submit_tag 'Run analysis', class: 'button', name: nil, id: 'run-analysis-btn', disabled: target.nil?
+
+-# The Run button needs a current show; the comparison is optional.
+:javascript
+  $(document).ready(function() {
+    var targetProductionId = $('#ticket-revenue-form').data('target-production-id') || null;
+
+    function updateSubmitButton() {
+      $('#run-analysis-btn').prop('disabled', targetProductionId === null);
+    }
+
+    $('[data-production-picker][data-field="target_production_id"]')
+      .on('production-picker:selected', function(e, item) {
+        targetProductionId = item.id;
+        updateSubmitButton();
+      })
+      .on('production-picker:cleared', function() {
+        targetProductionId = null;
+        updateSubmitButton();
+      });
+
+    updateSubmitButton();
+  });

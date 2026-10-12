@@ -2,23 +2,20 @@ class Admin::AnalysisController < Admin::ApplicationController
   before_action :authorize_analysis
   before_action :authorize_pass_analysis, only: :memberships
 
+  PRODUCTION_ANALYSES = %w[rate_of_sales ticket_revenue audience].freeze
+  PRODUCTION_ANALYSIS_PARAMS = [:target_production_id, :comparison_production_id,
+                                { comparison_production_ids: [], comparison_theater_ids: [] }].freeze
+  PRODUCTION_ANALYSIS_KEYS = %i[target_production_id comparison_production_id
+                                comparison_production_ids comparison_theater_ids].freeze
+
+  # The tab pages replaced a single form whose analysis_type picked the
+  # endpoint; old bookmarks of that form land on the matching tab.
   def index
-    if params[:target_production_id].present?
-      @target_production = Production.accessible_by(current_ability, :read).find_by(id: params[:target_production_id])
-    end
-    if params[:comparison_production_ids].present?
-      ids = Array(params[:comparison_production_ids]).compact_blank.map(&:to_i)
-      @comparison_productions = Production.accessible_by(current_ability, :read).where(id: ids).includes(:theater)
-    end
-    if params[:comparison_theater_ids].present?
-      ids = Array(params[:comparison_theater_ids]).compact_blank.map(&:to_i)
-      @comparison_theaters = Theater.where(id: ids).order(:name).to_a
-    end
-    if params[:comparison_production_id].present?
-      @comparison_production = Production.accessible_by(current_ability,
-                                                        :read).find_by(id: params[:comparison_production_id])
-    end
-    @analysis_type = params[:analysis_type]
+    analysis = params[:analysis_type].to_s
+    return redirect_to(rate_of_sales_admin_analysis_index_path) unless PRODUCTION_ANALYSES.include?(analysis)
+
+    carried = params.slice(*PRODUCTION_ANALYSIS_KEYS).permit(*PRODUCTION_ANALYSIS_PARAMS)
+    redirect_to public_send("#{analysis}_admin_analysis_index_path", carried.to_h)
   end
 
   # Production search for the analysis pickers lives on
@@ -26,39 +23,29 @@ class Admin::AnalysisController < Admin::ApplicationController
   # production picker endpoints, scope: analysis); theater search for the
   # theater multi-picker lives on Admin::TheatersController#search.
 
+  # GET: the form, plus results once it has been submitted (see analysis_runnable?).
   def audience
-    @target_production = Production.accessible_by(current_ability, :read).find(params[:target_production_id])
+    load_target_production
+    load_comparison_theaters
+    return unless analysis_runnable?(:comparison_theater_ids)
 
-    requested_ids = Array(params[:comparison_theater_ids]).compact_blank.map(&:to_i)
-    @comparison_theaters = Theater.where(id: requested_ids).to_a
-
-    if requested_ids.empty?
-      flash[:error] = 'Select at least one comparison theater before running an audience analysis.'
-      redirect_to admin_analysis_index_path(target_production_id: @target_production.id, analysis_type: 'audience')
+    if @comparison_theaters.empty?
+      flash.now[:error] = 'Select at least one comparison theater before running an audience analysis.'
       return
     end
 
-    @results = AudienceAnalysis.new(@target_production, requested_ids).compute
-
-    respond_to do |format|
-      format.html
-    end
+    @results = AudienceAnalysis.new(@target_production, @comparison_theaters.map(&:id)).compute
   end
 
+  # GET: the form, plus results once a current show is given; the historical
+  # comparison is optional.
   def ticket_revenue
-    @target_production = Production.accessible_by(current_ability, :read).find(params[:target_production_id])
-
-    if params[:comparison_production_id].present?
-      @comparison_production = Production.accessible_by(current_ability, :read)
-                                         .find_by(id: params[:comparison_production_id])
-    end
+    load_target_production
+    load_comparison_production
+    return unless analysis_runnable?(:target_production_id)
 
     @target_result     = TicketRevenueAnalysis.new(@target_production).compute
     @comparison_result = @comparison_production ? TicketRevenueAnalysis.new(@comparison_production).compute : nil
-
-    respond_to do |format|
-      format.html
-    end
   end
 
   FACILITY_SEGMENT_KEYS = %w[first_time_vs_building returning_vs_building three_plus_in_building].freeze
@@ -71,8 +58,8 @@ class Admin::AnalysisController < Admin::ApplicationController
 
     if FACILITY_SEGMENT_KEYS.include?(segment_key) && !current_user.is_administrator?
       flash[:error] = 'Only administrators can export facility-wide cohorts.'
-      redirect_to admin_analysis_index_path(target_production_id: target.id, analysis_type: 'audience',
-                                            comparison_theater_ids: comparison_theater_ids) and return
+      redirect_to audience_admin_analysis_index_path(target_production_id: target.id,
+                                                     comparison_theater_ids: comparison_theater_ids) and return
     end
 
     Resque.enqueue(
@@ -87,22 +74,23 @@ class Admin::AnalysisController < Admin::ApplicationController
     )
     flash[:notice] =
       "Your cohort export is queued. You'll receive an email when it's ready, and it will also appear on the reports page."
-    redirect_to admin_analysis_index_path(target_production_id: target.id, analysis_type: 'audience',
-                                          comparison_theater_ids: comparison_theater_ids)
+    redirect_to audience_admin_analysis_index_path(target_production_id: target.id,
+                                                   comparison_theater_ids: comparison_theater_ids)
   end
 
+  # GET: the form, plus results once it has been submitted (see analysis_runnable?).
   def rate_of_sales
-    @target_production = Production.accessible_by(current_ability, :read).find(params[:target_production_id])
-    comparison_ids = Array(params[:comparison_production_ids]).compact_blank.map(&:to_i)
-    @comparison_productions = Production.accessible_by(current_ability, :read).where(id: comparison_ids)
-
+    load_target_production
+    load_comparison_productions
     @extra_weeks = params[:extra_weeks].to_i
-    analysis = RateOfSalesAnalysis.new(@target_production, @comparison_productions)
-    @results = analysis.compute(extra_weeks: @extra_weeks)
+    return unless analysis_runnable?(:comparison_production_ids)
 
-    respond_to do |format|
-      format.html
+    if @comparison_productions.empty?
+      flash.now[:error] = 'Select at least one comparison show.'
+      return
     end
+
+    @results = RateOfSalesAnalysis.new(@target_production, @comparison_productions).compute(extra_weeks: @extra_weeks)
   end
 
   DEFAULT_MEMBERSHIP_RANGE = 12.months
@@ -137,6 +125,45 @@ class Admin::AnalysisController < Admin::ApplicationController
   end
 
   private
+
+  # A production analysis runs once its form was submitted, marked by +marker+
+  # being in the params (the forms carry it as a blank hidden field, so a
+  # target-only link just pre-fills the form). A submitted show the user
+  # cannot read is an error, not a 404.
+  def analysis_runnable?(marker)
+    return false unless params.key?(marker)
+
+    if params[:target_production_id].blank?
+      flash.now[:error] = 'Select a current show.'
+      return false
+    end
+    return true if @target_production
+
+    flash.now[:error] = 'That production could not be found.'
+    false
+  end
+
+  def load_target_production
+    @target_production = readable_productions.find_by(id: params[:target_production_id].presence)
+  end
+
+  def load_comparison_productions
+    ids = Array(params[:comparison_production_ids]).compact_blank.map(&:to_i)
+    @comparison_productions = ids.empty? ? [] : readable_productions.where(id: ids).includes(:theater).to_a
+  end
+
+  def load_comparison_production
+    @comparison_production = readable_productions.find_by(id: params[:comparison_production_id].presence)
+  end
+
+  def load_comparison_theaters
+    ids = Array(params[:comparison_theater_ids]).compact_blank.map(&:to_i)
+    @comparison_theaters = ids.empty? ? [] : Theater.where(id: ids).order(:name).to_a
+  end
+
+  def readable_productions
+    Production.accessible_by(current_ability, :read)
+  end
 
   # Offers picked one by one (or through a group that expanded in the picker)
   # arrive as membership_offer_ids; dynamic groups arrive as

@@ -1,0 +1,85 @@
+-#
+  Behaviour for _rate_of_sales_form: the comparison-show list and the Run
+  button, which needs a current show and at least one comparison. Adding or
+  removing a comparison changes only hidden fields, which fire no change
+  event, so the list triggers analysis-form:changed on the form itself.
+:javascript
+  $(document).ready(function() {
+    var $form                   = $('#rate-of-sales-form');
+    var targetProductionId      = $form.data('target-production-id') || null;
+    var comparisonProductionIds = $form.data('comparison-production-ids') || [];
+    var searchProductionsUrl    = $form.data('search-url');
+    var resolveGroupUrl         = $form.data('resolve-url');
+
+    function updateSubmitButton() {
+      var ready = targetProductionId !== null && comparisonProductionIds.length > 0;
+      $('#run-analysis-btn').prop('disabled', !ready);
+      $('#remove-all-comparisons').toggleClass('hide', comparisonProductionIds.length === 0);
+    }
+
+    function comparisonsChanged() {
+      updateSubmitButton();
+      $form.trigger('analysis-form:changed');
+    }
+
+    function addComparisonProduction(item) {
+      if (!item.id || !item.name) return;
+      if (comparisonProductionIds.indexOf(item.id) !== -1) return;
+      if (item.id === targetProductionId) return;
+      comparisonProductionIds.push(item.id);
+      var row = $('<tr data-production-id="' + item.id + '">' +
+        '<td>' + item.season + '</td>' +
+        '<td>' + item.name + '</td>' +
+        '<td>' + item.theater + '</td>' +
+        '<td><a href="#" class="remove-comparison alert">remove</a>' +
+        '<input type="hidden" name="comparison_production_ids[]" value="' + item.id + '">' +
+        '</td></tr>');
+      $('#comparison-productions-table tbody').append(row);
+    }
+
+    // Target production picker (shared component)
+    $('[data-production-picker][data-field="target_production_id"]')
+      .on('production-picker:selected', function(e, item) {
+        targetProductionId = item.id;
+        updateSubmitButton();
+      })
+      .on('production-picker:cleared', function() {
+        targetProductionId = null;
+        updateSubmitButton();
+      });
+
+    // Multi-show comparison typeahead (shared component, multi mode)
+    GroupedTypeahead.attachMulti($('#comparison-production-search'), {
+      searchUrl: searchProductionsUrl,
+      resolveUrl: resolveGroupUrl,
+      scope: 'analysis',
+      getExcludedIds: function() {
+        var excluded = comparisonProductionIds.slice();
+        if (targetProductionId) excluded.push(targetProductionId);
+        return excluded;
+      },
+      onItem: addComparisonProduction,
+      afterChange: comparisonsChanged
+    });
+
+    // Remove comparison production
+    $(document).on('click', '.remove-comparison', function(e) {
+      e.preventDefault();
+      var row = $(this).closest('tr');
+      var prodId = parseInt(row.data('production-id'));
+      comparisonProductionIds = comparisonProductionIds.filter(function(id) { return id !== prodId; });
+      row.remove();
+      comparisonsChanged();
+    });
+
+    // Remove all comparison productions
+    $(document).on('click', '#remove-all-comparisons', function(e) {
+      e.preventDefault();
+      if (!confirm('Remove all comparison shows?')) return;
+      comparisonProductionIds = [];
+      $('#comparison-productions-table tbody').empty();
+      comparisonsChanged();
+    });
+
+    updateSubmitButton();
+  });

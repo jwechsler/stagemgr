@@ -4,14 +4,14 @@
     Audience Analysis is available to **Admin** and **Theater** users. Theater users
     see only productions belonging to their theaters.
 
-**Navigation:** Admin Menu > Analysis > select "Audience" as the Analysis Type
+**Navigation:** Admin Menu > Analysis > **Audience** tab
 
 !!! tip "Shortcut from a production"
     On any production's admin page (Productions > [Production Name]), click the
     **Audience Analysis** button next to *Edit* / *Ticket Classes*. This jumps
-    straight to the analysis form with that production pre-selected as the
+    straight to the Audience tab with that production pre-selected as the
     target and the production's own theater seeded as the comparison group.
-    One more click on *Run Analysis* produces the report.
+    One more click on *Run analysis* produces the report.
 
 ---
 
@@ -35,12 +35,12 @@ lifetime-new-vs-lifetime-returning view.
 
 ## Picking the comparison group
 
-The Audience type replaces the "Comparison Shows" picker (used by Rate of Sales) with
-a **Comparison Group** picker that selects **theaters**, not individual productions:
+Instead of the "Comparison Shows" picker used by Rate of Sales, the Audience tab has a
+**Comparison Group** picker that selects **theaters**, not individual productions:
 
 - **Theater autocomplete** -- Search by theater name or by any
   [tag](../setup/theaters.md#tags) applied to a theater. The current production's theater
-  is added automatically as a seed when you switch to Audience.
+  is added automatically as a seed when you pick the current show.
 - **"All theaters tagged X" group entries** -- When the autocomplete finds a matching tag,
   it offers a one-click bulk add of every theater carrying that tag.
 
@@ -49,9 +49,9 @@ metrics (every theater in the system) are always shown alongside the comparison-
 metrics, so there's no separate toggle for "compare against the whole building" -- those
 numbers appear in the lower section of every audience report.
 
-The **Back to Analysis** button on the results page preserves your full comparison-theater
-selection, so you can iterate on the comparison group without re-picking theaters every
-time.
+The comparison-theater selection stays at the top of the page above the results, so you
+can iterate on the comparison group without re-picking theaters every time. Exporting a
+cohort from the results brings you back to the same results with the export confirmation.
 
 ## Anchor date
 
