@@ -69,8 +69,10 @@ RSpec.describe AdvanceSalesRows, type: :service do
     FactoryBot.create(:membership_payment, order: order, membership: membership, number_of_tickets: tickets)
   end
 
-  def pay_with_flex_pass(order, tickets:)
-    flex_pass = FactoryBot.create(:flex_pass_order).flex_pass
+  # The offer's theater/festival is set explicitly: both nil is a building-wide pass.
+  def pay_with_flex_pass(order, tickets:, theater: nil, festival: nil)
+    offer = FactoryBot.create(:flex_pass_offer, theater: theater, festival: festival)
+    flex_pass = FactoryBot.create(:flex_pass_order, flex_pass_offer: offer).flex_pass
     FactoryBot.create(:flex_pass_payment, order: order, flex_pass: flex_pass, number_of_tickets: tickets)
   end
 
@@ -146,23 +148,37 @@ RSpec.describe AdvanceSalesRows, type: :service do
       expect(tickets_by_lead(described_class.fetch)).to eq(14 => 3)
     end
 
-    it 'classifies a membership-paid order as a pass redemption' do
+    it 'counts a membership-paid order as single tickets' do
       order = sell(performance, tickets: 2, bought_at: bought(7), ticket_class: seat_class)
       pay_with_membership(order, tickets: 2)
 
+      expect(described_class.fetch.map(&:segment)).to eq(['single'])
+    end
+
+    it 'classifies a flex pass tied to a theater as a subscription pass' do
+      order = sell(performance, tickets: 2, bought_at: bought(7), ticket_class: seat_class)
+      pay_with_flex_pass(order, tickets: 2, theater: theater)
+
       expect(described_class.fetch.map(&:segment)).to eq(['pass'])
     end
 
-    it 'classifies a flex-pass-paid order as a pass redemption' do
+    it 'classifies a flex pass tied to a festival as a subscription pass' do
+      order = sell(performance, tickets: 2, bought_at: bought(7), ticket_class: seat_class)
+      pay_with_flex_pass(order, tickets: 2, festival: FactoryBot.create(:festival))
+
+      expect(described_class.fetch.map(&:segment)).to eq(['pass'])
+    end
+
+    it 'counts a building-wide flex pass as single tickets' do
       order = sell(performance, tickets: 2, bought_at: bought(7), ticket_class: seat_class)
       pay_with_flex_pass(order, tickets: 2)
 
-      expect(described_class.fetch.map(&:segment)).to eq(['pass'])
+      expect(described_class.fetch.map(&:segment)).to eq(['single'])
     end
 
-    it "classifies an exchanged pass order from the root order's payments" do
+    it "classifies an exchanged subscription order from the root order's payments" do
       original = sell(performance, tickets: 2, bought_at: bought(12), ticket_class: seat_class)
-      pay_with_membership(original, tickets: 2)
+      pay_with_flex_pass(original, tickets: 2, theater: theater)
       child = exchange(original, tickets: 2, bought_at: bought(2))
       ExchangePayment.create!(order: child, payment_type: FactoryBot.create(:cash_payment_type), amount: 0,
                               number_of_tickets: 2)
@@ -173,7 +189,7 @@ RSpec.describe AdvanceSalesRows, type: :service do
 
     it 'does not count a pass payment for zero tickets as a redemption' do
       order = sell(performance, tickets: 2, bought_at: bought(7), ticket_class: seat_class)
-      pay_with_membership(order, tickets: 0)
+      pay_with_flex_pass(order, tickets: 0, theater: theater)
 
       expect(described_class.fetch.map(&:segment)).to eq(['single'])
     end

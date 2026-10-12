@@ -13,6 +13,8 @@
       How far ahead of each performance its tickets were bought. Counts paid, seat-holding tickets on
       sold orders, dated from the original purchase (exchanges and splits keep the first order's date).
       Comps, and theaters flagged "sales recorded externally", are left out.
+      Subscription passes are flex passes tied to a theater or festival; building-wide flex passes and
+      memberships count as single tickets.
 
 = render 'advance_sales_form', filters: @filters, theaters: @theaters, seasons: @seasons
 
