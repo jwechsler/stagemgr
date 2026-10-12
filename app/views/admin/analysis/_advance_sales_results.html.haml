@@ -1,0 +1,25 @@
+-# Locals: results (AdvanceSalesAnalysis::Result).
+.grid-x.grid-padding-x
+  .small-12.cell
+    %fieldset.fieldset
+      %legend Share of final sales in hand
+      - chart_options = { xtitle: 'Days before performance', ytitle: '% of final sales in hand', suffix: '%', max: 100,
+                          library: { scales: { x: { type: 'category' } } } }
+      = line_chart advance_sales_chart_data(results.series), **chart_options
+      .table-scroll
+        %table.hover
+          %thead
+            %tr
+              %th Series
+              %th Tickets
+              - AdvanceSalesCurve::TABLE_THRESHOLDS.each do |days|
+                %th ≥#{days}d
+              %th= Admin::AdvanceSalesHelper::SAME_DAY_LABEL
+          %tbody
+            - results.series.each do |series|
+              %tr
+                %td= series.label
+                %td= advance_sales_count(series.tickets)
+                - AdvanceSalesCurve::TABLE_THRESHOLDS.each do |days|
+                  %td= advance_sales_share(series.curve.share_at(days))
+                %td= advance_sales_share(series.curve.same_day_share)

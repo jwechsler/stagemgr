@@ -232,6 +232,7 @@ Rails.application.routes.draw do
       collection do
         get :search_theaters
         get :memberships
+        get :advance_sales
         post :rate_of_sales
         post :ticket_revenue
         post :audience

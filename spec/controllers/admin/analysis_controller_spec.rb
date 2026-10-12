@@ -273,4 +273,131 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       expect(assigns(:results)).to be_nil
     end
   end
+
+  describe 'GET #advance_sales' do
+    render_views
+
+    let(:admin) { FactoryBot.create(:admin_user) }
+    let(:venue) { FactoryBot.create(:venue) }
+    let(:show_date) { Date.current + 30.days }
+
+    def next_seq
+      @seq = (@seq || 0) + 1
+    end
+
+    # A production with one seat-holding class and one performance on show_date.
+    def make_performance(theater, season:)
+      n = next_seq
+      production = Production.create!(
+        name: "Advance Ctl #{n}", production_code: "AK#{n.to_s.rjust(4, '0')}", capacity: 100,
+        opening_at: show_date, first_preview_at: show_date, press_opening_at: show_date,
+        closing_at: show_date + 30.days, season: season, status: Production::ACTIVE, theater: theater, venue: venue
+      )
+      TicketClass.create!(production: production, class_code: "AK#{n.to_s.rjust(4, '0')}", class_name: "Class #{n}",
+                          ticket_type: 'Fixed', ticket_price: 25.0, ticketing_fee: 0.0, complimentary: false,
+                          holds_seats: true, web_visible: true, auto_attach: false, software_managed: false)
+      Performance.create!(performance_code: "#{production.production_code}01", production: production,
+                          performance_date: show_date, status: Performance::PERFORMANCE_STATUSES.first,
+                          performance_time: Time.zone.local(show_date.year, show_date.month, show_date.day, 19, 30))
+    end
+
+    def sell(performance, tickets:, days_before:)
+      order = TicketOrder.create!(status: Order::NEW, performance: performance, address: FactoryBot.create(:address),
+                                  payment_type: FactoryBot.create(:cash_payment_type))
+      TicketLineItem.create!(order: order, ticket_class: performance.production.ticket_classes.first,
+                             ticket_count: tickets)
+      day = show_date - days_before
+      order.update_columns(status: Order::PROCESSED, created_at: Time.zone.local(day.year, day.month, day.day, 12))
+      order
+    end
+
+    before do
+      # Use the real ability and production scope for these examples, not the file-wide stubs.
+      allow(controller).to receive(:authorize!).and_call_original
+      allow(controller).to receive(:current_ability).and_call_original
+      allow(controller).to receive(:can?).and_call_original
+      allow(Production).to receive(:accessible_by).and_call_original
+      allow(controller).to receive(:current_user).and_return(admin)
+    end
+
+    it 'renders the filter form with no results when nothing has been submitted' do
+      make_performance(theater, season: 2025)
+
+      get :advance_sales
+
+      expect(response).to have_http_status(:ok)
+      expect(assigns(:filters).submitted?).to be(false)
+      expect(assigns(:filters).seasons).to include(2025)
+      expect(assigns(:results)).to be_nil
+      page = Capybara.string(response.body)
+      expect(page).to have_css('form#advance-sales-form')
+      expect(page).to have_css("input[type='checkbox'][name='seasons[]'][value='2025'][checked]")
+    end
+
+    it 'marks the Advance Sales tab active' do
+      get :advance_sales
+
+      expect(Capybara.string(response.body)).to have_css('#analysis-tabs li.tabs-title.is-active', text: 'Advance Sales')
+    end
+
+    it 'renders results for valid params' do
+      performance = make_performance(theater, season: 2025)
+      sell(performance, tickets: 3, days_before: 10)
+
+      get :advance_sales, params: { seasons: ['', '2025'], theater_ids: [''] }
+
+      expect(response).to have_http_status(:ok)
+      expect(assigns(:results).tickets).to eq(3)
+      expect(assigns(:results).series.map(&:label)).to eq(['2025 – single tickets'])
+      page = Capybara.string(response.body)
+      expect(page).to have_css('#advance-sales-results table td', text: '2025 – single tickets')
+      expect(page).to have_css('#advance-sales-results .accordion-title', text: performance.production.picker_label)
+    end
+
+    it 'rejects a submission with no seasons' do
+      make_performance(theater, season: 2025)
+
+      get :advance_sales, params: { seasons: [''] }
+
+      expect(response).to have_http_status(:ok)
+      expect(flash.now[:error]).to eq('Select at least one season.')
+      expect(assigns(:results)).to be_nil
+    end
+
+    it 'says so when the selection sold nothing' do
+      make_performance(theater, season: 2025)
+
+      get :advance_sales, params: { seasons: ['2025'] }
+
+      expect(assigns(:results).activity?).to be(false)
+      expect(response.body).to include('Nothing sold for that selection.')
+    end
+
+    it 'limits a theater user to the productions of their own theaters' do
+      own = FactoryBot.create(:theater, name: 'AS Own Theater')
+      other = FactoryBot.create(:theater, name: 'AS Other Theater')
+      sell(make_performance(own, season: 2025), tickets: 2, days_before: 5)
+      sell(make_performance(other, season: 2025), tickets: 7, days_before: 5)
+      allow(controller).to receive(:current_user).and_return(FactoryBot.create(:user, theaters: [own]))
+
+      get :advance_sales, params: { theater_ids: [other.id.to_s], seasons: ['2025'], compare_by: 'theater' }
+
+      expect(response).to have_http_status(:ok)
+      expect(assigns(:theaters)).to eq([own])
+      expect(assigns(:filters).theater_ids).to eq([own.id])
+      expect(assigns(:results).tickets).to eq(2)
+      expect(assigns(:results).series.map(&:label)).to eq(['AS Own Theater – single tickets'])
+      expect(response.body).not_to include('AS Other Theater')
+    end
+
+    it 'forbids box office users' do
+      allow(controller).to receive(:current_user)
+        .and_return(FactoryBot.create(:user, is_box_office_user: true))
+
+      get :advance_sales, params: { seasons: ['2025'] }
+
+      expect(response).to redirect_to(root_path)
+      expect(assigns(:results)).to be_nil
+    end
+  end
 end

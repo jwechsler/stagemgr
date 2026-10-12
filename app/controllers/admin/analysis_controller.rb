@@ -169,6 +169,22 @@ class Admin::AnalysisController < Admin::ApplicationController
     run_membership_analysis
   end
 
+  # GET: the filter form, plus results once seasons have been submitted (even
+  # if only the blank hidden field), so a run is bookmarkable.
+  def advance_sales
+    readable  = Production.accessible_by(current_ability, :read)
+    @theaters = Theater.where(id: readable.select(:theater_id)).order(:name).to_a
+    @seasons  = readable.where.not(season: nil).distinct.pluck(:season).sort.reverse
+    @filters  = AdvanceSalesFilters.new(params, theaters: @theaters, seasons: @seasons)
+    return unless @filters.submitted?
+
+    if @filters.valid?
+      @results = AdvanceSalesAnalysis.new(**@filters.to_h).compute
+    else
+      flash.now[:error] = @filters.error
+    end
+  end
+
   private
 
   # Offers picked one by one (or through a group that expanded in the picker)

@@ -1,0 +1,36 @@
+-# Locals: productions (Array<AdvanceSalesAnalysis::ProductionRun>).
+.grid-x.grid-padding-x
+  .small-12.cell
+    %fieldset.fieldset
+      %legend Week by week
+      %ul.accordion{ data: { accordion: '', allow_all_closed: true, multi_expand: true } }
+        - productions.each do |run|
+          %li.accordion-item{ data: { accordion_item: '' } }
+            %a.accordion-title{ href: '#' }
+              #{run.production.picker_label} — #{advance_sales_count(run.tickets)} tickets
+              - if run.added_later_count.positive?
+                = ui_label "#{run.added_later_count} added after opening", variant: :warning
+            .accordion-content{ data: { tab_content: '' } }
+              .table-scroll
+                %table.hover
+                  %thead
+                    %tr
+                      %th Week
+                      %th Starts
+                      %th Perfs
+                      %th Added later
+                      %th Tickets
+                      %th Avg lead
+                      %th Same day
+                      %th &gt;#{AdvanceSalesCurve::OVER_TWO_WEEKS}d
+                  %tbody
+                    - run.weeks.each do |week|
+                      %tr
+                        %td= advance_sales_week_label(week)
+                        %td= week.starts_on.to_formatted_s(:short)
+                        %td= week.performance_count
+                        %td= week.added_later_count
+                        %td= advance_sales_count(week.tickets)
+                        %td= advance_sales_lead(week.avg_lead_days)
+                        %td= advance_sales_share(week.same_day_share)
+                        %td= advance_sales_share(week.over_two_weeks_share)
