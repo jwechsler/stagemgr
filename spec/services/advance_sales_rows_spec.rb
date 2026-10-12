@@ -155,14 +155,14 @@ RSpec.describe AdvanceSalesRows, type: :service do
       expect(described_class.fetch.map(&:segment)).to eq(['single'])
     end
 
-    it 'classifies a flex pass tied to a theater as a subscription pass' do
+    it 'classifies a flex pass tied to a theater as a pass' do
       order = sell(performance, tickets: 2, bought_at: bought(7), ticket_class: seat_class)
       pay_with_flex_pass(order, tickets: 2, theater: theater)
 
       expect(described_class.fetch.map(&:segment)).to eq(['pass'])
     end
 
-    it 'classifies a flex pass tied to a festival as a subscription pass' do
+    it 'classifies a flex pass tied to a festival as a pass' do
       order = sell(performance, tickets: 2, bought_at: bought(7), ticket_class: seat_class)
       pay_with_flex_pass(order, tickets: 2, festival: FactoryBot.create(:festival))
 
@@ -176,7 +176,7 @@ RSpec.describe AdvanceSalesRows, type: :service do
       expect(described_class.fetch.map(&:segment)).to eq(['single'])
     end
 
-    it "classifies an exchanged subscription order from the root order's payments" do
+    it "classifies an exchanged pass order from the root order's payments" do
       original = sell(performance, tickets: 2, bought_at: bought(12), ticket_class: seat_class)
       pay_with_flex_pass(original, tickets: 2, theater: theater)
       child = exchange(original, tickets: 2, bought_at: bought(2))

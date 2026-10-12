@@ -51,8 +51,8 @@ RSpec.describe AdvanceSalesAnalysis, type: :service do
     order
   end
 
-  # A flex pass whose offer is tied to a theater: a subscription pass.
-  def pay_with_subscription(order, tickets:)
+  # A flex pass whose offer is tied to a theater: a pass.
+  def pay_with_bound_flex_pass(order, tickets:)
     offer = FactoryBot.create(:flex_pass_offer, theater: order.performance.production.theater)
     flex_pass = FactoryBot.create(:flex_pass_order, flex_pass_offer: offer).flex_pass
     FactoryBot.create(:flex_pass_payment, order: order, flex_pass: flex_pass, number_of_tickets: tickets)
@@ -77,14 +77,14 @@ RSpec.describe AdvanceSalesAnalysis, type: :service do
 
   describe '#compute' do
     describe 'series' do
-      it 'builds a single-ticket and a subscription-pass line per season' do
+      it 'builds a single-ticket and a pass line per season' do
         performance = make_performance(make_production(theater: theater, season: 2025), on: run_start)
         sell(performance, tickets: 3, days_before: 10)
-        pay_with_subscription(sell(performance, tickets: 2, days_before: 1), tickets: 2)
+        pay_with_bound_flex_pass(sell(performance, tickets: 2, days_before: 1), tickets: 2)
 
         result = analysis.compute
 
-        expect(result.series.map(&:label)).to eq(['2025 – single tickets', '2025 – subscription passes'])
+        expect(result.series.map(&:label)).to eq(['2025 – single tickets', '2025 – passes'])
         expect(result.series.map(&:segment)).to eq(%w[single pass])
         expect(result.series.map(&:tickets)).to eq([3, 2])
         expect(result.series.first.curve.share_at(10)).to eq(1.0)
@@ -116,7 +116,7 @@ RSpec.describe AdvanceSalesAnalysis, type: :service do
 
         result = analysis(seasons: [2024, 2025], compare_by: 'production').compute
 
-        expect(result.series.map(&:label)).to eq(["#{newer.picker_label} – subscription passes",
+        expect(result.series.map(&:label)).to eq(["#{newer.picker_label} – passes",
                                                   "#{older.picker_label} – single tickets"])
         expect(newer.picker_label).to eq('2025 - Newer Show (AS Middle Theater)')
       end

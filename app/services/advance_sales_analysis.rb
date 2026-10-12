@@ -1,5 +1,5 @@
 # Advance-sales curves for a set of theaters and seasons, grouped by season,
-# theater or production, with a single-ticket and a subscription-pass line
+# theater or production, with a single-ticket and a pass line
 # per group, plus each production's run broken into weeks. Counting rules live
 # in AdvanceSalesRows; share-in-hand maths in AdvanceSalesCurve.
 #
@@ -20,7 +20,7 @@ class AdvanceSalesAnalysis
   CACHE_TTL          = 1.hour
   CACHE_PREFIX       = 'advance_sales_analysis/v3'.freeze
   DAYS_PER_WEEK      = 7
-  SEGMENT_SUFFIXES   = { 'single' => ' – single tickets', 'pass' => ' – subscription passes' }.freeze
+  SEGMENT_SUFFIXES   = { 'single' => ' – single tickets', 'pass' => ' – passes' }.freeze
   IN_PROGRESS_SUFFIX = ' (in progress)'.freeze
 
   Result = Struct.new(:series, :productions, :tickets, :truncated, keyword_init: true) do

@@ -7,18 +7,19 @@
 # performance_date - that date,
 # floored at 0. Segment is 'pass' when the order or its root redeemed, for
 # at least one ticket, a flex pass whose offer is tied to a theater or
-# festival (a subscription); otherwise 'single'. Building-wide flex passes
-# and memberships count as single tickets. membership_offers has no theater
-# or festival column, so memberships are always single today; if a
-# membership ever becomes theater-bound, the rule extends to it. Theaters
-# flagged sales_recorded_externally are left out unless include_external.
+# festival (the kind sold as a subscription); otherwise 'single'.
+# Building-wide flex passes and memberships count as single tickets.
+# membership_offers has no theater or festival column, so memberships are
+# always single today; if a membership ever becomes theater-bound, the rule
+# extends to it. Theaters flagged sales_recorded_externally are left out
+# unless include_external.
 class AdvanceSalesRows
   Row = Struct.new(:performance_id, :production_id, :theater_id, :season, :segment, :lead_days, :tickets,
                    keyword_init: true)
 
-  SEGMENTS                  = %w[single pass].freeze
-  SUBSCRIPTION_PAYMENT_TYPE = 'FlexPassPayment'.freeze
-  MAX_CHAIN_DEPTH           = 20 # a corrupt cyclic source chain degrades to the order's own date
+  SEGMENTS          = %w[single pass].freeze
+  PASS_PAYMENT_TYPE = 'FlexPassPayment'.freeze
+  MAX_CHAIN_DEPTH   = 20 # a corrupt cyclic source chain degrades to the order's own date
 
   # Every filter is optional; nil means no restriction. An empty array is
   # treated like nil (no clause), not as "match nothing". Returns Array<Row>,
@@ -38,7 +39,7 @@ class AdvanceSalesRows
                                     include_external: include_external)
     sql = base_sql.sub("/* filters */", clauses.map { |c| "AND #{c}" }.join(" "))
     ActiveRecord::Base.sanitize_sql_array(
-      [sql, binds.merge(max_depth: MAX_CHAIN_DEPTH, subscription_type: SUBSCRIPTION_PAYMENT_TYPE,
+      [sql, binds.merge(max_depth: MAX_CHAIN_DEPTH, pass_type: PASS_PAYMENT_TYPE,
                         sold: TicketOrderMergeable::SOLD_STATUSES,
                         storage_tz: storage_time_zone, app_tz: app_time_zone)]
     )
@@ -115,13 +116,13 @@ class AdvanceSalesRows
                SELECT 1 FROM payments pay
                JOIN flex_passes fp ON fp.id = pay.flex_pass_id
                JOIN flex_pass_offers fpo ON fpo.id = fp.flex_pass_offer_id
-               WHERE pay.order_id = o.id AND pay.type = :subscription_type AND pay.number_of_tickets > 0
+               WHERE pay.order_id = o.id AND pay.type = :pass_type AND pay.number_of_tickets > 0
                  AND (fpo.theater_id IS NOT NULL OR fpo.festival_id IS NOT NULL)
              ) OR EXISTS (
                SELECT 1 FROM payments rpay
                JOIN flex_passes rfp ON rfp.id = rpay.flex_pass_id
                JOIN flex_pass_offers rfpo ON rfpo.id = rfp.flex_pass_offer_id
-               WHERE rpay.order_id = r.root_id AND rpay.type = :subscription_type AND rpay.number_of_tickets > 0
+               WHERE rpay.order_id = r.root_id AND rpay.type = :pass_type AND rpay.number_of_tickets > 0
                  AND (rfpo.theater_id IS NOT NULL OR rfpo.festival_id IS NOT NULL)
              ) THEN 'pass' ELSE 'single' END AS segment,
              GREATEST(DATEDIFF(pf.performance_date, DATE(COALESCE(CONVERT_TZ(COALESCE(ro.created_at, o.created_at), :storage_tz, :app_tz),

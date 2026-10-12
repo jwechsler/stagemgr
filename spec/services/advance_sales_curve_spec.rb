@@ -85,8 +85,8 @@ RSpec.describe AdvanceSalesCurve, type: :service do
       order
     end
 
-    # A flex pass whose offer is tied to a theater: a subscription pass.
-    def pay_with_subscription(order, tickets:)
+    # A flex pass whose offer is tied to a theater: a pass.
+    def pay_with_bound_flex_pass(order, tickets:)
       offer = FactoryBot.create(:flex_pass_offer, theater: order.performance.production.theater)
       flex_pass = FactoryBot.create(:flex_pass_order, flex_pass_offer: offer).flex_pass
       FactoryBot.create(:flex_pass_payment, order: order, flex_pass: flex_pass, number_of_tickets: tickets)
@@ -95,7 +95,7 @@ RSpec.describe AdvanceSalesCurve, type: :service do
     describe '.for_theater' do
       before do
         sell(make_performance(theater, season: 2023), tickets: 3, days_before: 20)
-        pay_with_subscription(sell(make_performance(theater, season: 2024), tickets: 1, days_before: 2), tickets: 1)
+        pay_with_bound_flex_pass(sell(make_performance(theater, season: 2024), tickets: 1, days_before: 2), tickets: 1)
         sell(make_performance(theater, season: 2025), tickets: 50, days_before: 0)
         sell(make_performance(FactoryBot.create(:theater), season: 2024), tickets: 50, days_before: 60)
       end
