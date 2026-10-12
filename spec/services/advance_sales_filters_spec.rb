@@ -33,6 +33,27 @@ RSpec.describe AdvanceSalesFilters, type: :service do
     expect(filters(theater_ids: ['99'], seasons: ['2025']).theater_ids).to eq([11, 12])
   end
 
+  it 'exposes the theaters the user actually picked' do
+    result = filters(theater_ids: ['11'], seasons: ['2025'])
+
+    expect(result.picked_theater_ids).to eq([11])
+    expect(result.theater_ids).to eq([11])
+  end
+
+  it 'exposes no picked theaters when none were submitted' do
+    result = filters(seasons: ['2025'])
+
+    expect(result.picked_theater_ids).to eq([])
+    expect(result.theater_ids).to eq([11, 12])
+  end
+
+  it 'exposes no picked theaters when every submitted theater is out of reach' do
+    result = filters(theater_ids: ['', '99'], seasons: ['2025'])
+
+    expect(result.picked_theater_ids).to eq([])
+    expect(result.theater_ids).to eq([11, 12])
+  end
+
   it 'rejects a submission with no seasons' do
     result = filters(seasons: [''])
 

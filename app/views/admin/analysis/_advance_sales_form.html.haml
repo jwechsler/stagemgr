@@ -9,9 +9,9 @@
           = check_box_tag 'seasons[]', season, filters.seasons.include?(season), id: "season_#{season}"
           %label{ for: "season_#{season}" }= season
     .small-12.medium-6.cell
-      %label{ for: 'theater_ids' } Theaters
-      = select_tag 'theater_ids[]', options_from_collection_for_select(theaters, :id, :name, filters.theater_ids),
-                   multiple: true, size: [theaters.size, 8].min, id: 'theater_ids'
+      - picked_theaters = theaters.select { |t| filters.picked_theater_ids.include?(t.id) }
+      = render 'shared/components/theater_multi_picker', field_name: 'theater_ids', selected: picked_theaters,
+                                                         label: 'Theaters', placeholder: 'Type a theater name or tag...'
       %p.help-text Leave empty for all theaters.
   .grid-x.grid-padding-x
     .small-12.medium-4.cell

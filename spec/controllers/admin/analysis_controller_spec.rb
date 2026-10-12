@@ -420,6 +420,41 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       expect(response.body).not_to include('AS Other Theater')
     end
 
+    it 'renders the theater picker pre-filled with the picked theaters' do
+      picked = FactoryBot.create(:theater, name: 'AS Picked Theater')
+      unpicked = FactoryBot.create(:theater, name: 'AS Unpicked Theater')
+      make_performance(picked, season: 2025)
+      make_performance(unpicked, season: 2025)
+
+      get :advance_sales, params: { theater_ids: [picked.id.to_s], seasons: ['2025'] }
+
+      expect(assigns(:filters).picked_theater_ids).to eq([picked.id])
+      expect(response.body).to include('data-theater-multi-picker')
+      expect(response.body).not_to include('<select name="theater_ids[]"')
+      page = Capybara.string(response.body)
+      picker = page.find('#advance-sales-form [data-theater-multi-picker]', visible: :all)
+      expect(picker['data-search-url']).to eq(search_theaters_admin_analysis_index_path)
+      expect(picker).to have_css('input.theater-multi-picker-input[type="text"]')
+      expect(picker).to have_css("input[type='hidden'][name='theater_ids[]'][value='#{picked.id}']", visible: :all)
+      expect(picker).to have_css('input[type="hidden"][name="theater_ids[]"]', count: 1, visible: :all)
+      expect(picker).to have_css('table.theater-multi-picker-table td', text: 'AS Picked Theater', visible: :all)
+      expect(picker).not_to have_text('AS Unpicked Theater')
+    end
+
+    it 'renders the theater picker empty when no theater was picked' do
+      make_performance(theater, season: 2025)
+
+      get :advance_sales, params: { seasons: ['2025'] }
+
+      expect(assigns(:filters).picked_theater_ids).to eq([])
+      expect(assigns(:filters).theater_ids).to eq([theater.id])
+      expect(response.body).not_to include('<select name="theater_ids[]"')
+      page = Capybara.string(response.body)
+      expect(page).to have_css('#advance-sales-form [data-theater-multi-picker] input.theater-multi-picker-input',
+                               visible: :all)
+      expect(page).not_to have_css('input[name="theater_ids[]"]', visible: :all)
+    end
+
     it 'forbids box office users' do
       allow(controller).to receive(:current_user)
         .and_return(FactoryBot.create(:user, is_box_office_user: true))

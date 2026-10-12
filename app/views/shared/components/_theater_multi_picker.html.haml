@@ -1,0 +1,34 @@
+-#
+  Multi-select theater picker (see theater_multi_picker.js). Chosen theaters
+  are submitted as hidden <field_name>[] inputs; choosing none leaves the
+  caller to decide (usually "all theaters"). Suggestions mix theaters with
+  "All theaters tagged X" groups, which carry their member theaters inline
+  in the search response and add every member.
+
+  Locals:
+    field_name  (required) — array param name, e.g. 'theater_ids'
+    selected    — Array<Theater> rendered as pre-filled rows
+    label       — label text above the input
+    placeholder — input placeholder text
+:ruby
+  selected    = local_assigns.fetch(:selected, [])
+  label       = local_assigns.fetch(:label, 'Theaters')
+  placeholder = local_assigns.fetch(:placeholder, 'Type a theater name or tag...')
+.theater-multi-picker{ data: { theater_multi_picker: true, field: field_name,
+                               search_url: search_theaters_admin_analysis_index_path } }
+  %label
+    = label
+    .grid-x
+      .cell.auto
+        %input.theater-multi-picker-input.input-group-field{ type: 'text', placeholder: placeholder,
+                                                             autocomplete: 'off' }
+      .cell.shrink{ style: 'padding-left: 0.5rem' }
+        %a.theater-multi-picker-remove-all.button.alert.small{ href: '#', style: 'display:none' } Remove all
+  %table.theater-multi-picker-table.hover{ style: 'display:none; margin-top: 0.5rem' }
+    %tbody
+      - selected.each do |theater|
+        %tr
+          %td= theater.name
+          %td.text-right
+            %a.theater-multi-picker-remove.alert{ href: '#' } remove
+            %input{ type: 'hidden', name: "#{field_name}[]", value: theater.id }

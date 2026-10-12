@@ -6,13 +6,15 @@ class AdvanceSalesFilters
   DEFAULT_SEGMENT      = 'both'.freeze
   NO_SEASON_ERROR      = 'Select at least one season.'.freeze
 
-  attr_reader :theater_ids, :seasons, :compare_by, :segment, :include_external, :error
+  attr_reader :theater_ids, :picked_theater_ids, :seasons, :compare_by, :segment, :include_external, :error
 
   # theaters: Array<Theater> the user may read; seasons: Array<Integer> the
   # user may read, newest first.
   def initialize(params, theaters:, seasons:)
     @params = params
-    @theater_ids = pick_theater_ids(theaters.map(&:id))
+    @picked_theater_ids = pick_theater_ids(theaters.map(&:id))
+    # No theater picked means every permitted theater.
+    @theater_ids = @picked_theater_ids.presence || theaters.map(&:id)
     @seasons = pick_seasons(seasons)
     @compare_by = AdvanceSalesAnalysis::COMPARE_BY.include?(params[:compare_by]) ? params[:compare_by] : DEFAULT_COMPARE_BY
     @segment = AdvanceSalesCurve::SEGMENT_CHOICES.include?(params[:segment]) ? params[:segment] : DEFAULT_SEGMENT
@@ -35,10 +37,9 @@ class AdvanceSalesFilters
 
   private
 
-  # No theater picked means every permitted theater.
+  # The permitted theaters the user actually submitted; [] when none.
   def pick_theater_ids(permitted)
-    picked = Array(@params[:theater_ids]).compact_blank.map(&:to_i) & permitted
-    picked.empty? ? permitted : picked
+    Array(@params[:theater_ids]).compact_blank.map(&:to_i) & permitted
   end
 
   def pick_seasons(permitted)
