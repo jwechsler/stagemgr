@@ -3,10 +3,11 @@ class Admin::AnalysisController < Admin::ApplicationController
   before_action :authorize_pass_analysis, only: :memberships
 
   PRODUCTION_ANALYSES = %w[rate_of_sales ticket_revenue audience].freeze
-  PRODUCTION_ANALYSIS_PARAMS = [:target_production_id, :comparison_production_id,
-                                { comparison_production_ids: [], comparison_theater_ids: [] }].freeze
-  PRODUCTION_ANALYSIS_KEYS = %i[target_production_id comparison_production_id
-                                comparison_production_ids comparison_theater_ids].freeze
+  LEGACY_SCALAR_KEYS = %i[target_production_id comparison_production_id].freeze
+  LEGACY_ARRAY_KEYS  = %i[comparison_production_ids comparison_theater_ids].freeze
+  # Shown when a bookmark names shows, theaters or seasons that are outside the
+  # user's read scope or no longer exist, so the narrower result is not a surprise.
+  NARROWED_NOTICE = 'Some of the bookmarked shows or theaters are not available and were left out.'.freeze
 
   # The tab pages replaced a single form whose analysis_type picked the
   # endpoint; old bookmarks of that form land on the matching tab.
@@ -14,8 +15,7 @@ class Admin::AnalysisController < Admin::ApplicationController
     analysis = params[:analysis_type].to_s
     return redirect_to(rate_of_sales_admin_analysis_index_path) unless PRODUCTION_ANALYSES.include?(analysis)
 
-    carried = params.slice(*PRODUCTION_ANALYSIS_KEYS).permit(*PRODUCTION_ANALYSIS_PARAMS)
-    redirect_to public_send("#{analysis}_admin_analysis_index_path", carried.to_h)
+    redirect_to public_send("#{analysis}_admin_analysis_index_path", legacy_picks)
   end
 
   # Production search for the analysis pickers lives on
@@ -44,6 +44,8 @@ class Admin::AnalysisController < Admin::ApplicationController
     load_comparison_production
     return unless analysis_runnable?(:target_production_id)
 
+    requested = requested_ids(:comparison_production_id)
+    warn_if_narrowed(requested, @comparison_production ? [@comparison_production.id] : [])
     @target_result     = TicketRevenueAnalysis.new(@target_production).compute
     @comparison_result = @comparison_production ? TicketRevenueAnalysis.new(@comparison_production).compute : nil
   end
@@ -89,6 +91,7 @@ class Admin::AnalysisController < Admin::ApplicationController
       flash.now[:error] = 'Select at least one comparison show.'
       return
     end
+    warn_if_narrowed(@requested_comparison_ids, @comparison_productions.map(&:id))
 
     @results = RateOfSalesAnalysis.new(@target_production, @comparison_productions).compute(extra_weeks: @extra_weeks)
   end
@@ -118,6 +121,7 @@ class Admin::AnalysisController < Admin::ApplicationController
     return unless @filters.submitted?
 
     if @filters.valid?
+      flash.now[:warning] = NARROWED_NOTICE if @filters.narrowed?
       @results = AdvanceSalesAnalysis.new(**@filters.to_h).compute
     else
       flash.now[:error] = @filters.error
@@ -148,8 +152,12 @@ class Admin::AnalysisController < Admin::ApplicationController
   end
 
   def load_comparison_productions
-    ids = Array(params[:comparison_production_ids]).compact_blank.map(&:to_i)
-    @comparison_productions = ids.empty? ? [] : readable_productions.where(id: ids).includes(:theater).to_a
+    @requested_comparison_ids = requested_ids(:comparison_production_ids)
+    @comparison_productions = if @requested_comparison_ids.empty?
+                                []
+                              else
+                                readable_productions.where(id: @requested_comparison_ids).includes(:theater).to_a
+                              end
   end
 
   def load_comparison_production
@@ -159,6 +167,29 @@ class Admin::AnalysisController < Admin::ApplicationController
   def load_comparison_theaters
     ids = Array(params[:comparison_theater_ids]).compact_blank.map(&:to_i)
     @comparison_theaters = ids.empty? ? [] : Theater.where(id: ids).order(:name).to_a
+  end
+
+  # The legacy form's picks, non-blank only. Array keys accept a lone scalar
+  # too, so an old link with comparison_theater_ids=3 keeps its pick; values
+  # that are not strings (nested hashes) are dropped.
+  def legacy_picks
+    picks = LEGACY_SCALAR_KEYS.index_with { |key| params[key].presence if params[key].is_a?(String) }
+    LEGACY_ARRAY_KEYS.each do |key|
+      picks[key] = Array(params[key]).grep(String).compact_blank.presence
+    end
+    picks.compact
+  end
+
+  # The distinct non-blank ids submitted under +key+ (a scalar or an array).
+  def requested_ids(key)
+    Array(params[key]).compact_blank.map(&:to_i).uniq
+  end
+
+  # Warns when some +requested+ ids were dropped from +loaded_ids+ because the
+  # user cannot read them or they no longer exist; the analysis still runs on
+  # what remains.
+  def warn_if_narrowed(requested, loaded_ids)
+    flash.now[:warning] = NARROWED_NOTICE if (requested - loaded_ids).any?
   end
 
   def readable_productions

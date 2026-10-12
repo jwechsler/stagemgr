@@ -1,0 +1,22 @@
+-#
+  Enables a production analysis form's Run button once it has a current show
+  and at least one pick in the array field named by the form's
+  data-run-requires (e.g. 'comparison_theater_ids[]'). The pickers signal
+  edits with change (multi pickers) and production-picker:selected / :cleared
+  (current show).
+:javascript
+  $(function() {
+    $('form[data-run-requires]').each(function() {
+      var $form = $(this);
+      var listField = $form.data('run-requires');
+      function update() {
+        var hasTarget = !!$form.find('input[name="target_production_id"]').val();
+        var hasPick = $form.find('input[type="hidden"]').filter(function() {
+          return this.name === listField && this.value !== '';
+        }).length > 0;
+        $form.find('#run-analysis-btn').prop('disabled', !(hasTarget && hasPick));
+      }
+      $form.on('change production-picker:selected production-picker:cleared', update);
+      update();
+    });
+  });

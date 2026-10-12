@@ -428,6 +428,63 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       expect(response.body).not_to include('AS Other Theater')
     end
 
+    describe 'a bookmark naming theaters outside the user’s own' do
+      let(:own) { FactoryBot.create(:theater, name: 'AS Own Theater') }
+      let(:other) { FactoryBot.create(:theater, name: 'AS Other Theater') }
+      let(:theater_user) { FactoryBot.create(:user, theaters: [own]) }
+
+      before do
+        sell(make_performance(own, season: 2025), tickets: 2, days_before: 5)
+        sell(make_performance(other, season: 2025), tickets: 7, days_before: 5)
+      end
+
+      it 'warns a theater user and runs on their own theaters' do
+        allow(controller).to receive(:current_user).and_return(theater_user)
+
+        get :advance_sales, params: { theater_ids: [own.id.to_s, other.id.to_s], seasons: ['2025'] }
+
+        expect(response).to have_http_status(:ok)
+        expect(flash.now[:warning]).to eq(described_class::NARROWED_NOTICE)
+        expect(flash.now[:error]).to be_nil
+        expect(assigns(:filters).theater_ids).to eq([own.id])
+        expect(assigns(:results).tickets).to eq(2)
+        expect(Capybara.string(response.body))
+          .to have_css('.flash_warning', exact_text: described_class::NARROWED_NOTICE, normalize_ws: true)
+      end
+
+      it 'does not warn a theater user whose theaters are all readable' do
+        allow(controller).to receive(:current_user).and_return(theater_user)
+
+        get :advance_sales, params: { theater_ids: [own.id.to_s], seasons: ['2025'] }
+
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:results).tickets).to eq(2)
+        expect(response.body).not_to include(described_class::NARROWED_NOTICE)
+      end
+
+      it 'shows only the no-season error when the narrowed bookmark has no seasons' do
+        allow(controller).to receive(:current_user).and_return(theater_user)
+
+        get :advance_sales, params: { theater_ids: [other.id.to_s], seasons: [''] }
+
+        expect(flash.now[:error]).to eq('Select at least one season.')
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:results)).to be_nil
+        page = Capybara.string(response.body)
+        expect(page).to have_css('.flash_error', exact_text: 'Select at least one season.', normalize_ws: true)
+        expect(page).not_to have_css('.flash_warning')
+      end
+
+      it 'does not warn an administrator, who can read every theater' do
+        get :advance_sales, params: { theater_ids: [own.id.to_s, other.id.to_s], seasons: ['2025'] }
+
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:filters).theater_ids).to contain_exactly(own.id, other.id)
+        expect(assigns(:results).tickets).to eq(9)
+        expect(response.body).not_to include(described_class::NARROWED_NOTICE)
+      end
+    end
+
     it 'renders the theater picker pre-filled with the picked theaters' do
       picked = FactoryBot.create(:theater, name: 'AS Picked Theater')
       unpicked = FactoryBot.create(:theater, name: 'AS Unpicked Theater')
@@ -611,6 +668,57 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       expect(response.body).to include('That production could not be found.')
       expect(Capybara.string(response.body)).not_to have_css('#rate-of-sales-results')
     end
+
+    describe 'a bookmark naming shows outside the user’s theaters' do
+      let(:other_theater) { FactoryBot.create(:theater, name: 'ROS Other Theater') }
+      let(:unreadable) { make_performance(other_theater, season: 2025, on: Date.current - 400.days).production }
+      let(:theater_user) { FactoryBot.create(:user, theaters: [theater]) }
+
+      it 'warns a theater user and runs on the readable comparison shows only' do
+        use_real_ability(theater_user)
+
+        get :rate_of_sales, params: { target_production_id: target.id.to_s,
+                                      comparison_production_ids: [comparison.id.to_s, unreadable.id.to_s] }
+
+        expect(response).to have_http_status(:ok)
+        expect(flash.now[:warning]).to eq(described_class::NARROWED_NOTICE)
+        expect(flash.now[:error]).to be_nil
+        expect(assigns(:results)).to be_present
+        expect(assigns(:comparison_productions)).to eq([comparison])
+        page = Capybara.string(response.body)
+        expect(page).to have_css('.flash_warning', exact_text: described_class::NARROWED_NOTICE, normalize_ws: true)
+        table_rows = page.all('#rate-of-sales-results table.hover tbody tr').map { |row| row.text.squish }
+        expect(table_rows.count).to eq(2)
+        expect(table_rows.last).to include(comparison.name)
+        expect(page).not_to have_text(unreadable.name)
+        expect(page).not_to have_text('ROS Other Theater')
+      end
+
+      it 'asks for a comparison show, without the warning, when no comparison is readable' do
+        use_real_ability(theater_user)
+
+        get :rate_of_sales, params: { target_production_id: target.id.to_s,
+                                      comparison_production_ids: [unreadable.id.to_s] }
+
+        expect(response).to have_http_status(:ok)
+        expect(flash.now[:error]).to eq('Select at least one comparison show.')
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:results)).to be_nil
+        page = Capybara.string(response.body)
+        expect(page).to have_css('.flash_error', exact_text: 'Select at least one comparison show.', normalize_ws: true)
+        expect(page).not_to have_css('.flash_warning')
+        expect(page).not_to have_text(described_class::NARROWED_NOTICE)
+      end
+
+      it 'does not warn an administrator, who can read every show' do
+        get :rate_of_sales, params: { target_production_id: target.id.to_s,
+                                      comparison_production_ids: [comparison.id.to_s, unreadable.id.to_s] }
+
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:comparison_productions)).to contain_exactly(comparison, unreadable)
+        expect(response.body).not_to include(described_class::NARROWED_NOTICE)
+      end
+    end
   end
 
   describe 'GET #ticket_revenue' do
@@ -676,6 +784,54 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('That production could not be found.')
       expect(Capybara.string(response.body)).not_to have_css('#ticket-revenue-results')
+    end
+
+    describe 'a bookmark naming a comparison outside the user’s theaters' do
+      let(:other_theater) { FactoryBot.create(:theater, name: 'TR Other Theater') }
+      let(:unreadable) { make_performance(other_theater, season: 2025, on: Date.current - 400.days).production }
+      let(:theater_user) { FactoryBot.create(:user, theaters: [theater]) }
+
+      before { sell(target_performance, tickets: 2, days_before: 3) }
+
+      it 'warns a theater user and shows the current show on its own' do
+        use_real_ability(theater_user)
+
+        get :ticket_revenue, params: { target_production_id: target.id.to_s,
+                                       comparison_production_id: unreadable.id.to_s }
+
+        expect(response).to have_http_status(:ok)
+        expect(flash.now[:warning]).to eq(described_class::NARROWED_NOTICE)
+        expect(assigns(:target_result)).to be_present
+        expect(assigns(:comparison_production)).to be_nil
+        expect(assigns(:comparison_result)).to be_nil
+        page = Capybara.string(response.body)
+        expect(page).to have_css('.flash_warning', exact_text: described_class::NARROWED_NOTICE, normalize_ws: true)
+        expect(page).to have_css('#ticket-revenue-results')
+        expect(page).not_to have_css('#comparison-bucket-chart')
+        expect(page.all('#ticket-revenue-results table.hover').first.all('thead th').count).to eq(2)
+        expect(page).not_to have_text(unreadable.name)
+      end
+
+      it 'does not warn a theater user whose comparison is readable' do
+        use_real_ability(theater_user)
+        sell(comparison_performance, tickets: 4, days_before: 3)
+
+        get :ticket_revenue, params: { target_production_id: target.id.to_s,
+                                       comparison_production_id: comparison.id.to_s }
+
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:comparison_result)).to be_present
+        expect(response.body).not_to include(described_class::NARROWED_NOTICE)
+      end
+
+      it 'does not warn an administrator, who can read every show' do
+        get :ticket_revenue, params: { target_production_id: target.id.to_s,
+                                       comparison_production_id: unreadable.id.to_s }
+
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:comparison_production)).to eq(unreadable)
+        expect(response.body).not_to include(described_class::NARROWED_NOTICE)
+      end
     end
   end
 

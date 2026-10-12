@@ -82,4 +82,37 @@ RSpec.describe AdvanceSalesFilters, type: :service do
     expect(filters(seasons: ['2025'], include_external: '0').include_external).to be(false)
     expect(filters(seasons: ['2025']).include_external).to be(false)
   end
+
+  describe '#narrowed?' do
+    it 'is false when nothing was submitted' do
+      expect(filters.narrowed?).to be(false)
+      expect(filters(theater_ids: ['99']).narrowed?).to be(false)
+    end
+
+    it 'is false when every submitted theater and season is permitted' do
+      result = filters(theater_ids: ['', '11', '12'], seasons: ['', '2026', '2024'])
+
+      expect(result.narrowed?).to be(false)
+      expect(result.theater_ids).to eq([11, 12])
+      expect(result.seasons).to eq([2026, 2024])
+    end
+
+    it 'is true when a submitted theater is not permitted, which is dropped' do
+      result = filters(theater_ids: ['11', '99'], seasons: ['2025'])
+
+      expect(result.narrowed?).to be(true)
+      expect(result.theater_ids).to eq([11])
+      expect(result.theater_ids).not_to include(99)
+      expect(result.seasons).to eq([2025])
+    end
+
+    it 'is true when a submitted season is not permitted, which is dropped' do
+      result = filters(theater_ids: ['12'], seasons: ['2025', '1999'])
+
+      expect(result.narrowed?).to be(true)
+      expect(result.seasons).to eq([2025])
+      expect(result.seasons).not_to include(1999)
+      expect(result.theater_ids).to eq([12])
+    end
+  end
 end

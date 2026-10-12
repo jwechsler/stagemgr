@@ -1,12 +1,10 @@
 -#
   Current show plus the comparison group of theaters, which defaults to the
-  show's own theater. Locals: target (Production or nil), theaters (Array<Theater>).
+  show's own theater when none was chosen.
+  Locals: target (Production or nil), theaters (Array<Theater>).
+- picked_theaters = theaters.presence || [target&.theater].compact
 = form_tag(audience_admin_analysis_index_path, method: :get, id: 'audience-form',
-                                               data: { target_production_id: target&.id,
-                                                       target_theater_id: target&.theater_id,
-                                                       target_theater_name: target&.theater&.name,
-                                                       comparison_theater_ids: theaters.map(&:id),
-                                                       search_url: search_theaters_admin_analysis_index_path }) do
+                                               data: { run_requires: 'comparison_theater_ids[]' }) do
   -# Marks a real submission; a target-only link just pre-fills the form.
   = hidden_field_tag 'comparison_theater_ids[]', '', id: nil
   .grid-x.grid-padding-x
@@ -27,29 +25,32 @@
         %p.help-text
           Select one or more theaters to compare against. Defaults to the selected production's theater.
           The facility-wide metrics are always shown alongside.
-        .grid-x.grid-margin-x
-          .cell.auto
-            = text_field_tag :comparison_theater_search, nil, id: 'comparison-theater-search', name: nil,
-                                                              placeholder: 'Type a theater name or tag...',
-                                                              class: 'input-group-field', autocomplete: 'off'
-          .cell.shrink
-            %a.button.alert.small.hide#remove-all-comparison-theaters{ href: '#' } Remove all
-        %table.hover#comparison-theaters-table
-          %thead
-            %tr
-              %th Theater
-              %th
-          %tbody
-            - theaters.each do |t|
-              %tr{ data: { theater_id: t.id } }
-                %td= t.name
-                %td
-                  %a.remove-comparison-theater.alert{ href: '#' } remove
-                  %input{ type: 'hidden', name: 'comparison_theater_ids[]', value: t.id }
+        = render 'shared/components/theater_multi_picker',
+                 field_name: 'comparison_theater_ids',
+                 selected: picked_theaters,
+                 label: 'Theaters',
+                 placeholder: 'Type a theater name or tag...'
 
   .grid-x.grid-padding-x
     .small-12.cell
       = submit_tag 'Run analysis', class: 'button', name: nil, id: 'run-analysis-btn',
-                                   disabled: target.nil? || theaters.empty?
+                                   disabled: target.nil? || picked_theaters.empty?
 
-= render 'audience_form_script'
+= render 'run_button_script'
+
+-#
+  Picking a current show while the comparison group is empty adds that show's
+  theater, the same default the server renders for a pre-filled show.
+:javascript
+  $(function() {
+    var $form = $('#audience-form');
+    $form.find('[data-production-picker][data-field="target_production_id"]')
+      .on('production-picker:selected', function(e, item) {
+        var hasTheater = $form.find('input[type="hidden"]').filter(function() {
+          return this.name === 'comparison_theater_ids[]' && this.value !== '';
+        }).length > 0;
+        if (hasTheater || !item || !item.theater_id) return;
+        $form.find('[data-theater-multi-picker]')
+          .trigger('theater-multi-picker:add', { id: item.theater_id, name: item.theater });
+      });
+  });
