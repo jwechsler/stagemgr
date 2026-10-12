@@ -52,6 +52,18 @@ stagemgr.theaterwit.org) and `README.md`. The essentials:
   and Cucumber on a bare call from app code (`BARE_TIME_TO_S=report` to list
   without failing). Deprecations raise in the test environment.
 
+## Agent workflow
+- The main session is the architect and orchestrator. It plans, splits work into small
+  tasks, and reviews results. It does not write production code itself.
+- Delegate each coding task to the `coder` subagent and each testing task to the
+  `tester` subagent (`.claude/agents/`). Every handoff states the goal, the files in
+  scope, and what "done" means.
+- Evaluate every subagent report critically: read the actual diff, check it against
+  the plan and these conventions, and send it back with specific fixes if it falls
+  short. Work is not done until the tester reports green.
+- Keep tasks small. If a subagent stops at its turn limit, narrow the task rather
+  than just retrying it.
+
 ## Stagemgr Architecture
 Based on analysis of the codebase, Stagemgr consists of these key components:
 
