@@ -20,14 +20,14 @@ module Admin::AdvanceSalesHelper
     end
   end
 
-  # "3 of 40" performances still to play, or a dash for a finished series.
+  # "3 of 40" performances upcoming, or a dash for a finished series.
   def advance_sales_still_to_play(series)
     series.in_progress? ? "#{series.upcoming_performance_count} of #{series.performance_count}" : EMPTY_CELL
   end
 
-  # A "2 to play" label for a run week with performances still to come.
+  # A "2 upcoming" label for a run week with performances still to come.
   def advance_sales_week_marker(week)
-    ui_label "#{week.upcoming_count} to play", variant: :secondary if week.upcoming_count.positive?
+    ui_label "#{week.upcoming_count} upcoming", variant: :secondary if week.upcoming_count.positive?
   end
 
   def advance_sales_days_label(days)

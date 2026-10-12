@@ -361,14 +361,14 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       get :advance_sales, params: { seasons: ['2025'] }
 
       expect(assigns(:results).in_progress?).to be(true)
-      expect(response.body).to include('in progress', 'Still to play')
+      expect(response.body).to include('in progress', 'Upcoming')
       page = Capybara.string(response.body)
       expect(page).to have_css('#advance-sales-results .callout.warning',
                                text: "include performances that haven't played yet")
       expect(page).to have_css('#advance-sales-results tr.in-progress td', text: '2025 – single tickets (in progress)')
       expect(page).to have_css('#advance-sales-results tr.in-progress td', exact_text: '1 of 1')
       expect(page).to have_css('#advance-sales-results .accordion-title .label', text: 'in progress')
-      expect(page).to have_css('#advance-sales-results td .label', exact_text: '1 to play')
+      expect(page).to have_css('#advance-sales-results td .label', exact_text: '1 upcoming')
     end
 
     it 'does not warn when every performance has played' do
@@ -378,7 +378,7 @@ RSpec.describe Admin::AnalysisController, type: :controller do
 
       expect(assigns(:results).in_progress?).to be(false)
       page = Capybara.string(response.body)
-      expect(page).to have_css('#advance-sales-results th', text: 'Still to play')
+      expect(page).to have_css('#advance-sales-results th', text: 'Upcoming')
       expect(page).not_to have_text("include performances that haven't played yet")
       expect(page).not_to have_css('#advance-sales-results tr.in-progress')
       expect(page).not_to have_css('#advance-sales-results .accordion-title .label', text: 'in progress')

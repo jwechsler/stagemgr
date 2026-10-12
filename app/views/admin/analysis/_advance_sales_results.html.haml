@@ -17,7 +17,7 @@
             %tr
               %th Series
               %th Tickets
-              %th Still to play
+              %th Upcoming
               - AdvanceSalesCurve::TABLE_THRESHOLDS.each do |days|
                 %th ≥#{days}d
               %th= Admin::AdvanceSalesHelper::SAME_DAY_LABEL

@@ -99,10 +99,10 @@ RSpec.describe Admin::AdvanceSalesHelper, type: :helper do
   end
 
   describe '#advance_sales_week_marker' do
-    it 'labels a week with performances still to play and returns nil otherwise' do
+    it 'labels a week with performances upcoming and returns nil otherwise' do
       html = helper.advance_sales_week_marker(AdvanceSalesAnalysis::RunWeek.new(index: 0, upcoming_count: 2))
 
-      expect(html).to have_css('span.label.secondary', exact_text: '2 to play')
+      expect(html).to have_css('span.label.secondary', exact_text: '2 upcoming')
       expect(helper.advance_sales_week_marker(AdvanceSalesAnalysis::RunWeek.new(index: 0, upcoming_count: 0)))
         .to be_nil
     end
