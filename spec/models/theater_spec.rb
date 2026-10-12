@@ -63,4 +63,20 @@ RSpec.describe Theater do
       expect(theater.secondary_donation_appeal_for(company: nil)).to eq('Helping .')
     end
   end
+
+  describe 'sales_recorded_externally' do
+    it 'defaults sales_recorded_externally to false' do
+      theater = FactoryBot.create(:theater, name: 'In-House Box Office')
+
+      expect(theater.reload.sales_recorded_externally).to be false
+    end
+
+    it 'sales_recorded_in_house excludes theaters whose sales are recorded externally' do
+      in_house = FactoryBot.create(:theater, name: 'Own Box Office')
+      external = FactoryBot.create(:theater, name: 'Outside Box Office', sales_recorded_externally: true)
+
+      expect(Theater.sales_recorded_in_house).to include(in_house)
+      expect(Theater.sales_recorded_in_house).not_to include(external)
+    end
+  end
 end

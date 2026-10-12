@@ -53,6 +53,7 @@ class Performance < ApplicationRecord
   before_save                     :manage_seat_inventory, :unless => proc { |p|
     p.production.nil? || p.production.seat_map.nil?
   }
+  before_save                     :stamp_activated_at
   # Prepended so it halts before the dependent destroys declared above.
   before_destroy                  :protect_performances_with_orders, prepend: true
   after_create                    :create_metrics
@@ -517,6 +518,17 @@ class Performance < ApplicationRecord
   end
 
   private
+
+  # First activation only. A new Active performance (including one built by
+  # #dup in Admin::PerformancesController#duplicate, which copies the source's
+  # stamp) gets now; an Inactive -> Active change stamps only if never
+  # stamped. Never cleared, so an extension that is later deactivated keeps
+  # the date it was first announced.
+  def stamp_activated_at
+    return unless status == ACTIVE
+
+    self.activated_at = Time.current if new_record? || activated_at.nil?
+  end
 
   def performance_code_must_match_production
     unless performance_code.starts_with?(production.production_code)
