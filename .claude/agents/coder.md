@@ -2,7 +2,7 @@
 name: coder
 description: Implements a scoped coding task handed down by the orchestrator. Use for all production code edits.
 model: opus
-effort: high
+effort: medium
 maxTurns: 40
 tools: Read, Edit, Write, Grep, Glob, Bash
 ---
