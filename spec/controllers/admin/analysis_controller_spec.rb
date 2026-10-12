@@ -352,6 +352,11 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       page = Capybara.string(response.body)
       expect(page).to have_css('#advance-sales-results table td', text: '2025 – single tickets')
       expect(page).to have_css('#advance-sales-results .accordion-title', text: performance.production.picker_label)
+      headers = page.first('#advance-sales-results table').all('thead th').map(&:text)
+      expect(headers).to eq(['Series', 'Tickets', 'Upcoming', 'Same day', '1–2d', '3–6d', '7–13d', '14–29d', '30+d'])
+      cells = page.first('#advance-sales-results table').all('tbody td').map(&:text)
+      expect(cells.last(6)).to eq(['0%', '0%', '0%', '100%', '0%', '0%'])
+      expect(page).to have_css('#advance-sales-results p.help-text', text: 'the columns sum to 100%')
     end
 
     it 'warns when a series is in progress' do

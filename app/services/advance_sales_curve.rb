@@ -8,7 +8,9 @@
 # 0.0 beyond the earliest sale. Holds only plain values so it caches safely.
 class AdvanceSalesCurve
   THRESHOLDS       = [60, 45, 30, 21, 14, 10, 7, 5, 3, 2, 1, 0].freeze # chart x-axis
-  TABLE_THRESHOLDS = [30, 14, 7, 3, 1].freeze # comparison table
+  # Lead-day windows for the comparison table; each ticket falls in exactly
+  # one, so the shares sum to 1.0. nil upper bound = no limit.
+  BUCKETS          = [[0, 0], [1, 2], [3, 6], [7, 13], [14, 29], [30, nil]].freeze
   OVER_TWO_WEEKS   = 14
   CACHE_TTL        = 1.hour
   SEGMENT_CHOICES  = %w[both single pass].freeze
@@ -74,6 +76,17 @@ class AdvanceSalesCurve
     return nil if empty?
 
     @by_lead[0].to_f / @tickets
+  end
+
+  # Share of tickets bought low..high days out (high nil = no upper limit).
+  def bucket_share(low, high)
+    return nil if empty?
+
+    @by_lead.sum { |lead, count| lead >= low && (high.nil? || lead <= high) ? count : 0 }.to_f / @tickets
+  end
+
+  def buckets_table
+    BUCKETS.to_h { |low, high| [[low, high], bucket_share(low, high)] }
   end
 
   def thresholds_table

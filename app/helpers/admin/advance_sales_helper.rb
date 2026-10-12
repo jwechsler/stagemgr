@@ -34,6 +34,14 @@ module Admin::AdvanceSalesHelper
     days.zero? ? SAME_DAY_LABEL : "#{days}d"
   end
 
+  # Column label for an AdvanceSalesCurve::BUCKETS window: "Same day",
+  # "1–2d", or "30+d" when the window has no upper limit.
+  def advance_sales_bucket_label(low, high)
+    return SAME_DAY_LABEL if low.zero? && high&.zero?
+
+    high.nil? ? "#{low}+d" : "#{low}–#{high}d"
+  end
+
   # Weeks count from the production's first playing date: index 0 is
   # "Week 1", -1 is "Week before", and the floor bucket is "Earlier".
   def advance_sales_week_label(week)

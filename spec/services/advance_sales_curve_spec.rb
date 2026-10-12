@@ -34,6 +34,21 @@ RSpec.describe AdvanceSalesCurve, type: :service do
       expect(curve.same_day_share).to eq(0.1)
     end
 
+    it 'reports the share of tickets in each lead-day window' do
+      windowed = described_class.from_rows(
+        [row(lead_days: 0, tickets: 2), row(lead_days: 2, tickets: 3), row(lead_days: 5, tickets: 5),
+         row(lead_days: 10, tickets: 4), row(lead_days: 20, tickets: 1), row(lead_days: 45, tickets: 5)]
+      )
+      expect(windowed.buckets_table).to eq([0, 0] => 0.1, [1, 2] => 0.15, [3, 6] => 0.25,
+                                           [7, 13] => 0.2, [14, 29] => 0.05, [30, nil] => 0.25)
+    end
+
+    it 'window shares sum to one' do
+      expect(curve.buckets_table.keys).to eq(described_class::BUCKETS)
+      expect(curve.buckets_table.values.sum).to be_within(1e-9).of(1.0)
+      expect(described_class.from_rows([]).bucket_share(0, 0)).to be_nil
+    end
+
     it 'averages tickets over performances with sales' do
       expect(curve.tickets).to eq(10)
       expect(curve.performance_count).to eq(2)

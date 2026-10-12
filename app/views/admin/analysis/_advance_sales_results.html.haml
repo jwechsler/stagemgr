@@ -18,15 +18,16 @@
               %th Series
               %th Tickets
               %th Upcoming
-              - AdvanceSalesCurve::TABLE_THRESHOLDS.each do |days|
-                %th ≥#{days}d
-              %th= Admin::AdvanceSalesHelper::SAME_DAY_LABEL
+              - AdvanceSalesCurve::BUCKETS.each do |low, high|
+                %th= advance_sales_bucket_label(low, high)
           %tbody
             - results.series.each do |series|
               %tr{ class: ('in-progress' if series.in_progress?) }
                 %td= series.label
                 %td= advance_sales_count(series.tickets)
                 %td= advance_sales_still_to_play(series)
-                - AdvanceSalesCurve::TABLE_THRESHOLDS.each do |days|
-                  %td= advance_sales_share(series.curve.share_at(days))
-                %td= advance_sales_share(series.curve.same_day_share)
+                - AdvanceSalesCurve::BUCKETS.each do |low, high|
+                  %td= advance_sales_share(series.curve.bucket_share(low, high))
+      %p.help-text
+        Each column is the share of the series' final sales bought in that window; the columns sum to 100%. The chart
+        above shows the same sales cumulatively.

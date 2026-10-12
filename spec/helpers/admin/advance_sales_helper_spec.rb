@@ -32,6 +32,14 @@ RSpec.describe Admin::AdvanceSalesHelper, type: :helper do
     end
   end
 
+  describe '#advance_sales_bucket_label' do
+    it 'labels lead-day windows' do
+      expect(helper.advance_sales_bucket_label(0, 0)).to eq('Same day')
+      expect(helper.advance_sales_bucket_label(1, 2)).to eq('1–2d')
+      expect(helper.advance_sales_bucket_label(30, nil)).to eq('30+d')
+    end
+  end
+
   describe '#advance_sales_lead' do
     it 'shows days to one decimal place and nil as the empty cell' do
       expect(helper.advance_sales_lead(8.25)).to eq('8.3 days')
