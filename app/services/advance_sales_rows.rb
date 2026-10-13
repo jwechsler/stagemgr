@@ -13,7 +13,7 @@
 # Building-wide flex passes and memberships count as single tickets.
 # membership_offers has no theater or festival column, so memberships are
 # always single today; if a membership ever becomes theater-bound, the rule
-# extends to it. Theaters flagged sales_recorded_externally are left out
+# extends to it. Productions flagged sales_recorded_externally are left out
 # unless include_external.
 class AdvanceSalesRows
   Row = Struct.new(:performance_id, :production_id, :theater_id, :season, :segment, :lead_days, :tickets,
@@ -69,7 +69,7 @@ class AdvanceSalesRows
   def self.filter_clauses(theater_ids:, seasons:, before_season:, production_ids:, from_date:, include_external:)
     clauses = []
     binds = {}
-    clauses << 'th.sales_recorded_externally = 0' unless include_external
+    clauses << 'pr.sales_recorded_externally = 0' unless include_external
     {
       theater_ids: ['pr.theater_id IN (:theater_ids)', theater_ids],
       seasons: ['pr.season IN (:seasons)', seasons],
@@ -105,7 +105,6 @@ class AdvanceSalesRows
         SELECT o.id, o.created_at, o.exchange_source_id, o.split_source_id,
                pf.id AS performance_id, pr.id AS production_id, pr.theater_id, pr.season, pf.performance_date
         FROM productions pr
-        JOIN theaters th     ON th.id = pr.theater_id
         JOIN performances pf ON pf.production_id = pr.id
         JOIN orders o        ON o.performance_id = pf.id
         WHERE o.type = 'TicketOrder' AND o.status IN (:sold) AND pf.status = :active

@@ -2,6 +2,7 @@ module Admin::AdvanceSalesHelper
   EMPTY_CELL = Admin::MembershipAnalysisHelper::EMPTY_CELL
   SAME_DAY_LABEL = 'Same day'.freeze
   TOO_EARLY_LABEL = 'Too early'.freeze
+  EXTERNAL_SALES_TITLE = 'Sales recorded externally'.freeze
 
   # "42%", or a dash when there were no tickets to take a share of.
   def advance_sales_share(share)
@@ -62,8 +63,11 @@ module Admin::AdvanceSalesHelper
 
   # Performance listing cell for an AdvanceSalesPace::Reading: a dash with no
   # reading, "Too early" when the share in hand is too small to project, else
-  # "~84 (84% of capacity)". The title explains the basis either way.
-  def advance_sales_pace_cell(reading)
+  # "~84 (84% of capacity)". The title explains the basis either way. With
+  # external_sales the production is never projected, so the dash carries a
+  # title saying why.
+  def advance_sales_pace_cell(reading, external_sales: false)
+    return content_tag(:span, EMPTY_CELL, title: EXTERNAL_SALES_TITLE) if external_sales
     return EMPTY_CELL if reading.nil?
 
     title = advance_sales_pace_title(reading)

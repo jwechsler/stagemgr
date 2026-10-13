@@ -8,6 +8,9 @@ class Admin::AnalysisController < Admin::ApplicationController
   # Shown when a bookmark names shows, theaters or seasons that are outside the
   # user's read scope or no longer exist, so the narrower result is not a surprise.
   NARROWED_NOTICE = 'Some of the bookmarked shows or theaters are not available and were left out.'.freeze
+  # Rate of Sales leaves out shows whose sales are recorded externally, so a
+  # bookmark naming one as the current show says why it did not run.
+  EXTERNAL_SALES_TARGET_NOTICE = 'That show\'s sales are recorded externally, so Rate of Sales cannot analyze it.'.freeze
 
   # The tab pages replaced a single form whose analysis_type picked the
   # endpoint; old bookmarks of that form land on the matching tab.
@@ -88,9 +91,12 @@ class Admin::AnalysisController < Admin::ApplicationController
   end
 
   # GET: the form, plus results once it has been submitted (see analysis_runnable?).
+  # Shows whose sales are recorded externally are left out: their order dates
+  # are data-entry dates, which would distort every weekly comparison.
   def rate_of_sales
-    load_target_production
-    load_comparison_productions
+    in_house = readable_productions.sales_recorded_in_house
+    load_target_production(scope: in_house)
+    load_comparison_productions(scope: in_house)
     @extra_weeks = params[:extra_weeks].to_i
     return unless analysis_runnable?(:comparison_production_ids)
 
@@ -126,6 +132,7 @@ class Admin::AnalysisController < Admin::ApplicationController
     @seasons  = readable.where.not(season: nil).distinct.pluck(:season).sort.reverse
     @filters  = AdvanceSalesFilters.new(params, theaters: @theaters, seasons: @seasons)
     @single_theater = single_theater
+    @offer_external = readable.exists?(sales_recorded_externally: true)
     return unless @filters.submitted?
 
     if @filters.valid?
@@ -151,20 +158,30 @@ class Admin::AnalysisController < Admin::ApplicationController
     end
     return true if @target_production
 
-    flash.now[:error] = 'That production could not be found.'
+    flash.now[:error] = missing_target_notice
     false
   end
 
-  def load_target_production
-    @target_production = readable_productions.find_by(id: params[:target_production_id].presence)
+  # A readable target is missing only when Rate of Sales left it out for
+  # externally recorded sales; say so rather than "not found".
+  def missing_target_notice
+    if readable_productions.where(sales_recorded_externally: true).exists?(id: params[:target_production_id])
+      EXTERNAL_SALES_TARGET_NOTICE
+    else
+      'That production could not be found.'
+    end
   end
 
-  def load_comparison_productions
+  def load_target_production(scope: readable_productions)
+    @target_production = scope.find_by(id: params[:target_production_id].presence)
+  end
+
+  def load_comparison_productions(scope: readable_productions)
     @requested_comparison_ids = requested_ids(:comparison_production_ids)
     @comparison_productions = if @requested_comparison_ids.empty?
                                 []
                               else
-                                readable_productions.where(id: @requested_comparison_ids).includes(:theater).to_a
+                                scope.where(id: @requested_comparison_ids).includes(:theater).to_a
                               end
   end
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_10_12_120100) do
+ActiveRecord::Schema.define(version: 2026_10_13_120000) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -556,6 +556,7 @@ ActiveRecord::Schema.define(version: 2026_10_12_120100) do
     t.decimal "royalty_percent", precision: 5, scale: 2
     t.integer "allocation_sync_pending_count", default: 0, null: false
     t.bigint "festival_id"
+    t.boolean "sales_recorded_externally", default: false, null: false
     t.index ["festival_id"], name: "index_productions_on_festival_id"
     t.index ["production_code"], name: "index_productions_on_production_code"
     t.index ["seat_map_id"], name: "index_productions_on_seat_map_id"
@@ -740,7 +741,6 @@ ActiveRecord::Schema.define(version: 2026_10_12_120100) do
     t.boolean "accepts_donations", default: false
     t.text "donation_appeal"
     t.text "secondary_donation_appeal"
-    t.boolean "sales_recorded_externally", default: false, null: false
   end
 
   create_table "theaters_users", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|

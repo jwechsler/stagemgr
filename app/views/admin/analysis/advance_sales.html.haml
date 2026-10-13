@@ -12,12 +12,12 @@
     %p.help-text
       How far ahead of each performance its tickets were bought. Counts paid, seat-holding tickets on
       sold orders, dated from the original purchase (exchanges and splits keep the first order's date).
-      Comps, and theaters flagged "sales recorded externally", are left out.
+      Comps, and productions flagged "sales recorded externally", are left out.
       Passes are flex passes whose offer is tied to a theater or festival; building-wide flex passes and
       memberships count as single tickets.
 
 = render 'advance_sales_form', filters: @filters, theaters: @theaters, seasons: @seasons,
-                               single_theater: @single_theater
+                               single_theater: @single_theater, offer_external: @offer_external
 
 #advance-sales-results
   - if @results.nil?

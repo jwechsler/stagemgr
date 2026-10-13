@@ -10,7 +10,6 @@
     %p
       = ui_label @theater.theater_class
       = ui_label @theater.status
-      = ui_label 'External sales', variant: :warning if @theater.sales_recorded_externally?
       = render 'admin/tags/pills', tags: @theater.theater_tags
     - if @theater.logo.attached?
       %p= @theater.decorate.logo(Theater::MEDIUM)

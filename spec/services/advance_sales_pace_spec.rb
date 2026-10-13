@@ -37,7 +37,7 @@ RSpec.describe AdvanceSalesPace, type: :service do
 
   def stub_sold(rows)
     allow(AdvanceSalesRows).to receive(:fetch)
-      .with(production_ids: [production.id], from_date: Date.current, include_external: true)
+      .with(production_ids: [production.id], from_date: Date.current)
       .and_return(rows)
   end
 
@@ -139,6 +139,17 @@ RSpec.describe AdvanceSalesPace, type: :service do
       expect(AdvanceSalesCurve).not_to have_received(:for_theater)
     end
 
+    it 'returns no readings, and queries no curve or sales, when sales are recorded externally' do
+      make_performance(Date.current + 7.days)
+      production.update_column(:sales_recorded_externally, true)
+      allow(AdvanceSalesRows).to receive(:fetch)
+
+      expect(described_class.for_production(production)).to eq({})
+      expect(AdvanceSalesCurve).not_to have_received(:for_theater)
+      expect(AdvanceSalesCurve).not_to have_received(:for_building)
+      expect(AdvanceSalesRows).not_to have_received(:fetch)
+    end
+
     it 'returns no readings when there are no upcoming performances' do
       make_performance(Date.current - 1.day)
 
@@ -164,7 +175,7 @@ RSpec.describe AdvanceSalesPace, type: :service do
       performance = make_performance(Date.current + 37.days)
       as_of = Date.current + 30.days
       allow(AdvanceSalesRows).to receive(:fetch)
-        .with(production_ids: [production.id], from_date: as_of, include_external: true)
+        .with(production_ids: [production.id], from_date: as_of)
         .and_return([sold_row(performance, 20)])
 
       reading = described_class.for_production(production, as_of: as_of)[performance.id]

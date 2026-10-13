@@ -99,6 +99,25 @@ These dates are **required** when the status is Active or Presale.
 | **Running Time** | Total running time in minutes, including intermissions |
 | **Intermission** | Check if the production has an intermission |
 | **Allow Late Seating** | Check to permit seating after the performance has started |
+| **Sales recorded externally** | Check when this production's tickets are sold by an outside box office and keyed into Stagemgr afterwards. See [below](#sales-recorded-externally). |
+
+### Sales recorded externally
+
+Some productions sell through another venue's box office and have their tickets keyed
+into Stagemgr afterwards. For such a production the order date is the date of data entry,
+not the date the patron bought, so its lead times and sales curve are meaningless.
+Ticking this box keeps the production out of the
+[Advance Sales](../analysis/advance-sales.md) analysis by default (a checkbox on that form
+lets you include it deliberately), leaves it out of the sales history behind the **Pace**
+column, hides the Pace column on its own performance list, and removes it from the
+[Rate of Sales](../analysis/rate-of-sales.md) analysis altogether. Everything else about
+the production is unaffected.
+
+![Sales recorded externally on the production form](../assets/images/screenshots/production-external-sales-field.png)
+
+Flagged productions show an **External sales** label on the production page's Settings tab.
+
+![External sales label on the production page](../assets/images/screenshots/production-external-sales-label.png)
 
 ## Form Fields: Promotional
 

@@ -1,7 +1,8 @@
 -#
   Locals: filters (AdvanceSalesFilters), theaters (Array<Theater>), seasons (Array<Integer>, newest first),
   single_theater (Theater or nil; a user who can read only one theater gets no picker, and none picked
-  means that theater).
+  means that theater), offer_external (Boolean; true when a readable production is flagged sales recorded
+  externally, which shows the include checkbox).
 = form_tag(advance_sales_admin_analysis_index_path, method: :get, id: 'advance-sales-form') do
   = hidden_field_tag 'seasons[]', '', id: nil
   .grid-x.grid-padding-x
@@ -34,10 +35,10 @@
           %span.advance-sales__choice
             = radio_button_tag :segment, value, filters.segment == value
             %label{ for: "segment_#{value}" }= label
-    - if theaters.any?(&:sales_recorded_externally?)
+    - if offer_external
       .small-12.medium-3.cell
         = check_box_tag :include_external, '1', filters.include_external
-        %label{ for: 'include_external' } Include theaters with sales recorded externally
+        %label{ for: 'include_external' } Include productions with sales recorded externally
   .grid-x.grid-padding-x
     .small-12.cell
       = submit_tag 'Run analysis', class: 'button', name: nil

@@ -94,32 +94,6 @@ RSpec.describe Admin::TheatersController, type: :controller do
     end
   end
 
-  describe 'sales recorded externally' do
-    it 'updates sales_recorded_externally' do
-      theater = FactoryBot.create(:theater, name: 'Keyed-In House')
-
-      patch :update, params: { id: theater.id, theater: { sales_recorded_externally: '1' } }
-
-      expect(theater.reload.sales_recorded_externally).to be true
-    end
-
-    it 'shows an External sales label on the show page when set' do
-      theater = FactoryBot.create(:theater, name: 'Outside House', sales_recorded_externally: true)
-
-      get :show, params: { id: theater.id }
-
-      expect(response.body).to include('External sales')
-    end
-
-    it 'omits the External sales label when sales are recorded in house' do
-      theater = FactoryBot.create(:theater, name: 'Inside House')
-
-      get :show, params: { id: theater.id }
-
-      expect(response.body).not_to include('External sales')
-    end
-  end
-
   describe 'GET #show appeals tab' do
     it 'shows the stored default appeal as markdown' do
       theater = FactoryBot.create(:theater, name: 'Shown House', donation_appeal: 'Love **us**')

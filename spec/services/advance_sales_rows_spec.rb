@@ -278,24 +278,24 @@ RSpec.describe AdvanceSalesRows, type: :service do
       expect(described_class.time_zone_tables_loaded?).to be true
     end
 
-    context 'with a theater whose sales are recorded externally' do
-      let(:external_theater) { FactoryBot.create(:theater, sales_recorded_externally: true) }
-      let(:external_performance) do
-        make_performance(make_production(theater: external_theater, season: 2025), on: show_date)
+    context 'with a production whose sales are recorded externally' do
+      let(:external_production) do
+        make_production(theater: theater, season: 2025).tap { |p| p.update!(sales_recorded_externally: true) }
       end
+      let(:external_performance) { make_performance(external_production, on: show_date) }
 
       before do
         sell(performance, tickets: 1, bought_at: bought(5), ticket_class: seat_class)
         sell(external_performance, tickets: 4, bought_at: bought(5))
       end
 
-      it 'excludes it by default' do
-        expect(described_class.fetch.map(&:theater_id).uniq).to eq([theater.id])
+      it 'excludes it by default, keeping the same theater\'s in-house production' do
+        expect(described_class.fetch.map(&:production_id).uniq).to eq([performance.production_id])
       end
 
       it 'includes it when asked' do
         rows = described_class.fetch(include_external: true)
-        expect(rows.map(&:theater_id)).to contain_exactly(theater.id, external_theater.id)
+        expect(rows.map(&:production_id)).to contain_exactly(performance.production_id, external_production.id)
         expect(total(rows)).to eq(5)
       end
     end

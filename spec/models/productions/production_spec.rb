@@ -155,4 +155,20 @@ RSpec.describe 'a production' do
       expect(TicketClass.where(production_id: production.id)).to be_empty
     end
   end
+
+  describe 'sales_recorded_externally' do
+    it 'defaults sales_recorded_externally to false' do
+      production = FactoryBot.create(:production)
+
+      expect(production.reload.sales_recorded_externally).to be false
+    end
+
+    it 'sales_recorded_in_house excludes productions whose sales are recorded externally' do
+      in_house = FactoryBot.create(:production)
+      external = FactoryBot.create(:production, theater: in_house.theater, sales_recorded_externally: true)
+
+      expect(Production.sales_recorded_in_house).to include(in_house)
+      expect(Production.sales_recorded_in_house).not_to include(external)
+    end
+  end
 end

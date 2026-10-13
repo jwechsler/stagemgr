@@ -23,9 +23,6 @@ class Theater < ApplicationRecord
   has_many :flex_pass_offers, inverse_of: :theater
   has_many :orders, inverse_of: :theater
 
-  # Theaters whose order dates are real purchase dates (not keyed in later).
-  scope :sales_recorded_in_house, -> { where(sales_recorded_externally: false) }
-
   include Taggable
 
   has_tags :theater_tags

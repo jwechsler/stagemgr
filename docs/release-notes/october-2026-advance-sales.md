@@ -22,7 +22,7 @@ Things to know when you read it:
 - **Only Active performances count.** Private and inactive ones are left out everywhere on the page.
 - **Passes vs single tickets.** Tickets bought with a pass tied to a company or festival (the subscription kind) are drawn as a separate line from single tickets. Memberships and the building-wide passes count as single tickets.
 - **An exchanged ticket keeps its original purchase date.** Moving someone to Thursday doesn't change when they decided to buy.
-- **Northlight is out by default.** Their sales are keyed in by us after the fact, so the dates mean nothing for this; there's a new "Sales recorded externally" tick box on the theater page for that, and a checkbox on the analysis if you want them in anyway.
+- **Northlight is out by default.** Their sales are keyed in by us after the fact, so the dates mean nothing for this; there's a new "Sales recorded externally" tick box on each production's page for that (it's per show, since a company can sell one show through another venue's box office and the rest through us), and a checkbox on the analysis if you want them in anyway.
 
 **Also: a Pace column on the production page.** Each upcoming performance now shows a projection of where it's heading, e.g. **~50 (48% of capacity)**, worked out from how much of a final house that theater typically has in hand this many days out. It says "Too early" when there's not enough history yet to say anything useful. It's a projection from typical behaviour, not a forecast: a good review or a snowstorm moves a show off the curve.
 
