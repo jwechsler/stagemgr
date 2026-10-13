@@ -478,12 +478,12 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
       end
     end
 
-    context 'when returning to the screen the edit came from' do
+    context 'when returning to the page the edit came from' do
       let(:params) { { id: flex_pass_offer.id, flex_pass_offer: { name: 'Renamed Pass' } } }
 
-      it 'returns to the index when the edit came from the index' do
-        patch :update, params: params.merge(return_to: 'index')
-        expect(response).to redirect_to(admin_flex_pass_offers_path)
+      it 'returns to the page carried in return_to' do
+        patch :update, params: params.merge(return_to: '/admin/flex_pass_offers?scope=analysis')
+        expect(response).to redirect_to('/admin/flex_pass_offers?scope=analysis')
       end
 
       it 'returns to the show page when no return_to is given' do
@@ -491,8 +491,11 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
         expect(response).to redirect_to(admin_flex_pass_offer_path(flex_pass_offer))
       end
 
-      it 'ignores an unrecognised return_to rather than redirecting to it' do
+      it 'ignores an off-site return_to rather than redirecting to it' do
         patch :update, params: params.merge(return_to: 'https://evil.example.com')
+        expect(response).to redirect_to(admin_flex_pass_offer_path(flex_pass_offer))
+
+        patch :update, params: params.merge(return_to: '//evil.example.com/x')
         expect(response).to redirect_to(admin_flex_pass_offer_path(flex_pass_offer))
       end
     end
@@ -500,9 +503,10 @@ RSpec.describe Admin::FlexPassOffersController, type: :controller do
     context 'GET #edit from the index' do
       render_views
 
-      it 'carries return_to into the form' do
-        get :edit, params: { id: flex_pass_offer.id, return_to: 'index' }
-        expect(response.body).to include('name="return_to"').and include('value="index"')
+      it 'carries the referring page into the form as return_to' do
+        request.env['HTTP_REFERER'] = 'http://test.host/admin/flex_pass_offers'
+        get :edit, params: { id: flex_pass_offer.id }
+        expect(response.body).to include('name="return_to"').and include('value="/admin/flex_pass_offers"')
       end
     end
 

@@ -590,3 +590,19 @@ del.diffmod, del.diffdel { color: #ff9999; }
 .festival-block.background-light {
   color: inherit;
 }
+
+/* Donation appeals (orders/_donation_appeal): the message and the amount box
+   stay side by side on phones; the message shrinks to make room instead of
+   the box wrapping below it. */
+@media screen and (max-width: 39.9375em) {
+  .donation-appeal .donation-appeal__text {
+    font-size: 0.8rem;
+    line-height: 1.3;
+  }
+  .donation-appeal .donation-appeal__text p {
+    margin-bottom: 0.5rem;
+  }
+  .donation-appeal .donation-appeal__amount input {
+    width: 4.5rem !important;
+  }
+}

@@ -24,7 +24,10 @@ would need.
 ssh yourbox 'stagemgr/bin/deploy'
 ```
 
-It runs the deploy sequence in a fixed order so no step can be forgotten:
+`master` only moves when a release branch is merged or a hotfix lands
+([Branches and Releases](releases.md)), so pulling it always deploys a
+complete batch. It runs the deploy sequence in a fixed order so no step can be
+forgotten:
 
 1. `git checkout master` and `git pull --ff-only`
 2. `bundle check || bundle install`

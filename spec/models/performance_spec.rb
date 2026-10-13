@@ -232,3 +232,58 @@ RSpec.describe Performance, '#destroy' do
     expect(TicketClass.exists?(ticket_class.id)).to be true
   end
 end
+
+RSpec.describe Performance, 'activated_at' do
+  let(:production) { FactoryBot.create(:production) }
+
+  it 'is stamped when a performance is created Active' do
+    freeze_time do
+      performance = FactoryBot.create(:performance, production: production, status: Performance::ACTIVE)
+
+      expect(performance.reload.activated_at).to eq(Time.current)
+    end
+  end
+
+  it 'stays nil when a performance is created Inactive' do
+    performance = FactoryBot.create(:performance, production: production, status: Performance::INACTIVE)
+
+    expect(performance.reload.activated_at).to be_nil
+  end
+
+  it 'is stamped when an Inactive performance becomes Active' do
+    performance = FactoryBot.create(:performance, production: production, status: Performance::INACTIVE)
+
+    freeze_time do
+      performance.update!(status: Performance::ACTIVE)
+
+      expect(performance.reload.activated_at).to eq(Time.current)
+    end
+  end
+
+  it 'keeps the first activation when the performance is deactivated and reactivated' do
+    first_activation = 3.days.ago.change(usec: 0)
+    performance = travel_to(first_activation) do
+      FactoryBot.create(:performance, production: production, status: Performance::ACTIVE)
+    end
+
+    performance.update!(status: Performance::INACTIVE)
+    expect(performance.reload.activated_at).to eq(first_activation)
+
+    performance.update!(status: Performance::ACTIVE)
+    expect(performance.reload.activated_at).to eq(first_activation)
+  end
+
+  it 'is stamped afresh for a duplicated performance' do
+    source = FactoryBot.create(:performance, production: production, status: Performance::ACTIVE)
+    source.update_column(:activated_at, 30.days.ago)
+
+    copy = source.dup
+    copy.performance_code = "#{production.production_code}DUP"
+    copy.performance_date = source.performance_date + 1.day
+    copy.performance_time = source.performance_time + 1.hour
+    copy.save!
+
+    expect(copy.reload.activated_at).to be_within(1.minute).of(Time.current)
+    expect(source.reload.activated_at).to be_within(1.minute).of(30.days.ago)
+  end
+end

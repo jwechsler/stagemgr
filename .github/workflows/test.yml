@@ -2,15 +2,17 @@ name: Test
 
 on:
   # Branch pushes are covered by pull_request; a bare push trigger ran the
-  # suite twice for every PR commit. Unopened branches: use workflow_dispatch.
+  # suite twice for every PR commit. Release branches take direct commits the
+  # way master does, so they run on push too. Unopened branches: use
+  # workflow_dispatch.
   push:
-    branches: [main, master]
+    branches: [main, master, 'release/**']
   pull_request:
   workflow_dispatch:
 
 concurrency:
   group: test-${{ github.ref }}
-  # Supersede stale PR runs; let every master commit finish.
+  # Supersede stale PR runs; let every master and release-branch commit finish.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -84,6 +86,13 @@ jobs:
 
       - name: Generate config files from templates
         run: bundle exec rake setup:config
+
+      - name: Load MySQL time-zone tables
+        # CONVERT_TZ with named zones (Advance Sales lead-time dates) needs them;
+        # the stock mysql image ships without.
+        run: |
+          docker exec ${{ job.services.mysql.id }} sh -c \
+            'mysql_tzinfo_to_sql /usr/share/zoneinfo 2>/dev/null | mysql -uroot -proot mysql'
 
       - name: Load the test database schema
         run: bundle exec rails db:create db:schema:load

@@ -17,6 +17,7 @@
 //= require grouped_typeahead
 //= require production_picker
 //= require production_multi_picker
+//= require theater_multi_picker
 //= require offer_picker
 //= require offer_status_tabs
 //= require tagify

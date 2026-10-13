@@ -6,7 +6,13 @@
 //
 // Mirrors offer_picker.js, but forwards the ProductionSearch `scope` into
 // GroupedTypeahead.attachMulti (grouped_typeahead.js already threads scope
-// into both the search and resolve requests).
+// into both the search and resolve requests). Ids in the optional
+// data-exclude-field hidden fields (e.g. a page's single target picker) are
+// left out of the suggestions, as are the productions already chosen.
+//
+// After every add or remove the wrapper fires a `change` event (bubbling to
+// the enclosing form), as theater_multi_picker.js does; the search box's own
+// change events are stopped because its text is not a filter.
 (function($) {
   'use strict';
 
@@ -15,17 +21,31 @@
     var $input     = $wrap.find('.production-multi-picker-input');
     var $table     = $wrap.find('.production-multi-picker-table');
     var $removeAll = $wrap.find('.production-multi-picker-remove-all');
+    var excludeField = $wrap.data('exclude-field');
 
-    function selectedIds() {
-      return $table.find('input[type="hidden"]').map(function() {
+    function idsIn($fields) {
+      return $fields.map(function() {
         return parseInt($(this).val(), 10) || null;
       }).get();
+    }
+
+    function selectedIds() {
+      return idsIn($table.find('input[type="hidden"]'));
+    }
+
+    function excludedIds() {
+      return excludeField ? selectedIds().concat(idsIn($(excludeField))) : selectedIds();
     }
 
     function refreshChrome() {
       var any = selectedIds().length > 0;
       $table.toggle(any);
       $removeAll.toggle(any);
+    }
+
+    function changed() {
+      refreshChrome();
+      $wrap.trigger('change');
     }
 
     function addProduction(item) {
@@ -42,22 +62,26 @@
       searchUrl: $wrap.data('search-url'),
       resolveUrl: $wrap.data('resolve-url'),
       scope: $wrap.data('scope'),
-      getExcludedIds: selectedIds,
+      getExcludedIds: excludedIds,
       onItem: addProduction,
-      afterChange: refreshChrome
+      afterChange: changed
     });
+
+    $input.on('change', function(e) { e.stopPropagation(); });
 
     $wrap.on('click', '.production-multi-picker-remove', function(e) {
       e.preventDefault();
       $(this).closest('tr').remove();
-      refreshChrome();
+      changed();
     });
 
     $removeAll.on('click', function(e) {
       e.preventDefault();
       $table.find('tbody').empty();
-      refreshChrome();
+      changed();
     });
+
+    refreshChrome();
   }
 
   $(document).ready(function() {

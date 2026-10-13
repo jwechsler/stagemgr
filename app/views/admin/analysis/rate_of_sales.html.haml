@@ -1,320 +1,343 @@
 = content_for :title do
   Rate of Sales Analysis
 = content_for :breadcrumbs do
-  = render "shared/components/breadcrumb", items: [{ label: 'Analysis', path: admin_analysis_index_path }, { label: "Rate of Sales" }]
+  - crumbs = [{ label: 'Analysis', path: rate_of_sales_admin_analysis_index_path }, { label: 'Rate of Sales' }]
+  = render "shared/components/breadcrumb", items: crumbs
+
+= render 'analysis_tabs', active: :rate_of_sales
 
 .grid-x.grid-padding-x
   .small-12.cell
     %h4 Rate of Sales Analysis
-    %p.lead
-      Comparing
-      %strong= @target_production.name
-      (#{@target_production.season}, #{@target_production.theater.name})
-      against #{@comparison_productions.count} historical #{'production'.pluralize(@comparison_productions.count)}
+    %p.help-text
+      Week-over-week ticket and revenue trends for the current show, measured against the aggregate of the
+      comparison shows, with a projection of the rest of its run.
 
-- if @results[:target_tickets].any?
-  - single_comparison = @results[:comparison_daily_rolling].present?
-  .grid-x.grid-padding-x
-    .cell{class: single_comparison ? 'small-12 medium-6' : 'small-12 medium-4'}
-      %fieldset.fieldset
-        %legend
-          Daily Average Rate of Sales:
-          = @target_production.name
-        - if @results[:daily_rolling].size > 1
-          = line_chart @results[:daily_rolling], xtitle: "Date", ytitle: "Rolling 7-Day Revenue", prefix: "$", library: { scales: { x: { type: "category" } } }
-        - else
-          = render "shared/components/callout", variant: "warning" do
-            Insufficient daily data to chart.
+= render 'rate_of_sales_form', target: @target_production, comparisons: @comparison_productions
 
-    - if single_comparison
-      - comp = @comparison_productions.first
-      .cell.small-12.medium-6
-        %fieldset.fieldset
-          %legend
-            Daily Average Rate of Sales:
-            = comp.name
-          - if @results[:comparison_daily_rolling].size > 1
-            = line_chart @results[:comparison_daily_rolling], xtitle: "Date", ytitle: "Rolling 7-Day Revenue", prefix: "$", library: { scales: { x: { type: "category" } } }
-          - else
-            = render "shared/components/callout", variant: "warning" do
-              Insufficient daily data to chart.
-
-    - unless single_comparison
-      .cell.small-12.medium-4
-        %fieldset.fieldset
-          %legend
-            Current Show:
-            = @target_production.name
-          - if @results[:target_tickets].size > 1
-            = line_chart [{ name: "Tickets", data: @results[:target_tickets] }, { name: "Revenue", data: @results[:target_revenue] }], xtitle: "Period", ytitle: "% Change Week over Week", suffix: "%", library: { scales: { x: { type: "category" } } }
-          - else
-            = render "shared/components/callout", variant: "warning" do
-              Insufficient data to chart. Only #{@results[:target_tickets].size} week(s) of sales data available.
-
-      .cell.small-12.medium-4
-        %fieldset.fieldset
-          %legend
-            Historical Aggregate
-            %small (#{@comparison_productions.count} #{'show'.pluralize(@comparison_productions.count)})
-          - if @results[:aggregate_data].size > 1
-            = line_chart @results[:aggregate_data], xtitle: "Period", ytitle: "Avg % Change in Tickets Sold", suffix: "%", library: { scales: { x: { type: "category" } } }
-          - else
-            = render "shared/components/callout", variant: "warning" do
-              Insufficient aggregate data to chart.
-
-  - if single_comparison
-    .grid-x.grid-padding-x
-      .cell.small-12.medium-6
-        %fieldset.fieldset
-          %legend
-            Current Show:
-            = @target_production.name
-          - if @results[:target_tickets].size > 1
-            = line_chart [{ name: "Tickets", data: @results[:target_tickets] }, { name: "Revenue", data: @results[:target_revenue] }], xtitle: "Period", ytitle: "% Change Week over Week", suffix: "%", library: { scales: { x: { type: "category" } } }
-          - else
-            = render "shared/components/callout", variant: "warning" do
-              Insufficient data to chart. Only #{@results[:target_tickets].size} week(s) of sales data available.
-
-      .cell.small-12.medium-6
-        %fieldset.fieldset
-          %legend
-            Historical Aggregate
-            %small (#{@comparison_productions.count} #{'show'.pluralize(@comparison_productions.count)})
-          - if @results[:aggregate_data].size > 1
-            = line_chart @results[:aggregate_data], xtitle: "Period", ytitle: "Avg % Change in Tickets Sold", suffix: "%", library: { scales: { x: { type: "category" } } }
-          - else
-            = render "shared/components/callout", variant: "warning" do
-              Insufficient aggregate data to chart.
-
-  - insights = @results[:insights] || {}
-  .grid-x.grid-padding-x
-    .small-12.cell
-      %h5 Performance Summary
-      .grid-x.grid-padding-x
-        .small-12.medium-4.cell
-          - if insights[:avg_tickets_per_week] && insights[:hist_avg_tickets_per_week]
-            - ticket_ratio = insights[:avg_tickets_per_week] / insights[:hist_avg_tickets_per_week] * 100
-            - color = ticket_ratio >= 110 ? 'success' : (ticket_ratio >= 90 ? 'warning' : 'alert')
-            = render "shared/components/callout", variant: color do
-              %h6 Tickets / Week
-              %p
-                %strong= "#{insights[:avg_tickets_per_week].round(0)} tickets"
-                per week vs historical
-                %strong= "#{insights[:hist_avg_tickets_per_week].round(0)}"
-              %p
-                = "#{ticket_ratio.round(0)}% of historical average"
-
-        .small-12.medium-4.cell
-          - if insights[:avg_revenue_per_week] && insights[:hist_avg_revenue_per_week]
-            - rev_ratio = insights[:performance_pct] || 0
-            - color = rev_ratio >= 110 ? 'success' : (rev_ratio >= 90 ? 'warning' : 'alert')
-            = render "shared/components/callout", variant: color do
-              %h6 Revenue / Week
-              %p
-                %strong= number_to_currency(insights[:avg_revenue_per_week])
-                per week vs historical
-                %strong= number_to_currency(insights[:hist_avg_revenue_per_week])
-              %p
-                = "#{rev_ratio}% of historical average"
-
-        .small-12.medium-4.cell
-          - if insights[:trajectory] && !@target_production.closed?
-            - color = insights[:trajectory] == :increasing ? 'success' : (insights[:trajectory] == :steady ? 'warning' : 'alert')
-            = render "shared/components/callout", variant: color do
-              %h6 Current Trajectory
-              %p
-                - case insights[:trajectory]
-                - when :increasing
-                  Revenue is
-                  %strong trending up
-                - when :decreasing
-                  Revenue is
-                  %strong trending down
-                - when :steady
-                  Revenue is
-                  %strong holding steady
-              %p
-                Recent 7-day avg:
-                %strong= number_to_currency(insights[:trajectory_recent_avg])
-                vs prior:
-                %strong= number_to_currency(insights[:trajectory_prior_avg])
-              %p
-                = "#{insights[:trajectory_pct_change] > 0 ? '+' : ''}#{insights[:trajectory_pct_change]}% change"
-
-      .grid-x.grid-padding-x
-        .small-12.medium-4.cell
-          - if insights[:ticket_growth_diff] && !@target_production.closed?
-            - diff = insights[:ticket_growth_diff]
-            = render "shared/components/callout", variant: "secondary" do
-              %h6 Recent Growth Rate
-              %p
-                Ticket sales growing at
-                %strong= "#{insights[:ticket_growth_avg]}%"
-                per week vs historical
-                %strong= "#{insights[:hist_ticket_growth_avg]}%"
-              %p
-                - if diff > 0
-                  = "#{diff} points above historical"
-                - elsif diff < 0
-                  = "#{diff.abs} points below historical"
-                - else
-                  Tracking at historical average
-              %p.help-text= "Based on last #{insights[:growth_window]} weeks"
-
-        .small-12.medium-4.cell
-          - if insights[:lifecycle] && !@target_production.closed?
-            = render "shared/components/callout", variant: "secondary" do
-              %h6 Lifecycle Position
-              %p
-                This show appears to be in the
-                %strong= insights[:lifecycle].to_s
-                phase of its run
-                - case insights[:lifecycle]
-                - when :growth
-                  \— historically, revenue is still building at this point
-                - when :plateau
-                  \— near the historical peak revenue period
-                - when :decline
-                  \— past the historical peak revenue period
-              %p.help-text
-                Week #{insights[:lifecycle_week]} of #{insights[:lifecycle_total_weeks]}
-                \— historical peak maps to around week #{insights[:lifecycle_peak_week]}
-
-  - if @results[:projection].present?
+- if @results
+  #rate-of-sales-results
     .grid-x.grid-padding-x
       .small-12.cell
-        %fieldset.fieldset
-          %legend Revenue Projection
+        %p.lead
+          Comparing
+          %strong= @target_production.name
+          (#{@target_production.season}, #{@target_production.theater.name})
+          against #{@comparison_productions.count} historical #{'production'.pluralize(@comparison_productions.count)}
+
+    - if @results[:target_tickets].any?
+      - single_comparison = @results[:comparison_daily_rolling].present?
+      .grid-x.grid-padding-x
+        .cell{class: single_comparison ? 'small-12 medium-6' : 'small-12 medium-4'}
+          %fieldset.fieldset
+            %legend
+              Daily Average Rate of Sales:
+              = @target_production.name
+            - if @results[:daily_rolling].size > 1
+              = line_chart @results[:daily_rolling], xtitle: "Date", ytitle: "Rolling 7-Day Revenue", prefix: "$", library: { scales: { x: { type: "category" } } }
+            - else
+              = render "shared/components/callout", variant: "warning" do
+                Insufficient daily data to chart.
+
+        - if single_comparison
+          - comp = @comparison_productions.first
+          .cell.small-12.medium-6
+            %fieldset.fieldset
+              %legend
+                Daily Average Rate of Sales:
+                = comp.name
+              - if @results[:comparison_daily_rolling].size > 1
+                = line_chart @results[:comparison_daily_rolling], xtitle: "Date", ytitle: "Rolling 7-Day Revenue", prefix: "$", library: { scales: { x: { type: "category" } } }
+              - else
+                = render "shared/components/callout", variant: "warning" do
+                  Insufficient daily data to chart.
+
+        - unless single_comparison
+          .cell.small-12.medium-4
+            %fieldset.fieldset
+              %legend
+                Current Show:
+                = @target_production.name
+              - if @results[:target_tickets].size > 1
+                = line_chart [{ name: "Tickets", data: @results[:target_tickets] }, { name: "Revenue", data: @results[:target_revenue] }], xtitle: "Period", ytitle: "% Change Week over Week", suffix: "%", library: { scales: { x: { type: "category" } } }
+              - else
+                = render "shared/components/callout", variant: "warning" do
+                  Insufficient data to chart. Only #{@results[:target_tickets].size} week(s) of sales data available.
+
+          .cell.small-12.medium-4
+            %fieldset.fieldset
+              %legend
+                Historical Aggregate
+                %small (#{@comparison_productions.count} #{'show'.pluralize(@comparison_productions.count)})
+              - if @results[:aggregate_data].size > 1
+                = line_chart @results[:aggregate_data], xtitle: "Period", ytitle: "Avg % Change in Tickets Sold", suffix: "%", library: { scales: { x: { type: "category" } } }
+              - else
+                = render "shared/components/callout", variant: "warning" do
+                  Insufficient aggregate data to chart.
+
+      - if single_comparison
+        .grid-x.grid-padding-x
+          .cell.small-12.medium-6
+            %fieldset.fieldset
+              %legend
+                Current Show:
+                = @target_production.name
+              - if @results[:target_tickets].size > 1
+                = line_chart [{ name: "Tickets", data: @results[:target_tickets] }, { name: "Revenue", data: @results[:target_revenue] }], xtitle: "Period", ytitle: "% Change Week over Week", suffix: "%", library: { scales: { x: { type: "category" } } }
+              - else
+                = render "shared/components/callout", variant: "warning" do
+                  Insufficient data to chart. Only #{@results[:target_tickets].size} week(s) of sales data available.
+
+          .cell.small-12.medium-6
+            %fieldset.fieldset
+              %legend
+                Historical Aggregate
+                %small (#{@comparison_productions.count} #{'show'.pluralize(@comparison_productions.count)})
+              - if @results[:aggregate_data].size > 1
+                = line_chart @results[:aggregate_data], xtitle: "Period", ytitle: "Avg % Change in Tickets Sold", suffix: "%", library: { scales: { x: { type: "category" } } }
+              - else
+                = render "shared/components/callout", variant: "warning" do
+                  Insufficient aggregate data to chart.
+
+      - insights = @results[:insights] || {}
+      .grid-x.grid-padding-x
+        .small-12.cell
+          %h5 Performance Summary
           .grid-x.grid-padding-x
-            .small-12.medium-8.cell
-              - chart_series = [{ name: "Actual Revenue", data: @results[:projection][:actual_cumulative] }, { name: "Projected (Historical-scaled)", data: @results[:projection][:projected_cumulative] }]
-              - if @results[:projection][:alternate_cumulative].present?
-                - chart_series << { name: "Projected (Self-scaled)", data: @results[:projection][:alternate_cumulative] }
-              = line_chart chart_series, xtitle: "Period", ytitle: "Cumulative Revenue", prefix: "$", library: { scales: { x: { type: "category" } } }
-              - if @results[:projection][:capacity_clipped]
-                %p.help-text
-                  %em
-                    One or more projected weeks were capped at remaining seat inventory
-                    (#{@results[:projection][:remaining_seats]} seats × avg price
-                    #{number_to_currency(@results[:projection][:avg_ticket_price])}).
             .small-12.medium-4.cell
-              %h6 Summary
-              %table
-                %tbody
-                  %tr
-                    %td Revenue to date
-                    %td.text-right= number_to_currency(@results[:projection][:actual_total])
-                  %tr
-                    %td Projected remaining (historical)
-                    %td.text-right= number_to_currency(@results[:projection][:projected_remaining])
-                  %tr
-                    %td
-                      %strong Projected total (historical)
-                    %td.text-right
-                      %strong= number_to_currency(@results[:projection][:projected_total])
-                  - if @results[:projection][:alternate_total].present?
-                    %tr
-                      %td Projected remaining (self-scaled)
-                      %td.text-right= number_to_currency(@results[:projection][:alternate_remaining])
-                    %tr
-                      %td
-                        %strong Projected total (self-scaled)
-                      %td.text-right
-                        %strong= number_to_currency(@results[:projection][:alternate_total])
-                  - projected_weeks_count = @results[:projection][:projected_cumulative].size
-                  - if projected_weeks_count > 0
-                    %tr
-                      %td Avg weekly (historical)
-                      %td.text-right= number_to_currency(@results[:projection][:projected_remaining] / projected_weeks_count)
-                  %tr
-                    %td Performance ratio
-                    %td.text-right= "#{(@results[:projection][:performance_ratio] * 100).round(0)}% of historical avg"
-              %p.help-text
-                %strong Historical-scaled
-                applies a weighted performance ratio to comparison shows' absolute
-                weekly revenue.
-                %strong Self-scaled
-                anchors on this show's 7-day rolling revenue and projects forward
-                at this show's own recent week-over-week pct change — pure
-                momentum, no historical shape. Both are capped by remaining seat
-                inventory × average realized ticket price.
-                - momentum = @results[:projection][:alternate_momentum_pct]
-                - window = @results[:projection][:alternate_momentum_window]
-                - if momentum && window && window > 0
-                  %br
-                  %em
-                    Self-scaled starts at #{momentum >= 0 ? '+' : ''}#{momentum}% per
-                    week (recent 7-day rolling revenue vs the prior 7 days), then
-                    halves that rate each following week so momentum fades toward
-                    flat over the remaining run.
-          = form_tag(rate_of_sales_admin_analysis_index_path, method: :post, id: 'extend-form') do
-            = hidden_field_tag :target_production_id, @target_production.id
-            - @comparison_productions.each do |p|
-              = hidden_field_tag 'comparison_production_ids[]', p.id
-            = hidden_field_tag :extra_weeks, @extra_weeks, id: 'extra-weeks-field'
-            .grid-x.grid-padding-x{style: 'margin-top: 0.5rem'}
-              .cell.auto
-                - if @extra_weeks > 0
-                  = ui_label "Extended by #{@extra_weeks} #{'week'.pluralize(@extra_weeks)}", variant: :secondary
-              .cell.shrink
-                - if @extra_weeks > 0
-                  %a#reset-extension.button.secondary.small{href: '#'} Reset
-                %a#extend-week.button.small{href: '#'} Extend by 1 week
+              - if insights[:avg_tickets_per_week] && insights[:hist_avg_tickets_per_week]
+                - ticket_ratio = insights[:avg_tickets_per_week] / insights[:hist_avg_tickets_per_week] * 100
+                - color = ticket_ratio >= 110 ? 'success' : (ticket_ratio >= 90 ? 'warning' : 'alert')
+                = render "shared/components/callout", variant: color do
+                  %h6 Tickets / Week
+                  %p
+                    %strong= "#{insights[:avg_tickets_per_week].round(0)} tickets"
+                    per week vs historical
+                    %strong= "#{insights[:hist_avg_tickets_per_week].round(0)}"
+                  %p
+                    = "#{ticket_ratio.round(0)}% of historical average"
 
-          :javascript
-            $(document).ready(function() {
-              $('#extend-week').click(function(e) {
-                e.preventDefault();
-                var field = $('#extra-weeks-field');
-                field.val(parseInt(field.val()) + 1);
-                $('#extend-form').submit();
-              });
-              $('#reset-extension').click(function(e) {
-                e.preventDefault();
-                $('#extra-weeks-field').val(0);
-                $('#extend-form').submit();
-              });
-            });
+            .small-12.medium-4.cell
+              - if insights[:avg_revenue_per_week] && insights[:hist_avg_revenue_per_week]
+                - rev_ratio = insights[:performance_pct] || 0
+                - color = rev_ratio >= 110 ? 'success' : (rev_ratio >= 90 ? 'warning' : 'alert')
+                = render "shared/components/callout", variant: color do
+                  %h6 Revenue / Week
+                  %p
+                    %strong= number_to_currency(insights[:avg_revenue_per_week])
+                    per week vs historical
+                    %strong= number_to_currency(insights[:hist_avg_revenue_per_week])
+                  %p
+                    = "#{rev_ratio}% of historical average"
 
-- else
-  .grid-x.grid-padding-x
-    .small-12.cell
-      = render "shared/components/callout", variant: "alert" do
-        No rate of sale data found for
-        = @target_production.name
-        \. Rate of sale data is calculated daily for active productions.
+            .small-12.medium-4.cell
+              - if insights[:trajectory] && !@target_production.closed?
+                - color = insights[:trajectory] == :increasing ? 'success' : (insights[:trajectory] == :steady ? 'warning' : 'alert')
+                = render "shared/components/callout", variant: color do
+                  %h6 Current Trajectory
+                  %p
+                    - case insights[:trajectory]
+                    - when :increasing
+                      Revenue is
+                      %strong trending up
+                    - when :decreasing
+                      Revenue is
+                      %strong trending down
+                    - when :steady
+                      Revenue is
+                      %strong holding steady
+                  %p
+                    Recent 7-day avg:
+                    %strong= number_to_currency(insights[:trajectory_recent_avg])
+                    vs prior:
+                    %strong= number_to_currency(insights[:trajectory_prior_avg])
+                  %p
+                    = "#{insights[:trajectory_pct_change] > 0 ? '+' : ''}#{insights[:trajectory_pct_change]}% change"
 
-.grid-x.grid-padding-x
-  .small-12.cell
-    %hr
-    = ui_button 'Back to Analysis', admin_analysis_index_path(target_production_id: @target_production.id, comparison_production_ids: @comparison_productions.map(&:id)), variant: :secondary
-    %h6 Comparison Shows
-    %table.hover
-      %thead
-        %tr
-          %th Season
-          %th Production
-          %th Theater
-          %th.text-right Total Revenue
-          %th.text-right Weeks (incl. pre-sales)
-      %tbody
-        - ts = @results[:target_summary]
-        - tp = ts[:production]
-        %tr.success
-          %td= tp.season
-          %td
-            %strong= tp.name
-            %small.label.secondary{style: 'margin-left: 0.4rem'} Current
-          %td= tp.theater.name
-          %td.text-right
-            %strong= number_to_currency(ts[:total_revenue])
-          %td.text-right
-            %strong= ts[:num_weeks]
-        - @results[:comparison_summaries].each do |summary|
-          - p = summary[:production]
-          %tr
-            %td= p.season
-            %td= p.name
-            %td= p.theater.name
-            %td.text-right= number_to_currency(summary[:total_revenue])
-            %td.text-right= summary[:num_weeks]
+          .grid-x.grid-padding-x
+            .small-12.medium-4.cell
+              - if insights[:ticket_growth_diff] && !@target_production.closed?
+                - diff = insights[:ticket_growth_diff]
+                = render "shared/components/callout", variant: "secondary" do
+                  %h6 Recent Growth Rate
+                  %p
+                    Ticket sales growing at
+                    %strong= "#{insights[:ticket_growth_avg]}%"
+                    per week vs historical
+                    %strong= "#{insights[:hist_ticket_growth_avg]}%"
+                  %p
+                    - if diff > 0
+                      = "#{diff} points above historical"
+                    - elsif diff < 0
+                      = "#{diff.abs} points below historical"
+                    - else
+                      Tracking at historical average
+                  %p.help-text= "Based on last #{insights[:growth_window]} weeks"
+
+            .small-12.medium-4.cell
+              - if insights[:lifecycle] && !@target_production.closed?
+                = render "shared/components/callout", variant: "secondary" do
+                  %h6 Lifecycle Position
+                  %p
+                    This show appears to be in the
+                    %strong= insights[:lifecycle].to_s
+                    phase of its run
+                    - case insights[:lifecycle]
+                    - when :growth
+                      \— historically, revenue is still building at this point
+                    - when :plateau
+                      \— near the historical peak revenue period
+                    - when :decline
+                      \— past the historical peak revenue period
+                  %p.help-text
+                    Week #{insights[:lifecycle_week]} of #{insights[:lifecycle_total_weeks]}
+                    \— historical peak maps to around week #{insights[:lifecycle_peak_week]}
+
+      - if @results[:projection].present?
+        .grid-x.grid-padding-x
+          .small-12.cell
+            %fieldset.fieldset
+              %legend Revenue Projection
+              .grid-x.grid-padding-x
+                .small-12.medium-8.cell
+                  - chart_series = [{ name: "Actual Revenue", data: @results[:projection][:actual_cumulative] }, { name: "Projected (Historical-scaled)", data: @results[:projection][:projected_cumulative] }]
+                  - if @results[:projection][:alternate_cumulative].present?
+                    - chart_series << { name: "Projected (Self-scaled)", data: @results[:projection][:alternate_cumulative] }
+                  = line_chart chart_series, xtitle: "Period", ytitle: "Cumulative Revenue", prefix: "$", library: { scales: { x: { type: "category" } } }
+                  - if @results[:projection][:capacity_clipped]
+                    %p.help-text
+                      %em
+                        One or more projected weeks were capped at remaining seat inventory
+                        (#{@results[:projection][:remaining_seats]} seats × avg price
+                        #{number_to_currency(@results[:projection][:avg_ticket_price])}).
+                .small-12.medium-4.cell
+                  %h6 Summary
+                  %table
+                    %tbody
+                      %tr
+                        %td Revenue to date
+                        %td.text-right= number_to_currency(@results[:projection][:actual_total])
+                      %tr
+                        %td Projected remaining (historical)
+                        %td.text-right= number_to_currency(@results[:projection][:projected_remaining])
+                      %tr
+                        %td
+                          %strong Projected total (historical)
+                        %td.text-right
+                          %strong= number_to_currency(@results[:projection][:projected_total])
+                      - if @results[:projection][:alternate_total].present?
+                        %tr
+                          %td Projected remaining (self-scaled)
+                          %td.text-right= number_to_currency(@results[:projection][:alternate_remaining])
+                        %tr
+                          %td
+                            %strong Projected total (self-scaled)
+                          %td.text-right
+                            %strong= number_to_currency(@results[:projection][:alternate_total])
+                      - projected_weeks_count = @results[:projection][:projected_cumulative].size
+                      - if projected_weeks_count > 0
+                        %tr
+                          %td Avg weekly (historical)
+                          %td.text-right= number_to_currency(@results[:projection][:projected_remaining] / projected_weeks_count)
+                      %tr
+                        %td Performance ratio
+                        %td.text-right= "#{(@results[:projection][:performance_ratio] * 100).round(0)}% of historical avg"
+                  %p.help-text
+                    %strong Historical-scaled
+                    applies a weighted performance ratio to comparison shows' absolute
+                    weekly revenue.
+                    %strong Self-scaled
+                    anchors on this show's 7-day rolling revenue and projects forward
+                    at this show's own recent week-over-week pct change — pure
+                    momentum, no historical shape. Both are capped by remaining seat
+                    inventory × average realized ticket price.
+                    - momentum = @results[:projection][:alternate_momentum_pct]
+                    - window = @results[:projection][:alternate_momentum_window]
+                    - if momentum && window && window > 0
+                      %br
+                      %em
+                        Self-scaled starts at #{momentum >= 0 ? '+' : ''}#{momentum}% per
+                        week (recent 7-day rolling revenue vs the prior 7 days), then
+                        halves that rate each following week so momentum fades toward
+                        flat over the remaining run.
+              = form_tag(rate_of_sales_admin_analysis_index_path, method: :get, id: 'extend-form') do
+                = hidden_field_tag :target_production_id, @target_production.id
+                - @comparison_productions.each do |p|
+                  = hidden_field_tag 'comparison_production_ids[]', p.id
+                = hidden_field_tag :extra_weeks, @extra_weeks, id: 'extra-weeks-field'
+                .grid-x.grid-padding-x{style: 'margin-top: 0.5rem'}
+                  .cell.auto
+                    - if @extra_weeks > 0
+                      = ui_label "Extended by #{@extra_weeks} #{'week'.pluralize(@extra_weeks)}", variant: :secondary
+                  .cell.shrink
+                    - if @extra_weeks > 0
+                      %a#reset-extension.button.secondary.small{href: '#'} Reset
+                    %a#extend-week.button.small{href: '#'} Extend by 1 week
+
+              :javascript
+                $(document).ready(function() {
+                  $('#extend-week').click(function(e) {
+                    e.preventDefault();
+                    var field = $('#extra-weeks-field');
+                    field.val(parseInt(field.val()) + 1);
+                    $('#extend-form').submit();
+                  });
+                  $('#reset-extension').click(function(e) {
+                    e.preventDefault();
+                    $('#extra-weeks-field').val(0);
+                    $('#extend-form').submit();
+                  });
+                });
+
+    - else
+      .grid-x.grid-padding-x
+        .small-12.cell
+          = render "shared/components/callout", variant: "alert" do
+            No rate of sale data found for
+            = @target_production.name
+            \. Rate of sale data is calculated daily for active productions.
+
+    .grid-x.grid-padding-x
+      .small-12.cell
+        %hr
+        %h6 Comparison Shows
+        %table.hover
+          %thead
+            %tr
+              %th Season
+              %th Production
+              %th Theater
+              %th.text-right Total Revenue
+              %th.text-right Weeks (incl. pre-sales)
+          %tbody
+            - ts = @results[:target_summary]
+            - tp = ts[:production]
+            %tr.success
+              %td= tp.season
+              %td
+                %strong= tp.name
+                %small.label.secondary{style: 'margin-left: 0.4rem'} Current
+              %td= tp.theater.name
+              %td.text-right
+                %strong= number_to_currency(ts[:total_revenue])
+              %td.text-right
+                %strong= ts[:num_weeks]
+            - @results[:comparison_summaries].each do |summary|
+              - p = summary[:production]
+              %tr
+                %td= p.season
+                %td= p.name
+                %td= p.theater.name
+                %td.text-right= number_to_currency(summary[:total_revenue])
+                %td.text-right= summary[:num_weeks]
+
+-#
+  Results describe the shows they were run with, so any change removes them
+  until the next Run.
+:javascript
+  $(function() {
+    var events = 'change production-picker:selected production-picker:cleared';
+    $('#rate-of-sales-form').on(events, function() {
+      $('#rate-of-sales-results').empty();
+    });
+  });

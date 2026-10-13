@@ -5,13 +5,10 @@
       %fieldset.panel.fieldset
         %legend
           Donate to
-          =t.name
-        %p.inline
-          Yes! I love
-          = "#{t.name}."
-          Please add a tax-deductible contribution to this order of $
-          = order_form.input_field :additional_donation_for_other, :size => 8, :style=>"display:inline; width:auto"
-  
+          = t.name
+        = render 'orders/donation_appeal', text: t.donation_appeal_for, order_form: order_form,
+                                           field: :additional_donation_for_other
+
   - if Theater.default_theater.accepts_donations || t.accepts_donations?
     .small-12.cell
       - default_text = t.blank? || t.is_default?
@@ -22,17 +19,8 @@
           - else
             Make a donation to
             = t.is_copro? ? t.name : Theater.default_theater.name
-        %p.inline
-          - if t.producing?
-            Yes! I love
-            = "#{t.name}."
-            Please add a tax-deductible contribution to this order of $
-            = order_form.input_field :additional_donation, :size => 8, :style=>"display:inline; width:auto"
-          - else
-            In addition to its own award-winning programming,
-            = Theater.default_theater.name
-            subsidizes facilities and support for groups like
-            = "#{t.name.strip}."
-            Help us bring theater, laughter and debate to our community. Please add a tax-deductible contribution to this order of $
-            = order_form.input_field :additional_donation, :size=>8, :style=>"display:inline; width:auto"
-
+        :ruby
+          # A co-production shows only its own appeal, never the secondary one.
+          default_theater = Theater.default_theater
+          appeal = t.producing? ? t.donation_appeal_for : default_theater.secondary_donation_appeal_for(company: t)
+        = render 'orders/donation_appeal', text: appeal, order_form: order_form, field: :additional_donation

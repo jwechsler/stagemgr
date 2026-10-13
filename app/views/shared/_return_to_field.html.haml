@@ -1,3 +1,3 @@
--# Carries an Edit link's return_to through the form (see ReturnsToIndex).
-- if params[:return_to].present?
-  = hidden_field_tag :return_to, params[:return_to]
+-# Carries the page an edit was opened from through the form (see ReturnsToOrigin).
+- if return_to_value.present?
+  = hidden_field_tag :return_to, return_to_value

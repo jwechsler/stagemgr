@@ -1,3 +1,7 @@
+# The suite always runs on a UTC clock, like CI and the Docker hosts, so a
+# developer's Mac in Pacific time cannot pass a spec that fails elsewhere.
+ENV['TZ'] = 'UTC'
+
 require 'simplecov'
 SimpleCov.start 'rails'
 

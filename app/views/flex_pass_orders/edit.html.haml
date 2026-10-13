@@ -14,12 +14,8 @@
 
   %fieldset.fieldset
     %legend Make an additional donation
-
-    .grid-x.grid-padding-x.collapse
-      .small-8.medium-10.cell
-        = order_form.label :additional_donation, "I love #{theater_info.name}! I'd like to make an additional tax-deductible contribution of $", :class=>'inline'
-      .small-4.medium-2.cell
-        = order_form.text_field :additional_donation, :size => 7, :class=>'left'
+    = render 'orders/donation_appeal', text: Theater.default_theater.donation_appeal_for, order_form: order_form,
+                                       field: :additional_donation
 
 
   = render :partial => '/orders/billing_form', :locals => {:order_form => order_form}

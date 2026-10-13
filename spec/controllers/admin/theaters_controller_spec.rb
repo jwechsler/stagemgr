@@ -21,6 +21,24 @@ RSpec.describe Admin::TheatersController, type: :controller do
     expect(selected_status).to eq(Theater::INACTIVE)
   end
 
+  it 'carries the referring page into the edit form as return_to' do
+    theater = FactoryBot.create(:theater, name: 'Linked House')
+
+    request.env['HTTP_REFERER'] = 'http://test.host/admin/theaters'
+    get :edit, params: { id: theater.id }
+
+    expect(response.body).to include('name="return_to"').and include('value="/admin/theaters"')
+  end
+
+  it 'does not carry the edit page itself as return_to on a reload' do
+    theater = FactoryBot.create(:theater, name: 'Reloaded House')
+
+    request.env['HTTP_REFERER'] = "http://test.host/admin/theaters/#{theater.id}/edit"
+    get :edit, params: { id: theater.id }
+
+    expect(response.body).not_to include('name="return_to"')
+  end
+
   it 'defaults a new theater to Active' do
     get :new
 
@@ -37,6 +55,159 @@ RSpec.describe Admin::TheatersController, type: :controller do
       expect(response).to redirect_to(admin_theater_path(theater))
       expect(flash[:error]).to be_present
       expect(Theater.exists?(theater.id)).to be true
+    end
+  end
+
+  describe 'PATCH #update' do
+    let(:theater) { FactoryBot.create(:theater, name: 'Returning House') }
+
+    context 'when returning to the page the edit came from' do
+      let(:params) { { id: theater.id, theater: { name: 'Renamed House' } } }
+
+      it 'returns to the page carried in return_to' do
+        patch :update, params: params.merge(return_to: '/admin/theaters?scope=analysis')
+        expect(response).to redirect_to('/admin/theaters?scope=analysis')
+      end
+
+      it 'returns to the show page when no return_to is given' do
+        patch :update, params: params
+        expect(response).to redirect_to(admin_theater_path(theater))
+      end
+
+      it 'ignores an off-site return_to rather than redirecting to it' do
+        patch :update, params: params.merge(return_to: 'https://evil.example.com')
+        expect(response).to redirect_to(admin_theater_path(theater))
+
+        patch :update, params: params.merge(return_to: '//evil.example.com/x')
+        expect(response).to redirect_to(admin_theater_path(theater))
+      end
+    end
+
+    it 'saves both donation appeals' do
+      theater = FactoryBot.create(:theater, name: 'Appealing House')
+
+      patch :update, params: { id: theater.id, theater: { donation_appeal: 'Love **{{theater}}**',
+                                                          secondary_donation_appeal: 'We host {{company}}' } }
+
+      expect(theater.reload).to have_attributes(donation_appeal: 'Love **{{theater}}**',
+                                                secondary_donation_appeal: 'We host {{company}}')
+    end
+  end
+
+  describe 'sales recorded externally' do
+    it 'updates sales_recorded_externally' do
+      theater = FactoryBot.create(:theater, name: 'Keyed-In House')
+
+      patch :update, params: { id: theater.id, theater: { sales_recorded_externally: '1' } }
+
+      expect(theater.reload.sales_recorded_externally).to be true
+    end
+
+    it 'shows an External sales label on the show page when set' do
+      theater = FactoryBot.create(:theater, name: 'Outside House', sales_recorded_externally: true)
+
+      get :show, params: { id: theater.id }
+
+      expect(response.body).to include('External sales')
+    end
+
+    it 'omits the External sales label when sales are recorded in house' do
+      theater = FactoryBot.create(:theater, name: 'Inside House')
+
+      get :show, params: { id: theater.id }
+
+      expect(response.body).not_to include('External sales')
+    end
+  end
+
+  describe 'GET #show appeals tab' do
+    it 'shows the stored default appeal as markdown' do
+      theater = FactoryBot.create(:theater, name: 'Shown House', donation_appeal: 'Love **us**')
+
+      get :show, params: { id: theater.id }
+
+      expect(response.body).to include('Default appeal').and include('<strong>us</strong>')
+    end
+
+    it 'shows the secondary appeal for the default theater' do
+      default_theater = FactoryBot.create(:theater, name: 'Default House', theater_class: Theater::DEFAULT)
+
+      get :show, params: { id: default_theater.id }
+
+      expect(response.body).to include('Secondary appeal')
+    end
+
+    it 'omits the secondary appeal for any other theater' do
+      visiting = FactoryBot.create(:theater, name: 'Visiting House', theater_class: Theater::VISITING)
+
+      get :show, params: { id: visiting.id }
+
+      expect(response.body).not_to include('Secondary appeal')
+    end
+  end
+
+  describe 'GET #search' do
+    let!(:named) { FactoryBot.create(:theater, name: 'Pickerton Playhouse') }
+    let!(:tagged) do
+      FactoryBot.create(:theater, name: 'Elsewhere Stage').tap { |t| t.update!(tag_names: 'pickers') }
+    end
+
+    def search_json(query)
+      get :search, params: { q: query }, format: :json
+      response.parsed_body
+    end
+
+    it 'returns name matches, a tag group and tag matches for an admin' do
+      results = search_json('picker')
+
+      expect(results).to include(a_hash_including('id' => named.id, 'label' => 'Pickerton Playhouse',
+                                                  'match_kind' => 'name'))
+      expect(results).to include(a_hash_including('group_key' => 'tag:pickers',
+                                                  'theaters' => [{ 'id' => tagged.id, 'name' => 'Elsewhere Stage' }]))
+      expect(results).to include(a_hash_including('id' => tagged.id, 'match_kind' => 'tag'))
+    end
+
+    it 'returns an empty list for a blank query' do
+      expect(search_json('  ')).to eq([])
+    end
+
+    it 'returns every matching theater to a box office user' do
+      allow(controller).to receive(:current_user).and_return(FactoryBot.create(:user, is_box_office_user: true))
+
+      expect(search_json('picker').pluck('id')).to include(named.id, tagged.id)
+    end
+
+    context 'when the user is a theater user' do
+      let!(:own) { FactoryBot.create(:theater, name: 'Pickerton Annex') }
+
+      before do
+        allow(controller).to receive(:current_user).and_return(FactoryBot.create(:user, theaters: [own]))
+      end
+
+      it 'returns only their own theaters by name' do
+        expect(search_json('Pickerton').pluck('id')).to contain_exactly(own.id)
+      end
+
+      it 'lists only their own theaters in a tag group' do
+        own.update!(tag_names: 'annexes')
+        FactoryBot.create(:theater, name: 'Other Annex').update!(tag_names: 'annexes')
+
+        group = search_json('annexes').find { |r| r['group_key'] == 'tag:annexes' }
+
+        expect(group['theaters']).to eq([{ 'id' => own.id, 'name' => 'Pickerton Annex' }])
+      end
+
+      it 'omits a tag group with none of their theaters' do
+        expect(search_json('pickers').pluck('group_key')).not_to include('tag:pickers')
+      end
+    end
+
+    it 'redirects an anonymous request to the login page' do
+      allow(controller).to receive(:current_user).and_return(nil)
+
+      get :search, params: { q: 'Pickerton' }, format: :json
+
+      expect(response).to redirect_to(login_path)
     end
   end
 end

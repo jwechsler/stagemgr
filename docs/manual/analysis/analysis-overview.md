@@ -6,9 +6,13 @@
 
 **Navigation:** Admin Menu > Analysis
 
-The Analysis page has two tabs: **Production Sales** (the default), which holds Rate of
-Sales, Ticket Revenue and Audience, and **Pass Sales**, which holds Membership Analysis.
-The Pass Sales tab is for **Admin** users only; Theater users see Production Sales alone.
+The Analysis page has one tab per analysis: **Rate of Sales** (the default), **Ticket
+Revenue**, **Audience**, **Advance Sales** and **Pass Sales** (Membership Analysis).
+Every tab is built the same way: the selection criteria sit at the top of the page, the
+results appear below once you click **Run analysis**, and you can change any criterion and
+run again without leaving the page. Each run has its own address, so a result can be
+bookmarked or shared. The Pass Sales tab is for **Admin** users only; Theater users see
+the other four.
 
 ---
 
@@ -90,12 +94,24 @@ See [Audience Analysis](audience.md) for full details.
 !!! tip "Direct entry from a production"
     Audience Analysis has a shortcut button on the admin **production** page
     (Productions > [Production Name]) next to *Edit* and *Ticket Classes*.
-    Clicking it lands you on the analysis form with that production pre-selected
-    and the default comparison theater seeded -- one more click on *Run Analysis*
+    Clicking it opens the Audience tab with that production pre-selected
+    and the default comparison theater seeded -- one more click on *Run analysis*
     and you're done. Rate of Sales and Ticket Revenue don't have this shortcut
     yet because they need comparison shows you have to pick by hand.
 
 ![Analysis selection page](../assets/images/screenshots/analysis-selection-empty.png)
+
+### Advance Sales
+
+Looks at *when* tickets were bought relative to the performance: the share of a group's
+final sales already in hand 60, 30, 14, 7 and fewer days out, and how much sold in each
+window. Compare seasons, theaters or productions, with single tickets and passes drawn
+separately. A week-by-week table per production shows how each run sold and flags
+performances added after opening, and a **Pace** column on the production page projects
+upcoming performances from the theater's own history. Open it from the **Advance Sales**
+tab, or from the **Advance Sales** button on a production page.
+
+See [Advance Sales Analysis](advance-sales.md) for full details.
 
 ### Membership Analysis
 
@@ -109,13 +125,13 @@ See [Membership Analysis](memberships.md) for full details.
 
 ## Setting Up an Analysis
 
-Selecting **Analysis Type** from the dropdown changes which comparison field is shown:
+Each tab asks for a **Current show** plus its own kind of comparison:
 
-- **Rate of Sales** -- Shows a multi-show comparison table. At least one comparison show
+- **Rate of Sales** -- A multi-show comparison table. At least one comparison show
   is required.
-- **Ticket Revenue** -- Shows a single historical production field. No comparison is
+- **Ticket Revenue** -- A single historical production. No comparison is
   required; you can run the analysis on a single show.
-- **Audience** -- Shows a comparison-group picker (theaters, not productions). The
+- **Audience** -- A comparison-group picker (theaters, not productions). The
   current production's own theater is seeded by default. You can add more theaters by
   name or tag. The facility-wide ("vs. every theater in the system") metrics are
   always shown alongside, so there's no separate "compare against the whole building"
@@ -133,7 +149,7 @@ Every Rate of Sales analysis requires two selections:
 ### Ticket Revenue
 
 Ticket Revenue requires only a **Current Show**. Optionally add one **Historical
-Production** to display side-by-side charts and tables. The "Run Analysis" button enables
+Production** to display side-by-side charts and tables. The **Run analysis** button enables
 as soon as a current show is selected.
 
 ### Searching for Productions
@@ -175,20 +191,20 @@ of just that group's productions so you can pick a single show. Use the
 
 ### Managing the Comparison List
 
-Each comparison show appears in a table with Season, Production, and Theater columns.
+Each comparison show is listed on its own line with its season, name and theater.
 You can:
 
 - **Remove individual shows** by clicking "remove" on any row
-- **Remove all shows** by clicking the "Remove all" button (with confirmation)
-- **Return with selections intact** -- The "Back to Analysis" button on the results page
-  preserves your current and comparison selections
+- **Remove all shows** by clicking the "Remove all" button
+- **Adjust and re-run** -- The selections stay at the top of the page above the results.
+  Changing any of them clears the results until you run again
 
 ![Selection page with shows populated](../assets/images/screenshots/analysis-selection-populated.png)
 
 ### Running the Analysis
 
-Once you have the required selections for the chosen analysis type, click **Run
-Analysis** to generate results.
+Once you have the required selections for the tab you are on, click **Run analysis**
+to generate results below the form.
 
 ## Tips
 

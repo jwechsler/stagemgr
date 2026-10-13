@@ -1,0 +1,33 @@
+-# Locals: results (AdvanceSalesAnalysis::Result).
+.grid-x.grid-padding-x
+  .small-12.cell
+    %fieldset.fieldset
+      %legend Share of final sales in hand
+      - if results.series.any?(&:in_progress?)
+        = render "shared/components/callout", variant: "warning" do
+          Series marked “in progress” include performances that haven't played yet, so only their early buyers are
+          counted so far. Their curves will move toward same-day as the run completes; compare finished seasons for a
+          fair read.
+      - chart_options = { xtitle: 'Days before performance', ytitle: '% of final sales in hand', suffix: '%', max: 100,
+                          library: { scales: { x: { type: 'category' } } } }
+      = line_chart advance_sales_chart_data(results.series), **chart_options
+      .table-scroll
+        %table.hover
+          %thead
+            %tr
+              %th Series
+              %th Tickets
+              %th Upcoming
+              - AdvanceSalesCurve::BUCKETS.each do |low, high|
+                %th= advance_sales_bucket_label(low, high)
+          %tbody
+            - results.series.each do |series|
+              %tr{ class: ('in-progress' if series.in_progress?) }
+                %td= series.label
+                %td= advance_sales_count(series.tickets)
+                %td= advance_sales_still_to_play(series)
+                - AdvanceSalesCurve::BUCKETS.each do |low, high|
+                  %td= advance_sales_share(series.curve.bucket_share(low, high))
+      %p.help-text
+        Each column is the share of the series' final sales bought in that window; the columns sum to 100%. The chart
+        above shows the same sales cumulatively.

@@ -95,7 +95,7 @@ all:
     # theater's uploaded logo, then to the house name as text.
     logo_url:
     # One sentence under the mailing-list opt-in checkbox.
-    mailing_list_blurb: "Get company news, special offers and ticket discounts. Your email will not be shared."
+    mailing_list_blurb: "Your email will not be shared."
     # Blank becomes "<house name> Box Office".
     box_office_display_name:
     # Who signs follow-up mail. With no name or no address, follow-ups come

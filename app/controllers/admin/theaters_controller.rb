@@ -1,6 +1,8 @@
 class Admin::TheatersController < Admin::ApplicationController
+  include ReturnsToOrigin
+
   before_action :remove_empty_logo
-  load_and_authorize_resource except: [:autocomplete_tag]
+  load_and_authorize_resource except: %i[autocomplete_tag search]
 
   before_action :find_context, only: :show
 
@@ -11,6 +13,62 @@ class Admin::TheatersController < Admin::ApplicationController
     names = TheaterTag.where('name LIKE ?', "#{term}%")
                       .order(:name).limit(20).pluck(:name).uniq
     render json: names
+  end
+
+  # Shared theater multi-picker typeahead (analysis comparison sets and other
+  # theater pickers). Any logged-in admin user may search; the result set is
+  # the theaters the user may read (all of them for Admin and Box Office, only
+  # their own for a Theater user), mirroring ProductionSearch.
+  def search
+    authorize! :read, Theater
+    query = params[:q].to_s.strip
+    return render(json: []) if query.blank?
+
+    readable = Theater.accessible_by(current_ability, :read)
+    q = "%#{query.downcase}%"
+    name_matches = readable.where('LOWER(theaters.name) LIKE ?', q).limit(20)
+    tag_matches  = readable.joins(:theater_tags)
+                           .where('LOWER(theater_tags.name) LIKE ?', q)
+                           .distinct
+                           .limit(20)
+
+    seen_ids = {}
+    results = []
+
+    name_matches.order(:name).each do |t|
+      next if seen_ids[t.id]
+
+      seen_ids[t.id] = true
+      results << { id: t.id, label: t.name, match_kind: 'name' }
+    end
+
+    # Also surface tag-keyed group entries (one row per matching tag), so the
+    # operator can pick every readable theater tagged X in one click.
+    matching_tags = TheaterTag.where('LOWER(name) LIKE ?', q).order(:name)
+    seen_tag_keys = {}
+    matching_tags.each do |tag|
+      key = tag.name.to_s.downcase
+      next if key.blank? || seen_tag_keys[key]
+
+      seen_tag_keys[key] = true
+      tag_theaters = readable.tagged_with(tag.name).order(:name).pluck(:id, :name)
+      next if tag_theaters.empty?
+
+      results << {
+        group_key: "tag:#{tag.name}",
+        label: "All theaters tagged #{tag.name}",
+        theaters: tag_theaters.map { |id, name| { id: id, name: name } }
+      }
+    end
+
+    tag_matches.order(:name).each do |t|
+      next if seen_ids[t.id]
+
+      seen_ids[t.id] = true
+      results << { id: t.id, label: t.name, match_kind: 'tag' }
+    end
+
+    render json: results
   end
 
   def index
@@ -60,7 +118,7 @@ class Admin::TheatersController < Admin::ApplicationController
     respond_to do |format|
       if @theater.update(theater_params)
         flash[:notice] = 'Theater was successfully updated.'
-        format.html { redirect_to(admin_theaters_path) }
+        format.html { redirect_to return_to_path(admin_theater_path(@theater)) }
         format.xml  { head :ok }
       else
         format.html { render action: 'edit' }
@@ -94,6 +152,7 @@ class Admin::TheatersController < Admin::ApplicationController
 
   def theater_params
     params.require(:theater).permit(:name, :url, :theater_class, :logo, :status, :default_service_items,
-                                    :default_first_exchange_items, :default_addl_exchange_items, :accepts_donations, :myemma_attendee_group, :tag_names)
+                                    :default_first_exchange_items, :default_addl_exchange_items, :accepts_donations, :myemma_attendee_group, :tag_names,
+                                    :donation_appeal, :secondary_donation_appeal, :sales_recorded_externally)
   end
 end
