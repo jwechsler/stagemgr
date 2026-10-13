@@ -105,12 +105,14 @@ These dates are **required** when the status is Active or Presale.
 
 Some productions sell through another venue's box office and have their tickets keyed
 into Stagemgr afterwards. For such a production the order date is the date of data entry,
-not the date the patron bought, so its lead times are meaningless. Ticking this box keeps
-the production out of the [Advance Sales](../analysis/advance-sales.md) analysis by
-default (a checkbox on that form lets you include it deliberately), leaves it out of the
-sales history behind the **Pace** column, and hides the Pace column on its own performance
-list. Everything else about the production is unaffected. Flagged productions show an
-**External sales** label on the production page.
+not the date the patron bought, so its lead times and sales curve are meaningless.
+Ticking this box keeps the production out of the
+[Advance Sales](../analysis/advance-sales.md) analysis by default (a checkbox on that form
+lets you include it deliberately), leaves it out of the sales history behind the **Pace**
+column, hides the Pace column on its own performance list, and removes it from the
+[Rate of Sales](../analysis/rate-of-sales.md) analysis altogether. Everything else about
+the production is unaffected. Flagged productions show an **External sales** label on the
+production page.
 
 ## Form Fields: Promotional
 
