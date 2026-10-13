@@ -41,6 +41,15 @@ Style conventions:
 - Use `!!! tip` for usage advice
 - Use `--` (not `-`) for em dashes in descriptions
 
+What to cover, and what to leave out:
+- The manual describes procedures to follow, not every possible outcome. Focus on how
+  to use the feature, the circumstances in which a user would reach for it, and its
+  limitations.
+- Do not document edge cases the software now handles gracefully, even when a change
+  adds several new error or fallback cases (stale bookmarks, missing or inaccessible
+  records, validation messages, redirects). If the app explains itself on screen, the
+  manual does not need to.
+
 ### 4. Capture Screenshots
 
 Use the Playwright MCP tools to capture screenshots from the running application at `http://localhost:8080/tickets/`:
