@@ -94,6 +94,32 @@ RSpec.describe Admin::TheatersController, type: :controller do
     end
   end
 
+  describe 'sales recorded externally' do
+    it 'updates sales_recorded_externally' do
+      theater = FactoryBot.create(:theater, name: 'Keyed-In House')
+
+      patch :update, params: { id: theater.id, theater: { sales_recorded_externally: '1' } }
+
+      expect(theater.reload.sales_recorded_externally).to be true
+    end
+
+    it 'shows an External sales label on the show page when set' do
+      theater = FactoryBot.create(:theater, name: 'Outside House', sales_recorded_externally: true)
+
+      get :show, params: { id: theater.id }
+
+      expect(response.body).to include('External sales')
+    end
+
+    it 'omits the External sales label when sales are recorded in house' do
+      theater = FactoryBot.create(:theater, name: 'Inside House')
+
+      get :show, params: { id: theater.id }
+
+      expect(response.body).not_to include('External sales')
+    end
+  end
+
   describe 'GET #show appeals tab' do
     it 'shows the stored default appeal as markdown' do
       theater = FactoryBot.create(:theater, name: 'Shown House', donation_appeal: 'Love **us**')
@@ -117,6 +143,53 @@ RSpec.describe Admin::TheatersController, type: :controller do
       get :show, params: { id: visiting.id }
 
       expect(response.body).not_to include('Secondary appeal')
+    end
+  end
+
+  describe 'GET #search' do
+    let!(:named) { FactoryBot.create(:theater, name: 'Pickerton Playhouse') }
+    let!(:tagged) do
+      FactoryBot.create(:theater, name: 'Elsewhere Stage').tap { |t| t.update!(tag_names: 'pickers') }
+    end
+
+    def search_json(query)
+      get :search, params: { q: query }, format: :json
+      response.parsed_body
+    end
+
+    it 'returns name matches, a tag group and tag matches for an admin' do
+      results = search_json('picker')
+
+      expect(results).to include(a_hash_including('id' => named.id, 'label' => 'Pickerton Playhouse',
+                                                  'match_kind' => 'name'))
+      expect(results).to include(a_hash_including('group_key' => 'tag:pickers',
+                                                  'theaters' => [{ 'id' => tagged.id, 'name' => 'Elsewhere Stage' }]))
+      expect(results).to include(a_hash_including('id' => tagged.id, 'match_kind' => 'tag'))
+    end
+
+    it 'returns an empty list for a blank query' do
+      expect(search_json('  ')).to eq([])
+    end
+
+    it 'returns JSON results to a box office user' do
+      allow(controller).to receive(:current_user).and_return(FactoryBot.create(:user, is_box_office_user: true))
+
+      expect(search_json('Pickerton').pluck('id')).to include(named.id)
+    end
+
+    it 'returns every matching theater to a theater user, not only their own' do
+      own = FactoryBot.create(:theater, name: 'Pickerton Annex')
+      allow(controller).to receive(:current_user).and_return(FactoryBot.create(:user, theaters: [own]))
+
+      expect(search_json('Pickerton').pluck('id')).to include(named.id, own.id)
+    end
+
+    it 'redirects an anonymous request to the login page' do
+      allow(controller).to receive(:current_user).and_return(nil)
+
+      get :search, params: { q: 'Pickerton' }, format: :json
+
+      expect(response).to redirect_to(login_path)
     end
   end
 end

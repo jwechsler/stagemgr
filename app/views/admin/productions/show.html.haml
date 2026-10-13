@@ -96,5 +96,8 @@
         = ui_button('Ticket Classes', [:admin, @production.theater, @production, :ticket_classes])
     - if can? :perform_analysis, Analysis
       = ui_button 'Audience Analysis', admin_analysis_index_path(target_production_id: @production.id, analysis_type: 'audience')
+      = ui_button 'Advance Sales', advance_sales_admin_analysis_index_path(seasons: [@production.season],
+                                                                           theater_ids: [@production.theater_id],
+                                                                           compare_by: 'production')
 
 = render partial: 'email_attendees_modal' if can? :email_attendees, Performance

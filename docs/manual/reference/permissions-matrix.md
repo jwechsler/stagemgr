@@ -22,6 +22,7 @@ Stagemgr has three staff roles, each building on the permissions of the role bel
 |--------|:---:|:---:|:---:|
 | View theaters | Yes | Yes | Own theaters only |
 | Create/edit theaters | Yes | Yes | -- |
+| Mark a theater's sales as recorded externally | Yes | Yes | -- |
 | Delete theaters | Yes | -- | -- |
 | Create/edit venues | Yes | Yes | -- |
 | Create/edit seat maps | Yes | Yes | -- |
@@ -163,6 +164,9 @@ Stagemgr has three staff roles, each building on the permissions of the role bel
 | Revenue projection and extensions | Yes | -- | Yes (own theaters) |
 | Run ticket revenue analysis | Yes | -- | Yes (own theaters) |
 | View dynamic pricing lift | Yes | -- | Yes (own theaters) |
+| Run advance sales analysis | Yes | -- | Yes (own theaters) |
+| Theater picker in advance sales | All theaters | -- | Own theaters only |
+| Pace column on the performance list | Yes | Yes | Yes (own theaters) |
 
 ## Imports, System Configuration, and Payments
 

@@ -23,6 +23,7 @@
 
   // opts: searchUrl, resolveUrl, scope (optional), minLength,
   //       getExcludedIds(), onItem(item), onDynamicGroup(item) (optional),
+  //       groupMembers(item) (optional; returns inline members or null),
   //       afterChange()
   function attachMulti($input, opts) {
     $input.autocomplete({
@@ -38,6 +39,9 @@
       select: function(event, ui) {
         if (ui.item.dynamic && opts.onDynamicGroup) {
           opts.onDynamicGroup(ui.item);
+          if (opts.afterChange) opts.afterChange();
+        } else if (ui.item.group_key && opts.groupMembers && opts.groupMembers(ui.item)) {
+          opts.groupMembers(ui.item).forEach(function(item) { opts.onItem(item); });
           if (opts.afterChange) opts.afterChange();
         } else if (ui.item.group_key) {
           $.getJSON(opts.resolveUrl, { group_key: ui.item.group_key, scope: opts.scope },

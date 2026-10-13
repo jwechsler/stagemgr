@@ -273,4 +273,201 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       expect(assigns(:results)).to be_nil
     end
   end
+
+  describe 'GET #advance_sales' do
+    render_views
+
+    let(:admin) { FactoryBot.create(:admin_user) }
+    let(:venue) { FactoryBot.create(:venue) }
+    let(:show_date) { Date.current - 30.days } # played, so series are finished unless an example says otherwise
+
+    def next_seq
+      @seq = (@seq || 0) + 1
+    end
+
+    # A production with one seat-holding class and one performance on +on+.
+    def make_performance(theater, season:, on: show_date)
+      n = next_seq
+      production = Production.create!(
+        name: "Advance Ctl #{n}", production_code: "AK#{n.to_s.rjust(4, '0')}", capacity: 100,
+        opening_at: on, first_preview_at: on, press_opening_at: on,
+        closing_at: on + 30.days, season: season, status: Production::ACTIVE, theater: theater, venue: venue
+      )
+      TicketClass.create!(production: production, class_code: "AK#{n.to_s.rjust(4, '0')}", class_name: "Class #{n}",
+                          ticket_type: 'Fixed', ticket_price: 25.0, ticketing_fee: 0.0, complimentary: false,
+                          holds_seats: true, web_visible: true, auto_attach: false, software_managed: false)
+      Performance.create!(performance_code: "#{production.production_code}01", production: production,
+                          performance_date: on, status: Performance::PERFORMANCE_STATUSES.first,
+                          performance_time: Time.zone.local(on.year, on.month, on.day, 19, 30))
+    end
+
+    def sell(performance, tickets:, days_before:)
+      order = TicketOrder.create!(status: Order::NEW, performance: performance, address: FactoryBot.create(:address),
+                                  payment_type: FactoryBot.create(:cash_payment_type))
+      TicketLineItem.create!(order: order, ticket_class: performance.production.ticket_classes.first,
+                             ticket_count: tickets)
+      day = performance.performance_date - days_before
+      order.update_columns(status: Order::PROCESSED, created_at: Time.zone.local(day.year, day.month, day.day, 12))
+      order
+    end
+
+    before do
+      # Use the real ability and production scope for these examples, not the file-wide stubs.
+      allow(controller).to receive(:authorize!).and_call_original
+      allow(controller).to receive(:current_ability).and_call_original
+      allow(controller).to receive(:can?).and_call_original
+      allow(Production).to receive(:accessible_by).and_call_original
+      allow(controller).to receive(:current_user).and_return(admin)
+    end
+
+    it 'renders the filter form with no results when nothing has been submitted' do
+      make_performance(theater, season: 2025)
+
+      get :advance_sales
+
+      expect(response).to have_http_status(:ok)
+      expect(assigns(:filters).submitted?).to be(false)
+      expect(assigns(:filters).seasons).to include(2025)
+      expect(assigns(:results)).to be_nil
+      page = Capybara.string(response.body)
+      expect(page).to have_css('form#advance-sales-form')
+      expect(page).to have_css("input[type='checkbox'][name='seasons[]'][value='2025'][checked]")
+    end
+
+    it 'marks the Advance Sales tab active' do
+      get :advance_sales
+
+      expect(Capybara.string(response.body)).to have_css('#analysis-tabs li.tabs-title.is-active', text: 'Advance Sales')
+    end
+
+    it 'renders results for valid params' do
+      performance = make_performance(theater, season: 2025)
+      sell(performance, tickets: 3, days_before: 10)
+
+      get :advance_sales, params: { seasons: ['', '2025'], theater_ids: [''] }
+
+      expect(response).to have_http_status(:ok)
+      expect(assigns(:results).tickets).to eq(3)
+      expect(assigns(:results).series.map(&:label)).to eq(['2025 – single tickets'])
+      page = Capybara.string(response.body)
+      expect(page).to have_css('#advance-sales-results table td', text: '2025 – single tickets')
+      expect(page).to have_css('#advance-sales-results .accordion-title', text: performance.production.picker_label)
+      headers = page.first('#advance-sales-results table').all('thead th').map(&:text)
+      expect(headers).to eq(['Series', 'Tickets', 'Upcoming', 'Same day', '1–2d', '3–6d', '7–13d', '14–29d', '30+d'])
+      cells = page.first('#advance-sales-results table').all('tbody td').map(&:text)
+      expect(cells.last(6)).to eq(['0%', '0%', '0%', '100%', '0%', '0%'])
+      expect(page).to have_css('#advance-sales-results p.help-text', text: 'the columns sum to 100%')
+    end
+
+    it 'warns when a series is in progress' do
+      performance = make_performance(theater, season: 2025, on: Date.current + 7.days)
+      sell(performance, tickets: 3, days_before: 10)
+
+      get :advance_sales, params: { seasons: ['2025'] }
+
+      expect(assigns(:results).in_progress?).to be(true)
+      expect(response.body).to include('in progress', 'Upcoming')
+      page = Capybara.string(response.body)
+      expect(page).to have_css('#advance-sales-results .callout.warning',
+                               text: "include performances that haven't played yet")
+      expect(page).to have_css('#advance-sales-results tr.in-progress td', text: '2025 – single tickets (in progress)')
+      expect(page).to have_css('#advance-sales-results tr.in-progress td', exact_text: '1 of 1')
+      expect(page).to have_css('#advance-sales-results .accordion-title .label', text: 'in progress')
+      expect(page).to have_css('#advance-sales-results td .label', exact_text: '1 upcoming')
+    end
+
+    it 'does not warn when every performance has played' do
+      sell(make_performance(theater, season: 2025), tickets: 3, days_before: 10)
+
+      get :advance_sales, params: { seasons: ['2025'] }
+
+      expect(assigns(:results).in_progress?).to be(false)
+      page = Capybara.string(response.body)
+      expect(page).to have_css('#advance-sales-results th', text: 'Upcoming')
+      expect(page).not_to have_text("include performances that haven't played yet")
+      expect(page).not_to have_css('#advance-sales-results tr.in-progress')
+      expect(page).not_to have_css('#advance-sales-results .accordion-title .label', text: 'in progress')
+    end
+
+    it 'rejects a submission with no seasons' do
+      make_performance(theater, season: 2025)
+
+      get :advance_sales, params: { seasons: [''] }
+
+      expect(response).to have_http_status(:ok)
+      expect(flash.now[:error]).to eq('Select at least one season.')
+      expect(assigns(:results)).to be_nil
+    end
+
+    it 'says so when the selection sold nothing' do
+      make_performance(theater, season: 2025)
+
+      get :advance_sales, params: { seasons: ['2025'] }
+
+      expect(assigns(:results).activity?).to be(false)
+      expect(response.body).to include('Nothing sold for that selection.')
+    end
+
+    it 'limits a theater user to the productions of their own theaters' do
+      own = FactoryBot.create(:theater, name: 'AS Own Theater')
+      other = FactoryBot.create(:theater, name: 'AS Other Theater')
+      sell(make_performance(own, season: 2025), tickets: 2, days_before: 5)
+      sell(make_performance(other, season: 2025), tickets: 7, days_before: 5)
+      allow(controller).to receive(:current_user).and_return(FactoryBot.create(:user, theaters: [own]))
+
+      get :advance_sales, params: { theater_ids: [other.id.to_s], seasons: ['2025'], compare_by: 'theater' }
+
+      expect(response).to have_http_status(:ok)
+      expect(assigns(:theaters)).to eq([own])
+      expect(assigns(:filters).theater_ids).to eq([own.id])
+      expect(assigns(:results).tickets).to eq(2)
+      expect(assigns(:results).series.map(&:label)).to eq(['AS Own Theater – single tickets'])
+      expect(response.body).not_to include('AS Other Theater')
+    end
+
+    it 'renders the theater picker pre-filled with the picked theaters' do
+      picked = FactoryBot.create(:theater, name: 'AS Picked Theater')
+      unpicked = FactoryBot.create(:theater, name: 'AS Unpicked Theater')
+      make_performance(picked, season: 2025)
+      make_performance(unpicked, season: 2025)
+
+      get :advance_sales, params: { theater_ids: [picked.id.to_s], seasons: ['2025'] }
+
+      expect(assigns(:filters).picked_theater_ids).to eq([picked.id])
+      expect(response.body).to include('data-theater-multi-picker')
+      expect(response.body).not_to include('<select name="theater_ids[]"')
+      page = Capybara.string(response.body)
+      picker = page.find('#advance-sales-form [data-theater-multi-picker]', visible: :all)
+      expect(picker['data-search-url']).to eq(search_admin_theaters_path)
+      expect(picker).to have_css('input.theater-multi-picker-input[type="text"]')
+      expect(picker).to have_css("input[type='hidden'][name='theater_ids[]'][value='#{picked.id}']", visible: :all)
+      expect(picker).to have_css('input[type="hidden"][name="theater_ids[]"]', count: 1, visible: :all)
+      expect(picker).to have_css('table.theater-multi-picker-table td', text: 'AS Picked Theater', visible: :all)
+      expect(picker).not_to have_text('AS Unpicked Theater')
+    end
+
+    it 'renders the theater picker empty when no theater was picked' do
+      make_performance(theater, season: 2025)
+
+      get :advance_sales, params: { seasons: ['2025'] }
+
+      expect(assigns(:filters).picked_theater_ids).to eq([])
+      expect(assigns(:filters).theater_ids).to eq([theater.id])
+      expect(response.body).not_to include('<select name="theater_ids[]"')
+      page = Capybara.string(response.body)
+      expect(page).to have_css('#advance-sales-form [data-theater-multi-picker] input.theater-multi-picker-input',
+                               visible: :all)
+      expect(page).not_to have_css('input[name="theater_ids[]"]', visible: :all)
+    end
+
+    it 'forbids box office users' do
+      allow(controller).to receive(:current_user)
+        .and_return(FactoryBot.create(:user, is_box_office_user: true))
+
+      get :advance_sales, params: { seasons: ['2025'] }
+
+      expect(response).to redirect_to(root_path)
+      expect(assigns(:results)).to be_nil
+    end
+  end
 end

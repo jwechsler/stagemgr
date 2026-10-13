@@ -1,0 +1,35 @@
+-# Locals: filters (AdvanceSalesFilters), theaters (Array<Theater>), seasons (Array<Integer>, newest first).
+= form_tag(advance_sales_admin_analysis_index_path, method: :get, id: 'advance-sales-form') do
+  = hidden_field_tag 'seasons[]', '', id: nil
+  .grid-x.grid-padding-x
+    .small-12.medium-6.cell
+      %fieldset
+        %legend Seasons
+        - seasons.each do |season|
+          = check_box_tag 'seasons[]', season, filters.seasons.include?(season), id: "season_#{season}"
+          %label{ for: "season_#{season}" }= season
+    .small-12.medium-6.cell
+      - picked_theaters = theaters.select { |t| filters.picked_theater_ids.include?(t.id) }
+      = render 'shared/components/theater_multi_picker', field_name: 'theater_ids', selected: picked_theaters,
+                                                         label: 'Theaters', placeholder: 'Type a theater name or tag...'
+      %p.help-text Leave empty for all theaters.
+  .grid-x.grid-padding-x
+    .small-12.medium-4.cell
+      %fieldset
+        %legend Compare by
+        - [%w[season Season], %w[theater Theater], %w[production Production]].each do |value, label|
+          = radio_button_tag :compare_by, value, filters.compare_by == value
+          %label{ for: "compare_by_#{value}" }= label
+    .small-12.medium-5.cell
+      %fieldset
+        %legend Tickets
+        - [%w[both Both], ['single', 'Single tickets'], ['pass', 'Passes']].each do |value, label|
+          = radio_button_tag :segment, value, filters.segment == value
+          %label{ for: "segment_#{value}" }= label
+    - if theaters.any?(&:sales_recorded_externally?)
+      .small-12.medium-3.cell
+        = check_box_tag :include_external, '1', filters.include_external
+        %label{ for: 'include_external' } Include theaters with sales recorded externally
+  .grid-x.grid-padding-x
+    .small-12.cell
+      = submit_tag 'Run analysis', class: 'button', name: nil
