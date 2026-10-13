@@ -133,6 +133,22 @@ RSpec.describe AdvanceSalesCurve, type: :service do
       end
     end
 
+    describe '.for_theater with a production whose sales are recorded externally' do
+      it 'leaves that production of the same theater out of the curve' do
+        sell(make_performance(theater, season: 2024), tickets: 2, days_before: 10)
+        external = make_performance(theater, season: 2024)
+        external.production.update!(sales_recorded_externally: true)
+        sell(external, tickets: 40, days_before: 90)
+
+        result = described_class.for_theater(theater, before_season: 2025)
+        expect(result.source).to eq(:theater)
+        expect(result.tickets).to eq(2)
+        expect(result.performance_count).to eq(1)
+        expect(result.share_at(10)).to eq(1.0)
+        expect(result.share_at(11)).to eq(0.0)
+      end
+    end
+
     describe '.for_building' do
       it 'pools every theater and leaves productions with external sales out' do
         sell(make_performance(theater, season: 2024), tickets: 2, days_before: 10)

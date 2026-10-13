@@ -639,6 +639,43 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       expect(Capybara.string(response.body)).to have_css('#advance-sales-form .theater-multi-picker', visible: :all)
     end
 
+    describe 'a production whose sales are recorded externally, for an administrator' do
+      let(:in_house) { make_performance(theater, season: 2025) }
+      let(:external) { make_performance(theater, season: 2025) }
+
+      before do
+        sell(in_house, tickets: 2, days_before: 5)
+        sell(external, tickets: 7, days_before: 5)
+        external.production.update!(sales_recorded_externally: true)
+      end
+
+      it 'offers the checkbox and labels only the flagged production when the run includes it' do
+        get :advance_sales, params: { seasons: ['2025'], include_external: '1' }
+
+        expect(assigns(:results).tickets).to eq(9)
+        page = Capybara.string(response.body)
+        expect(page).to have_css('#advance-sales-form input#include_external[checked]')
+        expect(page).to have_css('#advance-sales-results .accordion-title', text: external.production.picker_label)
+        expect(page).to have_css('#advance-sales-results .accordion-title .label', exact_text: 'external sales', count: 1)
+        flagged = page.find('#advance-sales-results .accordion-title', text: external.production.picker_label)
+        expect(flagged).to have_css('.label', exact_text: 'external sales')
+        in_house_title = page.find('#advance-sales-results .accordion-title', text: in_house.production.picker_label)
+        expect(in_house_title).not_to have_css('.label', exact_text: 'external sales')
+      end
+
+      it 'offers the checkbox unchecked and renders no external-sales label when the run excludes it' do
+        get :advance_sales, params: { seasons: ['2025'] }
+
+        expect(assigns(:results).tickets).to eq(2)
+        page = Capybara.string(response.body)
+        expect(page).to have_css('#advance-sales-form input#include_external')
+        expect(page).not_to have_css('#advance-sales-form input#include_external[checked]')
+        expect(page).to have_css('#advance-sales-results .accordion-title', text: in_house.production.picker_label)
+        expect(page).not_to have_css('#advance-sales-results .accordion-title', text: external.production.picker_label)
+        expect(page).not_to have_css('#advance-sales-results .label', exact_text: 'external sales')
+      end
+    end
+
     it 'forbids box office users' do
       allow(controller).to receive(:current_user)
         .and_return(FactoryBot.create(:user, is_box_office_user: true))
