@@ -127,6 +127,11 @@ RSpec.describe Admin::AdvanceSalesHelper, type: :helper do
       expect(helper.advance_sales_pace_cell(nil)).to eq('—')
     end
 
+    it 'shows the empty cell titled to explain it when sales are recorded externally' do
+      expect(helper.advance_sales_pace_cell(nil, external_sales: true))
+        .to have_css('span[title="Sales recorded externally"]', exact_text: '—')
+    end
+
     it 'says too early, with the basis in the title, when there is no projection' do
       html = helper.advance_sales_pace_cell(reading(days_out: 30, sold: 5, typical_share: 0.05,
                                                     projected_final: nil, projected_pct_of_capacity: nil))

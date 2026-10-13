@@ -82,6 +82,15 @@ RSpec.describe PerformanceDatatable do
       expect(rows[past.id.to_s][:pace]).to eq(Admin::AdvanceSalesHelper::EMPTY_CELL)
     end
 
+    it 'renders a titled dash when the production records its sales externally' do
+      production.update_column(:sales_recorded_externally, true)
+      performance = create_performance(Date.current + 30.days, '19:30')
+
+      row = json_rows.find { |r| r[:DT_RowId] == performance.id.to_s }
+
+      expect(row[:pace]).to eq('<span title="Sales recorded externally">—</span>')
+    end
+
     it 'computes the pace readings once per request' do
       create_performance(Date.current + 1.day, '19:30')
       create_performance(Date.current + 2.days, '19:30')
