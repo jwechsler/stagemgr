@@ -171,17 +171,35 @@ RSpec.describe Admin::TheatersController, type: :controller do
       expect(search_json('  ')).to eq([])
     end
 
-    it 'returns JSON results to a box office user' do
+    it 'returns every matching theater to a box office user' do
       allow(controller).to receive(:current_user).and_return(FactoryBot.create(:user, is_box_office_user: true))
 
-      expect(search_json('Pickerton').pluck('id')).to include(named.id)
+      expect(search_json('picker').pluck('id')).to include(named.id, tagged.id)
     end
 
-    it 'returns every matching theater to a theater user, not only their own' do
-      own = FactoryBot.create(:theater, name: 'Pickerton Annex')
-      allow(controller).to receive(:current_user).and_return(FactoryBot.create(:user, theaters: [own]))
+    context 'when the user is a theater user' do
+      let!(:own) { FactoryBot.create(:theater, name: 'Pickerton Annex') }
 
-      expect(search_json('Pickerton').pluck('id')).to include(named.id, own.id)
+      before do
+        allow(controller).to receive(:current_user).and_return(FactoryBot.create(:user, theaters: [own]))
+      end
+
+      it 'returns only their own theaters by name' do
+        expect(search_json('Pickerton').pluck('id')).to contain_exactly(own.id)
+      end
+
+      it 'lists only their own theaters in a tag group' do
+        own.update!(tag_names: 'annexes')
+        FactoryBot.create(:theater, name: 'Other Annex').update!(tag_names: 'annexes')
+
+        group = search_json('annexes').find { |r| r['group_key'] == 'tag:annexes' }
+
+        expect(group['theaters']).to eq([{ 'id' => own.id, 'name' => 'Pickerton Annex' }])
+      end
+
+      it 'omits a tag group with none of their theaters' do
+        expect(search_json('pickers').pluck('group_key')).not_to include('tag:pickers')
+      end
     end
 
     it 'redirects an anonymous request to the login page' do
