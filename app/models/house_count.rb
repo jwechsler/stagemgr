@@ -17,6 +17,7 @@ class HouseCount < Metric
     self.min_ticket_price = calculate_min_ticket_price
     self.sold_out = calculate_sold_out
     self.near_capacity = calculate_near_capacity
+    apply_pace(AdvanceSalesPace.for_performance(performance), as_of: Date.current)
   end
 
   def calculate!
@@ -54,9 +55,11 @@ class HouseCount < Metric
   end
 
   # Sales pace snapshot. projected_seats, pace_share, pace_sold, pace_source
-  # and pace_as_of are written nightly by the pace job (ProjectHouseCountsJob,
-  # Phase 2) from AdvanceSalesPace; #calculate does not refresh them, so they
-  # describe the performance as of pace_as_of, not now.
+  # and pace_as_of come from AdvanceSalesPace and are written in two places:
+  # by #calculate on every sales-driven recalculation (for_performance, so the
+  # projection follows sales intraday), and by ProjectHouseCountsJob nightly
+  # for every upcoming performance, so days_out keeps moving on performances
+  # with no order activity. They describe the performance as of pace_as_of.
   def apply_pace(reading, as_of:)
     self.projected_seats = reading&.projected_final
     self.pace_share = reading&.typical_share

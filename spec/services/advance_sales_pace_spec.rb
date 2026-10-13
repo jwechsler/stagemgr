@@ -229,6 +229,59 @@ RSpec.describe AdvanceSalesPace, type: :service do
       expect(AdvanceSalesCurve).to have_received(:for_theater).once
     end
 
+    describe '.for_performance' do
+      def stub_sold_for(performance, rows)
+        allow(AdvanceSalesRows).to receive(:fetch)
+          .with(production_ids: [production.id], performance_ids: [performance.id], from_date: Date.current)
+          .and_return(rows)
+      end
+
+      it 'returns that performance\'s reading alone' do
+        performance = make_performance(Date.current + 7.days)
+        make_performance(Date.current + 8.days)
+        stub_sold_for(performance, [sold_row(performance, 20)])
+
+        reading = described_class.for_performance(performance)
+
+        expect(reading).to have_attributes(performance_id: performance.id, days_out: 7, sold: 20,
+                                           projected_final: 40, source: :theater)
+      end
+
+      it 'restricts the sales query to that performance' do
+        performance = make_performance(Date.current + 7.days)
+        stub_sold_for(performance, [])
+
+        described_class.for_performance(performance)
+
+        expect(AdvanceSalesRows).to have_received(:fetch)
+          .with(production_ids: [production.id], performance_ids: [performance.id], from_date: Date.current)
+      end
+
+      it 'returns nil for a performance of an externally recorded production' do
+        performance = make_performance(Date.current + 7.days)
+        production.update_column(:sales_recorded_externally, true)
+        allow(AdvanceSalesRows).to receive(:fetch)
+
+        expect(described_class.for_performance(performance.reload)).to be_nil
+        expect(AdvanceSalesRows).not_to have_received(:fetch)
+      end
+
+      it 'returns nil for a performance that is not upcoming' do
+        performance = make_performance(Date.current - 1.day)
+        allow(AdvanceSalesRows).to receive(:fetch)
+
+        expect(described_class.for_performance(performance)).to be_nil
+        expect(AdvanceSalesRows).not_to have_received(:fetch)
+      end
+
+      it 'returns nil for a performance that is not Active' do
+        performance = make_performance(Date.current + 7.days, status: Performance::PRIVATE)
+        allow(AdvanceSalesRows).to receive(:fetch)
+
+        expect(described_class.for_performance(performance)).to be_nil
+      end
+    end
+
     it 'skips an externally recorded production but reads the rest of the batch' do
       performance = make_performance(Date.current + 7.days)
       external = FactoryBot.create(:production, theater: theater, capacity: 100, sales_recorded_externally: true)

@@ -11,9 +11,14 @@
 # in batches, so a projection would mislead.
 #
 # The batch form runs one performance query and one sales query for every
-# production at once, and each curve once per [theater, season]. HouseCount
-# stores the result nightly (projected_seats, pace_share, ...) so listings
-# read the snapshot rather than calling this per request.
+# production at once, and each curve once per [theater, season]. The single
+# form, for_performance, runs the same pipeline restricted to one performance:
+# its sales query is limited to that performance, never the whole production.
+# HouseCount stores the result (projected_seats, pace_share, ...): #calculate
+# refreshes it on every sales-driven recalculation via for_performance, and
+# ProjectHouseCountsJob refreshes every upcoming performance nightly via
+# for_productions, so listings read the snapshot rather than calling this per
+# request.
 class AdvanceSalesPace
   MINIMUM_CURVE_TICKETS = 1_000
   # Below this share of final sales typically in hand, dividing by the share
@@ -30,12 +35,21 @@ class AdvanceSalesPace
     new(productions, as_of: as_of).readings
   end
 
-  def initialize(productions, as_of: Date.current)
+  # One performance's Reading, or nil when it gets none (externally recorded
+  # or seasonless production, not Active, already played, or no usable curve).
+  def self.for_performance(performance, as_of: Date.current)
+    new([performance.production].compact, as_of: as_of, performance_ids: [performance.id])
+      .readings[performance.id]
+  end
+
+  # performance_ids: optional restriction to those performances of the batch.
+  def initialize(productions, as_of: Date.current, performance_ids: nil)
     # Batch-entered counts make a projection meaningless; skip the curve queries too.
     @productions = productions.to_a
                               .reject { |p| p.sales_recorded_externally? || p.season.nil? }
                               .index_by(&:id)
     @as_of = as_of
+    @performance_ids = performance_ids
     @curves = {}
   end
 
@@ -57,13 +71,15 @@ class AdvanceSalesPace
 
   private
 
-  # [[performance_id, production_id, performance_date], ...]; pluck skips the
-  # default scope's allocation preload.
+  # [[performance_id, production_id, performance_date], ...]. unscope(:includes)
+  # drops the default scope's allocation includes, which pluck would otherwise
+  # turn into a LEFT OUTER JOIN on ticket_class_allocations.
   def upcoming_performances
-    Performance.where(production_id: @productions.keys, status: Performance::ACTIVE,
-                      performance_date: @as_of..)
-               .order(:performance_date)
-               .pluck(:id, :production_id, :performance_date)
+    scope = Performance.unscope(:includes)
+                       .where(production_id: @productions.keys, status: Performance::ACTIVE,
+                              performance_date: @as_of..)
+    scope = scope.where(id: @performance_ids) if @performance_ids
+    scope.order(:performance_date).pluck(:id, :production_id, :performance_date)
   end
 
   def curve_for(production)
@@ -82,8 +98,11 @@ class AdvanceSalesPace
     building.tickets >= MINIMUM_CURVE_TICKETS ? building : nil
   end
 
+  # performance_ids is passed only when restricted, so the batch call keeps its shape.
   def sold_by_performance(production_ids)
-    AdvanceSalesRows.fetch(production_ids: production_ids, from_date: @as_of)
+    filters = { production_ids: production_ids, from_date: @as_of }
+    filters[:performance_ids] = @performance_ids if @performance_ids
+    AdvanceSalesRows.fetch(**filters)
                     .each_with_object(Hash.new(0)) { |row, acc| acc[row.performance_id] += row.tickets }
   end
 

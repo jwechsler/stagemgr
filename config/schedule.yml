@@ -127,6 +127,11 @@ CalculateHouseCountsJob:
   every: "5m"
   description: "Calculate current house counts for modified ticket orders"
 
+ProjectHouseCountsJob:
+  cron: "40 4 * * *"
+  description: "Project final sales for every upcoming house count (Pace)"
+  queue: report
+
 RateOfSalesJob_intraday:
   every: "30m"
   custom_job_class: RateOfSalesJob

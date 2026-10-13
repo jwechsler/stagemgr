@@ -303,5 +303,33 @@ RSpec.describe HouseCount, type: :model do
       house_count.pace_as_of = as_of + 2.days
       expect(house_count.pace_days_out).to eq(5)
     end
+
+    context 'when recalculated after a sale' do
+      let(:production) { FactoryBot.create(:production, capacity: 50) }
+      let(:real_performance) do
+        FactoryBot.create(:general_admission, production: production, performance_date: as_of + 7.days)
+      end
+      let(:house_count) { HouseCount.new(performance: real_performance) }
+
+      it 'refreshes the pace columns from that performance\'s reading, stamped today' do
+        allow(AdvanceSalesPace).to receive(:for_performance).with(real_performance)
+                                                            .and_return(reading(projected_final: 40))
+
+        house_count.calculate
+
+        expect(house_count).to have_attributes(projected_seats: 40, pace_share: 0.5, pace_sold: 20,
+                                               pace_source: 'theater', pace_as_of: Date.current)
+      end
+
+      it 'clears a previously stored projection when the performance gets no reading' do
+        house_count.apply_pace(reading(projected_final: 40), as_of: as_of - 1.day)
+        allow(AdvanceSalesPace).to receive(:for_performance).with(real_performance).and_return(nil)
+
+        house_count.calculate
+
+        expect(house_count).to have_attributes(projected_seats: nil, pace_share: nil, pace_sold: nil,
+                                               pace_source: nil, pace_as_of: Date.current)
+      end
+    end
   end
 end

@@ -333,6 +333,10 @@ RSpec.describe AdvanceSalesRows, type: :service do
         expect(performance_ids(production_ids: [production.id])).to eq([performance.id])
       end
 
+      it 'filters by performance_ids' do
+        expect(performance_ids(performance_ids: [other_performance.id])).to eq([other_performance.id])
+      end
+
       it 'dates a filtered exchange from a root order in a production outside the filter' do
         root = sell(other_performance, tickets: 2, bought_at: bought(25))
         exchange(root, tickets: 2, bought_at: bought(1), onto: performance)
@@ -347,7 +351,7 @@ RSpec.describe AdvanceSalesRows, type: :service do
       end
 
       it 'treats an empty filter array as no filter' do
-        expect(performance_ids(theater_ids: [], seasons: [], production_ids: []))
+        expect(performance_ids(theater_ids: [], seasons: [], production_ids: [], performance_ids: []))
           .to contain_exactly(performance.id, old_performance.id, other_performance.id)
       end
     end
