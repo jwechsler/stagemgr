@@ -166,7 +166,7 @@ Stagemgr has three staff roles, each building on the permissions of the role bel
 | View dynamic pricing lift | Yes | -- | Yes (own theaters) |
 | Run advance sales analysis | Yes | -- | Yes (own theaters) |
 | Theater picker in advance sales | All theaters | -- | Own theaters only |
-| Pace column on the performance list | Yes | Yes | Yes (own theaters) |
+| Pace on Upcoming House Counts | Yes | -- | Yes (own theaters) |
 
 ## Imports, System Configuration, and Payments
 

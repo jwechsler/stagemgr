@@ -109,7 +109,7 @@ not the date the patron bought, so its lead times and sales curve are meaningles
 Ticking this box keeps the production out of the
 [Advance Sales](../analysis/advance-sales.md) analysis by default (a checkbox on that form
 lets you include it deliberately), leaves it out of the sales history behind the **Pace**
-column, hides the Pace column on its own performance list, and removes it from the
+column, shows no Pace projection for it on house counts, and removes it from the
 [Rate of Sales](../analysis/rate-of-sales.md) analysis altogether. Everything else about
 the production is unaffected.
 

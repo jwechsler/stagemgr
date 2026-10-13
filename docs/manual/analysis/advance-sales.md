@@ -26,8 +26,8 @@ bought for:
 - What does a run look like week by week, and how did performances added after opening
   sell compared with the original run?
 
-A related **Pace** column on each production's performance list uses the same history to
-project where an upcoming performance is heading. See [Pace](#pace-on-the-performance-list).
+A related **Pace** column on upcoming house counts uses the same history to project where
+an upcoming performance is heading. See [Pace](#pace-on-house-counts).
 
 ## Running the analysis
 
@@ -145,15 +145,23 @@ that mixes the two kinds says which is which.
 
 ![External sales label in the week-by-week list](../assets/images/screenshots/advance-sales-external-sales-label.png)
 
-## Pace on the performance list
+## Pace on house counts
 
-![Pace column](../assets/images/screenshots/production-pace-column.png)
+![Pace on Upcoming House Counts](../assets/images/screenshots/house-counts-pace-column.png)
 
-On a production's admin page, the performance list has a **Pace** column for upcoming
-performances. It projects where each performance is heading from the theater's own
-history: if this house typically has 60% of a performance's final sales in hand a week
-out, and a performance a week away has sold 30 tickets, the projection is about 50
-tickets. The cell reads **~50 (48% of capacity)**; hover over it for the basis.
+Pace projects where an upcoming performance is heading from the theater's own history: if
+this house typically has 60% of a performance's final sales in hand a week out, and a
+performance a week away has sold 30 tickets, the projection is about 50 tickets.
+
+You see it in two places:
+
+- **Upcoming House Counts** on your account page (the page you land on after signing in,
+  shown to theater users and administrators). The last column, **Pace**, reads
+  **~84 (84% of capacity)**. Hover over it for the basis, for example "Sold 50 as of
+  Oct 13; this house typically has 70% in hand 3 days out".
+- The HUD file `house_counts.txt`, as a right-aligned **Pace** column showing the count
+  only (`~84`). It is blank when there is nothing to project or it is too early. See
+  [HUD Display](../house-management/hud-display.md).
 
 | Reading | Meaning |
 |---------|---------|
@@ -162,9 +170,20 @@ tickets. The cell reads **~50 (48% of capacity)**; hover over it for the basis.
 | **--** | The performance has played, is inactive, the production's sales are recorded externally, or there is not enough history to project from. |
 
 The history is the theater's earlier seasons, leaving out any production whose sales are
-recorded externally. A theater with fewer than 1,000 tickets of history uses the
-building-wide curve instead; the hover text says so. The Pace column is not affected by
-in-progress seasons, because it only ever looks at seasons before the production's own.
+recorded externally; such a production is never projected either. A theater with fewer
+than 1,000 tickets of history uses the building-wide curve instead, and the hover text
+ends with "(building-wide curve)". Pace is not affected by in-progress seasons, because it
+only ever looks at seasons before the production's own.
+
+The "Sold" figure Pace projects from counts paid, seat-holding tickets, leaving out
+complimentary ones, each dated by its original purchase. It can therefore be a little
+under the row's **Sold** column, which includes comps.
+
+The projection is stored on each performance's house count. It is refreshed whenever that
+performance's house count is recalculated (on every sale, hold or cancellation, and in the
+5-minute sweep) and by a nightly pass at 4:40 AM (`ProjectHouseCountsJob`) that
+re-projects every upcoming performance, so a performance with no new sales still moves
+along the curve as its date approaches.
 
 !!! note
     Pace is a projection from typical behaviour, not a forecast of this show. A strong
