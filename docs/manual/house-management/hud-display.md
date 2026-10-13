@@ -29,12 +29,12 @@ Real-time seat inventory for upcoming performances (next 14 days).
 
 ```
 HOUSE COUNTS
-+------------+------+------+-----------+-----------+
-| Code       | Sold | Held | Remaining | Max Price |
-+------------+------+------+-----------+-----------+
-| ALLY0327   |   54 |   33 |        13 |     24.00 |
-| NOON0327   |   25 |   18 |        61 |     60.00 |
-+------------+------+------+-----------+-----------+
++------------+------+------+-----------+-----------+----------+
+| Code       | Sold | Held | Remaining | Max Price | Expected |
++------------+------+------+-----------+-----------+----------+
+| ALLY0327   |   54 |   33 |        13 |     24.00 |      ~71 |
+| NOON0327   |   25 |   18 |        61 |     60.00 |          |
++------------+------+------+-----------+-----------+----------+
 Generated Fri Mar 27 13:26:57 CDT 2026
 ```
 
@@ -45,6 +45,7 @@ Generated Fri Mar 27 13:26:57 CDT 2026
 | Held | Tickets on hold orders (reserved, not yet paid) |
 | Remaining | Seats still available for sale |
 | Max Price | Highest web-visible ticket price currently on sale |
+| Expected | Paid tickets expected at curtain if the show sells the way this house usually does; includes tickets already sold. Blank when it is too early to project, the production's sales are recorded externally, or once Sold has passed it. See [Advance Sales](../analysis/advance-sales.md#expected-sales-on-house-counts). |
 
 **Update frequency:** Every 10 minutes.
 
@@ -91,6 +92,7 @@ Same format as `last7_counts.txt` but covers days 8 through 14 ago. Displayed al
 | File | Frequency | Data Source |
 |------|-----------|-------------|
 | house_counts.txt | Every 10 minutes | HouseCount records (recalculated every 5 min) |
+| Expected in house_counts.txt | Nightly at 4:40 AM, plus whenever a house count is recalculated | ProjectHouseCountsJob / HouseCount recalculation |
 | todays_counts.txt | Every 30 minutes | RateOfSale intraday totals (updated every 30 min) |
 | last7_counts.txt | Daily at 1:15 AM | RateOfSale records summed over 7 days |
 | previous7_counts.txt | Daily at 1:20 AM | RateOfSale records for days 8-14 ago |

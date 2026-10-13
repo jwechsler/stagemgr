@@ -85,6 +85,7 @@ class CurrentUser::AccountsController < CurrentUser::ApplicationController
     # export (HouseCount.export_records), which applies the same sellable scope.
     if current_user.is_theater_user?
       @house_counts = HouseCount.joins(performance: :production)
+                                .preload(performance: :production)
                                 .merge(Performance.sellable)
                                 .where(performances: {
                                          performance_date: Date.current..(Date.current + 30.days),
@@ -92,6 +93,7 @@ class CurrentUser::AccountsController < CurrentUser::ApplicationController
                                        }).limit(14 * @user.allowed_productions.count).order('performances.performance_date, performances.performance_code')
     else
       @house_counts = HouseCount.joins(performance: :production)
+                                .preload(performance: :production)
                                 .merge(Performance.sellable)
                                 .where(performances: {
                                          performance_date: Date.current..(Date.current + 7.days),

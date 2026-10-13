@@ -18,6 +18,7 @@ A house count record exists for each performance and tracks the following metric
 | Held | Number of tickets on Hold orders (reserved but not yet paid) |
 | Remaining | Seats still available for sale (Total Seats minus Sold minus Held) |
 | Percentage Booked | The proportion of capacity that is sold or held, shown as a percentage |
+| Expected | For upcoming performances, the paid count expected at curtain if the performance sells the way this house usually does. It already includes the tickets sold so far; held tickets and comps are not part of it. See [Advance Sales](../analysis/advance-sales.md#expected-sales-on-house-counts). |
 
 !!! tip
     The "Remaining" count is the number you should reference when a patron asks if tickets are available. It accounts for both paid orders and held reservations.
@@ -102,6 +103,7 @@ House count snapshots are saved periodically, creating a historical record of ho
 | Component | Update Frequency |
 |-----------|-----------------|
 | HouseCount records | Every 5 minutes (CalculateHouseCountsJob) |
+| Expected projection | Nightly at 4:40 AM (ProjectHouseCountsJob), plus whenever a house count is recalculated |
 | HUD display files | Every 10 minutes (ExportHouseCountsJob) |
 | Dashboard view | Refreshed on page load |
 

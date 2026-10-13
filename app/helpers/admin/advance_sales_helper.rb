@@ -61,28 +61,40 @@ module Admin::AdvanceSalesHelper
     number_with_delimiter(count)
   end
 
-  # Performance listing cell for an AdvanceSalesPace::Reading: a dash with no
-  # reading, "Too early" when the share in hand is too small to project, else
-  # "~84 (84% of capacity)". The title explains the basis either way. With
-  # external_sales the production is never projected, so the dash carries a
-  # title saying why.
-  def advance_sales_pace_cell(reading, external_sales: false)
-    return content_tag(:span, EMPTY_CELL, title: EXTERNAL_SALES_TITLE) if external_sales
-    return EMPTY_CELL if reading.nil?
+  # Expected cell for the Upcoming House Counts table: the paid count expected
+  # at curtain, read from the pace snapshot on a HouseCount (refreshed on every
+  # recalculation and nightly). A dash with no snapshot or nothing projectable,
+  # "Too early" when the share in hand is too small to project, a titled dash
+  # once Sold has passed the projection, else "~84".
+  # The title explains the basis. A production whose sales are recorded
+  # externally is never projected, so its dash carries a title saying why.
+  def house_count_pace_cell(house_count)
+    if house_count.performance.production&.sales_recorded_externally?
+      return content_tag(:span, EMPTY_CELL, title: EXTERNAL_SALES_TITLE)
+    end
+    return EMPTY_CELL if house_count.pace_as_of.nil? || house_count.pace_share.nil?
 
-    title = advance_sales_pace_title(reading)
-    return content_tag(:span, TOO_EARLY_LABEL, title: title) if reading.projected_final.nil?
+    title = house_count_pace_title(house_count)
+    return content_tag(:span, TOO_EARLY_LABEL, title: title) if house_count.pace_too_early?
+    if house_count.expected_met?
+      return content_tag(:span, EMPTY_CELL,
+                         title: "Sold has already passed the expected ~#{number_with_delimiter(house_count.projected_seats)}")
+    end
 
-    text = "~#{number_with_delimiter(reading.projected_final)}"
-    text += " (#{(reading.projected_pct_of_capacity * 100).round}% of capacity)" if reading.capacity.to_i.positive?
-    content_tag(:span, text, title: title)
+    content_tag(:span, "~#{number_with_delimiter(house_count.projected_seats)}", title: title)
   end
 
   private
 
-  def advance_sales_pace_title(reading)
-    share = (reading.typical_share.to_f * 100).round
-    title = "Sold #{reading.sold}; this house typically has #{share}% in hand #{reading.days_out} days out"
-    reading.source == :building ? "#{title} (building-wide curve)" : title
+  def house_count_pace_title(house_count)
+    share = (house_count.pace_share.to_f * 100).round
+    title = if house_count.pace_days_out.zero?
+              # Show day: AdvanceSalesPace counts only tickets bought before today.
+              "Sold #{house_count.pace_sold} before today; this house typically has #{share}% in hand by show day"
+            else
+              "Sold #{house_count.pace_sold} as of #{house_count.pace_as_of.strftime('%b %-d')}; " \
+                "this house typically has #{share}% in hand #{house_count.pace_days_out} days out"
+            end
+    house_count.pace_source == 'building' ? "#{title} (building-wide curve)" : title
   end
 end

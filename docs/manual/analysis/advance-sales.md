@@ -26,8 +26,9 @@ bought for:
 - What does a run look like week by week, and how did performances added after opening
   sell compared with the original run?
 
-A related **Pace** column on each production's performance list uses the same history to
-project where an upcoming performance is heading. See [Pace](#pace-on-the-performance-list).
+A related **Expected** column on upcoming house counts uses the same history to project
+where an upcoming performance is heading. See
+[Expected sales on house counts](#expected-sales-on-house-counts).
 
 ## Running the analysis
 
@@ -145,28 +146,57 @@ that mixes the two kinds says which is which.
 
 ![External sales label in the week-by-week list](../assets/images/screenshots/advance-sales-external-sales-label.png)
 
-## Pace on the performance list
+## Expected sales on house counts
 
-![Pace column](../assets/images/screenshots/production-pace-column.png)
+![Expected on Upcoming House Counts](../assets/images/screenshots/house-counts-pace-column.png)
 
-On a production's admin page, the performance list has a **Pace** column for upcoming
-performances. It projects where each performance is heading from the theater's own
-history: if this house typically has 60% of a performance's final sales in hand a week
-out, and a performance a week away has sold 30 tickets, the projection is about 50
-tickets. The cell reads **~50 (48% of capacity)**; hover over it for the basis.
+**Expected** is the paid count the performance is expected to have at curtain if it sells
+the way this house usually does. It already includes the tickets sold so far; held tickets
+and comps are not part of it.
+
+For example, MUD1019 is six days out with 19 paid tickets. At this theater, performances
+six days out have typically sold about two thirds of their final count, so 19 ÷ 0.66 gives
+~29 expected at curtain, about ten more between now and show time.
+
+On the day of the show, Expected is worked out from the tickets bought before that day and
+the share this house typically has in hand by show-day morning, so it keeps anticipating
+walk-ups and does not fall overnight. The hover text then reads, for example, "Sold 19
+before today; this house typically has 79% in hand by show day".
+
+You see it in two places:
+
+- **Upcoming House Counts** on your account page (the page you land on after signing in,
+  shown to theater users and administrators). The last column, **Expected**, reads
+  **~29**. Hover over it for the basis, for example "Sold 19 as of Oct 13; this house
+  typically has 66% in hand 6 days out".
+- The HUD file `house_counts.txt`, as a right-aligned **Expected** column (`~29`). It is
+  blank when there is nothing to project, it is too early, or Sold has already passed it. See
+  [HUD Display](../house-management/hud-display.md).
 
 | Reading | Meaning |
 |---------|---------|
-| **~N (P% of capacity)** | Projected final count and its share of the production's capacity. |
+| **~N** | Paid tickets expected at curtain, including those already sold. |
 | **Too early** | The theater typically has under 10% in hand this far out, so a projection would be noise. |
 | **--** | The performance has played, is inactive, the production's sales are recorded externally, or there is not enough history to project from. |
+| **--** (with hover text) | The **Sold** column has already passed the expected count; the hover text says so. |
 
 The history is the theater's earlier seasons, leaving out any production whose sales are
-recorded externally. A theater with fewer than 1,000 tickets of history uses the
-building-wide curve instead; the hover text says so. The Pace column is not affected by
-in-progress seasons, because it only ever looks at seasons before the production's own.
+recorded externally; such a production is never projected either. A theater with fewer
+than 1,000 tickets of history uses the building-wide curve instead, and the hover text
+ends with "(building-wide curve)". Expected is not affected by in-progress seasons, because it
+only ever looks at seasons before the production's own.
+
+The "Sold" figure Expected projects from counts paid, seat-holding tickets, leaving out
+complimentary ones, each dated by its original purchase. It can therefore be a little
+under the row's **Sold** column, which includes comps.
+
+The projection is stored on each performance's house count. It is refreshed whenever that
+performance's house count is recalculated (on every sale, hold or cancellation, and in the
+5-minute sweep) and by a nightly pass at 4:40 AM (`ProjectHouseCountsJob`) that
+re-projects every upcoming performance, so a performance with no new sales still moves
+along the curve as its date approaches.
 
 !!! note
-    Pace is a projection from typical behaviour, not a forecast of this show. A strong
+    Expected is a projection from typical behaviour, not a forecast of this show. A strong
     review, a snowstorm, or a late press push will move a performance off its house's
     usual curve.

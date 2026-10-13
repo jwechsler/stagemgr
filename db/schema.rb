@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_10_13_120000) do
+ActiveRecord::Schema.define(version: 2026_10_13_130000) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -230,6 +230,11 @@ ActiveRecord::Schema.define(version: 2026_10_13_120000) do
     t.boolean "sold_out", default: false, null: false
     t.boolean "near_capacity", default: false, null: false
     t.decimal "min_ticket_price", precision: 8, scale: 2
+    t.integer "projected_seats"
+    t.decimal "pace_share", precision: 5, scale: 4
+    t.integer "pace_sold"
+    t.string "pace_source", limit: 8
+    t.date "pace_as_of"
     t.index ["performance_id"], name: "index_house_counts_on_performance_id"
   end
 
