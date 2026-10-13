@@ -48,6 +48,9 @@ The import uses a cascading approach to find the correct customer record:
 
 If none of these methods finds a match, a **new customer record is created** from the available data.
 
+!!! tip "External constituent ID is maintained automatically"
+    When [Little Green Light sync](../customers/lgl-sync.md) is configured, Stagemgr keeps each linked constituent's `External constituent ID` in LGL set to the Stagemgr customer ID, so exports from LGL match by ID.
+
 ### What Gets Updated
 
 For each matched or created customer record, the import sets:

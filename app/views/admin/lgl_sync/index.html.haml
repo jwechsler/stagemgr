@@ -1,0 +1,70 @@
+= content_for :title do
+  Little Green Light sync
+= content_for :breadcrumbs do
+  - crumbs = [{ label: 'System Options', path: admin_system_options_path }, { label: 'Little Green Light sync' }]
+  = render "shared/components/breadcrumb", items: crumbs
+
+.grid-x.grid-padding-x
+  .small-12.cell
+    %fieldset.fieldset
+      %legend Status
+      %table.unstriped
+        %tbody
+          %tr
+            %th Configured
+            %td
+              - if @enabled
+                Yes
+              - else
+                No (set LGL_API_KEY)
+          - if @enabled
+            %tr
+              %th Writes to LGL
+              %td
+                - if @read_only
+                  Read-only in this environment
+                  - if @writable_address_ids.any?
+                    except address ids #{@writable_address_ids.join(', ')}
+                - else
+                  Enabled
+          %tr
+            %th Polled LGL changes through
+            %td= @last_poll ? @last_poll.to_formatted_s(:short_date_and_time) : 'never'
+          %tr
+            %th Last sweep finished
+            %td= @last_sweep ? @last_sweep.to_formatted_s(:short_date_and_time) : 'never'
+          %tr
+            %th Linked customers
+            %td= number_with_delimiter(@linked_count)
+
+      - if @enabled
+        .button-group
+          = button_to 'Poll now', admin_lgl_sync_poll_path, method: :post, class: 'button'
+          = button_to 'Sweep now', admin_lgl_sync_sweep_path, method: :post, class: 'button'
+          - backfill_confirm = 'Link every LGL constituent to its customer by external id?'
+          = button_to 'Backfill', admin_lgl_sync_backfill_path, method: :post, class: 'button secondary',
+                                                                data: { confirm: backfill_confirm }
+
+    %fieldset.fieldset
+      %legend LGL Review (#{number_with_delimiter(@review_count)})
+      - if @review_tags.empty?
+        %p No customers need review.
+      - else
+        - if @review_count > @review_tags.size
+          %p Showing the oldest #{@review_tags.size} of #{number_with_delimiter(@review_count)}.
+        %table
+          %thead
+            %tr
+              %th Customer
+              %th Reason
+              %th Flagged
+          %tbody
+            - @review_tags.each do |tag|
+              %tr
+                %td
+                  - if tag.address
+                    = link_to tag.address.full_name.presence || "##{tag.address_id}", admin_address_path(tag.address_id)
+                  - else
+                    = "##{tag.address_id}"
+                %td= tag.tag_value
+                %td= tag.created_at&.to_formatted_s(:short_date_and_time)

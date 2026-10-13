@@ -110,7 +110,7 @@ own pidfile and log:
 |---|---|
 | `notification,report,import,sync` | `log/resque.log` |
 | `printing,batch_printing` | `log/printing_queue.log` |
-| `default,maintenance` | `log/maintenance_queue.log` |
+| `default,maintenance,lgl` | `log/maintenance_queue.log` |
 
 Outside production it starts a single worker on `QUEUE=*`, honouring whatever
 `RAILS_ENV` you exported.

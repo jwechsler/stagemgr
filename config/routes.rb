@@ -374,6 +374,12 @@ Rails.application.routes.draw do
     resources :performance, only: [:destroy]
 
     get '/system_options', controller: 'system_options', action: 'index'
+
+    # Little Green Light sync status; the POSTs only queue the jobs.
+    get 'lgl_sync', to: 'lgl_sync#index', as: :lgl_sync
+    post 'lgl_sync/poll', to: 'lgl_sync#poll', as: :lgl_sync_poll
+    post 'lgl_sync/sweep', to: 'lgl_sync#sweep', as: :lgl_sync_sweep
+    post 'lgl_sync/backfill', to: 'lgl_sync#backfill', as: :lgl_sync_backfill
   end
 
   namespace :current_user do
