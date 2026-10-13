@@ -208,6 +208,34 @@ RSpec.describe Lgl::Client do
       expect(requests.first[:req].method).to eq('PATCH')
       expect(requests.first[:uri].path).to eq('/api/v1/constituents/77')
     end
+
+    {
+      update_street_address: ['PATCH', '/api/v1/street_addresses/11'],
+      add_street_address: ['POST', '/api/v1/constituents/77/street_addresses'],
+      update_phone_number: ['PATCH', '/api/v1/phone_numbers/11'],
+      add_phone_number: ['POST', '/api/v1/constituents/77/phone_numbers']
+    }.each do |method_name, (verb, path)|
+      id = method_name.to_s.start_with?('add_') ? 77 : 11
+
+      it "#{method_name} sends #{verb} #{path.delete_prefix('/api/v1')} with the JSON attrs" do
+        client.public_send(method_name, id, { 'number' => '1' }, for_address_id: 5)
+
+        req = requests.first[:req]
+        expect(req.method).to eq(verb)
+        expect(requests.first[:uri].path).to eq(path)
+        expect(JSON.parse(req.body)).to eq('number' => '1')
+      end
+
+      it "#{method_name} skips and logs when read-only" do
+        Lgl.read_only!
+        allow(Rails.logger).to receive(:warn)
+
+        expect(client.public_send(method_name, id, { 'number' => '1' }, for_address_id: 5)).to be_nil
+        expect(requests).to be_empty
+        expect(Rails.logger).to have_received(:warn)
+          .with("[LGL] read-only: skipped #{verb} #{path.delete_prefix('/api/v1')} for address #5")
+      end
+    end
   end
 
   it 'has no way to delete anything' do

@@ -4,12 +4,18 @@ require 'net/http'
 require 'json'
 
 module Lgl
-  # Thin REST client for the Little Green Light API (constituents only).
+  # Thin REST client for the Little Green Light API (constituents and their
+  # street address / phone entries).
   #
   # GET, POST and PATCH only: there is deliberately no way to delete anything
-  # in LGL from Stagemgr. Writes go through #create / #update, which consult
-  # Lgl.writable?(for_address_id) and skip (with a logged warning) when the
-  # environment is read-only for that address. Reads always run.
+  # in LGL from Stagemgr. Every write consults Lgl.writable?(for_address_id)
+  # and skips (with a logged warning) when the environment is read-only for
+  # that address. Reads always run.
+  #
+  # Street and phone changes go through LGL's per-entry endpoints
+  # (PATCH /street_addresses/{id}, POST /constituents/{id}/street_addresses and
+  # the phone_numbers equivalents), so a write touches exactly one entry and
+  # never the constituent's other entries.
   #
   # +http+ is injectable for specs: ->(Net::HTTPRequest, URI) { response }
   # where the response answers #code and #body.
@@ -22,6 +28,11 @@ module Lgl
     PAGE_LIMIT = 1000
     SEARCH_PATH = '/constituents/search'
     CONSTITUENTS_PATH = '/constituents'
+    STREET_ADDRESSES_PATH = '/street_addresses'
+    PHONE_NUMBERS_PATH = '/phone_numbers'
+    # LGL's "Home" type for street address and phone entries.
+    HOME_STREET_ADDRESS_TYPE_ID = 1
+    HOME_PHONE_NUMBER_TYPE_ID = 1
     HTTP_NOT_FOUND = 404
     HTTP_TOO_MANY_REQUESTS = 429
 
@@ -97,19 +108,42 @@ module Lgl
     end
 
     def create(attrs, for_address_id:)
-      return skipped('POST', CONSTITUENTS_PATH, for_address_id) unless Lgl.writable?(for_address_id)
-
-      request(Net::HTTP::Post, CONSTITUENTS_PATH, [], attrs)
+      write(Net::HTTP::Post, CONSTITUENTS_PATH, attrs, for_address_id)
     end
 
     def update(id, attrs, for_address_id:)
-      path = "#{CONSTITUENTS_PATH}/#{Integer(id)}"
-      return skipped('PATCH', path, for_address_id) unless Lgl.writable?(for_address_id)
+      write(Net::HTTP::Patch, "#{CONSTITUENTS_PATH}/#{Integer(id)}", attrs, for_address_id)
+    end
 
-      request(Net::HTTP::Patch, path, [], attrs)
+    # Edits one existing street address entry in place.
+    def update_street_address(id, attrs, for_address_id:)
+      write(Net::HTTP::Patch, "#{STREET_ADDRESSES_PATH}/#{Integer(id)}", attrs, for_address_id)
+    end
+
+    # Adds a street address entry to the constituent.
+    def add_street_address(constituent_id, attrs, for_address_id:)
+      write(Net::HTTP::Post, "#{CONSTITUENTS_PATH}/#{Integer(constituent_id)}#{STREET_ADDRESSES_PATH}",
+            attrs, for_address_id)
+    end
+
+    # Edits one existing phone number entry in place.
+    def update_phone_number(id, attrs, for_address_id:)
+      write(Net::HTTP::Patch, "#{PHONE_NUMBERS_PATH}/#{Integer(id)}", attrs, for_address_id)
+    end
+
+    # Adds a phone number entry to the constituent.
+    def add_phone_number(constituent_id, attrs, for_address_id:)
+      write(Net::HTTP::Post, "#{CONSTITUENTS_PATH}/#{Integer(constituent_id)}#{PHONE_NUMBERS_PATH}",
+            attrs, for_address_id)
     end
 
     private
+
+    def write(verb_class, path, attrs, address_id)
+      return skipped(verb_class::METHOD, path, address_id) unless Lgl.writable?(address_id)
+
+      request(verb_class, path, [], attrs)
+    end
 
     def search_page(params)
       get(SEARCH_PATH, params + [['limit', PAGE_LIMIT]])

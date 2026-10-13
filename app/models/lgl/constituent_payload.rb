@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
 module Lgl
-  # Builds the JSON bodies Stagemgr sends to LGL for an address.
+  # Builds the constituent JSON bodies Stagemgr sends to LGL for an address.
   #
-  # Name, street and phone are pushed on update only with push_contact: true
-  # (an address edit in Stagemgr). Otherwise the update only repoints
-  # external_constituent_id, passing LGL's own names back unchanged, so a
-  # donation or sweep never overwrites details LGL staff corrected in LGL.
+  # A create carries names, external id, and one preferred email, Home street
+  # and Home phone. An update (constituent PATCH) carries only names, the
+  # external id and LGL's existing emails: street and phone changes go through
+  # Lgl::ContactChanges and LGL's per-entry endpoints, so the constituent's
+  # other street and phone entries are never touched.
+  #
+  # Names are pushed on update only with push_contact: true (an address edit
+  # in Stagemgr). Otherwise the update only repoints external_constituent_id,
+  # passing LGL's own names back unchanged, so a donation or sweep never
+  # overwrites details LGL staff corrected in LGL.
   #
   # Email is never pushed on update: LGL requires email_addresses on PATCH, so
   # the constituent's existing entries are passed back unchanged (ids
   # included) and no email is ever added or removed.
-  #
-  # !!! VERIFY LIVE BEFORE ANY PRODUCTION WRITE !!!
-  # The exact PATCH semantics for nested arrays with ids (does an entry with
-  # an id update in place? does omitting street_addresses / phone_numbers
-  # leave them alone or delete them? does a new entry without an id append?)
-  # are assumed here and have not yet been confirmed against the live API.
   class ConstituentPayload
     # LGL rejects a constituent without both names.
     NAME_PLACEHOLDER = '-'
@@ -37,21 +37,17 @@ module Lgl
     def for_create
       payload = base_fields
       payload[:email_addresses] = [{ address: @address.email.strip, is_preferred: true }] if @address.email.present?
-      payload[:street_addresses] = [street_fields.merge(is_preferred: true)] if street?
-      payload[:phone_numbers] = [{ number: @address.phone.strip, is_preferred: true }] if phone?
+      payload[:street_addresses] = [create_street] if @address.line1.present?
+      payload[:phone_numbers] = [create_phone] if @address.phone.present?
       payload
     end
 
     def for_update(constituent, push_contact:)
       names = push_contact ? update_names(constituent) : lgl_names(constituent)
       payload = names.merge(external_constituent_id: @address.id.to_s)
-      street = push_contact ? street_change(constituent) : nil
-      phone = push_contact ? phone_change(constituent) : nil
-      return nil unless names_or_external_id_differ?(payload, constituent) || street || phone
+      return nil unless names_or_external_id_differ?(payload, constituent)
 
       payload[:email_addresses] = Array(constituent['email_addresses'])
-      payload[:street_addresses] = [street] if street
-      payload[:phone_numbers] = [phone] if phone
       payload
     end
 
@@ -87,54 +83,13 @@ module Lgl
         payload[:external_constituent_id] != constituent['external_constituent_id'].to_s.strip
     end
 
-    def street?
-      @address.line1.present?
+    def create_street
+      ContactChanges.street_fields(@address)
+                    .merge(street_address_type_id: Client::HOME_STREET_ADDRESS_TYPE_ID, is_preferred: true)
     end
 
-    def phone?
-      @address.phone.present?
-    end
-
-    def street_fields
-      street = [@address.line1, @address.line2].map { |line| line.to_s.strip }.reject(&:empty?).join("\n")
-      { street: street, city: @address.city.to_s.strip, state: @address.state.to_s.strip,
-        postal_code: @address.zipcode.to_s.strip }
-    end
-
-    # The street entry to send, or nil when LGL's preferred entry already matches.
-    def street_change(constituent)
-      return nil unless street?
-
-      wanted = street_fields
-      current = preferred(constituent['street_addresses'])
-      return wanted.merge(is_preferred: true) if current.nil?
-      return nil if wanted.all? { |key, value| same_text?(value, current[key.to_s]) }
-
-      wanted.merge(id: current['id'], is_preferred: true)
-    end
-
-    def phone_change(constituent)
-      return nil unless phone?
-
-      wanted = @address.phone.strip
-      current = preferred(constituent['phone_numbers'])
-      return { number: wanted, is_preferred: true } if current.nil?
-      return nil if digits(wanted) == digits(current['number'])
-
-      { id: current['id'], number: wanted, is_preferred: true }
-    end
-
-    def preferred(entries)
-      list = Array(entries)
-      list.find { |entry| entry['is_preferred'] } || list.first
-    end
-
-    def same_text?(left, right)
-      left.to_s.squish.casecmp?(right.to_s.squish)
-    end
-
-    def digits(value)
-      value.to_s.gsub(/\D/, '')
+    def create_phone
+      { number: @address.phone.strip, phone_number_type_id: Client::HOME_PHONE_NUMBER_TYPE_ID, is_preferred: true }
     end
   end
 end

@@ -15,8 +15,8 @@ RSpec.describe Lgl::ConstituentPayload do
         first_name: 'Jane', last_name: 'Smith', external_constituent_id: '42',
         email_addresses: [{ address: 'jane@example.com', is_preferred: true }],
         street_addresses: [{ street: "1 Main St\nApt 2", city: 'Chicago', state: 'IL', postal_code: '60601',
-                             is_preferred: true }],
-        phone_numbers: [{ number: '773-555-0100', is_preferred: true }]
+                             street_address_type_id: 1, is_preferred: true }],
+        phone_numbers: [{ number: '773-555-0100', phone_number_type_id: 1, is_preferred: true }]
       )
     end
 
@@ -67,26 +67,14 @@ RSpec.describe Lgl::ConstituentPayload do
       expect(described_class.for_update(address, constituent, push_contact: true)).to be_nil
     end
 
-    it "updates LGL's preferred street entry in place when it differs" do
-      address.line1 = '2 Oak Ave'
-      payload = described_class.for_update(address, constituent, push_contact: true)
-      expect(payload[:street_addresses]).to eq([{ id: 11, street: "2 Oak Ave\nApt 2", city: 'Chicago', state: 'IL',
-                                                  postal_code: '60601', is_preferred: true }])
-      expect(payload).not_to have_key(:phone_numbers)
-      expect(payload[:email_addresses]).to eq(emails)
-    end
+    it 'never carries street or phone, even when they differ' do
+      address.assign_attributes(line1: '2 Oak Ave', phone: '312-555-0199')
+      constituent['street_addresses'] = []
+      expect(described_class.for_update(address, constituent, push_contact: true)).to be_nil
 
-    it 'adds a new preferred phone when LGL has none' do
-      constituent['phone_numbers'] = []
+      constituent['last_name'] = 'Smyth'
       payload = described_class.for_update(address, constituent, push_contact: true)
-      expect(payload[:phone_numbers]).to eq([{ number: '773-555-0100', is_preferred: true }])
-      expect(payload).not_to have_key(:street_addresses)
-    end
-
-    it 'updates a different phone number by id' do
-      address.phone = '312-555-0199'
-      payload = described_class.for_update(address, constituent, push_contact: true)
-      expect(payload[:phone_numbers]).to eq([{ id: 12, number: '312-555-0199', is_preferred: true }])
+      expect(payload.keys).to eq(%i[first_name last_name external_constituent_id email_addresses])
     end
 
     context 'without push_contact' do
@@ -101,11 +89,6 @@ RSpec.describe Lgl::ConstituentPayload do
         expect(described_class.for_update(address, constituent, push_contact: false))
           .to eq(first_name: 'Jane', last_name: 'Smith', external_constituent_id: '42', email_addresses: emails)
       end
-    end
-
-    it 'never removes LGL street or phone when Stagemgr has none' do
-      address.assign_attributes(line1: '', phone: '')
-      expect(described_class.for_update(address, constituent, push_contact: true)).to be_nil
     end
   end
 end

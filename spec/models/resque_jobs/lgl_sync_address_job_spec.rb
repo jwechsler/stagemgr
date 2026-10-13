@@ -79,15 +79,83 @@ RSpec.describe LglSyncAddressJob do
                     email_addresses: lgl['email_addresses'] }, for_address_id: address.id)
     end
 
-    it 'pushes the street on an address-edit sync' do
-      allow(client).to receive(:find).and_return(constituent(50).merge('street_addresses' => []))
+    context 'on an address-edit sync' do
+      before do
+        allow(client).to receive(:update)
+        allow(client).to receive(:update_street_address)
+        allow(client).to receive(:add_street_address)
+        allow(client).to receive(:add_phone_number)
+        allow(Rails.logger).to receive(:info)
+      end
+
+      let(:other_street) do
+        { 'id' => 3, 'street' => '9 Work Rd', 'city' => 'Evanston', 'state' => 'IL', 'postal_code' => '60201',
+          'is_preferred' => false }
+      end
+
+      it "edits only LGL's preferred street by id and keeps street out of the constituent PATCH" do
+        lgl = constituent(50, external_id: '')
+        lgl['street_addresses'] = [other_street, lgl['street_addresses'].first.merge('street' => '8 Old Rd')]
+        allow(client).to receive(:find).and_return(lgl)
+
+        described_class.perform(address.id, described_class::EDIT_TRIGGER)
+
+        expect(client).to have_received(:update_street_address)
+          .with(2, { street: '1 Main St', city: 'Chicago', state: 'IL', postal_code: '60601' },
+                for_address_id: address.id)
+        expect(client).to have_received(:update)
+          .with(50, satisfy { |body| !body.key?(:street_addresses) && !body.key?(:phone_numbers) },
+                for_address_id: address.id)
+        expect(client).not_to have_received(:add_street_address)
+      end
+
+      it 'adds a preferred Home street when LGL has no preferred entry' do
+        allow(client).to receive(:find).and_return(constituent(50).merge('street_addresses' => [other_street]))
+
+        expect(described_class.perform(address.id, described_class::EDIT_TRIGGER).action).to eq(:updated)
+
+        expect(client).to have_received(:add_street_address)
+          .with(50, hash_including(street: '1 Main St', street_address_type_id: 1, is_preferred: true),
+                for_address_id: address.id)
+        expect(client).not_to have_received(:update)
+        expect(client).not_to have_received(:update_street_address)
+      end
+
+      it "logs LGL's preferred street and phone before the first write" do
+        address.update!(phone: '773-555-0100')
+        lgl = constituent(50)
+        lgl['street_addresses'].first['street'] = '8 Old Rd'
+        allow(client).to receive(:find).and_return(lgl)
+
+        described_class.perform(address.id, described_class::EDIT_TRIGGER)
+
+        expect(Rails.logger).to have_received(:info)
+          .with("[LGL] address ##{address.id}: before edit, constituent 50 " \
+                "preferred street=#{lgl['street_addresses'].first.to_json} phone=none").ordered
+        expect(client).to have_received(:update_street_address).ordered
+        expect(client).to have_received(:add_phone_number)
+          .with(50, { number: '773-555-0100', phone_number_type_id: 1, is_preferred: true },
+                for_address_id: address.id)
+      end
+
+      it 'writes and logs nothing when LGL already matches' do
+        allow(client).to receive(:find).and_return(constituent(50))
+
+        expect(described_class.perform(address.id, described_class::EDIT_TRIGGER).action).to eq(:unchanged)
+        expect(client).not_to have_received(:update_street_address)
+        expect(Rails.logger).not_to have_received(:info).with(/before edit/)
+      end
+    end
+
+    it 'never touches street or phone entries on a non-edit sync' do
+      address.update!(phone: '773-555-0100')
+      lgl = constituent(50, external_id: '').merge('street_addresses' => [], 'phone_numbers' => [])
+      allow(client).to receive(:find).and_return(lgl)
       allow(client).to receive(:update)
 
-      described_class.perform(address.id, described_class::EDIT_TRIGGER)
+      %w[donation manual poll sweep].each { |reason| described_class.perform(address.id, reason) }
 
-      expect(client).to have_received(:update)
-        .with(50, hash_including(street_addresses: [hash_including(street: '1 Main St', is_preferred: true)]),
-              for_address_id: address.id)
+      expect(client).to have_received(:update).exactly(4).times
     end
 
     it 'keeps an existing review tag' do

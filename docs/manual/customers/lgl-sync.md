@@ -32,7 +32,7 @@ in LGL is the Stagemgr customer id.
 |---|---|
 | A donation is processed | About ten minutes later the donor is linked: an existing constituent with the customer's id, or with the same email and last name, is adopted and its External constituent ID set; otherwise a new constituent is created |
 | An administrator clicks **Link to LGL** / **Re-sync with LGL** on the customer page | The same linking, run in the background straight away |
-| The name, street address or phone of a linked customer is edited | The new values are sent to the constituent about two minutes after the last edit |
+| The name, street address or phone of a linked customer is edited | About two minutes after the last edit, the new values replace the constituent's **preferred** street address and phone in LGL. Other addresses and phones are left alone; if there is no preferred one, a preferred Home entry is added |
 
 Stagemgr never sends **email** changes to LGL; email addresses in LGL are
 managed in LGL. Stagemgr never deletes anything in LGL.

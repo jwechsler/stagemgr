@@ -8,9 +8,16 @@ require 'resque-retry'
 # is EDIT_TRIGGER (the address was edited in Stagemgr); every other trigger
 # (donation, manual, poll, sweep) only makes the constituent's external id
 # equal this address's id, so LGL staff corrections are never overwritten by
-# an older Stagemgr copy. A new constituent always gets the full payload. The ONLY code that writes an address's
-# LGL link. Idempotent: everything is read at run time, so duplicate or stale
-# enqueues are harmless.
+# an older Stagemgr copy. A new constituent always gets the full payload.
+#
+# On an edit, street and phone go through LGL's per-entry endpoints: only the
+# constituent's preferred entry is edited in place (or a preferred Home entry
+# added when it has none), so its other entries are never touched. LGL's
+# current preferred values are logged before the first write so a bad edit can
+# be undone by hand.
+#
+# The ONLY code that writes an address's LGL link. Idempotent: everything is
+# read at run time, so duplicate or stale enqueues are harmless.
 #
 #   1. Tagged with an LGL ID: find it. Gone (404) -> drop the tag, carry on as
 #      untagged. Otherwise point its external id at this address (and push
@@ -77,7 +84,7 @@ class LglSyncAddressJob
       return nil
     end
 
-    action = push(constituent) ? :updated : :unchanged
+    action = pushed?(constituent) ? :updated : :unchanged
     Outcome.new(action, constituent['id'], 'tagged')
   end
 
@@ -105,7 +112,7 @@ class LglSyncAddressJob
   # Adopting writes the local tag even when the PATCH was skipped read-only:
   # the constituent's id is already known.
   def adopt(constituent, why)
-    push(constituent)
+    pushed?(constituent)
     link(constituent['id'])
     Outcome.new(:adopted, constituent['id'], why)
   end
@@ -124,11 +131,46 @@ class LglSyncAddressJob
     Outcome.new(:review, nil, reason)
   end
 
-  # The payload sent (or skipped read-only), or nil when LGL already matches.
-  def push(constituent)
+  # Pushes any differences; true when anything was sent (or skipped read-only),
+  # false when LGL already matches.
+  def pushed?(constituent)
     payload = Lgl::ConstituentPayload.for_update(@address, constituent, push_contact: @push_contact)
+    changes = @push_contact ? Lgl::ContactChanges.new(@address, constituent) : nil
+    street = changes&.street
+    phone = changes&.phone
+    return false unless payload || street || phone
+
+    log_before_edit(constituent, changes) if changes
     @client.update(constituent['id'], payload, for_address_id: @address.id) if payload
-    payload
+    apply_street(constituent['id'], street) if street
+    apply_phone(constituent['id'], phone) if phone
+    true
+  end
+
+  def log_before_edit(constituent, changes)
+    Rails.logger.info("[LGL] address ##{@address.id}: before edit, constituent #{constituent['id']} " \
+                      "preferred street=#{lgl_value(changes.preferred_street)} " \
+                      "phone=#{lgl_value(changes.preferred_phone)}")
+  end
+
+  def lgl_value(entry)
+    entry.nil? ? 'none' : entry.to_json
+  end
+
+  def apply_street(constituent_id, operation)
+    if operation.action == :update
+      @client.update_street_address(operation.id, operation.attrs, for_address_id: @address.id)
+    else
+      @client.add_street_address(constituent_id, operation.attrs, for_address_id: @address.id)
+    end
+  end
+
+  def apply_phone(constituent_id, operation)
+    if operation.action == :update
+      @client.update_phone_number(operation.id, operation.attrs, for_address_id: @address.id)
+    else
+      @client.add_phone_number(constituent_id, operation.attrs, for_address_id: @address.id)
+    end
   end
 
   def link(constituent_id)
