@@ -22,6 +22,12 @@ class AdvanceSalesFilters
     @error = NO_SEASON_ERROR if submitted? && @seasons.empty?
   end
 
+  # True when a submitted theater or season was outside the permitted lists
+  # and so was dropped (e.g. a bookmark made by a user with wider access).
+  def narrowed?
+    @narrowed_theaters || @narrowed_seasons || false
+  end
+
   def submitted?
     @params.key?(:seasons)
   end
@@ -37,14 +43,19 @@ class AdvanceSalesFilters
 
   private
 
-  # The permitted theaters the user actually submitted; [] when none.
+  # The permitted theaters the user actually submitted; [] when none. Only a
+  # submitted form counts as narrowed, as in pick_seasons.
   def pick_theater_ids(permitted)
-    Array(@params[:theater_ids]).compact_blank.map(&:to_i) & permitted
+    requested = Array(@params[:theater_ids]).compact_blank.map(&:to_i)
+    @narrowed_theaters = submitted? && (requested - permitted).any?
+    requested & permitted
   end
 
   def pick_seasons(permitted)
     return permitted.first(DEFAULT_SEASON_COUNT) unless submitted?
 
-    Array(@params[:seasons]).compact_blank.map(&:to_i) & permitted
+    requested = Array(@params[:seasons]).compact_blank.map(&:to_i)
+    @narrowed_seasons = (requested - permitted).any?
+    requested & permitted
   end
 end

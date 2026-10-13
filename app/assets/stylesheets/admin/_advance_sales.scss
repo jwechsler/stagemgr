@@ -1,0 +1,8 @@
+/* Advance Sales (admin/analysis#advance_sales) */
+// Keep each checkbox or radio with its label so a wrapping row never leaves
+// a control at the end of one line and its label at the start of the next.
+// Foundation's `[type=checkbox] + label` rule still supplies the spacing.
+.advance-sales__choice {
+  display: inline-block;
+  white-space: nowrap;
+}

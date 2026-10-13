@@ -3,7 +3,7 @@
 !!! info "Access"
     Available to Admin and Theater users. Theater users see only their own productions.
 
-**Navigation:** Analysis > Select shows > Run Analysis (Rate of Sales)
+**Navigation:** Admin Menu > Analysis > **Rate of Sales** tab > select shows > Run analysis
 
 ---
 
@@ -301,5 +301,5 @@ Lists all selected comparison shows with:
 | **Total Revenue** | Total gross revenue across the entire sales lifecycle (including pre-sales) |
 | **Weeks (incl. pre-sales)** | Number of weeks with sales data, including the pre-preview period |
 
-The **Back to Analysis** button above this table returns to the selection page with all
-current and comparison show selections preserved, so you can adjust and re-run.
+The current and comparison show selections stay at the top of the page above the results,
+so you can adjust them and run again without leaving the page.

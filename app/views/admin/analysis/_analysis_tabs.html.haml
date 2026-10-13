@@ -1,11 +1,13 @@
 -#
   Top-level Analysis tabs. Each tab is its own page (so results stay
   bookmarkable), so these are plain links styled as Foundation tabs rather
-  than data-tabs panels. Locals: active — :production_sales, :advance_sales
-  or :pass_sales.
+  than data-tabs panels. Locals: active — :rate_of_sales, :ticket_revenue,
+  :audience, :advance_sales or :pass_sales.
 :ruby
-  tabs = [[:production_sales, 'Production Sales', admin_analysis_index_path]]
-  tabs << [:advance_sales, 'Advance Sales', advance_sales_admin_analysis_index_path]
+  tabs = [[:rate_of_sales, 'Rate of Sales', rate_of_sales_admin_analysis_index_path],
+          [:ticket_revenue, 'Ticket Revenue', ticket_revenue_admin_analysis_index_path],
+          [:audience, 'Audience', audience_admin_analysis_index_path],
+          [:advance_sales, 'Advance Sales', advance_sales_admin_analysis_index_path]]
   tabs << [:pass_sales, 'Pass Sales', memberships_admin_analysis_index_path] if can?(:analyze_passes, Analysis)
 .grid-x.grid-padding-x
   .small-12.cell

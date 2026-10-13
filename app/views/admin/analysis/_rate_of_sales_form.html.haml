@@ -1,0 +1,39 @@
+-#
+  Current show plus the comparison shows it is measured against. Each picker
+  leaves the other's choices out of its suggestions.
+  Locals: target (Production or nil), comparisons (Array<Production>).
+= form_tag(rate_of_sales_admin_analysis_index_path, method: :get, id: 'rate-of-sales-form',
+                                                    data: { run_requires: 'comparison_production_ids[]' }) do
+  -# Marks a real submission; a target-only link just pre-fills the form.
+  = hidden_field_tag 'comparison_production_ids[]', '', id: nil
+  .grid-x.grid-padding-x
+    .small-12.medium-6.cell
+      %fieldset.fieldset
+        %legend Current show
+        %p.help-text Select the show you want to analyze
+        = render 'shared/components/production_picker',
+                 field_name: 'target_production_id',
+                 scope: :analysis,
+                 selected: target,
+                 required: true,
+                 exclude_field: '#rate-of-sales-form .production-multi-picker-table input[type=hidden]'
+
+  .grid-x.grid-padding-x
+    .small-12.cell
+      %fieldset.fieldset
+        %legend Comparison shows
+        %p.help-text Select shows to aggregate for historical comparison
+        = render 'shared/components/production_multi_picker',
+                 field_name: 'comparison_production_ids',
+                 scope: :analysis,
+                 selected: comparisons,
+                 label: 'Shows',
+                 placeholder: 'Type to search productions...',
+                 exclude_field: '#rate-of-sales-form .production-picker-id'
+
+  .grid-x.grid-padding-x
+    .small-12.cell
+      = submit_tag 'Run analysis', class: 'button', name: nil, id: 'run-analysis-btn',
+                                   disabled: target.nil? || comparisons.empty?
+
+= render 'run_button_script'

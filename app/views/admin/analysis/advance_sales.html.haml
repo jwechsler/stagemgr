@@ -1,7 +1,7 @@
 = content_for :title do
   Advance Sales Analysis
 = content_for :breadcrumbs do
-  - crumbs = [{ label: 'Analysis', path: admin_analysis_index_path }, { label: 'Advance Sales' }]
+  - crumbs = [{ label: 'Analysis', path: rate_of_sales_admin_analysis_index_path }, { label: 'Advance Sales' }]
   = render "shared/components/breadcrumb", items: crumbs
 
 = render 'analysis_tabs', active: :advance_sales
@@ -16,7 +16,8 @@
       Passes are flex passes whose offer is tied to a theater or festival; building-wide flex passes and
       memberships count as single tickets.
 
-= render 'advance_sales_form', filters: @filters, theaters: @theaters, seasons: @seasons
+= render 'advance_sales_form', filters: @filters, theaters: @theaters, seasons: @seasons,
+                               single_theater: @single_theater
 
 #advance-sales-results
   - if @results.nil?

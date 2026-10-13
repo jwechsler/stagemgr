@@ -232,9 +232,9 @@ Rails.application.routes.draw do
       collection do
         get :memberships
         get :advance_sales
-        post :rate_of_sales
-        post :ticket_revenue
-        post :audience
+        get :rate_of_sales
+        get :ticket_revenue
+        get :audience
         post :audience_export
       end
     end

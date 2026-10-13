@@ -8,6 +8,11 @@
 // fires a `change` event (bubbling to the enclosing form), so pages that
 // react to form changes see edits to the theater set too; the search box's
 // own change events are stopped because its text is not a filter.
+//
+// Pages can add a row without the typeahead by triggering
+// `theater-multi-picker:add` on the wrapper with { id, name } (or
+// { id, label }); it adds the theater unless already chosen, then refreshes
+// and fires `change` like a typeahead pick.
 (function($) {
   'use strict';
 
@@ -58,6 +63,12 @@
     });
 
     $input.on('change', function(e) { e.stopPropagation(); });
+
+    $wrap.on('theater-multi-picker:add', function(e, item) {
+      if (!item || !(item.label || item.name)) return;
+      addTheater({ id: parseInt(item.id, 10) || null, label: item.label || item.name });
+      changed();
+    });
 
     $wrap.on('click', '.theater-multi-picker-remove', function(e) {
       e.preventDefault();

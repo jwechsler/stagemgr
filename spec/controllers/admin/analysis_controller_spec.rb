@@ -9,6 +9,7 @@ RSpec.describe Admin::AnalysisController, type: :controller do
            id: 1,
            email: 'admin@example.com',
            is_administrator?: true,
+           is_theater_user?: false,
            theater_ids: [theater.id])
   end
 
@@ -17,6 +18,7 @@ RSpec.describe Admin::AnalysisController, type: :controller do
            id: 2,
            email: 'theater@example.com',
            is_administrator?: false,
+           is_theater_user?: true,
            theater_ids: [theater.id])
   end
 
@@ -29,6 +31,49 @@ RSpec.describe Admin::AnalysisController, type: :controller do
     allow(controller).to receive(:can?).and_return(true)
   end
 
+  let(:venue) { FactoryBot.create(:venue) }
+  let(:show_date) { Date.current - 30.days } # played, so series are finished unless an example says otherwise
+
+  def next_seq
+    @seq = (@seq || 0) + 1
+  end
+
+  # A production with one seat-holding class and one performance on +on+.
+  def make_performance(theater, season:, on: show_date)
+    n = next_seq
+    production = Production.create!(
+      name: "Advance Ctl #{n}", production_code: "AK#{n.to_s.rjust(4, '0')}", capacity: 100,
+      opening_at: on, first_preview_at: on, press_opening_at: on,
+      closing_at: on + 30.days, season: season, status: Production::ACTIVE, theater: theater, venue: venue
+    )
+    TicketClass.create!(production: production, class_code: "AK#{n.to_s.rjust(4, '0')}", class_name: "Class #{n}",
+                        ticket_type: 'Fixed', ticket_price: 25.0, ticketing_fee: 0.0, complimentary: false,
+                        holds_seats: true, web_visible: true, auto_attach: false, software_managed: false)
+    Performance.create!(performance_code: "#{production.production_code}01", production: production,
+                        performance_date: on, status: Performance::PERFORMANCE_STATUSES.first,
+                        performance_time: Time.zone.local(on.year, on.month, on.day, 19, 30))
+  end
+
+  def sell(performance, tickets:, days_before:)
+    order = TicketOrder.create!(status: Order::NEW, performance: performance, address: FactoryBot.create(:address),
+                                payment_type: FactoryBot.create(:cash_payment_type))
+    TicketLineItem.create!(order: order, ticket_class: performance.production.ticket_classes.first,
+                           ticket_count: tickets)
+    day = performance.performance_date - days_before
+    order.update_columns(status: Order::PROCESSED, created_at: Time.zone.local(day.year, day.month, day.day, 12))
+    order
+  end
+
+  # Use the real ability and production scope, not the file-wide stubs.
+  def use_real_ability(user)
+    allow(controller).to receive(:authorize!).and_call_original
+    allow(controller).to receive(:current_ability).and_call_original
+    allow(controller).to receive(:can?).and_call_original
+    allow(Production).to receive(:accessible_by).and_call_original
+    allow(Theater).to receive(:accessible_by).and_call_original
+    allow(controller).to receive(:current_user).and_return(user)
+  end
+
   describe 'POST #audience_export' do
     let(:base_params) do
       {
@@ -38,6 +83,8 @@ RSpec.describe Admin::AnalysisController, type: :controller do
         window_label: '3 months'
       }
     end
+
+    before { allow(Theater).to receive(:accessible_by).and_return(Theater.all) }
 
     context 'as an admin user' do
       before { allow(controller).to receive(:current_user).and_return(admin_user) }
@@ -56,8 +103,8 @@ RSpec.describe Admin::AnalysisController, type: :controller do
 
         post :audience_export, params: base_params
         expect(flash[:notice]).to match(/cohort export is queued/i)
-        expect(response).to redirect_to(admin_analysis_index_path(target_production_id: production.id,
-                                                                  analysis_type: 'audience', comparison_theater_ids: [theater.id]))
+        expect(response).to redirect_to(audience_admin_analysis_index_path(target_production_id: production.id,
+                                                                           comparison_theater_ids: [theater.id]))
       end
 
       it 'allows facility-scope exports for admin users' do
@@ -80,8 +127,8 @@ RSpec.describe Admin::AnalysisController, type: :controller do
         expect(Resque).not_to receive(:enqueue)
         post :audience_export, params: base_params.merge(segment_key: 'three_plus_in_building')
         expect(flash[:error]).to match(/administrators/i)
-        expect(response).to redirect_to(admin_analysis_index_path(target_production_id: production.id,
-                                                                  analysis_type: 'audience', comparison_theater_ids: [theater.id]))
+        expect(response).to redirect_to(audience_admin_analysis_index_path(target_production_id: production.id,
+                                                                           comparison_theater_ids: [theater.id]))
       end
 
       %w[first_time_vs_building returning_vs_building three_plus_in_building].each do |key|
@@ -89,6 +136,53 @@ RSpec.describe Admin::AnalysisController, type: :controller do
           expect(Resque).not_to receive(:enqueue)
           post :audience_export, params: base_params.merge(segment_key: key)
         end
+      end
+    end
+
+    describe 'comparison theaters outside the user’s own' do
+      let(:other_theater) { FactoryBot.create(:theater, name: 'AE Other Theater') }
+      let(:params_with_other) { base_params.merge(comparison_theater_ids: [theater.id.to_s, other_theater.id.to_s]) }
+
+      it 'enqueues and redirects with only the theaters a multi-theater user can read' do
+        use_real_ability(FactoryBot.create(:user, theaters: [theater, FactoryBot.create(:theater)]))
+        expect(Resque).to receive(:enqueue).with(AudienceCohortExport, production.id, [theater.id],
+                                                 'first_time_vs_comparison', anything, anything, anything, anything)
+
+        post :audience_export, params: params_with_other
+
+        expect(response).to redirect_to(audience_admin_analysis_index_path(target_production_id: production.id,
+                                                                           comparison_theater_ids: [theater.id]))
+      end
+
+      it 'enqueues the only theater a single-theater user can read when none was submitted' do
+        use_real_ability(FactoryBot.create(:user, theaters: [theater]))
+        expect(Resque).to receive(:enqueue).with(AudienceCohortExport, production.id, [theater.id],
+                                                 'first_time_vs_comparison', anything, anything, anything, anything)
+
+        post :audience_export, params: base_params.merge(comparison_theater_ids: [''])
+
+        expect(response).to redirect_to(audience_admin_analysis_index_path(target_production_id: production.id,
+                                                                           comparison_theater_ids: [theater.id]))
+      end
+
+      it 'enqueues only the single-theater user’s theater whatever was submitted' do
+        use_real_ability(FactoryBot.create(:user, theaters: [theater]))
+        expect(Resque).to receive(:enqueue).with(AudienceCohortExport, production.id, [theater.id],
+                                                 'first_time_vs_comparison', anything, anything, anything, anything)
+
+        post :audience_export, params: base_params.merge(comparison_theater_ids: [other_theater.id.to_s])
+
+        expect(response).to redirect_to(audience_admin_analysis_index_path(target_production_id: production.id,
+                                                                           comparison_theater_ids: [theater.id]))
+      end
+
+      it 'enqueues every submitted theater for an administrator' do
+        use_real_ability(FactoryBot.create(:admin_user))
+        expect(Resque).to receive(:enqueue) do |*args|
+          expect(args[2]).to contain_exactly(theater.id, other_theater.id)
+        end
+
+        post :audience_export, params: params_with_other
       end
     end
   end
@@ -278,47 +372,8 @@ RSpec.describe Admin::AnalysisController, type: :controller do
     render_views
 
     let(:admin) { FactoryBot.create(:admin_user) }
-    let(:venue) { FactoryBot.create(:venue) }
-    let(:show_date) { Date.current - 30.days } # played, so series are finished unless an example says otherwise
 
-    def next_seq
-      @seq = (@seq || 0) + 1
-    end
-
-    # A production with one seat-holding class and one performance on +on+.
-    def make_performance(theater, season:, on: show_date)
-      n = next_seq
-      production = Production.create!(
-        name: "Advance Ctl #{n}", production_code: "AK#{n.to_s.rjust(4, '0')}", capacity: 100,
-        opening_at: on, first_preview_at: on, press_opening_at: on,
-        closing_at: on + 30.days, season: season, status: Production::ACTIVE, theater: theater, venue: venue
-      )
-      TicketClass.create!(production: production, class_code: "AK#{n.to_s.rjust(4, '0')}", class_name: "Class #{n}",
-                          ticket_type: 'Fixed', ticket_price: 25.0, ticketing_fee: 0.0, complimentary: false,
-                          holds_seats: true, web_visible: true, auto_attach: false, software_managed: false)
-      Performance.create!(performance_code: "#{production.production_code}01", production: production,
-                          performance_date: on, status: Performance::PERFORMANCE_STATUSES.first,
-                          performance_time: Time.zone.local(on.year, on.month, on.day, 19, 30))
-    end
-
-    def sell(performance, tickets:, days_before:)
-      order = TicketOrder.create!(status: Order::NEW, performance: performance, address: FactoryBot.create(:address),
-                                  payment_type: FactoryBot.create(:cash_payment_type))
-      TicketLineItem.create!(order: order, ticket_class: performance.production.ticket_classes.first,
-                             ticket_count: tickets)
-      day = performance.performance_date - days_before
-      order.update_columns(status: Order::PROCESSED, created_at: Time.zone.local(day.year, day.month, day.day, 12))
-      order
-    end
-
-    before do
-      # Use the real ability and production scope for these examples, not the file-wide stubs.
-      allow(controller).to receive(:authorize!).and_call_original
-      allow(controller).to receive(:current_ability).and_call_original
-      allow(controller).to receive(:can?).and_call_original
-      allow(Production).to receive(:accessible_by).and_call_original
-      allow(controller).to receive(:current_user).and_return(admin)
-    end
+    before { use_real_ability(admin) }
 
     it 'renders the filter form with no results when nothing has been submitted' do
       make_performance(theater, season: 2025)
@@ -425,6 +480,63 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       expect(response.body).not_to include('AS Other Theater')
     end
 
+    describe 'a bookmark naming theaters outside the user’s own' do
+      let(:own) { FactoryBot.create(:theater, name: 'AS Own Theater') }
+      let(:other) { FactoryBot.create(:theater, name: 'AS Other Theater') }
+      let(:theater_user) { FactoryBot.create(:user, theaters: [own]) }
+
+      before do
+        sell(make_performance(own, season: 2025), tickets: 2, days_before: 5)
+        sell(make_performance(other, season: 2025), tickets: 7, days_before: 5)
+      end
+
+      it 'warns a theater user and runs on their own theaters' do
+        allow(controller).to receive(:current_user).and_return(theater_user)
+
+        get :advance_sales, params: { theater_ids: [own.id.to_s, other.id.to_s], seasons: ['2025'] }
+
+        expect(response).to have_http_status(:ok)
+        expect(flash.now[:warning]).to eq(described_class::NARROWED_NOTICE)
+        expect(flash.now[:error]).to be_nil
+        expect(assigns(:filters).theater_ids).to eq([own.id])
+        expect(assigns(:results).tickets).to eq(2)
+        expect(Capybara.string(response.body))
+          .to have_css('.flash_warning', exact_text: described_class::NARROWED_NOTICE, normalize_ws: true)
+      end
+
+      it 'does not warn a theater user whose theaters are all readable' do
+        allow(controller).to receive(:current_user).and_return(theater_user)
+
+        get :advance_sales, params: { theater_ids: [own.id.to_s], seasons: ['2025'] }
+
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:results).tickets).to eq(2)
+        expect(response.body).not_to include(described_class::NARROWED_NOTICE)
+      end
+
+      it 'shows only the no-season error when the narrowed bookmark has no seasons' do
+        allow(controller).to receive(:current_user).and_return(theater_user)
+
+        get :advance_sales, params: { theater_ids: [other.id.to_s], seasons: [''] }
+
+        expect(flash.now[:error]).to eq('Select at least one season.')
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:results)).to be_nil
+        page = Capybara.string(response.body)
+        expect(page).to have_css('.flash_error', exact_text: 'Select at least one season.', normalize_ws: true)
+        expect(page).not_to have_css('.flash_warning')
+      end
+
+      it 'does not warn an administrator, who can read every theater' do
+        get :advance_sales, params: { theater_ids: [own.id.to_s, other.id.to_s], seasons: ['2025'] }
+
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:filters).theater_ids).to contain_exactly(own.id, other.id)
+        expect(assigns(:results).tickets).to eq(9)
+        expect(response.body).not_to include(described_class::NARROWED_NOTICE)
+      end
+    end
+
     it 'renders the theater picker pre-filled with the picked theaters' do
       picked = FactoryBot.create(:theater, name: 'AS Picked Theater')
       unpicked = FactoryBot.create(:theater, name: 'AS Unpicked Theater')
@@ -460,6 +572,64 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       expect(page).not_to have_css('input[name="theater_ids[]"]', visible: :all)
     end
 
+    describe 'the theater picker for a user who can read one theater' do
+      let(:own) { FactoryBot.create(:theater, name: 'AS Only Theater') }
+
+      before do
+        sell(make_performance(own, season: 2025), tickets: 2, days_before: 5)
+        use_real_ability(FactoryBot.create(:user, theaters: [own]))
+      end
+
+      it 'is not rendered' do
+        get :advance_sales
+
+        page = Capybara.string(response.body)
+        expect(page).to have_css('form#advance-sales-form')
+        expect(page).not_to have_css('.theater-multi-picker', visible: :all)
+        expect(page).not_to have_css('input[name="theater_ids[]"]', visible: :all)
+      end
+
+      it 'runs a seasons-only submission against that theater without a warning' do
+        get :advance_sales, params: { seasons: ['', '2025'] }
+
+        expect(flash.now[:error]).to be_nil
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:filters).theater_ids).to eq([own.id])
+        expect(assigns(:results).tickets).to eq(2)
+        expect(response.body).not_to include(described_class::NARROWED_NOTICE)
+      end
+
+      it 'still offers the external-sales checkbox when that theater records sales externally' do
+        own.update!(sales_recorded_externally: true)
+
+        get :advance_sales, params: { seasons: ['2025'], include_external: '1' }
+
+        page = Capybara.string(response.body)
+        expect(page).to have_css('#advance-sales-form input#include_external[checked]')
+        expect(page).not_to have_css('.theater-multi-picker', visible: :all)
+        expect(assigns(:results).tickets).to eq(2)
+      end
+    end
+
+    it 'renders the theater picker for a theater user with two theaters' do
+      second = FactoryBot.create(:theater, name: 'AS Second Theater')
+      make_performance(theater, season: 2025)
+      make_performance(second, season: 2025)
+      use_real_ability(FactoryBot.create(:user, theaters: [theater, second]))
+
+      get :advance_sales
+
+      expect(Capybara.string(response.body)).to have_css('#advance-sales-form .theater-multi-picker', visible: :all)
+    end
+
+    it 'renders the theater picker for an administrator' do
+      make_performance(theater, season: 2025)
+
+      get :advance_sales
+
+      expect(Capybara.string(response.body)).to have_css('#advance-sales-form .theater-multi-picker', visible: :all)
+    end
+
     it 'forbids box office users' do
       allow(controller).to receive(:current_user)
         .and_return(FactoryBot.create(:user, is_box_office_user: true))
@@ -468,6 +638,504 @@ RSpec.describe Admin::AnalysisController, type: :controller do
 
       expect(response).to redirect_to(root_path)
       expect(assigns(:results)).to be_nil
+    end
+  end
+
+  describe 'GET #index' do
+    it 'redirects to the Rate of Sales tab' do
+      get :index
+
+      expect(response).to redirect_to(rate_of_sales_admin_analysis_index_path)
+    end
+
+    it 'sends a legacy audience bookmark to the Audience tab with its picks' do
+      get :index, params: { analysis_type: 'audience', target_production_id: production.id.to_s,
+                            comparison_theater_ids: [theater.id.to_s] }
+
+      expect(response).to redirect_to(audience_admin_analysis_index_path(target_production_id: production.id,
+                                                                         comparison_theater_ids: [theater.id]))
+    end
+
+    it 'sends a legacy rate of sales bookmark to the Rate of Sales tab with its comparisons' do
+      get :index, params: { analysis_type: 'rate_of_sales', target_production_id: production.id.to_s,
+                            comparison_production_ids: ['7', '8'] }
+
+      expect(response).to redirect_to(rate_of_sales_admin_analysis_index_path(target_production_id: production.id,
+                                                                              comparison_production_ids: %w[7 8]))
+    end
+
+    it 'sends a legacy ticket revenue bookmark to the Ticket Revenue tab' do
+      get :index, params: { analysis_type: 'ticket_revenue', target_production_id: production.id.to_s,
+                            comparison_production_id: '9' }
+
+      expect(response).to redirect_to(ticket_revenue_admin_analysis_index_path(target_production_id: production.id,
+                                                                               comparison_production_id: '9'))
+    end
+
+    it 'sends an unknown analysis_type to the Rate of Sales tab' do
+      get :index, params: { analysis_type: 'bogus', target_production_id: production.id.to_s }
+
+      expect(response).to redirect_to(rate_of_sales_admin_analysis_index_path)
+    end
+  end
+
+  describe 'GET #rate_of_sales' do
+    render_views
+
+    let(:admin) { FactoryBot.create(:admin_user) }
+    let(:target_performance) { make_performance(theater, season: 2026, on: Date.current - 5.days) }
+    let(:target) { target_performance.production }
+    let(:comparison_performance) { make_performance(theater, season: 2025, on: Date.current - 400.days) }
+    let(:comparison) { comparison_performance.production }
+
+    before { use_real_ability(admin) }
+
+    it 'renders the form with no results when nothing has been submitted' do
+      get :rate_of_sales
+
+      expect(response).to have_http_status(:ok)
+      page = Capybara.string(response.body)
+      expect(page).to have_css('form#rate-of-sales-form')
+      expect(page).to have_button('Run analysis', disabled: true)
+      expect(page).not_to have_css('#rate-of-sales-results')
+      expect(page).to have_css('#analysis-tabs li.tabs-title.is-active', text: 'Rate of Sales')
+      expect(assigns(:results)).to be_nil
+    end
+
+    it 'shows all five tabs, including Pass Sales, to an administrator' do
+      get :rate_of_sales
+
+      tabs = Capybara.string(response.body).all('#analysis-tabs li.tabs-title').map { |li| li.text.strip }
+      expect(tabs).to eq(['Rate of Sales', 'Ticket Revenue', 'Audience', 'Advance Sales', 'Pass Sales'])
+      expect(Capybara.string(response.body)).to have_link('Pass Sales', href: memberships_admin_analysis_index_path)
+    end
+
+    it 'hides the Pass Sales tab from users who may not analyze passes' do
+      allow(controller).to receive(:can?).with(:analyze_passes, Analysis).and_return(false)
+
+      get :rate_of_sales
+
+      page = Capybara.string(response.body)
+      expect(page).to have_css('#analysis-tabs li.tabs-title.is-active', text: 'Rate of Sales')
+      expect(page).not_to have_link('Pass Sales')
+    end
+
+    it 'renders results below the form, which keeps the picks' do
+      sell(target_performance, tickets: 2, days_before: 3)
+      sell(comparison_performance, tickets: 4, days_before: 3)
+
+      get :rate_of_sales, params: { target_production_id: target.id.to_s,
+                                    comparison_production_ids: [comparison.id.to_s] }
+
+      expect(response).to have_http_status(:ok)
+      expect(assigns(:results)).to be_present
+      page = Capybara.string(response.body)
+      expect(page).to have_css('#rate-of-sales-results')
+      expect(page).to have_css("form#rate-of-sales-form input[name='target_production_id'][value='#{target.id}']",
+                               visible: :all)
+      expect(page).to have_css("form#rate-of-sales-form input[name='comparison_production_ids[]'][value='#{comparison.id}']",
+                               visible: :all)
+      expect(page).to have_css('#analysis-tabs li.tabs-title.is-active', text: 'Rate of Sales')
+    end
+
+    it 'pre-fills the form without running when only a current show is given' do
+      get :rate_of_sales, params: { target_production_id: target.id.to_s }
+
+      expect(response).to have_http_status(:ok)
+      expect(flash.now[:error]).to be_nil
+      expect(assigns(:results)).to be_nil
+      page = Capybara.string(response.body)
+      expect(page).not_to have_css('#rate-of-sales-results')
+      expect(page).to have_css("form#rate-of-sales-form input[name='target_production_id'][value='#{target.id}']",
+                               visible: :all)
+    end
+
+    it 'asks for a current show when the form was submitted without one' do
+      get :rate_of_sales, params: { target_production_id: '', comparison_production_ids: ['', comparison.id.to_s] }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Select a current show.')
+      expect(assigns(:results)).to be_nil
+      expect(Capybara.string(response.body)).not_to have_css('#rate-of-sales-results')
+    end
+
+    it 'asks for a comparison show when none was submitted' do
+      get :rate_of_sales, params: { target_production_id: target.id.to_s, comparison_production_ids: [''] }
+
+      expect(response).to have_http_status(:ok)
+      expect(flash.now[:error]).to eq('Select at least one comparison show.')
+      expect(response.body).to include('Select at least one comparison show.')
+      expect(assigns(:results)).to be_nil
+      page = Capybara.string(response.body)
+      expect(page).not_to have_css('#rate-of-sales-results')
+      expect(page).to have_css("input[name='target_production_id'][value='#{target.id}']", visible: :all)
+    end
+
+    it 'says so when the submitted production cannot be found' do
+      get :rate_of_sales, params: { target_production_id: '0', comparison_production_ids: [comparison.id.to_s] }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('That production could not be found.')
+      expect(Capybara.string(response.body)).not_to have_css('#rate-of-sales-results')
+    end
+
+    describe 'a bookmark naming shows outside the user’s theaters' do
+      let(:other_theater) { FactoryBot.create(:theater, name: 'ROS Other Theater') }
+      let(:unreadable) { make_performance(other_theater, season: 2025, on: Date.current - 400.days).production }
+      let(:theater_user) { FactoryBot.create(:user, theaters: [theater]) }
+
+      it 'warns a theater user and runs on the readable comparison shows only' do
+        use_real_ability(theater_user)
+
+        get :rate_of_sales, params: { target_production_id: target.id.to_s,
+                                      comparison_production_ids: [comparison.id.to_s, unreadable.id.to_s] }
+
+        expect(response).to have_http_status(:ok)
+        expect(flash.now[:warning]).to eq(described_class::NARROWED_NOTICE)
+        expect(flash.now[:error]).to be_nil
+        expect(assigns(:results)).to be_present
+        expect(assigns(:comparison_productions)).to eq([comparison])
+        page = Capybara.string(response.body)
+        expect(page).to have_css('.flash_warning', exact_text: described_class::NARROWED_NOTICE, normalize_ws: true)
+        table_rows = page.all('#rate-of-sales-results table.hover tbody tr').map { |row| row.text.squish }
+        expect(table_rows.count).to eq(2)
+        expect(table_rows.last).to include(comparison.name)
+        expect(page).not_to have_text(unreadable.name)
+        expect(page).not_to have_text('ROS Other Theater')
+      end
+
+      it 'asks for a comparison show, without the warning, when no comparison is readable' do
+        use_real_ability(theater_user)
+
+        get :rate_of_sales, params: { target_production_id: target.id.to_s,
+                                      comparison_production_ids: [unreadable.id.to_s] }
+
+        expect(response).to have_http_status(:ok)
+        expect(flash.now[:error]).to eq('Select at least one comparison show.')
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:results)).to be_nil
+        page = Capybara.string(response.body)
+        expect(page).to have_css('.flash_error', exact_text: 'Select at least one comparison show.', normalize_ws: true)
+        expect(page).not_to have_css('.flash_warning')
+        expect(page).not_to have_text(described_class::NARROWED_NOTICE)
+      end
+
+      it 'does not warn an administrator, who can read every show' do
+        get :rate_of_sales, params: { target_production_id: target.id.to_s,
+                                      comparison_production_ids: [comparison.id.to_s, unreadable.id.to_s] }
+
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:comparison_productions)).to contain_exactly(comparison, unreadable)
+        expect(response.body).not_to include(described_class::NARROWED_NOTICE)
+      end
+    end
+  end
+
+  describe 'GET #ticket_revenue' do
+    render_views
+
+    let(:admin) { FactoryBot.create(:admin_user) }
+    let(:target_performance) { make_performance(theater, season: 2026, on: Date.current - 5.days) }
+    let(:target) { target_performance.production }
+    let(:comparison_performance) { make_performance(theater, season: 2025, on: Date.current - 400.days) }
+    let(:comparison) { comparison_performance.production }
+
+    before { use_real_ability(admin) }
+
+    it 'renders the form with no results when nothing has been submitted' do
+      get :ticket_revenue
+
+      expect(response).to have_http_status(:ok)
+      page = Capybara.string(response.body)
+      expect(page).to have_css('form#ticket-revenue-form')
+      expect(page).to have_button('Run analysis', disabled: true)
+      expect(page).not_to have_css('#ticket-revenue-results')
+      expect(page).to have_css('#analysis-tabs li.tabs-title.is-active', text: 'Ticket Revenue')
+      expect(assigns(:target_result)).to be_nil
+    end
+
+    it 'renders results for a current show with no comparison' do
+      sell(target_performance, tickets: 2, days_before: 3)
+
+      get :ticket_revenue, params: { target_production_id: target.id.to_s, comparison_production_id: '' }
+
+      expect(response).to have_http_status(:ok)
+      expect(assigns(:comparison_result)).to be_nil
+      page = Capybara.string(response.body)
+      expect(page).to have_css('#ticket-revenue-results')
+      expect(page).to have_css("form#ticket-revenue-form input[name='target_production_id'][value='#{target.id}']",
+                               visible: :all)
+    end
+
+    it 'renders results against a comparison, keeping both picks in the form' do
+      sell(target_performance, tickets: 2, days_before: 3)
+      sell(comparison_performance, tickets: 4, days_before: 3)
+
+      get :ticket_revenue, params: { target_production_id: target.id.to_s, comparison_production_id: comparison.id.to_s }
+
+      expect(assigns(:comparison_result)).to be_present
+      page = Capybara.string(response.body)
+      expect(page).to have_css('#ticket-revenue-results')
+      expect(page).to have_css("input[name='target_production_id'][value='#{target.id}']", visible: :all)
+      expect(page).to have_css("input[name='comparison_production_id'][value='#{comparison.id}']", visible: :all)
+    end
+
+    it 'asks for a current show when the form was submitted without one' do
+      get :ticket_revenue, params: { target_production_id: '', comparison_production_id: '' }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Select a current show.')
+      expect(Capybara.string(response.body)).not_to have_css('#ticket-revenue-results')
+    end
+
+    it 'says so when the submitted production cannot be found' do
+      get :ticket_revenue, params: { target_production_id: '0' }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('That production could not be found.')
+      expect(Capybara.string(response.body)).not_to have_css('#ticket-revenue-results')
+    end
+
+    describe 'a bookmark naming a comparison outside the user’s theaters' do
+      let(:other_theater) { FactoryBot.create(:theater, name: 'TR Other Theater') }
+      let(:unreadable) { make_performance(other_theater, season: 2025, on: Date.current - 400.days).production }
+      let(:theater_user) { FactoryBot.create(:user, theaters: [theater]) }
+
+      before { sell(target_performance, tickets: 2, days_before: 3) }
+
+      it 'warns a theater user and shows the current show on its own' do
+        use_real_ability(theater_user)
+
+        get :ticket_revenue, params: { target_production_id: target.id.to_s,
+                                       comparison_production_id: unreadable.id.to_s }
+
+        expect(response).to have_http_status(:ok)
+        expect(flash.now[:warning]).to eq(described_class::NARROWED_NOTICE)
+        expect(assigns(:target_result)).to be_present
+        expect(assigns(:comparison_production)).to be_nil
+        expect(assigns(:comparison_result)).to be_nil
+        page = Capybara.string(response.body)
+        expect(page).to have_css('.flash_warning', exact_text: described_class::NARROWED_NOTICE, normalize_ws: true)
+        expect(page).to have_css('#ticket-revenue-results')
+        expect(page).not_to have_css('#comparison-bucket-chart')
+        expect(page.all('#ticket-revenue-results table.hover').first.all('thead th').count).to eq(2)
+        expect(page).not_to have_text(unreadable.name)
+      end
+
+      it 'does not warn a theater user whose comparison is readable' do
+        use_real_ability(theater_user)
+        sell(comparison_performance, tickets: 4, days_before: 3)
+
+        get :ticket_revenue, params: { target_production_id: target.id.to_s,
+                                       comparison_production_id: comparison.id.to_s }
+
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:comparison_result)).to be_present
+        expect(response.body).not_to include(described_class::NARROWED_NOTICE)
+      end
+
+      it 'does not warn an administrator, who can read every show' do
+        get :ticket_revenue, params: { target_production_id: target.id.to_s,
+                                       comparison_production_id: unreadable.id.to_s }
+
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:comparison_production)).to eq(unreadable)
+        expect(response.body).not_to include(described_class::NARROWED_NOTICE)
+      end
+    end
+  end
+
+  describe 'GET #audience' do
+    render_views
+
+    let(:admin) { FactoryBot.create(:admin_user) }
+    let(:target_performance) { make_performance(theater, season: 2026, on: Date.current - 5.days) }
+    let(:target) { target_performance.production }
+
+    before { use_real_ability(admin) }
+
+    it 'renders the form with no results when nothing has been submitted' do
+      get :audience
+
+      expect(response).to have_http_status(:ok)
+      page = Capybara.string(response.body)
+      expect(page).to have_css('form#audience-form')
+      expect(page).to have_button('Run analysis', disabled: true)
+      expect(page).not_to have_css('#audience-results')
+      expect(page).to have_css('#analysis-tabs li.tabs-title.is-active', text: 'Audience')
+      expect(assigns(:results)).to be_nil
+    end
+
+    it 'renders results below the form, which keeps the picks' do
+      sell(target_performance, tickets: 2, days_before: 3)
+
+      get :audience, params: { target_production_id: target.id.to_s, comparison_theater_ids: [theater.id.to_s] }
+
+      expect(response).to have_http_status(:ok)
+      expect(assigns(:results)).to be_present
+      page = Capybara.string(response.body)
+      expect(page).to have_css('#audience-results')
+      expect(page).to have_css("form#audience-form input[name='target_production_id'][value='#{target.id}']",
+                               visible: :all)
+      expect(page).to have_css("form#audience-form input[name='comparison_theater_ids[]'][value='#{theater.id}']",
+                               visible: :all)
+    end
+
+    it 'pre-fills the form without running when only a current show is given' do
+      get :audience, params: { target_production_id: target.id.to_s }
+
+      expect(response).to have_http_status(:ok)
+      expect(flash.now[:error]).to be_nil
+      expect(assigns(:results)).to be_nil
+      page = Capybara.string(response.body)
+      expect(page).not_to have_css('#audience-results')
+      expect(page).to have_css("form#audience-form input[name='target_production_id'][value='#{target.id}']",
+                               visible: :all)
+    end
+
+    it 'asks for a current show when the form was submitted without one' do
+      get :audience, params: { target_production_id: '', comparison_theater_ids: ['', theater.id.to_s] }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Select a current show.')
+      expect(assigns(:results)).to be_nil
+      expect(Capybara.string(response.body)).not_to have_css('#audience-results')
+    end
+
+    it 'asks for a comparison theater when none was submitted' do
+      get :audience, params: { target_production_id: target.id.to_s, comparison_theater_ids: [''] }
+
+      expect(response).to have_http_status(:ok)
+      message = 'Select at least one comparison theater before running an audience analysis.'
+      expect(flash.now[:error]).to eq(message)
+      expect(response.body).to include(message)
+      expect(assigns(:results)).to be_nil
+      expect(Capybara.string(response.body)).not_to have_css('#audience-results')
+    end
+
+    it 'says so when the submitted production cannot be found' do
+      get :audience, params: { target_production_id: '0', comparison_theater_ids: [theater.id.to_s] }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('That production could not be found.')
+      expect(Capybara.string(response.body)).not_to have_css('#audience-results')
+    end
+
+    describe 'a bookmark naming theaters outside the user’s own' do
+      let(:other_theater) { FactoryBot.create(:theater, name: 'AU Other Theater') }
+      let(:theater_user) { FactoryBot.create(:user, theaters: [theater]) }
+
+      before { sell(target_performance, tickets: 2, days_before: 3) }
+
+      it 'warns a theater user and runs on the readable comparison theaters only' do
+        use_real_ability(theater_user)
+
+        get :audience, params: { target_production_id: target.id.to_s,
+                                 comparison_theater_ids: [theater.id.to_s, other_theater.id.to_s] }
+
+        expect(response).to have_http_status(:ok)
+        expect(flash.now[:warning]).to eq(described_class::NARROWED_NOTICE)
+        expect(flash.now[:error]).to be_nil
+        expect(assigns(:comparison_theaters)).to eq([theater])
+        expect(assigns(:results)).to be_present
+        page = Capybara.string(response.body)
+        expect(page).to have_css('.flash_warning', exact_text: described_class::NARROWED_NOTICE, normalize_ws: true)
+        expect(page).to have_css('#audience-results')
+        expect(page).not_to have_text('AU Other Theater')
+      end
+
+      it 'runs a single-theater user on their own theater, with the warning, when none named is readable' do
+        use_real_ability(theater_user)
+
+        get :audience, params: { target_production_id: target.id.to_s, comparison_theater_ids: [other_theater.id.to_s] }
+
+        expect(flash.now[:error]).to be_nil
+        expect(flash.now[:warning]).to eq(described_class::NARROWED_NOTICE)
+        expect(assigns(:comparison_theaters)).to eq([theater])
+        expect(assigns(:results)).to be_present
+        page = Capybara.string(response.body)
+        expect(page).to have_css('.flash_warning', exact_text: described_class::NARROWED_NOTICE, normalize_ws: true)
+        expect(page).not_to have_css('.flash_error')
+        expect(page).to have_css('#audience-results')
+        expect(page).not_to have_text('AU Other Theater')
+      end
+
+      it 'asks a multi-theater user for a comparison theater, without the warning, when none is readable' do
+        use_real_ability(FactoryBot.create(:user, theaters: [theater, FactoryBot.create(:theater)]))
+
+        get :audience, params: { target_production_id: target.id.to_s, comparison_theater_ids: [other_theater.id.to_s] }
+
+        message = 'Select at least one comparison theater before running an audience analysis.'
+        expect(flash.now[:error]).to eq(message)
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:results)).to be_nil
+        page = Capybara.string(response.body)
+        expect(page).to have_css('.flash_error', exact_text: message, normalize_ws: true)
+        expect(page).not_to have_css('.flash_warning')
+      end
+
+      it 'does not warn an administrator, who can read every theater' do
+        get :audience, params: { target_production_id: target.id.to_s,
+                                 comparison_theater_ids: [theater.id.to_s, other_theater.id.to_s] }
+
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:comparison_theaters)).to contain_exactly(theater, other_theater)
+        expect(assigns(:results)).to be_present
+      end
+    end
+
+    describe 'the comparison picker for a user who can read one theater' do
+      before do
+        sell(target_performance, tickets: 2, days_before: 3)
+        use_real_ability(FactoryBot.create(:user, theaters: [theater]))
+      end
+
+      it 'is not rendered, nor its seeding script, but the submission marker is' do
+        get :audience
+
+        page = Capybara.string(response.body)
+        expect(page).not_to have_css('.theater-multi-picker', visible: :all)
+        expect(page).not_to have_css('form#audience-form legend', text: 'Comparison group')
+        expect(page).to have_css('form#audience-form input[type="hidden"][name="comparison_theater_ids[]"][value=""]',
+                                 visible: :all)
+        expect(response.body).not_to include('theater-multi-picker:add')
+      end
+
+      it 'enables Run as soon as the current show is given' do
+        get :audience, params: { target_production_id: target.id.to_s }
+
+        expect(Capybara.string(response.body)).to have_button('Run analysis', disabled: false)
+      end
+
+      it 'runs against that theater when the form names no comparison theater' do
+        get :audience, params: { target_production_id: target.id.to_s, comparison_theater_ids: [''] }
+
+        expect(flash.now[:error]).to be_nil
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:comparison_theaters)).to eq([theater])
+        expect(assigns(:results)).to be_present
+        page = Capybara.string(response.body)
+        expect(page).to have_css('#audience-results')
+        expect(page).to have_css('#audience-results p.help-text', text: "Comparison group: #{theater.name}",
+                                                                  normalize_ws: true)
+        expect(page).not_to have_css('.flash_error')
+        expect(page).not_to have_css('.flash_warning')
+      end
+    end
+
+    it 'renders the comparison picker for a theater user with two theaters' do
+      second = FactoryBot.create(:theater, name: 'AU Second Theater')
+      use_real_ability(FactoryBot.create(:user, theaters: [theater, second]))
+
+      get :audience
+
+      expect(Capybara.string(response.body)).to have_css('#audience-form .theater-multi-picker', visible: :all)
+    end
+
+    it 'renders the comparison picker for an administrator' do
+      get :audience
+
+      expect(Capybara.string(response.body)).to have_css('#audience-form .theater-multi-picker', visible: :all)
     end
   end
 end

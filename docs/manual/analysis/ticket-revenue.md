@@ -3,7 +3,7 @@
 !!! info "Access"
     Available to Admin and Theater users. Theater users see only their own productions.
 
-**Navigation:** Analysis > Select show > Run Analysis (Ticket Revenue)
+**Navigation:** Admin Menu > Analysis > **Ticket Revenue** tab > select show > Run analysis
 
 ---
 
@@ -30,9 +30,9 @@ The analysis page has four sections:
 
 ## Setting Up the Analysis
 
-Ticket Revenue is selected from the **Analysis Type** dropdown on the Analysis selection
-page. Unlike Rate of Sales, a historical comparison production is **optional** -- you can
-run the analysis on a single show without selecting a comparison.
+Ticket Revenue has its own tab on the Analysis page, with the selection form at the top
+and the results below it. Unlike Rate of Sales, a historical comparison production is
+**optional** -- you can run the analysis on a single show without selecting a comparison.
 
 ![Analysis selection with Ticket Revenue type and shows selected](../assets/images/screenshots/ticket-revenue-analysis-selection-with-comparison.png)
 
@@ -41,8 +41,7 @@ run the analysis on a single show without selecting a comparison.
 **Historical Production** -- A single historical production to compare against. Optional.
 When selected, charts and tables appear side-by-side for both shows.
 
-Selecting the analysis type changes the comparison field from the multi-show table (used
-for Rate of Sales) to a single-production search.
+Changing either selection clears the results until you click **Run analysis** again.
 
 !!! tip "Single-show mode"
     Running the analysis without a comparison production is useful when you want to

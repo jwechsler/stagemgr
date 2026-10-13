@@ -36,7 +36,7 @@ project where an upcoming performance is heading. See [Pace](#pace-on-the-perfor
 | Field | What it does |
 |-------|--------------|
 | **Seasons** | Tick one or more seasons. The two most recent seasons are ticked on your first visit. At least one is required. |
-| **Theaters** | A typeahead picker. Type part of a theater's name or a [tag](../setup/theaters.md#tags); choose a theater to add it, or an **All theaters tagged ...** entry to add every member of that tag in one click. Remove rows individually or with **Remove all**. Leave the list empty to include every theater you can see. |
+| **Theaters** | A typeahead picker. Type part of a theater's name or a [tag](../setup/theaters.md#tags); choose a theater to add it, or an **All theaters tagged ...** entry to add every member of that tag in one click. Remove rows individually or with **Remove all**. Leave the list empty to include every theater you can see. If you have access to only one theater, the picker is not shown and the analysis uses that theater. |
 | **Compare by** | What each line on the chart represents: a **Season**, a **Theater**, or a **Production**. |
 | **Tickets** | **Both** draws a single-ticket line and a pass line per group; **Single tickets** or **Passes** draws one line per group. See [What counts](#what-counts). |
 | **Include theaters with sales recorded externally** | Shown only when such a theater is in your list. Off by default. See [Sales recorded externally](#sales-recorded-externally). |
