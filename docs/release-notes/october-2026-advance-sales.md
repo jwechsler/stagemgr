@@ -48,7 +48,7 @@ Full write-up is in the manual under Analysis > Advance Sales.
 
 ## Donations on pass-paid orders (already live)
 
-[Name], a member, added a $15 donation to Shattered Globe on a membership-paid order, and the donation silently vanished: the system tried to pay the donation with the membership, which of course can't pay for a donation, and the error was written into the order's notes instead of telling anyone. It turned out a pass plus a donation had *never* been chargeable, because the checkout hid the card fields the moment a pass was chosen.
+A member added a $15 donation to Shattered Globe on a membership-paid order, and the donation silently vanished: the system tried to pay the donation with the membership, which of course can't pay for a donation, and the error was written into the order's notes instead of telling anyone. It turned out a pass plus a donation had *never* been chargeable, because the checkout hid the card fields the moment a pass was chosen.
 
 Now the card fields stay up when a pass is picked and a donation is entered, with a line explaining the pass covers the tickets and the card covers the gift; the order won't go through without a card. And errors in that step reach me properly instead of hiding in notes. While testing it I found that a member who had to fix a rejected order (wrong email, say) was quietly switched back to paying by card on the retry. Also fixed.
 
