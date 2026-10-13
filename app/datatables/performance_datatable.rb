@@ -42,7 +42,7 @@ class PerformanceDatatable < DatatableBase
 
   # One pace computation per request, not one per row.
   def pace_readings
-    @pace_readings ||= AdvanceSalesPace.for_production(production)
+    @pace_readings ||= AdvanceSalesPace.for_productions([production])
   end
 
   # ==== These methods represent the basic operations to perform on records

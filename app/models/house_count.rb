@@ -53,6 +53,35 @@ class HouseCount < Metric
     total_seats
   end
 
+  # Sales pace snapshot. projected_seats, pace_share, pace_sold, pace_source
+  # and pace_as_of are written nightly by the pace job (ProjectHouseCountsJob,
+  # Phase 2) from AdvanceSalesPace; #calculate does not refresh them, so they
+  # describe the performance as of pace_as_of, not now.
+  def apply_pace(reading, as_of:)
+    self.projected_seats = reading&.projected_final
+    self.pace_share = reading&.typical_share
+    self.pace_sold = reading&.sold
+    self.pace_source = reading&.source&.to_s
+    self.pace_as_of = as_of
+  end
+
+  # The typical share in hand was under the projectable minimum.
+  def pace_too_early?
+    pace_share.present? && projected_seats.nil?
+  end
+
+  def projected_pct_of_capacity
+    return nil unless projected_seats.to_i.positive? && total_seats.to_i.positive?
+
+    projected_seats.to_f / total_seats
+  end
+
+  def pace_days_out
+    return nil if pace_as_of.nil?
+
+    (performance.performance_date - pace_as_of).to_i
+  end
+
   # Required by Metric abstract class
   def self.export_columns
     %w[performance_code total_seats sold_seats held_seats available_seats max_ticket_price]

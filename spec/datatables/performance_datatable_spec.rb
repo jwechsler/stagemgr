@@ -73,8 +73,8 @@ RSpec.describe PerformanceDatatable do
     it 'renders a pace cell for upcoming performances and a dash for past ones' do
       past     = create_performance(Date.current - 3.days, '19:30')
       upcoming = create_performance(Date.current + 30.days, '19:30')
-      allow(AdvanceSalesPace).to receive(:for_production).with(production)
-                                                         .and_return(upcoming.id => too_early_reading(upcoming))
+      allow(AdvanceSalesPace).to receive(:for_productions)
+        .with([production]).and_return(upcoming.id => too_early_reading(upcoming))
 
       rows = json_rows.index_by { |row| row[:DT_RowId] } # as_json stringifies the values
 
@@ -95,7 +95,7 @@ RSpec.describe PerformanceDatatable do
       create_performance(Date.current + 1.day, '19:30')
       create_performance(Date.current + 2.days, '19:30')
       create_performance(Date.current + 3.days, '19:30')
-      expect(AdvanceSalesPace).to receive(:for_production).once.and_return({})
+      expect(AdvanceSalesPace).to receive(:for_productions).once.and_return({})
 
       expect(json_rows.size).to eq(3)
     end
