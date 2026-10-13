@@ -111,8 +111,13 @@ Ticking this box keeps the production out of the
 lets you include it deliberately), leaves it out of the sales history behind the **Pace**
 column, hides the Pace column on its own performance list, and removes it from the
 [Rate of Sales](../analysis/rate-of-sales.md) analysis altogether. Everything else about
-the production is unaffected. Flagged productions show an **External sales** label on the
-production page.
+the production is unaffected.
+
+![Sales recorded externally on the production form](../assets/images/screenshots/production-external-sales-field.png)
+
+Flagged productions show an **External sales** label on the production page's Settings tab.
+
+![External sales label on the production page](../assets/images/screenshots/production-external-sales-label.png)
 
 ## Form Fields: Promotional
 

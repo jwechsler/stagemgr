@@ -136,8 +136,14 @@ purchase date, so their lead times are meaningless and would distort any compari
 **Sales recorded externally** on the
 [production form](../productions/creating-a-production.md#sales-recorded-externally)
 to keep such a production out of Advance Sales by default. The form offers a checkbox to
-include them in a run deliberately; included productions carry an **external sales** label
-in the week-by-week list.
+include them in a run deliberately.
+
+![Include productions with sales recorded externally](../assets/images/screenshots/advance-sales-include-external.png)
+
+Included productions carry an **external sales** label in the week-by-week list, so a run
+that mixes the two kinds says which is which.
+
+![External sales label in the week-by-week list](../assets/images/screenshots/advance-sales-external-sales-label.png)
 
 ## Pace on the performance list
 
