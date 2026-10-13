@@ -61,28 +61,37 @@ module Admin::AdvanceSalesHelper
     number_with_delimiter(count)
   end
 
-  # Performance listing cell for an AdvanceSalesPace::Reading: a dash with no
-  # reading, "Too early" when the share in hand is too small to project, else
-  # "~84 (84% of capacity)". The title explains the basis either way. With
-  # external_sales the production is never projected, so the dash carries a
+  # Pace cell for the Upcoming House Counts table, read from the pace snapshot
+  # on a HouseCount (refreshed on every recalculation and nightly): a dash with
+  # no snapshot or nothing projectable, "Too early" when the share in hand is
+  # too small to project, else
+  # "~84 (84% of capacity)". The title explains the basis. A production whose
+  # sales are recorded externally is never projected, so its dash carries a
   # title saying why.
-  def advance_sales_pace_cell(reading, external_sales: false)
-    return content_tag(:span, EMPTY_CELL, title: EXTERNAL_SALES_TITLE) if external_sales
-    return EMPTY_CELL if reading.nil?
+  def house_count_pace_cell(house_count)
+    if house_count.performance.production&.sales_recorded_externally?
+      return content_tag(:span, EMPTY_CELL, title: EXTERNAL_SALES_TITLE)
+    end
+    return EMPTY_CELL if house_count.pace_as_of.nil? || house_count.pace_share.nil?
 
-    title = advance_sales_pace_title(reading)
-    return content_tag(:span, TOO_EARLY_LABEL, title: title) if reading.projected_final.nil?
+    title = house_count_pace_title(house_count)
+    return content_tag(:span, TOO_EARLY_LABEL, title: title) if house_count.pace_too_early?
 
-    text = "~#{number_with_delimiter(reading.projected_final)}"
-    text += " (#{(reading.projected_pct_of_capacity * 100).round}% of capacity)" if reading.capacity.to_i.positive?
-    content_tag(:span, text, title: title)
+    content_tag(:span, house_count_pace_text(house_count), title: title)
   end
 
   private
 
-  def advance_sales_pace_title(reading)
-    share = (reading.typical_share.to_f * 100).round
-    title = "Sold #{reading.sold}; this house typically has #{share}% in hand #{reading.days_out} days out"
-    reading.source == :building ? "#{title} (building-wide curve)" : title
+  def house_count_pace_text(house_count)
+    text = "~#{number_with_delimiter(house_count.projected_seats)}"
+    pct = house_count.projected_pct_of_capacity
+    pct ? "#{text} (#{(pct * 100).round}% of capacity)" : text
+  end
+
+  def house_count_pace_title(house_count)
+    share = (house_count.pace_share.to_f * 100).round
+    title = "Sold #{house_count.pace_sold} as of #{house_count.pace_as_of.strftime('%b %-d')}; " \
+            "this house typically has #{share}% in hand #{house_count.pace_days_out} days out"
+    house_count.pace_source == 'building' ? "#{title} (building-wide curve)" : title
   end
 end

@@ -49,8 +49,8 @@
           :ruby
             external_sales_hint = 'Tickets are keyed in from an outside box office, so order dates are not real ' \
                                   'purchase dates. Left out of the Advance Sales analysis unless included ' \
-                                  'explicitly, excluded from Rate of Sales entirely, and the Pace column is ' \
-                                  'not shown.'
+                                  'explicitly, excluded from Rate of Sales entirely, and no Pace projection ' \
+                                  'is shown on house counts.'
           = f.input :sales_recorded_externally, as: :boolean, label: 'Sales recorded externally',
                                                 hint: external_sales_hint
           = f.input :capacity

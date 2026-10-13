@@ -11,6 +11,7 @@
             %th Held Tickets
             %th Remaining
             %th % booked
+            %th Pace
         %tbody
           - house_counts.each_with_index do |house_count, index|
             %tr{ class: ((index).even? ? 'even' : 'odd') }
@@ -19,5 +20,6 @@
               %td{align: "right"}= house_count.total_seats - house_count.available_seats - house_count.sold_seats
               %td{align: "right"}= house_count.available_seats
               %td{align: "right"}= "#{number_with_precision(100.0 -(house_count.available_seats.to_f/house_count.total_seats.to_f*100.0),precision: 2)}%"
+              %td{align: "right"}= house_count_pace_cell(house_count)
     .small-6.cell
       -# bar_chart @theater_sales_data, xtitle: "Gross Sales", ytitle: "Theater", legend: false, stacked:true

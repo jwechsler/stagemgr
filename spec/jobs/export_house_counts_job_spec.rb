@@ -6,12 +6,14 @@ RSpec.describe ExportHouseCountsJob, type: :job do
   let(:temp_dir) { Rails.root.join('tmp/tests') }
   let(:file_path) { File.join(temp_dir, 'house_count.txt') }
 
+  let(:production) { FactoryBot.create(:production) }
+  let!(:performance1) { FactoryBot.create(:performance, production: production) }
+  let!(:performance2) do
+    FactoryBot.create(:performance, performance_date: performance1.performance_date + 1.day, production: production)
+  end
+
   before do
     FileUtils.mkdir_p(temp_dir) # Ensure the directory exists
-    production = FactoryBot.create(:production)
-    performance1 = FactoryBot.create(:performance, production: production)
-    performance2 = FactoryBot.create(:performance, performance_date: performance1.performance_date + 1.day,
-                                                   production: production)
     FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, performance: performance1)
     FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash, performance: performance1)
     FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance2)
@@ -45,5 +47,16 @@ RSpec.describe ExportHouseCountsJob, type: :job do
 
     # Footer
     expect(content).to include('Generated')
+  end
+
+  it 'adds a Pace column showing the projected seats, blank when nothing was projected' do
+    performance1.house_count.update_columns(projected_seats: 87)
+
+    ExportHouseCountsJob.perform(file_path)
+
+    lines = File.read(file_path).lines
+    expect(lines.find { |l| l.include?('| Code') }).to match(/\| Max Price\s*\| Pace\s*\|/)
+    expect(lines.find { |l| l.include?(performance1.performance_code) }).to match(/\|\s*~87 \|\s*$/)
+    expect(lines.find { |l| l.include?(performance2.performance_code) }).to match(/\|\s+\|\s*$/)
   end
 end
