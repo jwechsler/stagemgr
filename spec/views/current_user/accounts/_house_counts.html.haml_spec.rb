@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-# The Upcoming House Counts table on the account page carries a Pace column
+# The Upcoming House Counts table on the account page carries an Expected column
 # read from each house count's nightly pace snapshot.
 RSpec.describe 'current_user/accounts/_house_counts', type: :view do
   let(:as_of) { Date.new(2026, 10, 6) }
@@ -27,16 +27,16 @@ RSpec.describe 'current_user/accounts/_house_counts', type: :view do
     }
   end
 
-  it 'adds a Pace header after % booked' do
+  it 'adds an Expected header after % booked' do
     headers = Capybara.string(rendered).all('thead th').map(&:text)
 
-    expect(headers.last(2)).to eq(['% booked', 'Pace'])
+    expect(headers.last(2)).to eq(['% booked', 'Expected'])
   end
 
-  it 'shows the projection against capacity with its basis on hover' do
+  it 'shows the expected count with its basis on hover' do
     expect(row_for('PROJ01')).to have_css(
       'td span[title="Sold 20 as of Oct 6; this house typically has 50% in hand 7 days out"]',
-      exact_text: '~84 (84% of capacity)'
+      exact_text: '~84'
     )
   end
 

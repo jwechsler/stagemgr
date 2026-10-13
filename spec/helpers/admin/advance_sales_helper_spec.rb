@@ -151,18 +151,13 @@ RSpec.describe Admin::AdvanceSalesHelper, type: :helper do
       )
     end
 
-    it 'shows the projection against capacity with the basis in the title' do
+    it 'shows the expected count alone, with the basis in the title' do
       html = helper.house_count_pace_cell(house_count(projected_seats: 1234, total_seats: 2000))
 
       expect(html).to have_css(
         'span[title="Sold 20 as of Oct 6; this house typically has 50% in hand 7 days out"]',
-        exact_text: '~1,234 (62% of capacity)'
+        exact_text: '~1,234'
       )
-    end
-
-    it 'leaves out the capacity part when there is no capacity' do
-      expect(helper.house_count_pace_cell(house_count(total_seats: nil))).to have_css('span', exact_text: '~40')
-      expect(helper.house_count_pace_cell(house_count(total_seats: 0))).to have_css('span', exact_text: '~40')
     end
 
     it 'notes the building-wide curve in the title' do
@@ -170,7 +165,7 @@ RSpec.describe Admin::AdvanceSalesHelper, type: :helper do
 
       expect(html).to have_css(
         'span[title="Sold 20 as of Oct 6; this house typically has 50% in hand 7 days out (building-wide curve)"]',
-        exact_text: '~40 (40% of capacity)'
+        exact_text: '~40'
       )
     end
   end

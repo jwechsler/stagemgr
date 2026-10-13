@@ -107,7 +107,8 @@ Looks at *when* tickets were bought relative to the performance: the share of a 
 final sales already in hand 60, 30, 14, 7 and fewer days out, and how much sold in each
 window. Compare seasons, theaters or productions, with single tickets and passes drawn
 separately. A week-by-week table per production shows how each run sold and flags
-performances added after opening, and a **Pace** column on upcoming house counts projects
+performances added after opening, and an
+[**Expected**](advance-sales.md#expected-sales-on-house-counts) column on upcoming house counts projects
 upcoming performances from the theater's own history. Open it from the **Advance Sales**
 tab, or from the **Advance Sales** button on a production page.
 

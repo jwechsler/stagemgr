@@ -49,13 +49,13 @@ RSpec.describe ExportHouseCountsJob, type: :job do
     expect(content).to include('Generated')
   end
 
-  it 'adds a Pace column showing the projected seats, blank when nothing was projected' do
+  it 'adds an Expected column showing the projected seats, blank when nothing was projected' do
     performance1.house_count.update_columns(projected_seats: 87)
 
     ExportHouseCountsJob.perform(file_path)
 
     lines = File.read(file_path).lines
-    expect(lines.find { |l| l.include?('| Code') }).to match(/\| Max Price\s*\| Pace\s*\|/)
+    expect(lines.find { |l| l.include?('| Code') }).to match(/\| Max Price\s*\| Expected\s*\|/)
     expect(lines.find { |l| l.include?(performance1.performance_code) }).to match(/\|\s*~87 \|\s*$/)
     expect(lines.find { |l| l.include?(performance2.performance_code) }).to match(/\|\s+\|\s*$/)
   end

@@ -61,13 +61,12 @@ module Admin::AdvanceSalesHelper
     number_with_delimiter(count)
   end
 
-  # Pace cell for the Upcoming House Counts table, read from the pace snapshot
-  # on a HouseCount (refreshed on every recalculation and nightly): a dash with
-  # no snapshot or nothing projectable, "Too early" when the share in hand is
-  # too small to project, else
-  # "~84 (84% of capacity)". The title explains the basis. A production whose
-  # sales are recorded externally is never projected, so its dash carries a
-  # title saying why.
+  # Expected cell for the Upcoming House Counts table: the paid count expected
+  # at curtain, read from the pace snapshot on a HouseCount (refreshed on every
+  # recalculation and nightly). A dash with no snapshot or nothing projectable,
+  # "Too early" when the share in hand is too small to project, else "~84".
+  # The title explains the basis. A production whose sales are recorded
+  # externally is never projected, so its dash carries a title saying why.
   def house_count_pace_cell(house_count)
     if house_count.performance.production&.sales_recorded_externally?
       return content_tag(:span, EMPTY_CELL, title: EXTERNAL_SALES_TITLE)
@@ -77,16 +76,10 @@ module Admin::AdvanceSalesHelper
     title = house_count_pace_title(house_count)
     return content_tag(:span, TOO_EARLY_LABEL, title: title) if house_count.pace_too_early?
 
-    content_tag(:span, house_count_pace_text(house_count), title: title)
+    content_tag(:span, "~#{number_with_delimiter(house_count.projected_seats)}", title: title)
   end
 
   private
-
-  def house_count_pace_text(house_count)
-    text = "~#{number_with_delimiter(house_count.projected_seats)}"
-    pct = house_count.projected_pct_of_capacity
-    pct ? "#{text} (#{(pct * 100).round}% of capacity)" : text
-  end
 
   def house_count_pace_title(house_count)
     share = (house_count.pace_share.to_f * 100).round

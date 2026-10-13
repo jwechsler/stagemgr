@@ -73,12 +73,6 @@ class HouseCount < Metric
     pace_share.present? && projected_seats.nil?
   end
 
-  def projected_pct_of_capacity
-    return nil unless projected_seats.to_i.positive? && total_seats.to_i.positive?
-
-    projected_seats.to_f / total_seats
-  end
-
   def pace_days_out
     return nil if pace_as_of.nil?
 

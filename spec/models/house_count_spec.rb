@@ -268,7 +268,6 @@ RSpec.describe HouseCount, type: :model do
       expect(house_count).to have_attributes(projected_seats: 40, pace_share: 0.5, pace_sold: 20,
                                              pace_source: 'theater', pace_as_of: as_of)
       expect(house_count).to be_new_record
-      expect(house_count.projected_pct_of_capacity).to be_within(1e-9).of(0.4)
       expect(house_count).not_to be_pace_too_early
     end
 
@@ -279,21 +278,12 @@ RSpec.describe HouseCount, type: :model do
       expect(house_count).to have_attributes(projected_seats: nil, pace_share: nil, pace_sold: nil,
                                              pace_source: nil, pace_as_of: as_of)
       expect(house_count).not_to be_pace_too_early
-      expect(house_count.projected_pct_of_capacity).to be_nil
     end
 
     it 'is too early when a share is stored without a projection' do
       house_count.apply_pace(reading(projected_final: nil, typical_share: 0.05), as_of: as_of)
 
       expect(house_count).to be_pace_too_early
-      expect(house_count.projected_pct_of_capacity).to be_nil
-    end
-
-    it 'has no percent of capacity when total seats is zero' do
-      house_count.total_seats = 0
-      house_count.apply_pace(reading(projected_final: 40), as_of: as_of)
-
-      expect(house_count.projected_pct_of_capacity).to be_nil
     end
 
     it 'counts days out from the day the projection was computed' do

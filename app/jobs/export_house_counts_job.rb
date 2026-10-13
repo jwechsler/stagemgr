@@ -13,7 +13,7 @@ class ExportHouseCountsJob
       { key: :held,      header: 'Held',      align: :right },
       { key: :remaining, header: 'Remaining', align: :right },
       { key: :max_price, header: 'Max Price', align: :right },
-      { key: :pace,      header: 'Pace',      align: :right }
+      { key: :pace,      header: 'Expected',  align: :right }
     ]
 
     rows = HouseCount.export_records.map do |house_count|
