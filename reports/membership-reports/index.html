@@ -2627,6 +2627,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../analysis/advance-sales/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advance Sales
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../analysis/memberships/" class="md-nav__link">
         
   
@@ -3907,6 +3935,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../developer/releases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches & Releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../developer/membership-card-spec/" class="md-nav__link">
         
   
@@ -4254,13 +4310,27 @@ followed by an <strong>All Offers</strong> summary row that totals that month ac
 <td><strong>Paid</strong></td>
 <td>Ticket value members redeemed with their memberships. An exchanged order counts once: the exchange credit cancels the original order's redemption, leaving only the replacement order's.</td>
 </tr>
+<tr>
+<td><strong>Passes</strong></td>
+<td>Number of library passes (timed offers) active in that month. Each pass counts once, however many seats it admits.</td>
+</tr>
+<tr>
+<td><strong>Pass Redeemed</strong></td>
+<td>Ticket value redeemed with library passes, counted the same way as <strong>Paid</strong>.</td>
+</tr>
 </tbody>
 </table>
+<p>Library passes are free and staff-issued, so they are kept out of the membership columns:
+a timed offer's row fills only <strong>Passes</strong> and <strong>Pass Redeemed</strong>, and a membership offer's
+row leaves those two blank. The <strong>All Offers</strong> and <strong>Total</strong> rows add each column
+separately, so <strong>Memberships</strong>, <strong>Members</strong>, <strong>Collected</strong> and <strong>Paid</strong> never include
+passes.</p>
 <div class="admonition note">
 <p class="admonition-title">The Total row does not total the count columns</p>
 <p><strong>Memberships</strong> and <strong>Members</strong> are active-during-month counts. Adding them across months
 would count every membership once per month it spans, so the grand <strong>Total</strong> row leaves
-those two columns blank and totals only <strong>Collected</strong> and <strong>Paid</strong>.</p>
+those two columns and <strong>Passes</strong> blank and totals only <strong>Collected</strong>, <strong>Paid</strong> and
+<strong>Pass Redeemed</strong>.</p>
 </div>
 <p>When the report is limited with the offer picker, detail rows cover only the selected
 offers, the monthly <strong>All Offers</strong> summary rows total just that selection, and the on-screen

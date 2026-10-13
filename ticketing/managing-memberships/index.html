@@ -2033,16 +2033,27 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#how-duration-is-counted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Duration is counted
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#sorting-and-searching" class="md-nav__link">
+  <a href="#filtering-sorting-and-searching" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sorting and Searching
+        Filtering, Sorting and Searching
       
     </span>
   </a>
@@ -2770,6 +2781,34 @@
     
   
     Audience
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/advance-sales/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advance Sales
   
 
     
@@ -3846,6 +3885,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../developer/releases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches & Releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../developer/membership-card-spec/" class="md-nav__link">
         
   
@@ -4117,7 +4184,7 @@
 </tr>
 <tr>
 <td><strong>Offer</strong></td>
-<td>The <a href="../../offers/membership-offers/">membership offer</a> the membership was purchased or issued under, with its type (<code>production</code> or <code>timed</code>) in parentheses.</td>
+<td>The <a href="../../offers/membership-offers/">membership offer</a> the membership was purchased or issued under, followed by its type labels as on the Membership Offers list: <strong>Production</strong> or <strong>Timed</strong>, plus <strong>Prepaid</strong> for a one-time offer.</td>
 </tr>
 <tr>
 <td><strong>Member</strong></td>
@@ -4135,6 +4202,10 @@
 <td><strong>Membership End</strong></td>
 <td>When the membership ended or will end. See below.</td>
 </tr>
+<tr>
+<td><strong>Duration (months)</strong></td>
+<td>How long the membership has run, in months. See below.</td>
+</tr>
 </tbody>
 </table>
 <h3 id="how-membership-end-is-determined">How Membership End is determined<a class="headerlink" href="#how-membership-end-is-determined" title="Permanent link">&para;</a></h3>
@@ -4144,8 +4215,16 @@
 <li>For an active <a href="#one-time-memberships">one-time membership</a>, its last valid day is shown with an <strong>Expires</strong> label.</li>
 <li>A blank value means the membership is ongoing with no scheduled end.</li>
 </ul>
-<h2 id="sorting-and-searching">Sorting and Searching<a class="headerlink" href="#sorting-and-searching" title="Permanent link">&para;</a></h2>
+<h3 id="how-duration-is-counted">How Duration is counted<a class="headerlink" href="#how-duration-is-counted" title="Permanent link">&para;</a></h3>
 <ul>
+<li>It runs from <strong>Start</strong> to the membership's end: today for an Active membership, otherwise the date it closed.</li>
+<li>A partial month counts as a full month: January 5 to January 30 is 1, January 15 to February 8 is 1, and January 15 to February 20 is 2.</li>
+<li>It is never less than 0, and it is blank when a membership that is not Active has no end date (for example, Pending).</li>
+<li>You can sort by it, but the search box does not match it.</li>
+</ul>
+<h2 id="filtering-sorting-and-searching">Filtering, Sorting and Searching<a class="headerlink" href="#filtering-sorting-and-searching" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The buttons above the search box show only memberships with one status: <strong>All</strong>, <strong>Active</strong>, <strong>Suspended</strong>, <strong>Canceled</strong>, <strong>Pending</strong> or <strong>Expired</strong>. <strong>All</strong> is the default, and your choice is remembered between visits.</li>
 <li><strong>Default order</strong> puts memberships in status priority -- Active first, then Suspended, then Canceled -- with members alphabetical within each status.</li>
 <li>Click any column header to sort by that column instead; click again to reverse.</li>
 <li>The <strong>Search</strong> box matches member codes (by prefix), member first/last names, offer names, and statuses, narrowing as you type.</li>
@@ -4253,7 +4332,7 @@ already allows for the printer's unprinted edge.</p>
 <p>If the offer has no card background, the detail page shows a note instead of
 the button, with a link to the offer's edit form for administrators.</p>
 <h2 id="creating-a-membership">Creating a Membership<a class="headerlink" href="#creating-a-membership" title="Permanent link">&para;</a></h2>
-<p>The <strong>New Membership</strong> button below the list creates a membership record directly -- without a purchase order. This is how staff issue shared <a href="../../offers/membership-offers/">library passes</a> and complimentary memberships. For a paid membership, use <strong>Create Order</strong> on the <a href="../../offers/membership-offers/#the-membership-offers-list">Membership Offers list</a> instead so billing is set up.</p>
+<p>Memberships are not created from this list. A paid membership comes from a membership order: use <strong>Create Order</strong> on the <a href="../../offers/membership-offers/#the-membership-offers-list">Membership Offers list</a> so billing is set up. A shared <a href="../../offers/membership-offers/">library pass</a> is issued with <strong>Issue Pass</strong> on its timed offer.</p>
 <div class="admonition note">
 <p class="admonition-title">Email list sync</p>
 <p>When a membership becomes Active, the member's address is automatically added to the offer's MyEmma email group (if one is configured); when it is canceled, suspended or expired, the address is removed -- unless the patron still holds another current membership. The sync runs as a background job. See <a href="../../offers/membership-offers/#email-integration">Membership Offers -- Email Integration</a>.</p>

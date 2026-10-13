@@ -668,6 +668,39 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sales-recorded-externally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sales recorded externally
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#default-appeal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Default appeal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#secondary-appeal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secondary appeal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#tags" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2895,6 +2928,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../analysis/advance-sales/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advance Sales
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../analysis/memberships/" class="md-nav__link">
         
   
@@ -3951,6 +4012,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../developer/releases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches & Releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../developer/membership-card-spec/" class="md-nav__link">
         
   
@@ -4310,6 +4399,29 @@
 <li>Donation orders can be created for this theater</li>
 <li>Donation receipts include appropriate nonprofit tax language</li>
 </ul>
+<h3 id="sales-recorded-externally">Sales recorded externally<a class="headerlink" href="#sales-recorded-externally" title="Permanent link">&para;</a></h3>
+<p>Check this box when the theater sells through its own box office and its tickets are
+keyed into Stagemgr afterwards. For such a theater the order date is the date of data
+entry, not the date the patron bought, so its lead times are meaningless. The
+<a href="../../analysis/advance-sales/">Advance Sales</a> analysis leaves flagged theaters out by
+default (a checkbox on the form lets you include them deliberately), and never uses them
+as history for the <strong>Pace</strong> column. The theater's own production pages are unaffected.
+Flagged theaters show an <strong>External sales</strong> label on the theater detail page.</p>
+<h3 id="default-appeal">Default appeal<a class="headerlink" href="#default-appeal" title="Permanent link">&para;</a></h3>
+<p>The message that asks patrons for a donation in the donation section of this theater's ticket orders. It appears above an <strong>Add a donation: $</strong> box. Markdown is enabled, and <code>{{theater}}</code> is replaced with this theater's name.</p>
+<p>Where it appears:</p>
+<ul>
+<li><strong>Default theater:</strong> in the "I wish to offer additional support" box on its own productions' orders, and in the donation box of the flex pass checkout</li>
+<li><strong>Co-production:</strong> in the "Make a donation to ..." box on the co-production's orders</li>
+<li><strong>Resident company, visiting company or guest artist that is a 501(c)(3):</strong> in the "Donate to ..." box on its productions' orders</li>
+</ul>
+<p>Leave it blank to use the standard wording: <em>Yes! I love {{theater}}. Please add a tax-deductible contribution to this order.</em></p>
+<h3 id="secondary-appeal">Secondary appeal<a class="headerlink" href="#secondary-appeal" title="Permanent link">&para;</a></h3>
+<p>Used only by the default theater. It is the default theater's own appeal on orders for resident company, visiting company and guest artist productions, shown in the "Make a donation to ..." box alongside that company's own appeal. Co-production orders never show it; they show the co-producing theater's default appeal instead.</p>
+<p>Markdown is enabled. <code>{{theater}}</code> is replaced with the default theater's name and <code>{{company}}</code> with the name of the company whose production is being ordered. For example:</p>
+<div class="highlight"><pre><span></span><code>In addition to its own programming, {{theater}} subsidizes facilities and support for groups like {{company}}. Please add a tax-deductible contribution to this order.
+</code></pre></div>
+<p>Leave it blank to use the default theater's default appeal.</p>
 <h3 id="tags">Tags<a class="headerlink" href="#tags" title="Permanent link">&para;</a></h3>
 <p>Tags are free-form labels you can attach to a theater to group it for analysis and reporting. Unlike Theater Class -- which is a fixed list with built-in behavior -- tags are arbitrary text you define and can change at any time. Typical uses include grouping by neighborhood, genre, partnership type, or any other attribute you want to slice by later.</p>
 <p>A theater can have any number of tags. They appear as rounded pill labels in the <strong>Tags</strong> field on the theater form, in the <strong>Name</strong> column of the Theaters list, and at the top of the theater detail page.</p>

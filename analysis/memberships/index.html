@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://stagemgr.theaterwit.org/analysis/memberships/">
       
       
-        <link rel="prev" href="../audience/">
+        <link rel="prev" href="../advance-sales/">
       
       
         <link rel="next" href="../../reports/reports-overview/">
@@ -2624,6 +2624,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../advance-sales/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advance Sales
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -2747,6 +2775,17 @@
     <span class="md-ellipsis">
       
         Per-membership economics, per month
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#library-passes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Library passes
       
     </span>
   </a>
@@ -3813,6 +3852,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../developer/releases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches & Releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../developer/membership-card-spec/" class="md-nav__link">
         
   
@@ -4072,7 +4139,8 @@ Sales tab and can't open the page.</p>
 offer bring in, what did its members redeem, and what is one membership worth?"</em></p>
 <p>It uses the same rules as the <a href="../../reports/membership-reports/#membership-usage">Membership Usage report</a>,
 so its memberships, members, Collected and $ redeemed figures agree with that report's
-Memberships, Members, Collected and Paid for the same offers and dates. Where the report
+Memberships, Members, Collected and Paid for the same offers and dates, and its library
+pass figures agree with the report's Passes and Pass Redeemed. Where the report
 works month by month, this page looks at the whole range at once and adds tenure and
 per-membership figures.</p>
 <h2 id="running-the-analysis">Running the Analysis<a class="headerlink" href="#running-the-analysis" title="Permanent link">&para;</a></h2>
@@ -4129,7 +4197,7 @@ ago shows nothing for a recent range: widen the dates to see its history.</p>
 <p>The page address includes your choices, so you can bookmark a run or send it to a
 colleague.</p>
 <h2 id="results">Results<a class="headerlink" href="#results" title="Permanent link">&para;</a></h2>
-<p>Each table starts with a bold <strong>Total</strong> row across all the selected offers, followed by one
+<p>Each table starts with a bold <strong>Total</strong> row across all the selected membership offers, followed by one
 row per offer. Totals are worked out across every membership in the selection: the Total
 average is the average over all those memberships, not an average of the offer averages.</p>
 <h3 id="memberships-members">Memberships &amp; members<a class="headerlink" href="#memberships-members" title="Permanent link">&para;</a></h3>
@@ -4264,6 +4332,37 @@ open that membership. The Total row pools every membership of the selected offer
 </ul>
 <p>The Money table above is unaffected: its Collected is still the cash taken in during
 the range.</p>
+<h3 id="library-passes">Library passes<a class="headerlink" href="#library-passes" title="Permanent link">&para;</a></h3>
+<p>Library passes (offers whose type is <strong>timed</strong>) are free and staff-issued, so they are
+left out of the membership tables above, including the Total row and the economics. When
+the selection includes a timed offer, a separate <strong>Library passes</strong> table starts with a
+bold <strong>Passes</strong> row across every selected timed offer, followed by one row per timed offer:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Passes in range</strong></td>
+<td>Passes active at any point between the From and To dates. Each pass counts once, however many seats it admits.</td>
+</tr>
+<tr>
+<td><strong>Passes active at end</strong></td>
+<td>Passes active on the <strong>To</strong> date.</td>
+</tr>
+<tr>
+<td><strong>Orders paid with pass</strong></td>
+<td>Ticket orders paid with one of the passes during the range, counted like <strong>Orders paid with membership</strong>.</td>
+</tr>
+<tr>
+<td><strong>$ redeemed</strong></td>
+<td>The ticket value redeemed with the passes during the range.</td>
+</tr>
+</tbody>
+</table>
 <h2 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h2>
 <ul>
 <li>To compare offers side by side, select them together; each gets its own row under the

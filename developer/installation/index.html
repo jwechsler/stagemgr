@@ -2627,6 +2627,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../analysis/advance-sales/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advance Sales
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../analysis/memberships/" class="md-nav__link">
         
   
@@ -3692,6 +3720,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#parallel-worktrees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parallel worktrees
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#what-lives-where" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3898,6 +3937,34 @@
     
   
     Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches & Releases
   
 
     
@@ -4381,6 +4448,24 @@ that already exists, run the grant once by hand:</p>
 is the default <code>DATABASE_USER</code>. Substitute your own if you changed either --
 and note the values are whatever the volume was <strong>initialized</strong> with, not
 whatever <code>.env</code> says now.</p>
+<h3 id="parallel-worktrees">Parallel worktrees<a class="headerlink" href="#parallel-worktrees" title="Permanent link">&para;</a></h3>
+<p>RSpec and Cucumber truncate every table between examples, so two checkouts
+running specs against the same test database break each other's runs. To work
+on several branches at once, give each its own git worktree and test database:</p>
+<div class="highlight"><pre><span></span><code>bin/worktree-setup<span class="w"> </span>&lt;name&gt;<span class="w"> </span><span class="o">[</span>branch<span class="o">]</span><span class="w"> </span><span class="o">[</span>base<span class="o">]</span><span class="w">   </span><span class="c1"># ../stagemgr-&lt;name&gt;, base defaults to the current release branch</span>
+bin/worktree-teardown<span class="w"> </span>&lt;name&gt;<span class="w"> </span><span class="o">[</span>--force<span class="o">]</span><span class="w">      </span><span class="c1"># drops its database, removes the worktree</span>
+</code></pre></div>
+<p><code>worktree-setup</code> checks out <code>&lt;branch&gt;</code> (default <code>&lt;name&gt;</code>, created from <code>&lt;base&gt;</code>
+if it does not exist) in <code>../stagemgr-&lt;name&gt;</code>, copies the gitignored config
+files and <code>.env</code> from the main checkout, links its <code>vendor/bundle</code> and
+<code>node_modules</code>, and creates <code>stagemgr_test_&lt;name&gt;</code>. It records that name in
+the worktree's <code>.env.test.local</code>, which <code>dotenv-rails</code> loads in the test
+environment, so <code>bundle exec rspec</code> and <code>bundle exec cucumber</code> there use it
+without further setup. Both scripts run specs on the host, with gems installed
+in the main checkout's <code>vendor/bundle</code>, and need the <code>stagemgr_test%</code> grant
+above.</p>
+<p><code>worktree-teardown</code> refuses a worktree with uncommitted changes unless you
+pass <code>--force</code>, and keeps the branch.</p>
 <h3 id="what-lives-where">What lives where<a class="headerlink" href="#what-lives-where" title="Permanent link">&para;</a></h3>
 <ul>
 <li>The checkout is bind-mounted at <code>/var/www/stagemgr</code>. <code>config/*.yml</code>, <code>.env</code>,

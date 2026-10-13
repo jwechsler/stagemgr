@@ -16,7 +16,7 @@
         <link rel="prev" href="../theming/">
       
       
-        <link rel="next" href="../membership-card-spec/">
+        <link rel="next" href="../releases/">
       
       
         
@@ -2627,6 +2627,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../analysis/advance-sales/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advance Sales
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../analysis/memberships/" class="md-nav__link">
         
   
@@ -3846,6 +3874,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../releases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches & Releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../membership-card-spec/" class="md-nav__link">
         
   
@@ -4140,7 +4196,10 @@ would need.</p>
 <h2 id="bindeploy"><code>bin/deploy</code><a class="headerlink" href="#bindeploy" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>yourbox<span class="w"> </span><span class="s1">&#39;stagemgr/bin/deploy&#39;</span>
 </code></pre></div>
-<p>It runs the deploy sequence in a fixed order so no step can be forgotten:</p>
+<p><code>master</code> only moves when a release branch is merged or a hotfix lands
+(<a href="../releases/">Branches and Releases</a>), so pulling it always deploys a
+complete batch. It runs the deploy sequence in a fixed order so no step can be
+forgotten:</p>
 <ol>
 <li><code>git checkout master</code> and <code>git pull --ff-only</code></li>
 <li><code>bundle check || bundle install</code></li>
@@ -4236,8 +4295,8 @@ still enforces. A worker without secrets is as broken as a web process -- it
 delivers all the mail.</p>
 </div>
 <h3 id="serving-under-a-sub-path">Serving under a sub-path<a class="headerlink" href="#serving-under-a-sub-path" title="Permanent link">&para;</a></h3>
-<p>Theater Wit serves the app at <code>/tickets</code> under a marketing site. Three things
-must agree:</p>
+<p>Theater Wit integrates the app into the theater's full web site, mapped to the
+sub-URI <code>/tickets</code>. Two things must agree:</p>
 <table>
 <thead>
 <tr>
@@ -4251,15 +4310,18 @@ must agree:</p>
 <td><code>sub_uri: "/tickets"</code></td>
 </tr>
 <tr>
-<td>The process environment</td>
-<td><code>RAILS_RELATIVE_URL_ROOT=/tickets</code> (Passenger sets this from <code>passenger_base_uri</code>; Compose passes <code>STAGEMGR_SUB_URI</code> through)</td>
-</tr>
-<tr>
 <td>The web server</td>
 <td><code>passenger_base_uri /tickets</code>, as <code>docker/nginx.foundation.conf</code> does</td>
 </tr>
 </tbody>
 </table>
+<p><code>config/application.rb</code> fills <code>config.relative_url_root</code> from <code>sub_uri</code>
+whenever <code>RAILS_RELATIVE_URL_ROOT</code> is absent from the process environment or
+blank (Compose exports it blank when <code>STAGEMGR_SUB_URI</code> is unset), so
+<code>bin/deploy</code>'s <code>assets:precompile</code> and the Resque workers see the mount point
+without any shell setup. Passenger still exports the variable from
+<code>passenger_base_uri</code>, and Compose passes <code>STAGEMGR_SUB_URI</code> through as it; a
+non-blank variable wins, so keep it in agreement with <code>sub_uri</code>.</p>
 <p><code>sub_uri</code> is passed to ActionMailer as <code>:script_name</code> rather than being folded
 into <code>:host</code>. Route helpers only know about the mount when the process exports
 <code>RAILS_RELATIVE_URL_ROOT</code>, and the Resque worker that delivers most of the mail

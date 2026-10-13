@@ -1596,6 +1596,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#filtering-by-outstanding-passes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filtering by Outstanding Passes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#selecting-offers-and-changing-their-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Selecting Offers and Changing Their Status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#row-actions" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2951,6 +2973,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../analysis/advance-sales/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advance Sales
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../analysis/memberships/" class="md-nav__link">
         
   
@@ -4007,6 +4057,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../developer/releases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches & Releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../developer/membership-card-spec/" class="md-nav__link">
         
   
@@ -4523,7 +4601,57 @@ price after facility fee, flat payout and redemptions is recovered when the pass
 </tbody>
 </table>
 <p>Each tab has its own search box, column sorting, and paging, so you can filter one list without affecting the other. The searches and sort order you set are remembered separately per tab, and the tab you last viewed stays selected when you return to the page during the same browser session.</p>
+<h3 id="filtering-by-outstanding-passes">Filtering by Outstanding Passes<a class="headerlink" href="#filtering-by-outstanding-passes" title="Permanent link">&para;</a></h3>
+<p>The <strong>Active</strong> tab has a filter above its search box:</p>
+<table>
+<thead>
+<tr>
+<th>Button</th>
+<th>Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>All</strong></td>
+<td>Every active offer (the default).</td>
+</tr>
+<tr>
+<td><strong>Outstanding passes</strong></td>
+<td>Offers with at least one outstanding pass: active, not yet expired, and with tickets left to redeem.</td>
+</tr>
+<tr>
+<td><strong>No outstanding passes</strong></td>
+<td>Offers whose passes are all used up, expired or deactivated, or that have never been sold -- candidates to deactivate.</td>
+</tr>
+</tbody>
+</table>
+<p>These are the same passes listed under <em>Outstanding passes</em> on the offer's detail page. The filter works together with the search box, and your choice is remembered with the tab's other settings.</p>
 <p><img alt="Inactive tab of the flex pass offers list, where rows offer only Edit and Destroy buttons" src="../../assets/images/screenshots/offers-flex-pass-list-inactive-tab.png" /></p>
+<h3 id="selecting-offers-and-changing-their-status">Selecting Offers and Changing Their Status<a class="headerlink" href="#selecting-offers-and-changing-their-status" title="Permanent link">&para;</a></h3>
+<p>Rows on both tabs can be selected the same way as on the Orders list. Click a row (anywhere except its first cell) to select it, Cmd/Ctrl-click to add or remove rows, and Shift-click to select a range. A selection lasts until you change what the table shows: a new search, filter, sort, page, or page size clears it.</p>
+<p>Administrators get a button above the table that acts on the selection:</p>
+<table>
+<thead>
+<tr>
+<th>Tab</th>
+<th>Button</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Active</strong></td>
+<td><strong>Make Inactive</strong></td>
+<td>Deactivates the selected offers after you confirm. Inactive offers also come off public sale.</td>
+</tr>
+<tr>
+<td><strong>Inactive</strong></td>
+<td><strong>Make Active</strong></td>
+<td>Reactivates the selected offers. They do not go back on public sale; turn that on per offer if needed.</td>
+</tr>
+</tbody>
+</table>
+<p>The button is greyed out until at least one row is selected. A message above the table reports how many offers changed and lists any that could not be saved, with the reason. Box office users don't see these buttons and change an offer's status from its <strong>Edit</strong> page.</p>
 <h3 id="row-actions">Row Actions<a class="headerlink" href="#row-actions" title="Permanent link">&para;</a></h3>
 <p>Each row on the <strong>Active</strong> tab has an actions column with <strong>Edit</strong>, <strong>Destroy</strong>, and <strong>Create Order</strong> buttons. Rows on the <strong>Inactive</strong> tab show only <strong>Edit</strong> and <strong>Destroy</strong> -- inactive offers cannot be sold, so no <strong>Create Order</strong> button appears.</p>
 <h3 id="restriction-labels">Restriction Labels<a class="headerlink" href="#restriction-labels" title="Permanent link">&para;</a></h3>
@@ -4563,7 +4691,7 @@ price after facility fee, flat payout and redemptions is recovered when the pass
 <hr />
 <h2 id="the-offer-detail-page">The Offer Detail Page<a class="headerlink" href="#the-offer-detail-page" title="Permanent link">&para;</a></h2>
 <p>Click an offer's name in the Flex Pass Offers list to open its detail page. It gathers everything about the offer in one place: what the patron gets, how the pass may be redeemed, how its price splits for settlement, where it is sold, and how many passes are out there.</p>
-<p><img alt="Flex pass offer detail page showing status labels, What the patron gets, Redemption rules, Payout per pass sold and Where it's sold" src="../../assets/images/screenshots/offers-flex-pass-detail.png" /></p>
+<p><img alt="Flex pass offer detail page: status labels, What the patron gets, Where it's sold and the description on the left; Redemption Rules and Payout tabs on the right" src="../../assets/images/screenshots/offers-flex-pass-detail.png" /></p>
 <h3 id="status-labels">Status Labels<a class="headerlink" href="#status-labels" title="Permanent link">&para;</a></h3>
 <p>Labels under the offer name summarize its state at a glance:</p>
 <table>
@@ -4598,6 +4726,8 @@ price after facility fee, flat payout and redemptions is recovered when the pass
 </table>
 <p>The short description and any tags appear beneath the labels.</p>
 <h3 id="page-sections">Page Sections<a class="headerlink" href="#page-sections" title="Permanent link">&para;</a></h3>
+<p>The left column holds what the patron gets, where the pass is sold and the description. <strong>Redemption rules</strong> and <strong>Payout per pass sold</strong> are tabs on the right (<strong>Redemption Rules</strong> and <strong>Payout</strong>). <strong>Sales &amp; Usage</strong> and the outstanding passes table run full width below.</p>
+<p><img alt="The Payout tab of a flex pass offer detail page" src="../../assets/images/screenshots/offers-flex-pass-detail-payout.png" /></p>
 <table>
 <thead>
 <tr>

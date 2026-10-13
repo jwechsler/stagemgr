@@ -2631,6 +2631,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#advance-sales" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advance Sales
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#membership-analysis" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2820,6 +2831,34 @@
     
   
     Audience
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advance-sales/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advance Sales
   
 
     
@@ -3896,6 +3935,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../developer/releases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches & Releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../developer/membership-card-spec/" class="md-nav__link">
         
   
@@ -4149,9 +4216,13 @@
 access. Theater users see only productions belonging to their theaters.</p>
 </div>
 <p><strong>Navigation:</strong> Admin Menu &gt; Analysis</p>
-<p>The Analysis page has two tabs: <strong>Production Sales</strong> (the default), which holds Rate of
-Sales, Ticket Revenue and Audience, and <strong>Pass Sales</strong>, which holds Membership Analysis.
-The Pass Sales tab is for <strong>Admin</strong> users only; Theater users see Production Sales alone.</p>
+<p>The Analysis page has one tab per analysis: <strong>Rate of Sales</strong> (the default), <strong>Ticket
+Revenue</strong>, <strong>Audience</strong>, <strong>Advance Sales</strong> and <strong>Pass Sales</strong> (Membership Analysis).
+Every tab is built the same way: the selection criteria sit at the top of the page, the
+results appear below once you click <strong>Run analysis</strong>, and you can change any criterion and
+run again without leaving the page. Each run has its own address, so a result can be
+bookmarked or shared. The Pass Sales tab is for <strong>Admin</strong> users only; Theater users see
+the other four.</p>
 <hr />
 <h2 id="about-analysis">About Analysis<a class="headerlink" href="#about-analysis" title="Permanent link">&para;</a></h2>
 <p>The Analysis section lets you compare a current show's sales performance against a set of
@@ -4222,12 +4293,21 @@ growth questions and as the precursor to targeted outreach lists.</p>
 <p class="admonition-title">Direct entry from a production</p>
 <p>Audience Analysis has a shortcut button on the admin <strong>production</strong> page
 (Productions &gt; [Production Name]) next to <em>Edit</em> and <em>Ticket Classes</em>.
-Clicking it lands you on the analysis form with that production pre-selected
-and the default comparison theater seeded -- one more click on <em>Run Analysis</em>
+Clicking it opens the Audience tab with that production pre-selected
+and the default comparison theater seeded -- one more click on <em>Run analysis</em>
 and you're done. Rate of Sales and Ticket Revenue don't have this shortcut
 yet because they need comparison shows you have to pick by hand.</p>
 </div>
 <p><img alt="Analysis selection page" src="../../assets/images/screenshots/analysis-selection-empty.png" /></p>
+<h3 id="advance-sales">Advance Sales<a class="headerlink" href="#advance-sales" title="Permanent link">&para;</a></h3>
+<p>Looks at <em>when</em> tickets were bought relative to the performance: the share of a group's
+final sales already in hand 60, 30, 14, 7 and fewer days out, and how much sold in each
+window. Compare seasons, theaters or productions, with single tickets and passes drawn
+separately. A week-by-week table per production shows how each run sold and flags
+performances added after opening, and a <strong>Pace</strong> column on the production page projects
+upcoming performances from the theater's own history. Open it from the <strong>Advance Sales</strong>
+tab, or from the <strong>Advance Sales</strong> button on a production page.</p>
+<p>See <a href="../advance-sales/">Advance Sales Analysis</a> for full details.</p>
 <h3 id="membership-analysis">Membership Analysis<a class="headerlink" href="#membership-analysis" title="Permanent link">&para;</a></h3>
 <p>Judges membership offers over a date range you choose: how many memberships and members
 there were, what members paid, what they redeemed in tickets, how long lapsed members
@@ -4236,13 +4316,13 @@ or more offers, including inactive ones; the page shows a <strong>Total</strong>
 selection and one row per offer. Open it from the <strong>Pass Sales</strong> tab of the Analysis page.</p>
 <p>See <a href="../memberships/">Membership Analysis</a> for full details.</p>
 <h2 id="setting-up-an-analysis">Setting Up an Analysis<a class="headerlink" href="#setting-up-an-analysis" title="Permanent link">&para;</a></h2>
-<p>Selecting <strong>Analysis Type</strong> from the dropdown changes which comparison field is shown:</p>
+<p>Each tab asks for a <strong>Current show</strong> plus its own kind of comparison:</p>
 <ul>
-<li><strong>Rate of Sales</strong> -- Shows a multi-show comparison table. At least one comparison show
+<li><strong>Rate of Sales</strong> -- A multi-show comparison table. At least one comparison show
   is required.</li>
-<li><strong>Ticket Revenue</strong> -- Shows a single historical production field. No comparison is
+<li><strong>Ticket Revenue</strong> -- A single historical production. No comparison is
   required; you can run the analysis on a single show.</li>
-<li><strong>Audience</strong> -- Shows a comparison-group picker (theaters, not productions). The
+<li><strong>Audience</strong> -- A comparison-group picker (theaters, not productions). The
   current production's own theater is seeded by default. You can add more theaters by
   name or tag. The facility-wide ("vs. every theater in the system") metrics are
   always shown alongside, so there's no separate "compare against the whole building"
@@ -4258,7 +4338,7 @@ selection and one row per offer. Open it from the <strong>Pass Sales</strong> ta
 </ol>
 <h3 id="ticket-revenue_1">Ticket Revenue<a class="headerlink" href="#ticket-revenue_1" title="Permanent link">&para;</a></h3>
 <p>Ticket Revenue requires only a <strong>Current Show</strong>. Optionally add one <strong>Historical
-Production</strong> to display side-by-side charts and tables. The "Run Analysis" button enables
+Production</strong> to display side-by-side charts and tables. The <strong>Run analysis</strong> button enables
 as soon as a current show is selected.</p>
 <h3 id="searching-for-productions">Searching for Productions<a class="headerlink" href="#searching-for-productions" title="Permanent link">&para;</a></h3>
 <p>The analysis page uses Stagemgr's shared
@@ -4292,18 +4372,18 @@ of just that group's productions so you can pick a single show. Use the
 <strong>&larr; All productions</strong> entry to back out of the group.</p>
 <p><img alt="Autocomplete with group shortcuts" src="../../assets/images/screenshots/analysis-autocomplete-groups.png" /></p>
 <h3 id="managing-the-comparison-list">Managing the Comparison List<a class="headerlink" href="#managing-the-comparison-list" title="Permanent link">&para;</a></h3>
-<p>Each comparison show appears in a table with Season, Production, and Theater columns.
+<p>Each comparison show is listed on its own line with its season, name and theater.
 You can:</p>
 <ul>
 <li><strong>Remove individual shows</strong> by clicking "remove" on any row</li>
-<li><strong>Remove all shows</strong> by clicking the "Remove all" button (with confirmation)</li>
-<li><strong>Return with selections intact</strong> -- The "Back to Analysis" button on the results page
-  preserves your current and comparison selections</li>
+<li><strong>Remove all shows</strong> by clicking the "Remove all" button</li>
+<li><strong>Adjust and re-run</strong> -- The selections stay at the top of the page above the results.
+  Changing any of them clears the results until you run again</li>
 </ul>
 <p><img alt="Selection page with shows populated" src="../../assets/images/screenshots/analysis-selection-populated.png" /></p>
 <h3 id="running-the-analysis">Running the Analysis<a class="headerlink" href="#running-the-analysis" title="Permanent link">&para;</a></h3>
-<p>Once you have the required selections for the chosen analysis type, click <strong>Run
-Analysis</strong> to generate results.</p>
+<p>Once you have the required selections for the tab you are on, click <strong>Run analysis</strong>
+to generate results below the form.</p>
 <h2 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h2>
 <ul>
 <li>For meaningful comparisons, select shows with similar characteristics (venue size,

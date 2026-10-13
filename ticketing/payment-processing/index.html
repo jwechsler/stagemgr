@@ -2834,6 +2834,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../analysis/advance-sales/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advance Sales
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../analysis/memberships/" class="md-nav__link">
         
   
@@ -3890,6 +3918,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../developer/releases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches & Releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../developer/membership-card-spec/" class="md-nav__link">
         
   
@@ -4187,12 +4243,13 @@
 <p>If something still goes wrong after the card has been charged, the order is not saved and the charge is refunded to the card automatically. The same applies to the price difference on an exchange and to <a href="../add-to-order/">Add to Order</a>.</p>
 </div>
 <h3 id="additional-donations">Additional Donations<a class="headerlink" href="#additional-donations" title="Permanent link">&para;</a></h3>
-<p>An additional donation added to a ticket order is charged separately, after the tickets have been paid for. If the donation is declined:</p>
+<p>An additional donation added to a ticket order is charged separately, after the tickets have been paid for.</p>
+<p>When the tickets are paid with a membership or flex pass, the pass covers only the tickets. The public order page shows the card fields as soon as a donation is entered, the review page says which card the donation will be charged to, and the order cannot be placed without a card.</p>
+<p>If the donation is declined:</p>
 <ul>
 <li>The ticket order still goes through and keeps its tickets and payment</li>
 <li>The on-screen notice after the order is placed adds <em>Your additional donation could not be processed; the box office will follow up with you.</em></li>
-<li>A note starting <em>Additional donation not processed</em> is added to the order's notes, with the amount and reason</li>
-<li>An <em>Additional donation not processed</em> alert email goes to the box office address, with a link to the order and the patron's contact details</li>
+<li>An <em>Additional donation not processed</em> alert email goes to the box office address, with the amount, the theater, the reason, a link to the order and the patron's contact details. If the donation failed because of a system error rather than the card, the reason says so and the developers are notified</li>
 </ul>
 <p>Follow up with the patron to take the donation another way.</p>
 <div class="admonition tip">
