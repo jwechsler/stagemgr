@@ -74,4 +74,38 @@ RSpec.describe 'a customer record' do
       expect(keeper.reload.address_tags.pluck(:tag_label)).to contain_exactly('press', 'donor')
     end
   end
+
+  describe '#merge_and_purge LGL links' do
+    let!(:house) { Theater.default_theater || FactoryBot.create(:theater, theater_class: Theater::DEFAULT) }
+    let(:keeper) { FactoryBot.create(:address) }
+    let(:duplicate) { FactoryBot.create(:address) }
+
+    it 'flags the keeper for review when both carry different LGL IDs' do
+      keeper.set_lgl_id!(11)
+      duplicate.set_lgl_id!(22)
+
+      keeper.merge_and_purge(duplicate)
+
+      expect(keeper.lgl_id).to eq('22')
+      expect(keeper.lgl_review_reason).to eq('Also LGL constituent 11: merge the two in LGL')
+    end
+
+    it 'adds no review when only one carries an LGL ID' do
+      duplicate.set_lgl_id!(22)
+
+      keeper.merge_and_purge(duplicate)
+
+      expect(keeper.lgl_id).to eq('22')
+      expect(keeper.lgl_review_reason).to be_nil
+    end
+
+    it 'adds no review when both carry the same LGL ID' do
+      keeper.set_lgl_id!(22)
+      duplicate.set_lgl_id!(22)
+
+      keeper.merge_and_purge(duplicate)
+
+      expect(keeper.lgl_review_reason).to be_nil
+    end
+  end
 end

@@ -1,5 +1,9 @@
 class AddressTag < ApplicationRecord
   EXTERNAL_ID = 'External ID' # Special tag for order matchups
+  # Little Green Light constituent id, on the default theater (see LglLinkable).
+  LGL_ID = 'LGL ID'
+  # Why this address needs a human to reconcile it with LGL.
+  LGL_REVIEW = 'LGL Review'
 
   validates :address, presence: true
 
