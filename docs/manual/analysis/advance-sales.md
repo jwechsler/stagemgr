@@ -39,7 +39,7 @@ project where an upcoming performance is heading. See [Pace](#pace-on-the-perfor
 | **Theaters** | A typeahead picker. Type part of a theater's name or a [tag](../setup/theaters.md#tags); choose a theater to add it, or an **All theaters tagged ...** entry to add every member of that tag in one click. Remove rows individually or with **Remove all**. Leave the list empty to include every theater you can see. If you have access to only one theater, the picker is not shown and the analysis uses that theater. |
 | **Compare by** | What each line on the chart represents: a **Season**, a **Theater**, or a **Production**. |
 | **Tickets** | **Both** draws a single-ticket line and a pass line per group; **Single tickets** or **Passes** draws one line per group. See [What counts](#what-counts). |
-| **Include theaters with sales recorded externally** | Shown only when such a theater is in your list. Off by default. See [Sales recorded externally](#sales-recorded-externally). |
+| **Include productions with sales recorded externally** | Shown only when you can see such a production. Off by default. See [Sales recorded externally](#sales-recorded-externally). |
 
 Results are bookmarkable: the address bar carries the full selection, so you can share
 or revisit a run. Changing any filter clears the results until you click **Run analysis**
@@ -130,12 +130,14 @@ Only Active performances are counted; Private and Inactive performances are left
 
 ### Sales recorded externally
 
-Some companies sell through their own box office and have their tickets keyed into
-Stagemgr afterwards. For those theaters the order date is the data-entry date, not the
+Some productions sell through another venue's box office and have their tickets keyed
+into Stagemgr afterwards. For those the order date is the data-entry date, not the
 purchase date, so their lead times are meaningless and would distort any comparison. Tick
-**Sales recorded externally** on the [theater form](../setup/theaters.md#sales-recorded-externally)
-to keep such a theater out of Advance Sales by default. The theater's own production pages
-still show it, and the form offers a checkbox to include it in a run deliberately.
+**Sales recorded externally** on the
+[production form](../productions/creating-a-production.md#sales-recorded-externally)
+to keep such a production out of Advance Sales by default. The form offers a checkbox to
+include them in a run deliberately; included productions carry an **external sales** label
+in the week-by-week list.
 
 ## Pace on the performance list
 
@@ -151,12 +153,12 @@ tickets. The cell reads **~50 (48% of capacity)**; hover over it for the basis.
 |---------|---------|
 | **~N (P% of capacity)** | Projected final count and its share of the production's capacity. |
 | **Too early** | The theater typically has under 10% in hand this far out, so a projection would be noise. |
-| **--** | The performance has played, is inactive, or there is not enough history to project from. |
+| **--** | The performance has played, is inactive, the production's sales are recorded externally, or there is not enough history to project from. |
 
-The history is the theater's earlier seasons. A theater with fewer than 1,000 tickets of
-history uses the building-wide curve instead; the hover text says so. The Pace column is
-not affected by in-progress seasons, because it only ever looks at seasons before the
-production's own.
+The history is the theater's earlier seasons, leaving out any production whose sales are
+recorded externally. A theater with fewer than 1,000 tickets of history uses the
+building-wide curve instead; the hover text says so. The Pace column is not affected by
+in-progress seasons, because it only ever looks at seasons before the production's own.
 
 !!! note
     Pace is a projection from typical behaviour, not a forecast of this show. A strong
