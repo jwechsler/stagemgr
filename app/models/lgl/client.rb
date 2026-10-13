@@ -71,6 +71,14 @@ module Lgl
       each_page(SEARCH_PATH, params) { |page| page.fetch('items', []).each(&block) }
     end
 
+    # Every constituent in the account as a full hash, across all pages.
+    # Returns an Enumerator without a block.
+    def each_constituent(&block)
+      return enum_for(:each_constituent) unless block
+
+      each_page(CONSTITUENTS_PATH, []) { |page| page.fetch('items', []).each(&block) }
+    end
+
     # [ids, total_items] for the whole account. The caller compares the two
     # before trusting the list as complete.
     def each_constituent_id

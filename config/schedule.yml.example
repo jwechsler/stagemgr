@@ -92,3 +92,13 @@ ExpireOneTimeMembershipsJob:
   cron: "15 1 * * *"
   description: "Expire one-time (gift) memberships the day after their expires_on"
   queue: maintenance
+
+LglPollConstituents:
+  every: "15m"
+  description: "Read LGL constituents changed since the last poll; merge LGL-merged duplicates and re-point LGL"
+  queue: lgl
+
+LglSweepConstituents:
+  cron: "30 3 * * *"
+  description: "Drop LGL ID tags whose LGL constituent was deleted or merged away, and re-sync those addresses"
+  queue: lgl

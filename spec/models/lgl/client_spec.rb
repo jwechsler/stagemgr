@@ -131,6 +131,24 @@ RSpec.describe Lgl::Client do
     end
   end
 
+  describe '#each_constituent' do
+    it 'yields every full constituent hash across pages of the plain listing' do
+      respond_with(
+        fake_response(200, { 'total_items' => 3, 'next_item' => 2,
+                             'items' => [{ 'id' => 10, 'external_constituent_id' => '5' }, { 'id' => 11 }] }),
+        fake_response(200, { 'total_items' => 3, 'next_item' => 3, 'items' => [{ 'id' => 12 }] })
+      )
+
+      constituents = client.each_constituent.to_a
+
+      expect(constituents.first).to eq({ 'id' => 10, 'external_constituent_id' => '5' })
+      expect(constituents.pluck('id')).to eq([10, 11, 12])
+      expect(requests.map { |r| r[:uri].path }.uniq).to eq(['/api/v1/constituents'])
+      expect(query_of(0)).to eq([%w[limit 1000], %w[offset 0]])
+      expect(query_of(1)).to include(%w[offset 2])
+    end
+  end
+
   describe '#each_constituent_id' do
     it 'pages the full list and returns the ids with the reported total' do
       respond_with(

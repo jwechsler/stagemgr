@@ -89,13 +89,24 @@ RSpec.describe Admin::AddressesController, type: :controller do
         expect(response).to redirect_to(root_path)
       end
 
-      it 'shows the LGL link and sync button on the customer page' do
+      it 'links the LGL ID to the configured account and shows the sync button' do
+        address.set_lgl_id!(4321)
+        allow(Lgl).to receive(:constituent_url).with('4321')
+                                               .and_return('https://house.littlegreenlight.com/constituents/4321')
+
+        get :show, params: { id: address.id }
+
+        expect(response.body).to include('href="https://house.littlegreenlight.com/constituents/4321"')
+        expect(response.body).to include('Re-sync with LGL', lgl_sync_admin_address_path(address))
+      end
+
+      it 'shows the LGL ID as plain text when no LGL web URL is configured' do
         address.set_lgl_id!(4321)
 
         get :show, params: { id: address.id }
 
-        expect(response.body).to include('https://app.littlegreenlight.com/constituents/4321')
-        expect(response.body).to include('Re-sync with LGL', lgl_sync_admin_address_path(address))
+        expect(response.body).to include('4321')
+        expect(response.body).not_to include('littlegreenlight.com')
       end
 
       it 'shows an unlinked address and its review reason' do

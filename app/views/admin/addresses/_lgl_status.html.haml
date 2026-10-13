@@ -2,11 +2,13 @@
 :ruby
   lgl_id = address.lgl_id
   review_reason = address.lgl_review_reason
-  lgl_url = "https://app.littlegreenlight.com/constituents/#{ERB::Util.url_encode(lgl_id)}" if lgl_id.present?
+  lgl_url = Lgl.constituent_url(lgl_id)
 .lgl-status
   %b LGL:
   - if lgl_url
     = link_to lgl_id, lgl_url, target: '_blank', rel: 'noopener'
+  - elsif lgl_id.present?
+    = lgl_id
   - else
     not linked
   - if review_reason.present?

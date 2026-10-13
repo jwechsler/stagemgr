@@ -112,6 +112,11 @@ all:
     # name blank to stop adding anyone to that group.
     newsletter_group: "Newsletter"
     coupon_group: "Flash Offers"
+  lgl:
+    # Base URL of your Little Green Light account, used to link a customer's
+    # LGL ID to their constituent page, e.g. "https://youraccount.littlegreenlight.com".
+    # Leave blank to show the id as plain text.
+    web_url:
   payment_processing:
     additional_card_types:
 

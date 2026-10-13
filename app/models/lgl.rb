@@ -74,6 +74,16 @@ module Lgl
       @client ||= Lgl::Client.new(api_key: @api_key)
     end
 
+    # The constituent's page in this house's LGL account, or nil when
+    # `lgl: web_url:` is not set in config/server.yml (each account has its
+    # own subdomain, so there is no safe default).
+    def constituent_url(id)
+      base = Rails.configuration.x.server_config&.dig('lgl', 'web_url').to_s.strip.chomp('/')
+      return nil if base.empty? || id.blank?
+
+      "#{base}/constituents/#{ERB::Util.url_encode(id.to_s)}"
+    end
+
     private
 
     def parse_ids(value)

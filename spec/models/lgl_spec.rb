@@ -78,4 +78,27 @@ RSpec.describe Lgl do
       expect(described_class.writable?(99)).to be(true)
     end
   end
+  describe '.constituent_url' do
+    def with_web_url(value)
+      config = Rails.configuration.x.server_config.deep_dup
+      config['lgl'] = { 'web_url' => value }
+      allow(Rails.configuration.x).to receive(:server_config).and_return(config)
+    end
+
+    it 'is nil when no LGL web URL is configured (as in the test config)' do
+      expect(described_class.constituent_url(42)).to be_nil
+    end
+
+    it 'builds the constituent page under the configured account URL' do
+      with_web_url('https://house.littlegreenlight.com/')
+
+      expect(described_class.constituent_url('42')).to eq('https://house.littlegreenlight.com/constituents/42')
+    end
+
+    it 'is nil for a blank id' do
+      with_web_url('https://house.littlegreenlight.com')
+
+      expect(described_class.constituent_url(nil)).to be_nil
+    end
+  end
 end
