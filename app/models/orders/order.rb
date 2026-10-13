@@ -879,6 +879,12 @@ class Order < ApplicationRecord
     task.save!
   end
 
+  def create_lgl_upsert_task
+    return unless is_a?(DonationOrder) && Lgl.enabled?
+
+    LglUpsertTask.create!(order: self, execute_at: Time.now + LglUpsertTask::LGL_DELAY)
+  end
+
   def create_receipt_task; end
 
   def create_transfer_ownership_task; end
@@ -896,6 +902,7 @@ class Order < ApplicationRecord
         create_mail_list_task
         create_receipt_task
         create_transfer_ownership_task if gift?
+        create_lgl_upsert_task
       end
     end
     return unless saved_change_to_status? && status.eql?(Order::PROCESSED)

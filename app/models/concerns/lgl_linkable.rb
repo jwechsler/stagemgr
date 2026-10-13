@@ -12,6 +12,16 @@
 module LglLinkable
   extend ActiveSupport::Concern
 
+  # Address columns whose edit pushes contact fields to a linked LGL
+  # constituent. Email never does: LGL's email addresses are left to LGL.
+  LGL_SYNCED_COLUMNS = %w[first_name last_name full_name line1 line2 city state zipcode phone].freeze
+  # Lets a burst of edits collapse into one sync (the job is a loner).
+  LGL_EDIT_DEBOUNCE = 2.minutes
+
+  included do
+    after_commit :enqueue_lgl_contact_sync, on: :update
+  end
+
   def lgl_id
     lgl_tag_value(AddressTag::LGL_ID)
   end
@@ -37,6 +47,13 @@ module LglLinkable
   end
 
   private
+
+  # saved_changes still holds the last save's changes in after_commit.
+  def enqueue_lgl_contact_sync
+    return unless Lgl.enabled? && saved_changes.keys.intersect?(LGL_SYNCED_COLUMNS) && lgl_id.present?
+
+    Resque.enqueue_in(LGL_EDIT_DEBOUNCE, LglSyncAddressJob, id, LglSyncAddressJob::EDIT_TRIGGER)
+  end
 
   # The other address's LGL ID when both carry one and they differ.
   def conflicting_lgl_id(other)

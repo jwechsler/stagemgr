@@ -64,4 +64,59 @@ RSpec.describe LglLinkable do
     address.clear_lgl_review!
     expect(address.lgl_review_reason).to be_nil
   end
+
+  describe 'edit-triggered sync' do
+    before do
+      allow(Lgl).to receive(:enabled?).and_return(true)
+      allow(Resque).to receive(:enqueue_in)
+    end
+
+    let(:linked) do
+      address.set_lgl_id!(42)
+      address.reload
+    end
+
+    def expect_edit_sync_for(record)
+      expect(Resque).to have_received(:enqueue_in)
+        .with(LglLinkable::LGL_EDIT_DEBOUNCE, LglSyncAddressJob, record.id, LglSyncAddressJob::EDIT_TRIGGER)
+    end
+
+    it 'queues a debounced contact push when a linked address changes its name' do
+      linked.update!(full_name: 'Renamed Patron')
+      expect_edit_sync_for(linked)
+    end
+
+    it 'queues a debounced contact push when a linked address changes its street' do
+      linked.update!(line1: '9 New Street')
+      expect_edit_sync_for(linked)
+    end
+
+    it 'queues a debounced contact push when a linked address changes its phone' do
+      linked.update!(phone: '312-555-0100')
+      expect_edit_sync_for(linked)
+    end
+
+    it 'does not queue when only the email changes' do
+      linked.update!(email: 'changed@example.com')
+      expect(Resque).not_to have_received(:enqueue_in)
+    end
+
+    it 'does not queue for an address with no LGL link' do
+      address.update!(full_name: 'Renamed Patron')
+      expect(Resque).not_to have_received(:enqueue_in)
+    end
+
+    it 'does not queue when LGL is disabled' do
+      allow(Lgl).to receive(:enabled?).and_return(false)
+      linked.update!(full_name: 'Renamed Patron')
+      expect(Resque).not_to have_received(:enqueue_in)
+    end
+
+    it 'does not queue when only the LGL link itself is written' do
+      address.set_lgl_id!(42)
+      address.set_lgl_id!(43)
+      address.lgl_review!('check me')
+      expect(Resque).not_to have_received(:enqueue_in)
+    end
+  end
 end

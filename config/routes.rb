@@ -159,6 +159,9 @@ Rails.application.routes.draw do
     resources :flex_pass_orders
 
     resources :addresses do
+      member do
+        post :lgl_sync
+      end
       collection do
         post :merge_selected, format: :json
         get :autocomplete_address

@@ -1,0 +1,17 @@
+-# Little Green Light link for one address; shown only when LGL is enabled.
+:ruby
+  lgl_id = address.lgl_id
+  review_reason = address.lgl_review_reason
+  lgl_url = "https://app.littlegreenlight.com/constituents/#{ERB::Util.url_encode(lgl_id)}" if lgl_id.present?
+.lgl-status
+  %b LGL:
+  - if lgl_url
+    = link_to lgl_id, lgl_url, target: '_blank', rel: 'noopener'
+  - else
+    not linked
+  - if review_reason.present?
+    = render "shared/components/callout", variant: "warning" do
+      LGL review: #{review_reason}
+  - if can?(:lgl_sync, address)
+    - sync_label = lgl_id.present? ? 'Re-sync with LGL' : 'Link to LGL'
+    = button_to sync_label, lgl_sync_admin_address_path(address), method: :post, class: 'tiny button'

@@ -5,6 +5,8 @@ class Admin::AddressesController < Admin::ApplicationController
 
   respond_to :html, :json
 
+  LGL_MANUAL_TRIGGER = 'manual'.freeze
+
   # GET /admin/addresses
   # GET /admin/addresses.xml
   def index
@@ -133,6 +135,17 @@ class Admin::AddressesController < Admin::ApplicationController
   rescue => e
     Rails.logger.error("Merge failed: #{e.message}\n#{e.backtrace.join("\n")}")
     render json: { result: false, error: e.message }, status: :unprocessable_entity
+  end
+
+  # POST /admin/addresses/1/lgl_sync
+  # Only queues the sync; never calls Little Green Light in the request.
+  def lgl_sync
+    unless Lgl.enabled?
+      return redirect_to(admin_address_path(@address), alert: 'Little Green Light is not configured')
+    end
+
+    Resque.enqueue(LglSyncAddressJob, @address.id, LGL_MANUAL_TRIGGER)
+    redirect_to(admin_address_path(@address), notice: 'Queued a sync with Little Green Light')
   end
 
   def autocomplete_address
