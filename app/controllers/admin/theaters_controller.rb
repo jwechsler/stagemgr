@@ -17,18 +17,20 @@ class Admin::TheatersController < Admin::ApplicationController
 
   # Shared theater multi-picker typeahead (analysis comparison sets and other
   # theater pickers). Any logged-in admin user may search; the result set is
-  # every theater, and callers narrow what the user may actually use.
+  # the theaters the user may read (all of them for Admin and Box Office, only
+  # their own for a Theater user), mirroring ProductionSearch.
   def search
     authorize! :read, Theater
     query = params[:q].to_s.strip
     return render(json: []) if query.blank?
 
+    readable = Theater.accessible_by(current_ability, :read)
     q = "%#{query.downcase}%"
-    name_matches = Theater.where('LOWER(theaters.name) LIKE ?', q).limit(20)
-    tag_matches  = Theater.joins(:theater_tags)
-                          .where('LOWER(theater_tags.name) LIKE ?', q)
-                          .distinct
-                          .limit(20)
+    name_matches = readable.where('LOWER(theaters.name) LIKE ?', q).limit(20)
+    tag_matches  = readable.joins(:theater_tags)
+                           .where('LOWER(theater_tags.name) LIKE ?', q)
+                           .distinct
+                           .limit(20)
 
     seen_ids = {}
     results = []
@@ -41,7 +43,7 @@ class Admin::TheatersController < Admin::ApplicationController
     end
 
     # Also surface tag-keyed group entries (one row per matching tag), so the
-    # operator can pick "every theater tagged X" in one click.
+    # operator can pick every readable theater tagged X in one click.
     matching_tags = TheaterTag.where('LOWER(name) LIKE ?', q).order(:name)
     seen_tag_keys = {}
     matching_tags.each do |tag|
@@ -49,7 +51,7 @@ class Admin::TheatersController < Admin::ApplicationController
       next if key.blank? || seen_tag_keys[key]
 
       seen_tag_keys[key] = true
-      tag_theaters = Theater.tagged_with(tag.name).order(:name).pluck(:id, :name)
+      tag_theaters = readable.tagged_with(tag.name).order(:name).pluck(:id, :name)
       next if tag_theaters.empty?
 
       results << {
