@@ -68,6 +68,7 @@ RSpec.describe Admin::AnalysisController, type: :controller do
     allow(controller).to receive(:current_ability).and_call_original
     allow(controller).to receive(:can?).and_call_original
     allow(Production).to receive(:accessible_by).and_call_original
+    allow(Theater).to receive(:accessible_by).and_call_original
     allow(controller).to receive(:current_user).and_return(user)
   end
 
@@ -80,6 +81,8 @@ RSpec.describe Admin::AnalysisController, type: :controller do
         window_label: '3 months'
       }
     end
+
+    before { allow(Theater).to receive(:accessible_by).and_return(Theater.all) }
 
     context 'as an admin user' do
       before { allow(controller).to receive(:current_user).and_return(admin_user) }
@@ -131,6 +134,31 @@ RSpec.describe Admin::AnalysisController, type: :controller do
           expect(Resque).not_to receive(:enqueue)
           post :audience_export, params: base_params.merge(segment_key: key)
         end
+      end
+    end
+
+    describe 'comparison theaters outside the user’s own' do
+      let(:other_theater) { FactoryBot.create(:theater, name: 'AE Other Theater') }
+      let(:params_with_other) { base_params.merge(comparison_theater_ids: [theater.id.to_s, other_theater.id.to_s]) }
+
+      it 'enqueues and redirects with only the theaters a theater user can read' do
+        use_real_ability(FactoryBot.create(:user, theaters: [theater]))
+        expect(Resque).to receive(:enqueue).with(AudienceCohortExport, production.id, [theater.id],
+                                                 'first_time_vs_comparison', anything, anything, anything, anything)
+
+        post :audience_export, params: params_with_other
+
+        expect(response).to redirect_to(audience_admin_analysis_index_path(target_production_id: production.id,
+                                                                           comparison_theater_ids: [theater.id]))
+      end
+
+      it 'enqueues every submitted theater for an administrator' do
+        use_real_ability(FactoryBot.create(:admin_user))
+        expect(Resque).to receive(:enqueue) do |*args|
+          expect(args[2]).to contain_exactly(theater.id, other_theater.id)
+        end
+
+        post :audience_export, params: params_with_other
       end
     end
   end
@@ -909,6 +937,53 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('That production could not be found.')
       expect(Capybara.string(response.body)).not_to have_css('#audience-results')
+    end
+
+    describe 'a bookmark naming theaters outside the user’s own' do
+      let(:other_theater) { FactoryBot.create(:theater, name: 'AU Other Theater') }
+      let(:theater_user) { FactoryBot.create(:user, theaters: [theater]) }
+
+      before { sell(target_performance, tickets: 2, days_before: 3) }
+
+      it 'warns a theater user and runs on the readable comparison theaters only' do
+        use_real_ability(theater_user)
+
+        get :audience, params: { target_production_id: target.id.to_s,
+                                 comparison_theater_ids: [theater.id.to_s, other_theater.id.to_s] }
+
+        expect(response).to have_http_status(:ok)
+        expect(flash.now[:warning]).to eq(described_class::NARROWED_NOTICE)
+        expect(flash.now[:error]).to be_nil
+        expect(assigns(:comparison_theaters)).to eq([theater])
+        expect(assigns(:results)).to be_present
+        page = Capybara.string(response.body)
+        expect(page).to have_css('.flash_warning', exact_text: described_class::NARROWED_NOTICE, normalize_ws: true)
+        expect(page).to have_css('#audience-results')
+        expect(page).not_to have_text('AU Other Theater')
+      end
+
+      it 'asks for a comparison theater, without the warning, when none is readable' do
+        use_real_ability(theater_user)
+
+        get :audience, params: { target_production_id: target.id.to_s, comparison_theater_ids: [other_theater.id.to_s] }
+
+        message = 'Select at least one comparison theater before running an audience analysis.'
+        expect(flash.now[:error]).to eq(message)
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:results)).to be_nil
+        page = Capybara.string(response.body)
+        expect(page).to have_css('.flash_error', exact_text: message, normalize_ws: true)
+        expect(page).not_to have_css('.flash_warning')
+      end
+
+      it 'does not warn an administrator, who can read every theater' do
+        get :audience, params: { target_production_id: target.id.to_s,
+                                 comparison_theater_ids: [theater.id.to_s, other_theater.id.to_s] }
+
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:comparison_theaters)).to contain_exactly(theater, other_theater)
+        expect(assigns(:results)).to be_present
+      end
     end
   end
 end

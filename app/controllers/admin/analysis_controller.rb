@@ -33,6 +33,7 @@ class Admin::AnalysisController < Admin::ApplicationController
       flash.now[:error] = 'Select at least one comparison theater before running an audience analysis.'
       return
     end
+    warn_if_narrowed(@requested_comparison_theater_ids, @comparison_theaters.map(&:id))
 
     @results = AudienceAnalysis.new(@target_production, @comparison_theaters.map(&:id)).compute
   end
@@ -54,7 +55,7 @@ class Admin::AnalysisController < Admin::ApplicationController
 
   def audience_export
     target = Production.accessible_by(current_ability, :read).find(params[:target_production_id])
-    comparison_theater_ids = Array(params[:comparison_theater_ids]).compact_blank.map(&:to_i)
+    comparison_theater_ids = readable_theaters.where(id: requested_ids(:comparison_theater_ids)).pluck(:id)
     segment_key  = params[:segment_key].to_s
     window_label = params[:window_label].presence
 
@@ -165,8 +166,12 @@ class Admin::AnalysisController < Admin::ApplicationController
   end
 
   def load_comparison_theaters
-    ids = Array(params[:comparison_theater_ids]).compact_blank.map(&:to_i)
-    @comparison_theaters = ids.empty? ? [] : Theater.where(id: ids).order(:name).to_a
+    @requested_comparison_theater_ids = requested_ids(:comparison_theater_ids)
+    @comparison_theaters = if @requested_comparison_theater_ids.empty?
+                             []
+                           else
+                             readable_theaters.where(id: @requested_comparison_theater_ids).order(:name).to_a
+                           end
   end
 
   # The legacy form's picks, non-blank only. Array keys accept a lone scalar
@@ -194,6 +199,10 @@ class Admin::AnalysisController < Admin::ApplicationController
 
   def readable_productions
     Production.accessible_by(current_ability, :read)
+  end
+
+  def readable_theaters
+    Theater.accessible_by(current_ability, :read)
   end
 
   # Offers picked one by one (or through a group that expanded in the picker)
