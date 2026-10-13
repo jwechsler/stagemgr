@@ -191,11 +191,11 @@ of just that group's productions so you can pick a single show. Use the
 
 ### Managing the Comparison List
 
-Each comparison show appears in a table with Season, Production, and Theater columns.
+Each comparison show is listed on its own line with its season, name and theater.
 You can:
 
 - **Remove individual shows** by clicking "remove" on any row
-- **Remove all shows** by clicking the "Remove all" button (with confirmation)
+- **Remove all shows** by clicking the "Remove all" button
 - **Adjust and re-run** -- The selections stay at the top of the page above the results.
   Changing any of them clears the results until you run again
 
