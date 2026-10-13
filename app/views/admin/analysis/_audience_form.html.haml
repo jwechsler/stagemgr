@@ -1,10 +1,13 @@
 -#
   Current show plus the comparison group of theaters, which defaults to the
-  show's own theater when none was chosen.
-  Locals: target (Production or nil), theaters (Array<Theater>).
-- picked_theaters = theaters.presence || [target&.theater].compact
+  show's own theater when none was chosen. A user who can read only one
+  theater gets no picker: that theater is the comparison group.
+  Locals: target (Production or nil), theaters (Array<Theater>),
+          single_theater (Theater or nil).
+- picked_theaters = single_theater ? [single_theater] : theaters.presence || [target&.theater].compact
+- run_requires = single_theater ? '' : 'comparison_theater_ids[]'
 = form_tag(audience_admin_analysis_index_path, method: :get, id: 'audience-form',
-                                               data: { run_requires: 'comparison_theater_ids[]' }) do
+                                               data: { run_requires: run_requires }) do
   -# Marks a real submission; a target-only link just pre-fills the form.
   = hidden_field_tag 'comparison_theater_ids[]', '', id: nil
   .grid-x.grid-padding-x
@@ -18,18 +21,19 @@
                  selected: target,
                  required: true
 
-  .grid-x.grid-padding-x
-    .small-12.cell
-      %fieldset.fieldset
-        %legend Comparison group
-        %p.help-text
-          Select one or more theaters to compare against. Defaults to the selected production's theater.
-          The facility-wide metrics are always shown alongside.
-        = render 'shared/components/theater_multi_picker',
-                 field_name: 'comparison_theater_ids',
-                 selected: picked_theaters,
-                 label: 'Theaters',
-                 placeholder: 'Type a theater name or tag...'
+  - unless single_theater
+    .grid-x.grid-padding-x
+      .small-12.cell
+        %fieldset.fieldset
+          %legend Comparison group
+          %p.help-text
+            Select one or more theaters to compare against. Defaults to the selected production's theater.
+            The facility-wide metrics are always shown alongside.
+          = render 'shared/components/theater_multi_picker',
+                   field_name: 'comparison_theater_ids',
+                   selected: picked_theaters,
+                   label: 'Theaters',
+                   placeholder: 'Type a theater name or tag...'
 
   .grid-x.grid-padding-x
     .small-12.cell
@@ -38,19 +42,20 @@
 
 = render 'run_button_script'
 
--#
-  Picking a current show while the comparison group is empty adds that show's
-  theater, the same default the server renders for a pre-filled show.
-:javascript
-  $(function() {
-    var $form = $('#audience-form');
-    $form.find('[data-production-picker][data-field="target_production_id"]')
-      .on('production-picker:selected', function(e, item) {
-        var hasTheater = $form.find('input[type="hidden"]').filter(function() {
-          return this.name === 'comparison_theater_ids[]' && this.value !== '';
-        }).length > 0;
-        if (hasTheater || !item || !item.theater_id) return;
-        $form.find('[data-theater-multi-picker]')
-          .trigger('theater-multi-picker:add', { id: item.theater_id, name: item.theater });
-      });
-  });
+- unless single_theater
+  -#
+    Picking a current show while the comparison group is empty adds that show's
+    theater, the same default the server renders for a pre-filled show.
+  :javascript
+    $(function() {
+      var $form = $('#audience-form');
+      $form.find('[data-production-picker][data-field="target_production_id"]')
+        .on('production-picker:selected', function(e, item) {
+          var hasTheater = $form.find('input[type="hidden"]').filter(function() {
+            return this.name === 'comparison_theater_ids[]' && this.value !== '';
+          }).length > 0;
+          if (hasTheater || !item || !item.theater_id) return;
+          $form.find('[data-theater-multi-picker]')
+            .trigger('theater-multi-picker:add', { id: item.theater_id, name: item.theater });
+        });
+    });

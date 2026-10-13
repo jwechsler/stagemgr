@@ -25,6 +25,7 @@ class Admin::AnalysisController < Admin::ApplicationController
 
   # GET: the form, plus results once it has been submitted (see analysis_runnable?).
   def audience
+    @single_theater = single_theater
     load_target_production
     load_comparison_theaters
     return unless analysis_runnable?(:comparison_theater_ids)
@@ -55,7 +56,12 @@ class Admin::AnalysisController < Admin::ApplicationController
 
   def audience_export
     target = Production.accessible_by(current_ability, :read).find(params[:target_production_id])
-    comparison_theater_ids = readable_theaters.where(id: requested_ids(:comparison_theater_ids)).pluck(:id)
+    only_theater = single_theater
+    comparison_theater_ids = if only_theater
+                               [only_theater.id]
+                             else
+                               readable_theaters.where(id: requested_ids(:comparison_theater_ids)).pluck(:id)
+                             end
     segment_key  = params[:segment_key].to_s
     window_label = params[:window_label].presence
 
@@ -119,6 +125,7 @@ class Admin::AnalysisController < Admin::ApplicationController
     @theaters = Theater.where(id: readable.select(:theater_id)).order(:name).to_a
     @seasons  = readable.where.not(season: nil).distinct.pluck(:season).sort.reverse
     @filters  = AdvanceSalesFilters.new(params, theaters: @theaters, seasons: @seasons)
+    @single_theater = single_theater
     return unless @filters.submitted?
 
     if @filters.valid?
@@ -165,9 +172,13 @@ class Admin::AnalysisController < Admin::ApplicationController
     @comparison_production = readable_productions.find_by(id: params[:comparison_production_id].presence)
   end
 
+  # A user who can read only one theater gets no picker, so that theater is
+  # always the comparison group; other submitted ids are dropped and warned of.
   def load_comparison_theaters
     @requested_comparison_theater_ids = requested_ids(:comparison_theater_ids)
-    @comparison_theaters = if @requested_comparison_theater_ids.empty?
+    @comparison_theaters = if @single_theater
+                             [@single_theater]
+                           elsif @requested_comparison_theater_ids.empty?
                              []
                            else
                              readable_theaters.where(id: @requested_comparison_theater_ids).order(:name).to_a
@@ -203,6 +214,17 @@ class Admin::AnalysisController < Admin::ApplicationController
 
   def readable_theaters
     Theater.accessible_by(current_ability, :read)
+  end
+
+  # The one theater a Theater user can read, or nil when they can read several
+  # (or none) or are Admin or Box Office staff, who keep the picker however
+  # many theaters exist. The Audience and Advance Sales forms omit their
+  # theater picker for such a user, and a blank selection means that theater.
+  def single_theater
+    return unless current_user.is_theater_user?
+
+    theaters = readable_theaters.limit(2).to_a
+    theaters.first if theaters.one?
   end
 
   # Offers picked one by one (or through a group that expanded in the picker)

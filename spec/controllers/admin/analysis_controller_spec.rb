@@ -9,6 +9,7 @@ RSpec.describe Admin::AnalysisController, type: :controller do
            id: 1,
            email: 'admin@example.com',
            is_administrator?: true,
+           is_theater_user?: false,
            theater_ids: [theater.id])
   end
 
@@ -17,6 +18,7 @@ RSpec.describe Admin::AnalysisController, type: :controller do
            id: 2,
            email: 'theater@example.com',
            is_administrator?: false,
+           is_theater_user?: true,
            theater_ids: [theater.id])
   end
 
@@ -141,12 +143,34 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       let(:other_theater) { FactoryBot.create(:theater, name: 'AE Other Theater') }
       let(:params_with_other) { base_params.merge(comparison_theater_ids: [theater.id.to_s, other_theater.id.to_s]) }
 
-      it 'enqueues and redirects with only the theaters a theater user can read' do
-        use_real_ability(FactoryBot.create(:user, theaters: [theater]))
+      it 'enqueues and redirects with only the theaters a multi-theater user can read' do
+        use_real_ability(FactoryBot.create(:user, theaters: [theater, FactoryBot.create(:theater)]))
         expect(Resque).to receive(:enqueue).with(AudienceCohortExport, production.id, [theater.id],
                                                  'first_time_vs_comparison', anything, anything, anything, anything)
 
         post :audience_export, params: params_with_other
+
+        expect(response).to redirect_to(audience_admin_analysis_index_path(target_production_id: production.id,
+                                                                           comparison_theater_ids: [theater.id]))
+      end
+
+      it 'enqueues the only theater a single-theater user can read when none was submitted' do
+        use_real_ability(FactoryBot.create(:user, theaters: [theater]))
+        expect(Resque).to receive(:enqueue).with(AudienceCohortExport, production.id, [theater.id],
+                                                 'first_time_vs_comparison', anything, anything, anything, anything)
+
+        post :audience_export, params: base_params.merge(comparison_theater_ids: [''])
+
+        expect(response).to redirect_to(audience_admin_analysis_index_path(target_production_id: production.id,
+                                                                           comparison_theater_ids: [theater.id]))
+      end
+
+      it 'enqueues only the single-theater user’s theater whatever was submitted' do
+        use_real_ability(FactoryBot.create(:user, theaters: [theater]))
+        expect(Resque).to receive(:enqueue).with(AudienceCohortExport, production.id, [theater.id],
+                                                 'first_time_vs_comparison', anything, anything, anything, anything)
+
+        post :audience_export, params: base_params.merge(comparison_theater_ids: [other_theater.id.to_s])
 
         expect(response).to redirect_to(audience_admin_analysis_index_path(target_production_id: production.id,
                                                                            comparison_theater_ids: [theater.id]))
@@ -546,6 +570,64 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       expect(page).to have_css('#advance-sales-form [data-theater-multi-picker] input.theater-multi-picker-input',
                                visible: :all)
       expect(page).not_to have_css('input[name="theater_ids[]"]', visible: :all)
+    end
+
+    describe 'the theater picker for a user who can read one theater' do
+      let(:own) { FactoryBot.create(:theater, name: 'AS Only Theater') }
+
+      before do
+        sell(make_performance(own, season: 2025), tickets: 2, days_before: 5)
+        use_real_ability(FactoryBot.create(:user, theaters: [own]))
+      end
+
+      it 'is not rendered' do
+        get :advance_sales
+
+        page = Capybara.string(response.body)
+        expect(page).to have_css('form#advance-sales-form')
+        expect(page).not_to have_css('.theater-multi-picker', visible: :all)
+        expect(page).not_to have_css('input[name="theater_ids[]"]', visible: :all)
+      end
+
+      it 'runs a seasons-only submission against that theater without a warning' do
+        get :advance_sales, params: { seasons: ['', '2025'] }
+
+        expect(flash.now[:error]).to be_nil
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:filters).theater_ids).to eq([own.id])
+        expect(assigns(:results).tickets).to eq(2)
+        expect(response.body).not_to include(described_class::NARROWED_NOTICE)
+      end
+
+      it 'still offers the external-sales checkbox when that theater records sales externally' do
+        own.update!(sales_recorded_externally: true)
+
+        get :advance_sales, params: { seasons: ['2025'], include_external: '1' }
+
+        page = Capybara.string(response.body)
+        expect(page).to have_css('#advance-sales-form input#include_external[checked]')
+        expect(page).not_to have_css('.theater-multi-picker', visible: :all)
+        expect(assigns(:results).tickets).to eq(2)
+      end
+    end
+
+    it 'renders the theater picker for a theater user with two theaters' do
+      second = FactoryBot.create(:theater, name: 'AS Second Theater')
+      make_performance(theater, season: 2025)
+      make_performance(second, season: 2025)
+      use_real_ability(FactoryBot.create(:user, theaters: [theater, second]))
+
+      get :advance_sales
+
+      expect(Capybara.string(response.body)).to have_css('#advance-sales-form .theater-multi-picker', visible: :all)
+    end
+
+    it 'renders the theater picker for an administrator' do
+      make_performance(theater, season: 2025)
+
+      get :advance_sales
+
+      expect(Capybara.string(response.body)).to have_css('#advance-sales-form .theater-multi-picker', visible: :all)
     end
 
     it 'forbids box office users' do
@@ -962,8 +1044,24 @@ RSpec.describe Admin::AnalysisController, type: :controller do
         expect(page).not_to have_text('AU Other Theater')
       end
 
-      it 'asks for a comparison theater, without the warning, when none is readable' do
+      it 'runs a single-theater user on their own theater, with the warning, when none named is readable' do
         use_real_ability(theater_user)
+
+        get :audience, params: { target_production_id: target.id.to_s, comparison_theater_ids: [other_theater.id.to_s] }
+
+        expect(flash.now[:error]).to be_nil
+        expect(flash.now[:warning]).to eq(described_class::NARROWED_NOTICE)
+        expect(assigns(:comparison_theaters)).to eq([theater])
+        expect(assigns(:results)).to be_present
+        page = Capybara.string(response.body)
+        expect(page).to have_css('.flash_warning', exact_text: described_class::NARROWED_NOTICE, normalize_ws: true)
+        expect(page).not_to have_css('.flash_error')
+        expect(page).to have_css('#audience-results')
+        expect(page).not_to have_text('AU Other Theater')
+      end
+
+      it 'asks a multi-theater user for a comparison theater, without the warning, when none is readable' do
+        use_real_ability(FactoryBot.create(:user, theaters: [theater, FactoryBot.create(:theater)]))
 
         get :audience, params: { target_production_id: target.id.to_s, comparison_theater_ids: [other_theater.id.to_s] }
 
@@ -984,6 +1082,60 @@ RSpec.describe Admin::AnalysisController, type: :controller do
         expect(assigns(:comparison_theaters)).to contain_exactly(theater, other_theater)
         expect(assigns(:results)).to be_present
       end
+    end
+
+    describe 'the comparison picker for a user who can read one theater' do
+      before do
+        sell(target_performance, tickets: 2, days_before: 3)
+        use_real_ability(FactoryBot.create(:user, theaters: [theater]))
+      end
+
+      it 'is not rendered, nor its seeding script, but the submission marker is' do
+        get :audience
+
+        page = Capybara.string(response.body)
+        expect(page).not_to have_css('.theater-multi-picker', visible: :all)
+        expect(page).not_to have_css('form#audience-form legend', text: 'Comparison group')
+        expect(page).to have_css('form#audience-form input[type="hidden"][name="comparison_theater_ids[]"][value=""]',
+                                 visible: :all)
+        expect(response.body).not_to include('theater-multi-picker:add')
+      end
+
+      it 'enables Run as soon as the current show is given' do
+        get :audience, params: { target_production_id: target.id.to_s }
+
+        expect(Capybara.string(response.body)).to have_button('Run analysis', disabled: false)
+      end
+
+      it 'runs against that theater when the form names no comparison theater' do
+        get :audience, params: { target_production_id: target.id.to_s, comparison_theater_ids: [''] }
+
+        expect(flash.now[:error]).to be_nil
+        expect(flash.now[:warning]).to be_nil
+        expect(assigns(:comparison_theaters)).to eq([theater])
+        expect(assigns(:results)).to be_present
+        page = Capybara.string(response.body)
+        expect(page).to have_css('#audience-results')
+        expect(page).to have_css('#audience-results p.help-text', text: "Comparison group: #{theater.name}",
+                                                                  normalize_ws: true)
+        expect(page).not_to have_css('.flash_error')
+        expect(page).not_to have_css('.flash_warning')
+      end
+    end
+
+    it 'renders the comparison picker for a theater user with two theaters' do
+      second = FactoryBot.create(:theater, name: 'AU Second Theater')
+      use_real_ability(FactoryBot.create(:user, theaters: [theater, second]))
+
+      get :audience
+
+      expect(Capybara.string(response.body)).to have_css('#audience-form .theater-multi-picker', visible: :all)
+    end
+
+    it 'renders the comparison picker for an administrator' do
+      get :audience
+
+      expect(Capybara.string(response.body)).to have_css('#audience-form .theater-multi-picker', visible: :all)
     end
   end
 end

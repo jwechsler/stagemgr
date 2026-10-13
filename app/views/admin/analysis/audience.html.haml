@@ -13,7 +13,8 @@
       Who came to the current show: how many were first-time or returning attendees of the comparison
       group and of the whole facility, over several lookback windows.
 
-= render 'audience_form', target: @target_production, theaters: @comparison_theaters
+= render 'audience_form', target: @target_production, theaters: @comparison_theaters,
+                          single_theater: @single_theater
 
 - if @results
   #audience-results

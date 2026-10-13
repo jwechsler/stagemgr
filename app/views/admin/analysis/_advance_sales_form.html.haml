@@ -1,4 +1,7 @@
--# Locals: filters (AdvanceSalesFilters), theaters (Array<Theater>), seasons (Array<Integer>, newest first).
+-#
+  Locals: filters (AdvanceSalesFilters), theaters (Array<Theater>), seasons (Array<Integer>, newest first),
+  single_theater (Theater or nil; a user who can read only one theater gets no picker, and none picked
+  means that theater).
 = form_tag(advance_sales_admin_analysis_index_path, method: :get, id: 'advance-sales-form') do
   = hidden_field_tag 'seasons[]', '', id: nil
   .grid-x.grid-padding-x
@@ -8,11 +11,13 @@
         - seasons.each do |season|
           = check_box_tag 'seasons[]', season, filters.seasons.include?(season), id: "season_#{season}"
           %label{ for: "season_#{season}" }= season
-    .small-12.medium-6.cell
-      - picked_theaters = theaters.select { |t| filters.picked_theater_ids.include?(t.id) }
-      = render 'shared/components/theater_multi_picker', field_name: 'theater_ids', selected: picked_theaters,
-                                                         label: 'Theaters', placeholder: 'Type a theater name or tag...'
-      %p.help-text Leave empty for all theaters.
+    - unless single_theater
+      .small-12.medium-6.cell
+        - picked_theaters = theaters.select { |t| filters.picked_theater_ids.include?(t.id) }
+        = render 'shared/components/theater_multi_picker',
+                 field_name: 'theater_ids', selected: picked_theaters,
+                 label: 'Theaters', placeholder: 'Type a theater name or tag...'
+        %p.help-text Leave empty for all theaters.
   .grid-x.grid-padding-x
     .small-12.medium-4.cell
       %fieldset

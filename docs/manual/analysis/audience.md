@@ -49,6 +49,9 @@ metrics (every theater in the system) are always shown alongside the comparison-
 metrics, so there's no separate toggle for "compare against the whole building" -- those
 numbers appear in the lower section of every audience report.
 
+If you have access to only one theater, the comparison group picker is not shown and the
+analysis uses that theater.
+
 The comparison-theater selection stays at the top of the page above the results, so you
 can iterate on the comparison group without re-picking theaters every time. Exporting a
 cohort from the results brings you back to the same results with the export confirmation.

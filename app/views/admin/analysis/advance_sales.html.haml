@@ -16,7 +16,8 @@
       Passes are flex passes whose offer is tied to a theater or festival; building-wide flex passes and
       memberships count as single tickets.
 
-= render 'advance_sales_form', filters: @filters, theaters: @theaters, seasons: @seasons
+= render 'advance_sales_form', filters: @filters, theaters: @theaters, seasons: @seasons,
+                               single_theater: @single_theater
 
 #advance-sales-results
   - if @results.nil?
