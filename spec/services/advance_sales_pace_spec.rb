@@ -24,9 +24,11 @@ RSpec.describe AdvanceSalesPace, type: :service do
     AdvanceSalesCurve.from_rows([curve_row(lead_days: 10, tickets: 999)], source: source)
   end
 
-  def sold_row(performance, tickets)
+  # A ticket bought by as_of has lead_days >= days out, so the default sits
+  # beyond every days-out used here; show day counts only lead_days >= 1.
+  def sold_row(performance, tickets, lead_days: 60)
     AdvanceSalesRows::Row.new(performance_id: performance.id, production_id: production.id, theater_id: theater.id,
-                              season: production.season, segment: 'single', lead_days: 3, tickets: tickets)
+                              season: production.season, segment: 'single', lead_days: lead_days, tickets: tickets)
   end
 
   # Distinct hours keep same-date performances clear of the uniqueness check.
@@ -227,6 +229,36 @@ RSpec.describe AdvanceSalesPace, type: :service do
 
       expect(readings.size).to eq(2)
       expect(AdvanceSalesCurve).to have_received(:for_theater).once
+    end
+
+    context 'with a curve that has 80% in hand the day before' do
+      # 1,000 tickets: 800 bought 3 days out, 200 on the day, so share_at(1)
+      # and share_at(3) are 0.8 and share_at(0) is 1.0.
+      let(:theater_curve) do
+        AdvanceSalesCurve.from_rows([curve_row(lead_days: 3, tickets: 800),
+                                     curve_row(lead_days: 0, tickets: 200)], source: :theater)
+      end
+
+      it 'projects show day from the tickets bought before today and the day-before share' do
+        performance = make_performance(Date.current)
+        stub_sold([sold_row(performance, 15, lead_days: 4), sold_row(performance, 4, lead_days: 1),
+                   sold_row(performance, 6, lead_days: 0)])
+
+        reading = described_class.for_productions([production])[performance.id]
+
+        expect(theater_curve.share_at(0)).to eq(1.0)
+        expect(reading).to have_attributes(days_out: 0, sold: 19, typical_share: 0.8,
+                                           projected_final: (19 / 0.8).round)
+      end
+
+      it 'counts every ticket sold so far for a performance days away' do
+        performance = make_performance(Date.current + 3.days)
+        stub_sold([sold_row(performance, 15, lead_days: 4), sold_row(performance, 5, lead_days: 3)])
+
+        reading = described_class.for_productions([production])[performance.id]
+
+        expect(reading).to have_attributes(days_out: 3, sold: 20, typical_share: 0.8, projected_final: 25)
+      end
     end
 
     describe '.for_performance' do

@@ -286,6 +286,29 @@ RSpec.describe HouseCount, type: :model do
       expect(house_count).to be_pace_too_early
     end
 
+    describe '#expected_met? and #expected_seats' do
+      it 'is met, with no expected seats, once sold passes the projection' do
+        house_count.assign_attributes(sold_seats: 41, projected_seats: 40)
+
+        expect(house_count).to be_expected_met
+        expect(house_count.expected_seats).to be_nil
+      end
+
+      it 'is not met when sold equals the projection' do
+        house_count.assign_attributes(sold_seats: 40, projected_seats: 40)
+
+        expect(house_count).not_to be_expected_met
+        expect(house_count.expected_seats).to eq(40)
+      end
+
+      it 'is never met without a projection' do
+        house_count.assign_attributes(sold_seats: 41, projected_seats: nil)
+
+        expect(house_count).not_to be_expected_met
+        expect(house_count.expected_seats).to be_nil
+      end
+    end
+
     it 'counts days out from the day the projection was computed' do
       allow(house_count).to receive(:performance).and_return(performance)
 

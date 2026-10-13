@@ -160,6 +160,29 @@ RSpec.describe Admin::AdvanceSalesHelper, type: :helper do
       )
     end
 
+    it 'shows the empty cell, titled to say so, once sold has passed the expected count' do
+      html = helper.house_count_pace_cell(house_count(sold_seats: 1235, projected_seats: 1234, total_seats: 2000))
+
+      expect(html).to have_css('span[title="Sold has already passed the expected ~1,234"]', exact_text: '—')
+    end
+
+    it 'still shows the expected count when sold equals it' do
+      html = helper.house_count_pace_cell(house_count(sold_seats: 40))
+
+      expect(html).to have_css('span', exact_text: '~40')
+    end
+
+    it 'describes the show-day basis in the title on the day of the show' do
+      performance.performance_date = as_of
+      html = helper.house_count_pace_cell(house_count(pace_sold: 19, pace_share: 0.79, projected_seats: 24,
+                                                      pace_source: 'building'))
+
+      expect(html).to have_css(
+        'span[title="Sold 19 before today; this house typically has 79% in hand by show day (building-wide curve)"]',
+        exact_text: '~24'
+      )
+    end
+
     it 'notes the building-wide curve in the title' do
       html = helper.house_count_pace_cell(house_count(pace_source: 'building'))
 

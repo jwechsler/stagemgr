@@ -24,6 +24,12 @@ class AdvanceSalesPace
   # Below this share of final sales typically in hand, dividing by the share
   # turns a handful of tickets into a wild projection; it is noise.
   MINIMUM_PROJECTABLE_SHARE = 0.10
+  # share_at(0) is everything (every ticket is in hand by curtain), so on show
+  # day the projection asks what share this house typically has in hand by
+  # show-day morning, against only the tickets bought before today. Same-day
+  # sales then never inflate the numerator, and Expected keeps anticipating
+  # walk-ups instead of collapsing to the paid count.
+  SHOW_DAY_SHARE_DAYS = 1
 
   Reading = Struct.new(:performance_id, :days_out, :sold, :typical_share, :projected_final,
                        :capacity, :projected_pct_of_capacity, :source, keyword_init: true)
@@ -65,7 +71,7 @@ class AdvanceSalesPace
       chosen = curve_for(production)
       next if chosen.nil?
 
-      acc[id] = reading_for(id, date, sold.fetch(id, 0), chosen, production.capacity)
+      acc[id] = reading_for(id, date, sold.fetch(id, {}), chosen, production.capacity)
     end
   end
 
@@ -98,17 +104,24 @@ class AdvanceSalesPace
     building.tickets >= MINIMUM_CURVE_TICKETS ? building : nil
   end
 
-  # performance_ids is passed only when restricted, so the batch call keeps its shape.
+  # { performance_id => { lead_days => tickets } }. performance_ids is passed
+  # only when restricted, so the batch call keeps its shape.
   def sold_by_performance(production_ids)
     filters = { production_ids: production_ids, from_date: @as_of }
     filters[:performance_ids] = @performance_ids if @performance_ids
-    AdvanceSalesRows.fetch(**filters)
-                    .each_with_object(Hash.new(0)) { |row, acc| acc[row.performance_id] += row.tickets }
+    AdvanceSalesRows.fetch(**filters).each_with_object({}) do |row, acc|
+      by_lead = acc[row.performance_id] ||= Hash.new(0)
+      by_lead[row.lead_days] += row.tickets
+    end
   end
 
-  def reading_for(performance_id, performance_date, sold, chosen, capacity)
+  # sold_by_lead: { lead_days => tickets } for this performance. Off show day
+  # every row has lead_days >= share_days, so all of them count.
+  def reading_for(performance_id, performance_date, sold_by_lead, chosen, capacity)
     days_out = (performance_date - @as_of).to_i
-    share = chosen.share_at(days_out)
+    share_days = [days_out, SHOW_DAY_SHARE_DAYS].max
+    share = chosen.share_at(share_days)
+    sold = sold_by_lead.sum { |lead_days, tickets| lead_days >= share_days ? tickets : 0 }
     projected = projectable?(share) ? (sold / share).round : nil # nil: too early to project
     pct = projected && capacity.to_i.positive? ? projected.to_f / capacity : nil
     Reading.new(performance_id: performance_id, days_out: days_out, sold: sold, typical_share: share,

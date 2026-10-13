@@ -73,6 +73,16 @@ class HouseCount < Metric
     pace_share.present? && projected_seats.nil?
   end
 
+  # Sold has gone past the projection (strictly greater).
+  def expected_met?
+    projected_seats.present? && sold_seats.to_i > projected_seats
+  end
+
+  # The Sold column has already passed the projection, nothing more to anticipate.
+  def expected_seats
+    expected_met? ? nil : projected_seats
+  end
+
   def pace_days_out
     return nil if pace_as_of.nil?
 

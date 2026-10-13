@@ -158,6 +158,11 @@ For example, MUD1019 is six days out with 19 paid tickets. At this theater, perf
 six days out have typically sold about two thirds of their final count, so 19 ÷ 0.66 gives
 ~29 expected at curtain, about ten more between now and show time.
 
+On the day of the show, Expected is worked out from the tickets bought before that day and
+the share this house typically has in hand by show-day morning, so it keeps anticipating
+walk-ups and does not fall overnight. The hover text then reads, for example, "Sold 19
+before today; this house typically has 79% in hand by show day".
+
 You see it in two places:
 
 - **Upcoming House Counts** on your account page (the page you land on after signing in,
@@ -165,7 +170,7 @@ You see it in two places:
   **~29**. Hover over it for the basis, for example "Sold 19 as of Oct 13; this house
   typically has 66% in hand 6 days out".
 - The HUD file `house_counts.txt`, as a right-aligned **Expected** column (`~29`). It is
-  blank when there is nothing to project or it is too early. See
+  blank when there is nothing to project, it is too early, or Sold has already passed it. See
   [HUD Display](../house-management/hud-display.md).
 
 | Reading | Meaning |
@@ -173,6 +178,7 @@ You see it in two places:
 | **~N** | Paid tickets expected at curtain, including those already sold. |
 | **Too early** | The theater typically has under 10% in hand this far out, so a projection would be noise. |
 | **--** | The performance has played, is inactive, the production's sales are recorded externally, or there is not enough history to project from. |
+| **--** (with hover text) | The **Sold** column has already passed the expected count; the hover text says so. |
 
 The history is the theater's earlier seasons, leaving out any production whose sales are
 recorded externally; such a production is never projected either. A theater with fewer

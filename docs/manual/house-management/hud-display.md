@@ -45,7 +45,7 @@ Generated Fri Mar 27 13:26:57 CDT 2026
 | Held | Tickets on hold orders (reserved, not yet paid) |
 | Remaining | Seats still available for sale |
 | Max Price | Highest web-visible ticket price currently on sale |
-| Expected | Paid tickets expected at curtain if the show sells the way this house usually does; includes tickets already sold. Blank when it is too early to project or the production's sales are recorded externally. See [Advance Sales](../analysis/advance-sales.md#expected-sales-on-house-counts). |
+| Expected | Paid tickets expected at curtain if the show sells the way this house usually does; includes tickets already sold. Blank when it is too early to project, the production's sales are recorded externally, or once Sold has passed it. See [Advance Sales](../analysis/advance-sales.md#expected-sales-on-house-counts). |
 
 **Update frequency:** Every 10 minutes.
 
