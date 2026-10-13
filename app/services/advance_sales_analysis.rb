@@ -3,11 +3,16 @@
 # per group, plus each production's run broken into weeks. Counting rules live
 # in AdvanceSalesRows; share-in-hand maths in AdvanceSalesCurve.
 #
+# The series and the run weeks share one universe of performances: those
+# with rows, i.e. Active performances with at least one ticket sold. A
+# performance with nothing sold appears in no week's counts, and a week with
+# no such performance is not listed.
+#
 # Run weeks count from the production's first playing date (first preview,
-# else press opening, else opening, else its earliest performance): week 0
-# is the first seven days, negative weeks are earlier, and anything before
-# PRE_RUN_WEEK_FLOOR collapses into that week. A performance was "added
-# later" when it was first activated after the run had started.
+# else press opening, else opening, else its earliest counted performance):
+# week 0 is the first seven days, negative weeks are earlier, and anything
+# before PRE_RUN_WEEK_FLOOR collapses into that week. A performance was
+# "added later" when it was first activated after the run had started.
 #
 # A series or run week is "in progress" when any of its performances is dated
 # today or later: only its early buyers exist so far, so its curve reads as
@@ -18,7 +23,7 @@ class AdvanceSalesAnalysis
   PRE_RUN_WEEK_FLOOR = -2       # performances earlier than this collapse into one pre-run week
   MAX_SERIES         = 16       # beyond this the chart is unreadable; keep the first MAX_SERIES
   CACHE_TTL          = 1.hour
-  CACHE_PREFIX       = 'advance_sales_analysis/v3'.freeze
+  CACHE_PREFIX       = 'advance_sales_analysis/v4'.freeze
   DAYS_PER_WEEK      = 7
   SEGMENT_SUFFIXES   = { 'single' => ' – single tickets', 'pass' => ' – passes' }.freeze
   IN_PROGRESS_SUFFIX = ' (in progress)'.freeze
@@ -71,16 +76,16 @@ class AdvanceSalesAnalysis
 
     rows = AdvanceSalesRows.fetch(theater_ids: @theater_ids, seasons: @seasons, include_external: @include_external)
     productions = Production.where(id: rows.map(&:production_id).uniq).includes(:theater).index_by(&:id)
-    performances = performances_for(productions)
+    performances = performances_for(rows)
     series = build_series(rows, productions, performances.to_h { |(id, _, date, _)| [id, date] })
     Result.new(series: series.first(MAX_SERIES), truncated: series.size > MAX_SERIES,
                productions: build_production_runs(rows, productions, performances), tickets: rows.sum(&:tickets))
   end
 
   # [id, production_id, performance_date, activated_at] for every performance
-  # of the given productions, shared by the series and the production runs.
-  def performances_for(productions)
-    Performance.unscoped.where(production_id: productions.keys)
+  # with rows, shared by the series and the production runs.
+  def performances_for(rows)
+    Performance.unscoped.where(id: rows.map(&:performance_id).uniq)
                .pluck(:id, :production_id, :performance_date, :activated_at)
   end
 

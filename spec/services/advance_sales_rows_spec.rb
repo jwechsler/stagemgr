@@ -56,8 +56,10 @@ RSpec.describe AdvanceSalesRows, type: :service do
   end
 
   # The child order replacing +source+; the source keeps no line items, as in production data.
-  def exchange(source, tickets:, bought_at:, link: :exchange_source_id, source_status: Order::EXCHANGED)
-    child = sell(source.performance, tickets: tickets, bought_at: bought_at)
+  # +onto+ moves the child to another performance, as an exchange to a different date does.
+  def exchange(source, tickets:, bought_at:, link: :exchange_source_id, source_status: Order::EXCHANGED,
+               onto: source.performance)
+    child = sell(onto, tickets: tickets, bought_at: bought_at)
     child.update_columns(link => source.id)
     TicketLineItem.where(order_id: source.id).destroy_all
     source.update_columns(status: source_status)
@@ -125,6 +127,20 @@ RSpec.describe AdvanceSalesRows, type: :service do
       expect(total(described_class.fetch)).to eq(1)
     end
 
+    it 'counts only Active performances, leaving out Private and Inactive ones' do
+      private_show = make_performance(production, on: show_date + 1.day)
+      inactive_show = make_performance(production, on: show_date + 2.days)
+      private_show.update_columns(status: Performance::PRIVATE)
+      inactive_show.update_columns(status: Performance::INACTIVE)
+      [performance, private_show, inactive_show].each do |perf|
+        sell(perf, tickets: 2, bought_at: bought(4), ticket_class: seat_class)
+      end
+
+      rows = described_class.fetch
+      expect(rows.map(&:performance_id).uniq).to eq([performance.id])
+      expect(total(rows)).to eq(2)
+    end
+
     it 'dates an exchanged order from the original purchase' do
       original = sell(performance, tickets: 2, bought_at: bought(20), ticket_class: seat_class)
       exchange(original, tickets: 2, bought_at: bought(2))
@@ -146,6 +162,35 @@ RSpec.describe AdvanceSalesRows, type: :service do
       exchange(original, tickets: 2, bought_at: bought(3), link: :split_source_id, source_status: Order::SPLIT)
 
       expect(tickets_by_lead(described_class.fetch)).to eq(14 => 3)
+    end
+
+    it 'dates an exchange onto another performance from the root purchase on the original one' do
+      earlier = make_performance(production, on: show_date - 5.days)
+      original = sell(earlier, tickets: 2, bought_at: bought(20), ticket_class: seat_class)
+      middle = exchange(original, tickets: 2, bought_at: bought(10))
+      exchange(middle, tickets: 2, bought_at: bought(2), onto: performance)
+
+      rows = described_class.fetch
+      expect(rows.map { |r| [r.performance_id, r.lead_days, r.tickets] }).to eq([[performance.id, 20, 2]])
+    end
+
+    it 'counts an exchange off an Inactive performance, dated from the root purchase' do
+      withdrawn = make_performance(production, on: show_date - 5.days)
+      original = sell(withdrawn, tickets: 2, bought_at: bought(18), ticket_class: seat_class)
+      withdrawn.update_columns(status: Performance::INACTIVE)
+      exchange(original, tickets: 2, bought_at: bought(3), onto: performance)
+
+      rows = described_class.fetch
+      expect(rows.map { |r| [r.performance_id, r.lead_days, r.tickets] }).to eq([[performance.id, 18, 2]])
+    end
+
+    it 'does not count an exchange onto an Inactive performance' do
+      withdrawn = make_performance(production, on: show_date + 5.days)
+      original = sell(performance, tickets: 2, bought_at: bought(18), ticket_class: seat_class)
+      exchange(original, tickets: 2, bought_at: bought(3), onto: withdrawn)
+      withdrawn.update_columns(status: Performance::INACTIVE)
+
+      expect(described_class.fetch).to be_empty
     end
 
     it 'counts a membership-paid order as single tickets' do
@@ -286,6 +331,15 @@ RSpec.describe AdvanceSalesRows, type: :service do
 
       it 'filters by production_ids' do
         expect(performance_ids(production_ids: [production.id])).to eq([performance.id])
+      end
+
+      it 'dates a filtered exchange from a root order in a production outside the filter' do
+        root = sell(other_performance, tickets: 2, bought_at: bought(25))
+        exchange(root, tickets: 2, bought_at: bought(1), onto: performance)
+
+        rows = described_class.fetch(production_ids: [production.id])
+        expect(rows.map(&:performance_id).uniq).to eq([performance.id])
+        expect(tickets_by_lead(rows)).to eq(5 => 1, 25 => 2)
       end
 
       it 'filters by from_date on the performance date' do

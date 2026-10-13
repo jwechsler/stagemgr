@@ -15,7 +15,7 @@
   label       = local_assigns.fetch(:label, 'Theaters')
   placeholder = local_assigns.fetch(:placeholder, 'Type a theater name or tag...')
 .theater-multi-picker{ data: { theater_multi_picker: true, field: field_name,
-                               search_url: search_theaters_admin_analysis_index_path } }
+                               search_url: search_admin_theaters_path } }
   %label
     = label
     .grid-x

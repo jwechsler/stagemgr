@@ -23,57 +23,8 @@ class Admin::AnalysisController < Admin::ApplicationController
 
   # Production search for the analysis pickers lives on
   # Admin::ProductionsController#search / #resolve_group (shared
-  # production picker endpoints, scope: analysis).
-
-  def search_theaters
-    query = params[:q].to_s.strip
-    return render(json: []) if query.blank?
-
-    q = "%#{query.downcase}%"
-    name_matches = Theater.where('LOWER(theaters.name) LIKE ?', q).limit(20)
-    tag_matches  = Theater.joins(:theater_tags)
-                          .where('LOWER(theater_tags.name) LIKE ?', q)
-                          .distinct
-                          .limit(20)
-
-    seen_ids = {}
-    results = []
-
-    name_matches.order(:name).each do |t|
-      next if seen_ids[t.id]
-
-      seen_ids[t.id] = true
-      results << { id: t.id, label: t.name, match_kind: 'name' }
-    end
-
-    # Also surface tag-keyed group entries (one row per matching tag), so the
-    # operator can pick "every theater tagged X" in one click.
-    matching_tags = TheaterTag.where('LOWER(name) LIKE ?', q).order(:name)
-    seen_tag_keys = {}
-    matching_tags.each do |tag|
-      key = tag.name.to_s.downcase
-      next if key.blank? || seen_tag_keys[key]
-
-      seen_tag_keys[key] = true
-      tag_theaters = Theater.tagged_with(tag.name).order(:name).pluck(:id, :name)
-      next if tag_theaters.empty?
-
-      results << {
-        group_key: "tag:#{tag.name}",
-        label: "All theaters tagged #{tag.name}",
-        theaters: tag_theaters.map { |id, name| { id: id, name: name } }
-      }
-    end
-
-    tag_matches.order(:name).each do |t|
-      next if seen_ids[t.id]
-
-      seen_ids[t.id] = true
-      results << { id: t.id, label: t.name, match_kind: 'tag' }
-    end
-
-    render json: results
-  end
+  # production picker endpoints, scope: analysis); theater search for the
+  # theater multi-picker lives on Admin::TheatersController#search.
 
   def audience
     @target_production = Production.accessible_by(current_ability, :read).find(params[:target_production_id])

@@ -1,6 +1,8 @@
 # Tickets by how far ahead of the performance they were bought, on the
 # HouseCount basis: TicketOrders in TicketOrderMergeable::SOLD_STATUSES, TicketLineItems with
-# ticket_count > 0 on seat-holding, non-complimentary classes. The sale date
+# ticket_count > 0 on seat-holding, non-complimentary classes, for Active
+# performances only (Private ones are not on sale to the public, Inactive
+# ones not at all). The sale date
 # is the root purchase: exchange_source_id / split_source_id are walked back
 # to the first order and its created_at, converted from the host's storage
 # zone to the app zone (Time.zone), gives the sale date. lead_days =
@@ -40,7 +42,7 @@ class AdvanceSalesRows
     sql = base_sql.sub("/* filters */", clauses.map { |c| "AND #{c}" }.join(" "))
     ActiveRecord::Base.sanitize_sql_array(
       [sql, binds.merge(max_depth: MAX_CHAIN_DEPTH, pass_type: PASS_PAYMENT_TYPE,
-                        sold: TicketOrderMergeable::SOLD_STATUSES,
+                        sold: TicketOrderMergeable::SOLD_STATUSES, active: Performance::ACTIVE,
                         storage_tz: storage_time_zone, app_tz: app_time_zone)]
     )
   end
@@ -95,12 +97,24 @@ class AdvanceSalesRows
             lead_days: hash['lead_days'].to_i, tickets: hash['tickets'].to_i)
   end
 
+  # sales is the selected orders; the source chain is walked from those alone
+  # rather than from every exchanged or split order in the table.
   def self.base_sql
     <<~SQL.squish
-      WITH RECURSIVE chain AS (
-        SELECT o.id, COALESCE(o.exchange_source_id, o.split_source_id) AS parent_id, 1 AS depth
-        FROM orders o
-        WHERE o.exchange_source_id IS NOT NULL OR o.split_source_id IS NOT NULL
+      WITH RECURSIVE sales AS (
+        SELECT o.id, o.created_at, o.exchange_source_id, o.split_source_id,
+               pf.id AS performance_id, pr.id AS production_id, pr.theater_id, pr.season, pf.performance_date
+        FROM productions pr
+        JOIN theaters th     ON th.id = pr.theater_id
+        JOIN performances pf ON pf.production_id = pr.id
+        JOIN orders o        ON o.performance_id = pf.id
+        WHERE o.type = 'TicketOrder' AND o.status IN (:sold) AND pf.status = :active
+          /* filters */
+      ),
+      chain AS (
+        SELECT s.id, COALESCE(s.exchange_source_id, s.split_source_id) AS parent_id, 1 AS depth
+        FROM sales s
+        WHERE s.exchange_source_id IS NOT NULL OR s.split_source_id IS NOT NULL
         UNION ALL
         SELECT c.id, COALESCE(p.exchange_source_id, p.split_source_id), c.depth + 1
         FROM chain c JOIN orders p ON p.id = c.parent_id
@@ -111,12 +125,12 @@ class AdvanceSalesRows
         FROM chain c JOIN orders p ON p.id = c.parent_id
         WHERE p.exchange_source_id IS NULL AND p.split_source_id IS NULL
       )
-      SELECT pf.id AS performance_id, pr.id AS production_id, pr.theater_id, pr.season,
+      SELECT s.performance_id, s.production_id, s.theater_id, s.season,
              CASE WHEN EXISTS (
                SELECT 1 FROM payments pay
                JOIN flex_passes fp ON fp.id = pay.flex_pass_id
                JOIN flex_pass_offers fpo ON fpo.id = fp.flex_pass_offer_id
-               WHERE pay.order_id = o.id AND pay.type = :pass_type AND pay.number_of_tickets > 0
+               WHERE pay.order_id = s.id AND pay.type = :pass_type AND pay.number_of_tickets > 0
                  AND (fpo.theater_id IS NOT NULL OR fpo.festival_id IS NOT NULL)
              ) OR EXISTS (
                SELECT 1 FROM payments rpay
@@ -125,22 +139,17 @@ class AdvanceSalesRows
                WHERE rpay.order_id = r.root_id AND rpay.type = :pass_type AND rpay.number_of_tickets > 0
                  AND (rfpo.theater_id IS NOT NULL OR rfpo.festival_id IS NOT NULL)
              ) THEN 'pass' ELSE 'single' END AS segment,
-             GREATEST(DATEDIFF(pf.performance_date, DATE(COALESCE(CONVERT_TZ(COALESCE(ro.created_at, o.created_at), :storage_tz, :app_tz),
-                                                   COALESCE(ro.created_at, o.created_at)))), 0) AS lead_days,
+             GREATEST(DATEDIFF(s.performance_date, DATE(COALESCE(CONVERT_TZ(COALESCE(ro.created_at, s.created_at), :storage_tz, :app_tz),
+                                                  COALESCE(ro.created_at, s.created_at)))), 0) AS lead_days,
              SUM(li.ticket_count) AS tickets
-      FROM productions pr
-      JOIN theaters th       ON th.id = pr.theater_id
-      JOIN performances pf   ON pf.production_id = pr.id
-      JOIN orders o          ON o.performance_id = pf.id
-      JOIN line_items li     ON li.order_id = o.id
+      FROM sales s
+      JOIN line_items li     ON li.order_id = s.id
       JOIN ticket_classes tc ON tc.id = li.ticket_class_id
-      LEFT JOIN roots r      ON r.id = o.id
+      LEFT JOIN roots r      ON r.id = s.id
       LEFT JOIN orders ro    ON ro.id = r.root_id
-      WHERE o.type = 'TicketOrder' AND o.status IN (:sold)
-        AND li.type = 'TicketLineItem' AND li.ticket_count > 0
+      WHERE li.type = 'TicketLineItem' AND li.ticket_count > 0
         AND tc.holds_seats = 1 AND tc.complimentary = 0
-        /* filters */
-      GROUP BY pf.id, pr.id, pr.theater_id, pr.season, segment, lead_days
+      GROUP BY s.performance_id, s.production_id, s.theater_id, s.season, segment, lead_days
     SQL
   end
 

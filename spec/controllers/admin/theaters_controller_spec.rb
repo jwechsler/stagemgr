@@ -145,4 +145,51 @@ RSpec.describe Admin::TheatersController, type: :controller do
       expect(response.body).not_to include('Secondary appeal')
     end
   end
+
+  describe 'GET #search' do
+    let!(:named) { FactoryBot.create(:theater, name: 'Pickerton Playhouse') }
+    let!(:tagged) do
+      FactoryBot.create(:theater, name: 'Elsewhere Stage').tap { |t| t.update!(tag_names: 'pickers') }
+    end
+
+    def search_json(query)
+      get :search, params: { q: query }, format: :json
+      response.parsed_body
+    end
+
+    it 'returns name matches, a tag group and tag matches for an admin' do
+      results = search_json('picker')
+
+      expect(results).to include(a_hash_including('id' => named.id, 'label' => 'Pickerton Playhouse',
+                                                  'match_kind' => 'name'))
+      expect(results).to include(a_hash_including('group_key' => 'tag:pickers',
+                                                  'theaters' => [{ 'id' => tagged.id, 'name' => 'Elsewhere Stage' }]))
+      expect(results).to include(a_hash_including('id' => tagged.id, 'match_kind' => 'tag'))
+    end
+
+    it 'returns an empty list for a blank query' do
+      expect(search_json('  ')).to eq([])
+    end
+
+    it 'returns JSON results to a box office user' do
+      allow(controller).to receive(:current_user).and_return(FactoryBot.create(:user, is_box_office_user: true))
+
+      expect(search_json('Pickerton').pluck('id')).to include(named.id)
+    end
+
+    it 'returns every matching theater to a theater user, not only their own' do
+      own = FactoryBot.create(:theater, name: 'Pickerton Annex')
+      allow(controller).to receive(:current_user).and_return(FactoryBot.create(:user, theaters: [own]))
+
+      expect(search_json('Pickerton').pluck('id')).to include(named.id, own.id)
+    end
+
+    it 'redirects an anonymous request to the login page' do
+      allow(controller).to receive(:current_user).and_return(nil)
+
+      get :search, params: { q: 'Pickerton' }, format: :json
+
+      expect(response).to redirect_to(login_path)
+    end
+  end
 end

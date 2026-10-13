@@ -164,7 +164,7 @@ RSpec.describe AdvanceSalesCurve, type: :service do
         second = described_class.for_theater(theater, before_season: 2025)
         expect(AdvanceSalesRows).to have_received(:fetch).once
         expect(second.tickets).to eq(first.tickets)
-        expect(store.exist?("advance_sales_curve/v2/theater/#{theater.id}/before/2025/both")).to be(true)
+        expect(store.exist?("advance_sales_curve/v3/theater/#{theater.id}/before/2025/both")).to be(true)
 
         described_class.for_theater(theater, before_season: 2026)
         described_class.for_theater(theater, before_season: 2025, segment: 'single')
@@ -176,7 +176,7 @@ RSpec.describe AdvanceSalesCurve, type: :service do
 
         2.times { described_class.for_building(before_season: 2025) }
         expect(AdvanceSalesRows).to have_received(:fetch).once
-        expect(store.exist?('advance_sales_curve/v2/building/before/2025/both')).to be(true)
+        expect(store.exist?('advance_sales_curve/v3/building/before/2025/both')).to be(true)
       end
     end
 

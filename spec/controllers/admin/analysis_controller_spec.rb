@@ -438,7 +438,7 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       expect(response.body).not_to include('<select name="theater_ids[]"')
       page = Capybara.string(response.body)
       picker = page.find('#advance-sales-form [data-theater-multi-picker]', visible: :all)
-      expect(picker['data-search-url']).to eq(search_theaters_admin_analysis_index_path)
+      expect(picker['data-search-url']).to eq(search_admin_theaters_path)
       expect(picker).to have_css('input.theater-multi-picker-input[type="text"]')
       expect(picker).to have_css("input[type='hidden'][name='theater_ids[]'][value='#{picked.id}']", visible: :all)
       expect(picker).to have_css('input[type="hidden"][name="theater_ids[]"]', count: 1, visible: :all)

@@ -205,7 +205,7 @@ RSpec.describe AdvanceSalesAnalysis, type: :service do
         production.update_columns(first_preview_at: nil, press_opening_at: nil, opening_at: nil)
         earliest = run_start + 3.days
         perfs = [10, 3, 4].map { |offset| make_performance(production, on: run_start + offset.days) }
-        stub_rows(row(perfs.first, lead_days: 1, tickets: 1))
+        stub_rows(perfs.map { |perf| row(perf, lead_days: 1, tickets: 1) })
 
         weeks = run_for(analysis.compute).weeks
 
@@ -232,7 +232,7 @@ RSpec.describe AdvanceSalesAnalysis, type: :service do
         announced.update_column(:activated_at, Time.zone.local(2025, 1, 1, 12))
         on_the_day.update_column(:activated_at, run_start.in_time_zone + 12.hours)
         extension.update_column(:activated_at, (run_start + 5.days).in_time_zone + 12.hours)
-        stub_rows(row(announced, lead_days: 1, tickets: 1))
+        stub_rows([announced, on_the_day, extension].map { |perf| row(perf, lead_days: 1, tickets: 1) })
 
         run = run_for(analysis.compute)
 
@@ -254,15 +254,31 @@ RSpec.describe AdvanceSalesAnalysis, type: :service do
                                                    same_day_share: 0.5, over_two_weeks_share: 0.25)
       end
 
-      it 'lists a run week whose performances sold nothing' do
+      it 'leaves out performances that sold nothing, and a week made only of them' do
         sold = make_performance(production, on: run_start)
+        make_performance(production, on: run_start + 1.day)
         make_performance(production, on: run_start + 7.days)
         stub_rows(row(sold, lead_days: 3, tickets: 2))
 
-        quiet = run_for(analysis.compute).weeks.last
+        weeks = run_for(analysis.compute).weeks
 
-        expect(quiet).to have_attributes(index: 1, performance_count: 1, tickets: 0, avg_lead_days: nil,
-                                         same_day_share: nil, over_two_weeks_share: nil)
+        expect(weeks.map { |week| [week.index, week.performance_count, week.tickets] }).to eq([[0, 1, 2]])
+      end
+
+      it 'does not count an Inactive performance activated after the run started as added later' do
+        played = make_performance(production, on: run_start + 1.day)
+        withdrawn = make_performance(production, on: run_start + 8.days)
+        played.update_column(:activated_at, run_start.in_time_zone - 30.days)
+        withdrawn.update_columns(status: Performance::INACTIVE,
+                                 activated_at: (run_start + 5.days).in_time_zone + 12.hours)
+        sell(played, tickets: 2, days_before: 3)
+        sell(withdrawn, tickets: 3, days_before: 1)
+
+        run = run_for(analysis.compute)
+
+        expect(run.added_later_count).to eq(0)
+        expect(run.weeks.map { |week| [week.index, week.performance_count] }).to eq([[0, 1]])
+        expect(run.tickets).to eq(2)
       end
     end
 
@@ -316,17 +332,30 @@ RSpec.describe AdvanceSalesAnalysis, type: :service do
       it 'counts upcoming performances per run week and flags the run as in progress' do
         production.update_columns(first_preview_at: Date.current - 3.days, press_opening_at: Date.current - 3.days,
                                   opening_at: Date.current - 3.days)
-        played = make_performance(production, on: Date.current - 3.days)
-        make_performance(production, on: Date.current)
-        make_performance(production, on: Date.current + 2.days)
-        make_performance(production, on: Date.current + 5.days)
-        stub_rows(row(played, lead_days: 1, tickets: 1))
+        perfs = [-3, 0, 2, 5].map { |offset| make_performance(production, on: Date.current + offset.days) }
+        stub_rows(perfs.map { |perf| row(perf, lead_days: 1, tickets: 1) })
 
         run = only(analysis.compute.productions)
 
         expect(run.in_progress?).to be(true)
         expect(run.weeks.map { |week| [week.index, week.performance_count, week.upcoming_count] })
           .to eq([[0, 3, 2], [1, 1, 1]])
+      end
+
+      it 'counts the same upcoming performances in the series and the run weeks' do
+        production.update_columns(first_preview_at: Date.current - 3.days, press_opening_at: Date.current - 3.days,
+                                  opening_at: Date.current - 3.days)
+        sold = [-3, 1, 9].map { |offset| make_performance(production, on: Date.current + offset.days) }
+        make_performance(production, on: Date.current + 2.days) # nothing sold
+        sold.each { |perf| sell(perf, tickets: 1, days_before: 2) }
+
+        result = analysis(compare_by: 'production', segment: 'single').compute
+        series = only(result.series)
+        run = only(result.productions)
+
+        expect(series.upcoming_performance_count).to eq(2)
+        expect(run.weeks.sum(&:upcoming_count)).to eq(series.upcoming_performance_count)
+        expect(run.weeks.sum(&:performance_count)).to eq(series.performance_count)
       end
 
       it 'does not flag a run whose performances have all played' do

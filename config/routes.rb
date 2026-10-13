@@ -230,7 +230,6 @@ Rails.application.routes.draw do
 
     resources :analysis, only: [:index] do
       collection do
-        get :search_theaters
         get :memberships
         get :advance_sales
         post :rate_of_sales
@@ -337,6 +336,7 @@ Rails.application.routes.draw do
     resources :theaters do
       collection do
         get :autocomplete_tag
+        get :search
       end
       resources :productions do
         get 'allocation_sync_status', on: :member

@@ -96,7 +96,7 @@
     var targetProductionId      = #{@target_production ? @target_production.id : 'null'};
     var comparisonProductionIds = #{@comparison_productions.present? ? @comparison_productions.map(&:id).to_json : '[]'};
     var searchProductionsUrl    = '#{search_admin_productions_path}';
-    var searchTheatersUrl       = '#{search_theaters_admin_analysis_index_path}';
+    var searchTheatersUrl       = '#{search_admin_theaters_path}';
     var resolveGroupUrl         = '#{resolve_group_admin_productions_path}';
     var $form                   = $('#analysis-form');
     var rosUrl                  = $form.data('rate-of-sales-url');

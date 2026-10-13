@@ -70,7 +70,7 @@ shape of the curve and the table for how much landed in each window.
 | Column | Meaning |
 |--------|---------|
 | **Tickets** | Tickets counted in the series. |
-| **Upcoming** | For a series still in progress, how many of its performances have not yet played, out of its total. A dash for a finished series. |
+| **Upcoming** | For a series still in progress, how many of its performances with tickets sold have not yet played, out of its total. A dash for a finished series. |
 | **Same day ... 30+d** | Share of final sales bought that many days before the performance. |
 
 !!! warning "Series in progress"
@@ -96,7 +96,7 @@ opening, whichever comes first). Expand a panel to see:
 |--------|---------|
 | **Week** | **Week 1** is the first seven days of the run; **Week before** is the seven days before it; **Earlier** collects anything before that. |
 | **Starts** | The first date of that week. |
-| **Perfs** | Performances in the week. |
+| **Perfs** | Performances in the week with tickets sold. |
 | **Added later** | Performances that were first activated after the run had started -- typically an extension. The panel title also shows the production's total as **N added after opening**. |
 | **Tickets** | Tickets sold for performances in the week. |
 | **Avg lead** | Average days between purchase and performance, weighted by tickets. |
@@ -112,6 +112,8 @@ A **N upcoming** label on a week means that many of its performances have not pl
     extension sold relative to the original run.
 
 ## What counts
+
+Only Active performances are counted; Private and Inactive performances are left out.
 
 - **Tickets** are seat-holding, non-complimentary tickets on sold ticket orders, the same
   basis as house counts. Comps are left out, as are add-on items that don't occupy a
