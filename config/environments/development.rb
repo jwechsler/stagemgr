@@ -93,6 +93,11 @@ Rails.application.configure do
     # Development must never write to the live Emma account: reads work with
     # the credentials above, writes are skipped (and logged) regardless.
     MyEmma.read_only!
+    AppSecrets[:lgl_api_key] ? Lgl.configure(AppSecrets[:lgl_api_key]) : Lgl.disable
+    # Development must never write to the live LGL account: reads work with the
+    # key above, writes are skipped (and logged) except for the address ids
+    # listed in LGL_WRITABLE_ADDRESS_IDS (comma-separated), for deliberate tests.
+    Lgl.read_only!(except_address_ids: ENV.fetch('LGL_WRITABLE_ADDRESS_IDS', nil))
   end
 
   # Application configuration loaded from YAML. The loaded objects are kept

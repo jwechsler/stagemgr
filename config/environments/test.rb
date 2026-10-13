@@ -69,6 +69,7 @@ Rails.application.configure do
     ActiveMerchant::Billing::Base.mode = :test
     PaymentProcessing.after_initialize
     MyEmma.disable
+    Lgl.disable
   end
 
   # config.x.test_credit_card is assigned from config.x.payment_config below.

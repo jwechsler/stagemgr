@@ -199,6 +199,53 @@ RSpec.describe Setup::Doctor do
     end
   end
 
+  # Like MyEmma, every example stubs Lgl so the suite never reaches the network.
+  describe 'the LGL key' do
+    let(:lgl_client) { instance_double(Lgl::Client, ping: {}) }
+
+    before do
+      allow(Lgl).to receive(:enabled?).and_return(true)
+      allow(Lgl).to receive(:read_only?).and_return(false)
+      allow(Lgl).to receive(:client).and_return(lgl_client)
+    end
+
+    it 'makes no API call when LGL is not configured' do
+      allow(Lgl).to receive(:enabled?).and_return(false)
+
+      doctor.send(:check_lgl)
+
+      expect(lgl_client).not_to have_received(:ping)
+      expect(output.string).to include('LGL is not configured')
+      expect(doctor).to be_healthy
+    end
+
+    it 'makes no API call in a read-only environment such as development' do
+      allow(Lgl).to receive(:read_only?).and_return(true)
+
+      doctor.send(:check_lgl)
+
+      expect(lgl_client).not_to have_received(:ping)
+      expect(output.string).to include('LGL is read-only in this environment')
+    end
+
+    it 'confirms the key with one request when writable' do
+      doctor.send(:check_lgl)
+
+      expect(lgl_client).to have_received(:ping).once
+      expect(output.string).to include('LGL API key accepted')
+      expect(doctor).to be_healthy
+    end
+
+    it 'warns rather than failing when the key is rejected' do
+      allow(lgl_client).to receive(:ping).and_raise(Lgl::Error.new(status: 401, body: 'unauthorized'))
+
+      doctor.send(:check_lgl)
+
+      expect(output.string).to include('warn', 'LGL API key not verified')
+      expect(doctor).to be_healthy
+    end
+  end
+
   describe 'the membership card spec' do
     it 'warns — never fails — when the generated config file is missing' do
       allow(MembershipCards::Spec).to receive(:load).and_call_original

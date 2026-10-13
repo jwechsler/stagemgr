@@ -134,6 +134,7 @@ Rails.application.configure do
     else
       MyEmma.disable
     end
+    AppSecrets[:lgl_api_key] ? Lgl.configure(AppSecrets[:lgl_api_key]) : Lgl.disable
   end
 
   # Application configuration loaded from YAML. The loaded objects are kept

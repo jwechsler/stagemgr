@@ -53,6 +53,7 @@ module AppSecrets
     my_emma_username: { env: 'MY_EMMA_USERNAME', credentials: %i[my_emma username] },
     my_emma_password: { env: 'MY_EMMA_PASSWORD', credentials: %i[my_emma password] },
     my_emma_account_id: { env: 'MY_EMMA_ACCOUNT_ID', credentials: %i[my_emma account_id] },
+    lgl_api_key: { env: 'LGL_API_KEY', credentials: %i[lgl api_key] },
     paypal_login: { env: 'PAYPAL_LOGIN', credentials: %i[paypal login] },
     paypal_password: { env: 'PAYPAL_PASSWORD', credentials: %i[paypal password] },
     paypal_signature: { env: 'PAYPAL_SIGNATURE', credentials: %i[paypal signature] },

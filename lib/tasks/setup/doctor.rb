@@ -43,6 +43,7 @@ module Setup
       check_database
       check_redis
       check_myemma_groups
+      check_lgl
       check_membership_card_spec
       check_membership_card_renderer
       summarize
@@ -220,6 +221,19 @@ module Setup
       MyEmmaGroups::KEYS.each { |key| record(*myemma_group_result(key)) }
     rescue StandardError => e
       record WARN, "MyEmma groups not verified (#{e.class}: #{first_line(e.message)})"
+    end
+
+    # Confirms the LGL API key with one cheap read. Like the MyEmma check it is
+    # only ever a WARN and stays off the network when LGL is disabled (test,
+    # installs without a key) or read-only (development).
+    def check_lgl
+      return record OK, 'LGL is not configured — constituent ids are not synced' unless Lgl.enabled?
+      return record OK, 'LGL is read-only in this environment — key not verified' if Lgl.read_only?
+
+      Lgl.client.ping
+      record OK, 'LGL API key accepted'
+    rescue StandardError => e
+      record WARN, "LGL API key not verified (#{e.class}: #{first_line(e.message)})"
     end
 
     def myemma_group_result(key)
