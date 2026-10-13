@@ -825,6 +825,38 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       expect(Capybara.string(response.body)).not_to have_css('#rate-of-sales-results')
     end
 
+    describe 'a bookmark naming a show whose sales are recorded externally' do
+      let(:external) do
+        make_performance(theater, season: 2025, on: Date.current - 300.days).production.tap do |production|
+          production.update!(sales_recorded_externally: true)
+        end
+      end
+
+      it 'drops an external comparison with the narrowed warning and runs on the rest' do
+        get :rate_of_sales, params: { target_production_id: target.id.to_s,
+                                      comparison_production_ids: [comparison.id.to_s, external.id.to_s] }
+
+        expect(response).to have_http_status(:ok)
+        expect(flash.now[:warning]).to eq(described_class::NARROWED_NOTICE)
+        expect(flash.now[:error]).to be_nil
+        expect(assigns(:results)).to be_present
+        expect(assigns(:comparison_productions)).to eq([comparison])
+      end
+
+      it 'does not run on an external current show and says why' do
+        get :rate_of_sales, params: { target_production_id: external.id.to_s,
+                                      comparison_production_ids: [comparison.id.to_s] }
+
+        expect(response).to have_http_status(:ok)
+        expect(flash.now[:error]).to eq(described_class::EXTERNAL_SALES_TARGET_NOTICE)
+        expect(assigns(:results)).to be_nil
+        page = Capybara.string(response.body)
+        expect(page).to have_css('.flash_error', exact_text: described_class::EXTERNAL_SALES_TARGET_NOTICE,
+                                                 normalize_ws: true)
+        expect(page).not_to have_css('#rate-of-sales-results')
+      end
+    end
+
     describe 'a bookmark naming shows outside the user’s theaters' do
       let(:other_theater) { FactoryBot.create(:theater, name: 'ROS Other Theater') }
       let(:unreadable) { make_performance(other_theater, season: 2025, on: Date.current - 400.days).production }

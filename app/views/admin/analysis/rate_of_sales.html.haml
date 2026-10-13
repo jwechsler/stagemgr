@@ -11,7 +11,8 @@
     %h4 Rate of Sales Analysis
     %p.help-text
       Week-over-week ticket and revenue trends for the current show, measured against the aggregate of the
-      comparison shows, with a projection of the rest of its run.
+      comparison shows, with a projection of the rest of its run. Shows whose sales are recorded externally are
+      left out, because their order dates are data-entry dates.
 
 = render 'rate_of_sales_form', target: @target_production, comparisons: @comparison_productions
 

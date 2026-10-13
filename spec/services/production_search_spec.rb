@@ -49,6 +49,30 @@ RSpec.describe ProductionSearch do
     end
   end
 
+  describe 'rate_of_sales scope' do
+    let!(:external_production) do
+      FactoryBot.create(:production, theater: theater, name: 'Hamlet Keyed In', season: 2025,
+                                     sales_recorded_externally: true)
+    end
+
+    def resolved_names(scope_key)
+      described_class.new(admin_ability, scope_key).resolve_group("theater:#{theater.id}").pluck(:name)
+    end
+
+    it 'omits a production whose sales are recorded externally from search, which analysis still returns' do
+      names = result_names(described_class.new(admin_ability, 'rate_of_sales').search('Hamlet'))
+      expect(names).to include('Hamlet')
+      expect(names).not_to include('Hamlet Keyed In', 'Hamlet Presale')
+      expect(result_names(described_class.new(admin_ability, 'analysis').search('Hamlet'))).to include('Hamlet Keyed In')
+    end
+
+    it 'omits it from a theater group, which analysis still resolves to it' do
+      expect(resolved_names('rate_of_sales')).to include('Hamlet')
+      expect(resolved_names('rate_of_sales')).not_to include('Hamlet Keyed In')
+      expect(resolved_names('analysis')).to include('Hamlet Keyed In')
+    end
+  end
+
   describe 'ability row scoping' do
     it 'limits theater users to their granted theaters' do
       names = result_names(described_class.new(theater_ability, 'reports').search('Hamlet'))
