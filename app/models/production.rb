@@ -78,6 +78,9 @@ class Production < ApplicationRecord
   # foreign key would otherwise refuse the delete).
   has_many :rate_of_sales, dependent: :delete_all
 
+  # Productions whose order dates are real purchase dates (not keyed in later).
+  scope :sales_recorded_in_house, -> { where(sales_recorded_externally: false) }
+
   # has_attached_file :promo, :path=>":rails_root/public/system/:attachment/:id/:style/:filename"
   has_one_attached :promo
   # , :styles => {:medium => "250x375>", :thumb => "125x186>"},

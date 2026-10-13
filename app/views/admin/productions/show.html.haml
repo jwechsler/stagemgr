@@ -48,6 +48,10 @@
             %p
               %strong Status:
               = @production.status
+            - if @production.sales_recorded_externally?
+              %p
+                %strong Sales:
+                = ui_label 'External sales', variant: :warning
             %p
               %strong Class:
               = @production.production_class

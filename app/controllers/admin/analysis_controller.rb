@@ -126,6 +126,7 @@ class Admin::AnalysisController < Admin::ApplicationController
     @seasons  = readable.where.not(season: nil).distinct.pluck(:season).sort.reverse
     @filters  = AdvanceSalesFilters.new(params, theaters: @theaters, seasons: @seasons)
     @single_theater = single_theater
+    @offer_external = readable.exists?(sales_recorded_externally: true)
     return unless @filters.submitted?
 
     if @filters.valid?

@@ -201,6 +201,31 @@ RSpec.describe Admin::ProductionsController, type: :controller do
     end
   end
 
+  describe 'sales recorded externally' do
+    before { allow(controller).to receive(:current_user).and_return(admin_user) }
+
+    it 'updates sales_recorded_externally' do
+      patch :update, params: { theater_id: theater.id, id: production.id,
+                               production: { sales_recorded_externally: '1' } }
+
+      expect(production.reload.sales_recorded_externally).to be true
+    end
+
+    it 'shows an External sales label on the show page when set' do
+      production.update!(sales_recorded_externally: true)
+
+      get :show, params: { theater_id: theater.id, id: production.id }
+
+      expect(response.body).to include('External sales')
+    end
+
+    it 'omits the External sales label when sales are recorded in house' do
+      get :show, params: { theater_id: theater.id, id: production.id }
+
+      expect(response.body).not_to include('External sales')
+    end
+  end
+
   describe 'DELETE #destroy' do
     before { allow(controller).to receive(:current_user).and_return(admin_user) }
 

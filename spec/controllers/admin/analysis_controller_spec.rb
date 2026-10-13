@@ -599,15 +599,24 @@ RSpec.describe Admin::AnalysisController, type: :controller do
         expect(response.body).not_to include(described_class::NARROWED_NOTICE)
       end
 
-      it 'still offers the external-sales checkbox when that theater records sales externally' do
-        own.update!(sales_recorded_externally: true)
+      it 'still offers the external-sales checkbox when a production there records sales externally' do
+        own.productions.update_all(sales_recorded_externally: true)
 
         get :advance_sales, params: { seasons: ['2025'], include_external: '1' }
 
         page = Capybara.string(response.body)
         expect(page).to have_css('#advance-sales-form input#include_external[checked]')
         expect(page).not_to have_css('.theater-multi-picker', visible: :all)
+        expect(page).to have_css('.accordion-title', text: 'external sales')
         expect(assigns(:results).tickets).to eq(2)
+      end
+
+      it 'does not offer the external-sales checkbox when no readable production records sales externally' do
+        FactoryBot.create(:production, sales_recorded_externally: true)
+
+        get :advance_sales, params: { seasons: ['2025'] }
+
+        expect(Capybara.string(response.body)).not_to have_css('#advance-sales-form input#include_external')
       end
     end
 
