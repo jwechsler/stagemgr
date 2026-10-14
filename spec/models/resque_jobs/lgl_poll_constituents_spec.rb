@@ -82,6 +82,20 @@ RSpec.describe LglPollConstituents do
       expect(Resque).not_to have_received(:enqueue_in)
     end
 
+    it 'pulls through the real client, whose search returns streets only when expanded' do
+      http = lambda do |_req, uri|
+        expand = URI.decode_www_form(uri.query).assoc('expand')&.last.to_s.split(',')
+        item = changed(address.id.to_s)
+        item.delete('street_addresses') unless expand.include?('street_addresses')
+        body = { 'total_items' => 1, 'next_item' => 1, 'items' => [item] }
+        Struct.new(:code, :body).new('200', JSON.generate(body))
+      end
+      allow(Lgl).to receive(:client).and_return(Lgl::Client.new(api_key: 'key', http: http, min_interval: 0))
+
+      expect(described_class.perform).to eq(pulled: 1)
+      expect(address.reload.line1).to eq('6924 N Sheridan Rd')
+    end
+
     it 'never pulls when the external id is blank' do
       stub_constituents(changed(''))
       line1 = address.line1

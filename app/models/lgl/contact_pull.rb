@@ -72,7 +72,7 @@ module Lgl
     end
 
     def street_attributes
-      entry = ContactChanges.preferred(@constituent['street_addresses'])
+      entry = ContactChanges.preferred(expanded_list('street_addresses'))
       return nil if entry.nil? || !newer?(entry['updated_at']) || ContactChanges.same_street?(@address, entry)
 
       line1, line2 = entry['street'].to_s.split("\n", 2).map(&:strip)
@@ -81,10 +81,19 @@ module Lgl
     end
 
     def phone_attributes
-      entry = ContactChanges.preferred(@constituent['phone_numbers'])
+      entry = ContactChanges.preferred(expanded_list('phone_numbers'))
       return nil if entry.nil? || !newer?(entry['updated_at']) || ContactChanges.same_phone?(@address, entry)
 
       { 'phone' => entry['number'].to_s.strip }
+    end
+
+    # An absent key means the hash was fetched without that list expanded, not
+    # that LGL has no entries; the group is skipped either way.
+    def expanded_list(key)
+      unless @constituent.key?(key)
+        Rails.logger.debug { "[LGL] constituent #{@constituent['id']}: #{key} not expanded; skipped" }
+      end
+      @constituent[key]
     end
 
     # A missing or unparseable LGL timestamp never wins.

@@ -131,6 +131,13 @@ RSpec.describe Lgl::Client do
                                      %w[limit 1000], %w[offset 0])
       expect(query_of(1)).to include(%w[offset 2])
     end
+
+    it 'expands street addresses and phone numbers as well as emails' do
+      client.search_updated_since(Time.utc(2026, 10, 1)).to_a
+
+      expand = query_of.assoc('expand').last.split(',')
+      expect(expand).to include('email_addresses', 'street_addresses', 'phone_numbers')
+    end
   end
 
   describe '#each_constituent' do

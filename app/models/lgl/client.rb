@@ -33,6 +33,9 @@ module Lgl
     # LGL's "Home" type for street address and phone entries.
     HOME_STREET_ADDRESS_TYPE_ID = 1
     HOME_PHONE_NUMBER_TYPE_ID = 1
+    # The search endpoint returns contact lists only when expanded; the poll
+    # hands these hashes to Lgl::ContactPull, which needs streets and phones.
+    UPDATED_SINCE_EXPAND = 'email_addresses,street_addresses,phone_numbers'
     HTTP_NOT_FOUND = 404
     HTTP_TOO_MANY_REQUESTS = 429
 
@@ -78,7 +81,7 @@ module Lgl
       return enum_for(:search_updated_since, time) unless block
 
       params = [['q[]', search_term('updated_from', time.utc.iso8601)], %w[sort date_updated],
-                ['expand', 'email_addresses']]
+                ['expand', UPDATED_SINCE_EXPAND]]
       each_page(SEARCH_PATH, params) { |page| page.fetch('items', []).each(&block) }
     end
 
