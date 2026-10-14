@@ -41,9 +41,11 @@ managed in LGL. Stagemgr never deletes anything in LGL.
 
 ## How LGL Merges Reach Stagemgr
 
-Every 15 minutes Stagemgr reads the constituents changed in LGL. When two
-constituents have been merged in LGL and both were linked to Stagemgr
-customers, Stagemgr merges those two customers as well, provided they look like
+Every hour Stagemgr checks that every `LGL ID` still exists in LGL, so an LGL
+merge reaches Stagemgr within about an hour. (The 15-minute poll picks up
+other LGL changes, but a merge does not mark the surviving constituent as
+changed.) When two constituents have been merged in LGL and both were linked
+to Stagemgr customers, Stagemgr merges those two customers as well, provided they look like
 the same person (same name or same email). The customer with the **lowest id**
 is kept, exactly as in [Merging Duplicates](merging-duplicates.md), and the
 surviving LGL constituent is pointed at it.
@@ -53,9 +55,8 @@ is on an LGL constituent already linked to another Stagemgr customer with the
 same name, LGL is treating them as one person, so Stagemgr merges the two
 customers (lowest id kept) and links the survivor.
 
-Each night Stagemgr also checks that every `LGL ID` still exists in LGL. A
-customer whose constituent was deleted or merged away is re-linked by customer
-id and email. If nothing in LGL matches, Stagemgr does **not** create a new LGL
+In the same hourly check, a customer whose constituent was deleted or merged
+away is re-linked by customer id and email. If nothing in LGL matches, Stagemgr does **not** create a new LGL
 record on its own: the customer keeps the old `LGL ID` and gets an
 `LGL Review` tag. Click **Re-sync with LGL** on the customer page to create a
 new LGL record for them.
@@ -97,7 +98,7 @@ applies and nothing needs fixing, delete the `LGL Review` tag as you would any
 The page shows:
 
 - Whether LGL sync is configured, and whether this environment may write to LGL.
-- How far the 15-minute poll has read LGL's changes, and when the nightly sweep
+- How far the 15-minute poll has read LGL's changes, and when the hourly sweep
   last finished ("never" if it has not run).
 - How many customers are linked.
 - Every customer with an `LGL Review` tag, oldest first, with the reason and a

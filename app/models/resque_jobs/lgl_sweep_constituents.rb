@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Nightly: lists every LGL constituent id and, for each default-theater LGL ID
+# Hourly: lists every LGL constituent id and, for each default-theater LGL ID
 # tag naming an id that is not in the list, confirms with a direct lookup.
 # Only a confirmed 404 (deleted, or merged away in LGL) enqueues the address's
 # LglSyncAddressJob (reason 'sweep'), which re-resolves it by external id and

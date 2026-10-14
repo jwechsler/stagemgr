@@ -172,6 +172,6 @@ LglPollConstituents:
   queue: lgl
 
 LglSweepConstituents:
-  cron: "30 3 * * *"
-  description: "Drop LGL ID tags whose LGL constituent was deleted or merged away, and re-sync those addresses"
+  every: "1h"
+  description: "Hourly: drop LGL ID tags whose LGL constituent was deleted or merged away, and re-sync those addresses"
   queue: lgl

@@ -183,7 +183,7 @@ single worker on `QUEUE=*`. `config/schedule.yml` (and its `.example`) schedules
 | Job | Schedule | Does |
 |---|---|---|
 | `LglPollConstituents` | every 15 minutes | Reads constituents changed since the last poll and reconciles LGL merges |
-| `LglSweepConstituents` | `30 3 * * *` | Drops `LGL ID` tags whose constituent no longer exists and re-syncs those customers |
+| `LglSweepConstituents` | every hour | Drops `LGL ID` tags whose constituent no longer exists and re-syncs those customers |
 
 After the first deploy with a key, run the backfill **once** to link every
 constituent whose External constituent ID already names a customer. It only
