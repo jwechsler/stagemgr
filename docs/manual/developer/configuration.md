@@ -228,6 +228,27 @@ tag). It never copies a name, street, phone or email in either direction:
 each linked customer is marked as changed after the write, so the next poll
 does not treat LGL as the newer copy.
 
+#### Bringing existing constituents over
+
+`lgl:replicate` makes every constituent with such an External constituent ID
+a customer: it links it by email, creates a new customer, or leaves it in LGL
+Review, as the poll does for new constituents. Run the dry run first; it prints
+one line per constituent and writes nothing. Optional LGL ids limit either run
+to those constituents and run it inline; without ids the real run is queued on
+the `maintenance` queue:
+
+```sh
+bundle exec rake "lgl:replicate_dry_run[123,456]"   # what it would do
+bundle exec rake lgl:replicate                      # queue the run
+```
+
+With sync `enabled` it queues one sync per linked or created customer, three
+seconds apart to stay under LGL's rate limit. With sync `readonly` the
+customers are still created and linked locally, but no syncs are queued,
+except an immediate one for each address in `writable_address_ids`: nothing
+else could be written to LGL. The counts include how many were skipped, as
+`sync_skipped_readonly`.
+
 The first `LglPollConstituents` run after sync is enabled reads nothing: it
 records the current time as its watermark and logs `[LGL] poll: first run;
 starting from <time>`. Only LGL changes made after that moment are copied into

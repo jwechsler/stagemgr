@@ -168,6 +168,7 @@ RSpec.describe LglBackfillLinks do
     before do
       matched
       retagged.set_lgl_id!(930_004)
+      Lgl.read_write!
       allow(Resque).to receive(:enqueue_in)
       allow(client).to receive(:search_updated_since).with(described_class::LINK_SCAN_FROM)
                                                      .and_return(search_results.each)
@@ -187,6 +188,39 @@ RSpec.describe LglBackfillLinks do
       expect(Resque).to have_received(:enqueue_in).with(6.seconds, LglSyncAddressJob, retagged.id, link).ordered
       expect(Resque).to have_received(:enqueue_in).with(9.seconds, LglSyncAddressJob, second.id, link).ordered
       expect(Resque).not_to have_received(:enqueue)
+    end
+
+    after { Lgl.read_write! }
+
+    context 'when LGL is read-only' do
+      it 'links and creates locally but enqueues no sync, counting the skipped ones' do
+        Lgl.read_only!
+        counts = nil
+        expect { counts = described_class.replicate }.to change(Address, :count).by(2)
+
+        expect(counts).to eq(created: 2, linked: 1, org_skipped: 1, repointed: 1, sync_skipped_readonly: 4)
+        expect(Address.find_by(email: 'new@example.com').lgl_id).to eq('930001')
+        expect(matched.lgl_id).to eq('930002')
+        expect(Resque).not_to have_received(:enqueue_in)
+        expect(Resque).not_to have_received(:enqueue)
+      end
+
+      it 'still reports the address id of each linked or created address' do
+        Lgl.read_only!
+        rows = []
+        described_class.replicate { |*row| rows << row }
+
+        expect(rows).to include(['930002', 'Pat Match', :linked, matched.id], ['930004', 'Pat Tagged', :repointed, retagged.id])
+      end
+
+      it 'enqueues an allowlisted address at once, without staggering, and skips the others' do
+        Lgl.read_only!(except_address_ids: [matched.id])
+
+        expect(described_class.replicate).to include(linked: 1, sync_skipped_readonly: 3)
+        expect(Resque).to have_received(:enqueue).once
+        expect(Resque).to have_received(:enqueue).with(LglSyncAddressJob, matched.id, LglSyncAddressJob::LINK_TRIGGER)
+        expect(Resque).not_to have_received(:enqueue_in)
+      end
     end
 
     it 'lists every constituent before enqueuing anything' do

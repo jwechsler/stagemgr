@@ -24,7 +24,11 @@
 # Lgl::ConstituentReplicator links, creates, reviews or skips it), and a junk
 # constituent with exactly one tagged address is re-pointed, which also
 # catches up addresses created while LGL was read-only. The syncs are
-# enqueued STAGGER apart to stay under LGL's rate limit. Run with
+# enqueued STAGGER apart to stay under LGL's rate limit. While LGL is
+# read-only only writable (allowlisted) addresses get a sync, enqueued at
+# once: any other sync would only spend a GET before skipping its PATCH, and
+# the local LGL ID tag is already set. The others are counted as
+# :sync_skipped_readonly. Run with
 # `rake lgl:replicate_dry_run` (inline, writes nothing) first, then
 # `rake lgl:replicate`.
 class LglBackfillLinks
@@ -93,7 +97,7 @@ class LglBackfillLinks
     end
 
     counts = Hash.new(0)
-    run = dry_run ? method(:replicate_preview) : replicate_runner
+    run = dry_run ? method(:replicate_preview) : replicate_runner(counts)
     replicate_candidates(constituent_ids).each do |constituent|
       outcome, address_id = run.call(constituent)
       counts[outcome] += 1
@@ -125,21 +129,30 @@ class LglBackfillLinks
     end
   end
 
-  # A callable constituent -> [outcome, id of the address it enqueued a sync
-  # for, or nil]. One reconciler per run, whose syncs are enqueued STAGGER
-  # apart in order.
-  def self.replicate_runner
+  # A callable constituent -> [outcome, id of the address it linked, created
+  # or re-pointed, or nil]. One reconciler per run. Read-write: its syncs are
+  # enqueued STAGGER apart in order. Read-only: only writable addresses get a
+  # sync, enqueued at once (they are few); each other one is counted in
+  # +counts+ as :sync_skipped_readonly.
+  def self.replicate_runner(counts)
     enqueued = 0
     address_id = nil
     # Always LINK_TRIGGER, whatever reason the reconciler passes: any other
     # reason lets LglSyncAddressJob create a new LGL constituent when the
     # tagged one 404s, and the backfill must never create in LGL.
-    staggered = lambda do |address, _reason|
-      Resque.enqueue_in(STAGGER * enqueued, LglSyncAddressJob, address.id, LglSyncAddressJob::LINK_TRIGGER)
-      enqueued += 1
+    link = LglSyncAddressJob::LINK_TRIGGER
+    enqueue = lambda do |address, _reason|
       address_id = address.id
+      if !Lgl.read_only?
+        Resque.enqueue_in(STAGGER * enqueued, LglSyncAddressJob, address.id, link)
+        enqueued += 1
+      elsif Lgl.writable?(address.id)
+        Resque.enqueue(LglSyncAddressJob, address.id, link)
+      else
+        counts[:sync_skipped_readonly] += 1
+      end
     end
-    reconciler = Lgl::Reconciler.new(reason: 'replicate', enqueue: staggered)
+    reconciler = Lgl::Reconciler.new(reason: 'replicate', enqueue: enqueue)
     lambda do |constituent|
       address_id = nil
       [reconciler.apply(constituent), address_id]
