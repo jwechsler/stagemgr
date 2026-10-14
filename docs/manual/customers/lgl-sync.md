@@ -62,17 +62,18 @@ managed in LGL, and Stagemgr's are managed in Stagemgr.
 
 Every hour Stagemgr checks that every `LGL ID` still exists in LGL, so an LGL
 merge reaches Stagemgr within about an hour. (The 15-minute poll picks up
-other LGL changes, but a merge does not mark the surviving constituent as
+other LGL changes, but a merge does not mark the constituent LGL kept as
 changed.) When two constituents have been merged in LGL and both were linked
 to Stagemgr customers, Stagemgr merges those two customers as well, provided they look like
-the same person (same name or same email). The customer with the **lowest id**
-is kept, exactly as in [Merging Duplicates](merging-duplicates.md), and the
-surviving LGL constituent is pointed at it.
+the same person (same name or same email). The newer customer is folded into
+the original one (lowest id), exactly as in
+[Merging Duplicates](merging-duplicates.md), and the constituent LGL kept is
+pointed at the original customer.
 
 The same rule applies when Stagemgr links a customer by email: if that email
 is on an LGL constituent already linked to another Stagemgr customer with the
-same name, LGL is treating them as one person, so Stagemgr merges the two
-customers (lowest id kept) and links the survivor.
+same name, LGL is treating them as one person, so Stagemgr folds the newer
+customer into the original and links the original.
 
 In the same hourly check, a customer whose constituent was deleted or merged
 away is re-linked by customer id and email. If nothing in LGL matches, Stagemgr does **not** create a new LGL
