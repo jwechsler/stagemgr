@@ -53,8 +53,42 @@ away.
 - Only customers whose LGL record carries their Stagemgr customer id as its
   **External constituent ID** are updated this way.
 
-**Email is never synced, in either direction**: email addresses in LGL are
-managed in LGL, and Stagemgr's are managed in Stagemgr.
+**Email is not kept in sync**: when Stagemgr creates a customer from a new LGL
+constituent (below), it copies the constituent's preferred email once. After
+that the sync never changes an email in either system: email addresses in LGL
+are managed in LGL, and Stagemgr's are managed in Stagemgr.
+
+---
+
+## New LGL Constituents Become Customers
+
+When a constituent is added in LGL without a Stagemgr link (its External
+constituent ID is empty or does not name a Stagemgr customer), Stagemgr picks
+it up within about 15 minutes:
+
+- If exactly **one** customer has the same email address and last name as the
+  constituent, and is not already linked to another constituent, that
+  customer is linked to it.
+- If **no** customer matches, Stagemgr creates a new customer with LGL's name
+  and the constituent's preferred email, preferred street address and
+  preferred phone.
+- If **several** customers match, none is chosen: each gets an `LGL Review`
+  tag (see [The LGL Review Tag](#the-lgl-review-tag)).
+
+A linked or newly created customer gets the `LGL ID` tag, and Stagemgr sets the
+constituent's **External constituent ID** in LGL to the customer number.
+
+Stagemgr leaves these constituents alone:
+
+- **Organisations.** Only individuals become customers.
+- Constituents with **neither an email nor a street address**.
+- Constituents with no name, or with an email address Stagemgr does not
+  accept. Correct the record in LGL; the change is picked up on the next poll.
+
+!!! note "Existing constituents"
+    Constituents that were already in LGL before this sync was set up are
+    brought over by a one-time backfill that the developer runs
+    (`rake lgl:replicate`). It is not a button on the Sync Status page.
 
 ---
 
@@ -92,6 +126,7 @@ id, `#5678` for a Stagemgr customer id):
 | Reason | Meaning |
 |---|---|
 | `2 LGL constituents share this email` | Several constituents could be this customer |
+| `LGL constituent 1234 matches several customers by email and last name` | A new LGL constituent could be any of these customers, so Stagemgr linked none of them. Merge the duplicates in Stagemgr (see [Merging Duplicates](merging-duplicates.md)), then click **Re-sync with LGL** on the customer that remains |
 | `2 LGL constituents carry external id 5678` | Several constituents in LGL name this customer as their External constituent ID |
 | `Also LGL constituent 1234` | LGL says this customer is constituent 1234, but the customer is already linked to a different one |
 | `Also LGL constituent 1234: merge the two in LGL` | Two Stagemgr customers linked to different constituents were merged in Stagemgr |
@@ -117,7 +152,15 @@ applies and nothing needs fixing, delete the `LGL Review` tag as you would any
 
 The page shows:
 
-- Whether LGL sync is configured, and whether this environment may write to LGL.
+- The **Sync** row: **Enabled**, **Read-only** or **Disabled**, and whether
+  this environment may write to LGL.
+    - **Enabled**: changes flow both ways as described on this page.
+    - **Read-only**: used for testing. Stagemgr still reads from LGL, links
+      customers and creates new customers from LGL constituents, but writes
+      nothing to LGL, except for any customers the developer has listed for
+      acceptance testing. A development install set to enabled runs
+      read-only, and the page says so.
+    - **Disabled**: no sync in either direction.
 - How far the 15-minute poll has read LGL's changes, and when the hourly sweep
   last finished ("never" if it has not run). The first poll after LGL sync is
   enabled starts from that moment: changes made in LGL before then are not
@@ -137,3 +180,18 @@ Three buttons queue the same jobs that run on their own:
 
 The jobs run in the background; reload the page after a few minutes to see the
 results.
+
+### Donor Tiers
+
+Three more rows report the nightly
+[donor levels import](../imports/donor-levels-import.md) from LGL. They appear
+whatever the sync mode:
+
+| Row | Shows |
+|---|---|
+| **Donor-tier report** | **On** when the LGL report link is configured, with the person the import results are emailed to; **Off** otherwise |
+| **Last report download** | When Stagemgr last downloaded the report from LGL successfully |
+| **Last donor levels import** | When a donor levels import last finished, whether from the nightly download or a manual upload on the Imports page |
+
+When the report is on, a **Fetch donor levels now** button downloads the
+report and imports it straight away instead of waiting for the nightly run.

@@ -20,9 +20,21 @@ module Lgl
   #                              review both when they are not duplicates
   #   E junk, one tagged      -> sync it, so LGL is re-pointed
   #   E junk, several tagged  -> review each
+  #   E junk, none tagged     -> Lgl::ConstituentReplicator: link the one
+  #                              address matching by email and last name, or
+  #                              create a tagged address, then sync it
+  #                              (LglSyncAddressJob::LINK_TRIGGER) so LGL's
+  #                              external id names it; or skip / review
+  #                              (:org_skipped, :no_contact, :no_name,
+  #                              :invalid_email, :review)
   #
-  # +local_only+ (the backfill) disables merges and enqueues: only local tags
-  # and reviews are written.
+  # +local_only+ (the backfill) disables merges, replication and enqueues:
+  # only local tags and reviews are written. +replicate: false+ leaves an
+  # untagged junk constituent counted by its junk kind. Replication is gated
+  # by Lgl.enabled? alone (the callers check it), never by Lgl.writable?: the
+  # address is created locally even when LGL is read-only, and the sync job's
+  # PATCH is what read-only skips. +enqueue+ is a callable (address, reason)
+  # that queues the sync; the backfill passes one that staggers.
   class Reconciler
     NUMERIC = /\A\d+\z/
 
@@ -47,14 +59,30 @@ module Lgl
       Address.find_by(id: external.to_i, placeholder: false)
     end
 
-    def initialize(reason: 'poll', local_only: false)
+    DEFAULT_ENQUEUE = ->(address, reason) { Resque.enqueue(LglSyncAddressJob, address.id, reason) }
+
+    # The live, non-placeholder addresses tagged LGL ID = +lgl_id+ for the
+    # default theater, lowest id first.
+    def self.tagged_addresses(lgl_id)
+      theater_id = Theater.default_theater&.id
+      return [] if theater_id.nil? || lgl_id.to_s.empty?
+
+      address_ids = AddressTag.where(tag_label: AddressTag::LGL_ID, tag_value: lgl_id.to_s, theater_id: theater_id)
+                              .select(:address_id)
+      Address.where(id: address_ids, placeholder: false).order(:id).to_a
+    end
+
+    def initialize(reason: 'poll', local_only: false, replicate: !local_only, enqueue: nil)
       @reason = reason
       @local_only = local_only
+      @replicate = replicate
+      @enqueue = enqueue || DEFAULT_ENQUEUE
     end
 
     # A result symbol for counting: :already_tagged, :pulled, :tagged, :merged,
     # :repointed, :review, :in_flight, :deferred, :self_referencing,
-    # :dead_external_id, :blank_external_id or :error. Lgl::Error (including
+    # :dead_external_id, :blank_external_id, :created, :linked, :org_skipped,
+    # :no_contact, :no_name, :invalid_email or :error. Lgl::Error (including
     # RateLimited) is re-raised so the calling job fails; anything else is
     # logged and counted, so one bad record never stops a run.
     def apply(constituent)
@@ -138,25 +166,29 @@ module Lgl
         tagged.each { |address| address.lgl_review!("#{tagged.size} addresses are tagged LGL constituent #{lgl_id}") }
         return :review
       end
-      return kind if tagged.empty? || @local_only
+      return kind if @local_only
+      return replicate(constituent, kind) if tagged.empty?
 
       enqueue_sync(tagged.first)
       :repointed
     end
 
-    def tagged_addresses(lgl_id)
-      theater_id = Theater.default_theater&.id
-      return [] if theater_id.nil? || lgl_id.empty?
+    def replicate(constituent, kind)
+      return kind unless @replicate
 
-      address_ids = AddressTag.where(tag_label: AddressTag::LGL_ID, tag_value: lgl_id, theater_id: theater_id)
-                              .select(:address_id)
-      Address.where(id: address_ids, placeholder: false).order(:id).to_a
+      result = Lgl::ConstituentReplicator.new(constituent).apply!
+      enqueue_sync(result.address, LglSyncAddressJob::LINK_TRIGGER) if result.address
+      result.outcome
     end
 
-    def enqueue_sync(address)
+    def tagged_addresses(lgl_id)
+      self.class.tagged_addresses(lgl_id)
+    end
+
+    def enqueue_sync(address, reason = @reason)
       return if @local_only
 
-      Resque.enqueue(LglSyncAddressJob, address.id, @reason)
+      @enqueue.call(address, reason)
     end
   end
 end

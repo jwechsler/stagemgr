@@ -78,8 +78,9 @@ class LglSyncAddressJob
   # replace a dead link with a new constituent.
   MANUAL_TRIGGER = 'manual'
 
-  # Trigger reason for LglBackfillLinks.link_by_email: only adopts the
-  # constituent it matched, never creates one.
+  # Trigger reason for LglBackfillLinks.link_by_email and for addresses that
+  # Lgl::ConstituentReplicator linked or created: adopts a tagged or
+  # email-matched constituent; never creates.
   LINK_TRIGGER = 'link'
 
   Outcome = Struct.new(:action, :constituent_id, :reason)

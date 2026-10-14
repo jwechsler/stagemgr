@@ -2,9 +2,12 @@
 
 # Every 15 minutes: reads the LGL constituents changed since the last poll and
 # applies Lgl::Reconciler to each, which notices LGL-side merges and dangling
-# external ids, and copies newer contact details of a linked constituent into
-# its address (Lgl::ContactPull, counted as :pulled). Only reads LGL; any LGL
-# write is an enqueued LglSyncAddressJob (reason 'poll').
+# external ids, copies newer contact details of a linked constituent into
+# its address (Lgl::ContactPull, counted as :pulled), and links or creates a
+# customer for a new unlinked constituent (Lgl::ConstituentReplicator, counted
+# as :linked or :created). Only reads LGL; any LGL write is an enqueued
+# LglSyncAddressJob (reason 'poll', or LINK_TRIGGER for a linked or created
+# address).
 #
 # The watermark is the newest constituent updated_at seen, recorded only after
 # every page succeeded, so an LGL error leaves it where it was and the next run

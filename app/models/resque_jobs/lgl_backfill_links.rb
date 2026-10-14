@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# One-time (repeatable) LGL backfills, run by a developer. Two modes:
+# One-time (repeatable) LGL backfills, run by a developer. Three modes:
 #
 # RECONCILE_MODE (default): walks every LGL constituent and applies
 # Lgl::Reconciler in local-only mode, so the only writes are local LGL ID and
@@ -18,6 +18,15 @@
 # address. Several, none or no email -> counted only. Run with
 # `rake lgl:link_by_email_dry_run` (inline, enqueues nothing) first, then
 # `rake lgl:link_by_email`.
+#
+# REPLICATE_MODE: makes every unlinked LGL constituent a Stagemgr customer.
+# Each constituent with a junk external id goes through Lgl::Reconciler (so
+# Lgl::ConstituentReplicator links, creates, reviews or skips it), and a junk
+# constituent with exactly one tagged address is re-pointed, which also
+# catches up addresses created while LGL was read-only. The syncs are
+# enqueued STAGGER apart to stay under LGL's rate limit. Run with
+# `rake lgl:replicate_dry_run` (inline, writes nothing) first, then
+# `rake lgl:replicate`.
 class LglBackfillLinks
   @queue = :lgl
 
@@ -25,12 +34,17 @@ class LglBackfillLinks
 
   RECONCILE_MODE = 'reconcile'
   LINK_BY_EMAIL_MODE = 'link_by_email'
+  REPLICATE_MODE = 'replicate'
+  # Gap between the replicate run's enqueued syncs (LGL allows 300 requests
+  # per 5 minutes).
+  STAGGER = 3.seconds
   # Every constituent "updated since" the epoch: the search endpoint is the
   # listing that expands email addresses.
   LINK_SCAN_FROM = Time.utc(1970, 1, 1)
 
   def self.perform(mode = RECONCILE_MODE)
     return link_by_email if mode == LINK_BY_EMAIL_MODE
+    return replicate if mode == REPLICATE_MODE
 
     unless Lgl.enabled?
       Lgl.log_disabled('backfill')
@@ -59,7 +73,7 @@ class LglBackfillLinks
       kind = Lgl::Reconciler.junk_kind(constituent)
       next if kind.nil?
 
-      outcome, address = link_candidate(constituent)
+      outcome, address = Lgl::ConstituentReplicator.match_by_email(constituent)
       Resque.enqueue(LglSyncAddressJob, address.id, LglSyncAddressJob::LINK_TRIGGER) if address && !dry_run
       counts[[kind, outcome]] += 1
     end
@@ -68,20 +82,74 @@ class LglBackfillLinks
     counts
   end
 
-  # [outcome, the single matching address or nil]
-  def self.link_candidate(constituent)
-    emails = Array(constituent['email_addresses']).filter_map { |e| e['address'].to_s.strip.downcase.presence }.uniq
-    return [:no_email, nil] if emails.empty?
-
-    last_name = constituent['last_name'].to_s.strip
-    lgl_id = constituent['id'].to_s
-    candidates = Address.where(email: emails, placeholder: false).order(:id).select do |address|
-      last_name.present? && last_name.casecmp?(address.last_name.to_s.strip) &&
-        [nil, lgl_id].include?(address.lgl_id)
+  # Counts keyed by outcome (Lgl::Reconciler#apply's symbols). Yields
+  # (lgl_id, name, outcome, address id or nil) per junk constituent when a
+  # block is given. +constituent_ids+ limits the run to those LGL ids. A dry
+  # run writes and enqueues nothing: it reports what the real run would do.
+  def self.replicate(constituent_ids: nil, dry_run: false, &block)
+    unless Lgl.enabled?
+      Lgl.log_disabled('replicate')
+      return {}
     end
-    return [:one_match, candidates.first] if candidates.one?
 
-    [candidates.empty? ? :no_match : :several_matches, nil]
+    counts = Hash.new(0)
+    run = dry_run ? method(:replicate_preview) : replicate_runner
+    replicate_candidates(constituent_ids).each do |constituent|
+      outcome, address_id = run.call(constituent)
+      counts[outcome] += 1
+      block&.call(constituent['id'].to_s, Lgl::ConstituentReplicator.full_name(constituent), outcome, address_id)
+    end
+    Rails.logger.info("[LGL] replicate#{' (dry run)' if dry_run}: " \
+                      "#{counts.sort.map { |k, v| "#{k}=#{v}" }.join(' ').presence || 'nothing'}")
+    counts
   end
-  private_class_method :link_candidate
+
+  # Listed in full before anything is written: the search pages by
+  # date_updated, and the enqueued writes bump it.
+  def self.replicate_candidates(constituent_ids)
+    wanted = constituent_ids&.map(&:to_s)
+    Lgl.client.search_updated_since(LINK_SCAN_FROM).to_a.uniq { |c| c['id'] }.select do |constituent|
+      (wanted.nil? || wanted.include?(constituent['id'].to_s)) && Lgl::Reconciler.junk_kind(constituent)
+    end
+  end
+
+  # A callable constituent -> [outcome, id of the address it enqueued a sync
+  # for, or nil]. One reconciler per run, whose syncs are enqueued STAGGER
+  # apart in order.
+  def self.replicate_runner
+    enqueued = 0
+    address_id = nil
+    staggered = lambda do |address, reason|
+      Resque.enqueue_in(STAGGER * enqueued, LglSyncAddressJob, address.id, reason)
+      enqueued += 1
+      address_id = address.id
+    end
+    reconciler = Lgl::Reconciler.new(reason: 'replicate', enqueue: staggered)
+    lambda do |constituent|
+      address_id = nil
+      [reconciler.apply(constituent), address_id]
+    end
+  end
+
+  # What replicate_one would do, without writing.
+  def self.replicate_preview(constituent)
+    tagged = Lgl::Reconciler.tagged_addresses(constituent['id'])
+    return [tagged.one? ? :repointed : :review, tagged.first&.id] if tagged.any?
+
+    skip = Lgl::ConstituentReplicator.skip_reason(constituent)
+    return [skip, nil] if skip
+
+    match, address = Lgl::ConstituentReplicator.match_by_email(constituent)
+    case match
+    when :one_match then [:linked, address.id]
+    when :several_matches then [:review, nil]
+    else [new_address_preview(constituent), nil]
+    end
+  end
+
+  def self.new_address_preview(constituent)
+    address = Lgl::ConstituentReplicator.build_address(constituent)
+    Lgl::ConstituentReplicator.invalid_email?(address) ? :invalid_email : :created
+  end
+  private_class_method :replicate_candidates, :replicate_runner, :replicate_preview, :new_address_preview
 end

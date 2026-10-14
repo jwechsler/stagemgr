@@ -42,6 +42,15 @@ module Lgl
       name: %w[full_name], street: %w[line1 line2 city state zipcode], phone: %w[phone]
     }.freeze
 
+    # An LGL street entry as Address columns: street (line1, and line2 after
+    # the first newline), city, state, postal_code -> zipcode. Also used by
+    # Lgl::ConstituentReplicator for a new address.
+    def self.street_fields_from(entry)
+      line1, line2 = entry['street'].to_s.split("\n", 2).map(&:strip)
+      { 'line1' => line1.to_s, 'line2' => line2.to_s, 'city' => entry['city'].to_s.strip,
+        'state' => entry['state'].to_s.strip, 'zipcode' => entry['postal_code'].to_s.strip }
+    end
+
     def initialize(address, constituent)
       @address = address
       @constituent = constituent
@@ -83,9 +92,7 @@ module Lgl
       entry = ContactChanges.preferred(expanded_list('street_addresses'))
       return nil if entry.nil? || !newer?(entry['updated_at']) || ContactChanges.same_street?(@address, entry)
 
-      line1, line2 = entry['street'].to_s.split("\n", 2).map(&:strip)
-      { 'line1' => line1.to_s, 'line2' => line2.to_s, 'city' => entry['city'].to_s.strip,
-        'state' => entry['state'].to_s.strip, 'zipcode' => entry['postal_code'].to_s.strip }
+      self.class.street_fields_from(entry)
     end
 
     def phone_attributes

@@ -349,6 +349,36 @@ RSpec.describe LglSyncAddressJob do
   context 'on a link sync' do
     before { address.update_column(:updated_at, 1.hour.ago) }
 
+    # Lgl::ConstituentReplicator tags the address before enqueuing this.
+    context 'when the address is tagged' do
+      before { address.set_lgl_id!(900_050) }
+
+      it "sends only the external id with LGL's own names and emails" do
+        lgl = constituent(900_050, external_id: '').merge('first_name' => 'Janie', 'phone_numbers' => [],
+                                                          'street_addresses' => [])
+        allow(client).to receive(:find).with('900050').and_return(lgl)
+        allow(client).to receive(:update)
+        expect(client).not_to receive(:create)
+
+        expect(described_class.perform(address.id, described_class::LINK_TRIGGER).action).to eq(:updated)
+
+        expect(client).to have_received(:update).once
+        expect(client).to have_received(:update)
+          .with(900_050, { first_name: 'Janie', last_name: 'Smith', external_constituent_id: address.id.to_s,
+                           email_addresses: lgl['email_addresses'] }, for_address_id: address.id)
+      end
+
+      it 'skips without creating or flagging review when the constituent is gone (404)' do
+        allow(client).to receive(:find).with('900050').and_return(nil)
+        expect(client).not_to receive(:create)
+
+        expect(described_class.perform(address.id, described_class::LINK_TRIGGER).action).to eq(:skipped)
+
+        expect(address.lgl_id).to eq('900050')
+        expect(address.lgl_review_reason).to be_nil
+      end
+    end
+
     it 'never creates a constituent when nothing matches: no write, no review tag, no touch' do
       expect(client).not_to receive(:create)
       allow(Rails.logger).to receive(:info)
