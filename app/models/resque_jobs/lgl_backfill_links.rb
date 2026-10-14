@@ -104,12 +104,24 @@ class LglBackfillLinks
     counts
   end
 
-  # Listed in full before anything is written: the search pages by
-  # date_updated, and the enqueued writes bump it.
+  # Given ids are fetched one GET each (the show response carries emails,
+  # streets and phones). Without ids, every constituent is listed in full
+  # before anything is written: the search pages by date_updated, and the
+  # enqueued writes bump it.
   def self.replicate_candidates(constituent_ids)
-    wanted = constituent_ids&.map(&:to_s)
-    Lgl.client.search_updated_since(LINK_SCAN_FROM).to_a.uniq { |c| c['id'] }.select do |constituent|
-      (wanted.nil? || wanted.include?(constituent['id'].to_s)) && Lgl::Reconciler.junk_kind(constituent)
+    candidates = if constituent_ids
+                   find_constituents(constituent_ids)
+                 else
+                   Lgl.client.search_updated_since(LINK_SCAN_FROM).to_a
+                 end
+    candidates.uniq { |c| c['id'] }.select { |constituent| Lgl::Reconciler.junk_kind(constituent) }
+  end
+
+  def self.find_constituents(constituent_ids)
+    constituent_ids.filter_map do |id|
+      Lgl.client.find(id).tap do |constituent|
+        Rails.logger.info("[LGL] replicate: constituent #{id} not found") if constituent.nil?
+      end
     end
   end
 
@@ -119,8 +131,11 @@ class LglBackfillLinks
   def self.replicate_runner
     enqueued = 0
     address_id = nil
-    staggered = lambda do |address, reason|
-      Resque.enqueue_in(STAGGER * enqueued, LglSyncAddressJob, address.id, reason)
+    # Always LINK_TRIGGER, whatever reason the reconciler passes: any other
+    # reason lets LglSyncAddressJob create a new LGL constituent when the
+    # tagged one 404s, and the backfill must never create in LGL.
+    staggered = lambda do |address, _reason|
+      Resque.enqueue_in(STAGGER * enqueued, LglSyncAddressJob, address.id, LglSyncAddressJob::LINK_TRIGGER)
       enqueued += 1
       address_id = address.id
     end
@@ -151,5 +166,5 @@ class LglBackfillLinks
     address = Lgl::ConstituentReplicator.build_address(constituent)
     Lgl::ConstituentReplicator.invalid_email?(address) ? :invalid_email : :created
   end
-  private_class_method :replicate_candidates, :replicate_runner, :replicate_preview, :new_address_preview
+  private_class_method :replicate_candidates, :find_constituents, :replicate_runner, :replicate_preview, :new_address_preview
 end

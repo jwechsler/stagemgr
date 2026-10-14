@@ -184,7 +184,7 @@ RSpec.describe LglBackfillLinks do
       link = LglSyncAddressJob::LINK_TRIGGER
       expect(Resque).to have_received(:enqueue_in).with(0.seconds, LglSyncAddressJob, newcomer.id, link).ordered
       expect(Resque).to have_received(:enqueue_in).with(3.seconds, LglSyncAddressJob, matched.id, link).ordered
-      expect(Resque).to have_received(:enqueue_in).with(6.seconds, LglSyncAddressJob, retagged.id, 'replicate').ordered
+      expect(Resque).to have_received(:enqueue_in).with(6.seconds, LglSyncAddressJob, retagged.id, link).ordered
       expect(Resque).to have_received(:enqueue_in).with(9.seconds, LglSyncAddressJob, second.id, link).ordered
       expect(Resque).not_to have_received(:enqueue)
     end
@@ -211,9 +211,38 @@ RSpec.describe LglBackfillLinks do
       expect(rows.map(&:first)).to eq(%w[930001 930002 930003 930004 930006])
     end
 
-    it 'limits the run to the given constituent ids' do
-      expect(described_class.replicate(constituent_ids: %w[930002 930004])).to eq(linked: 1, repointed: 1)
-      expect(Address.find_by(email: 'new@example.com')).to be_nil
+    context 'with constituent ids' do
+      before do
+        search_results.each { |c| allow(client).to receive(:find).with(c['id'].to_s).and_return(c) }
+        allow(client).to receive(:find).with('930099').and_return(nil)
+      end
+
+      it 'limits the run to the given constituent ids' do
+        expect(described_class.replicate(constituent_ids: %w[930002 930004])).to eq(linked: 1, repointed: 1)
+        expect(Address.find_by(email: 'new@example.com')).to be_nil
+      end
+
+      it 'fetches each id with find instead of listing every constituent' do
+        described_class.replicate(constituent_ids: %w[930002 930004])
+
+        expect(client).to have_received(:find).with('930002')
+        expect(client).to have_received(:find).with('930004')
+        expect(client).not_to have_received(:search_updated_since)
+      end
+
+      it 'skips an id LGL does not find, without raising' do
+        allow(Rails.logger).to receive(:info)
+
+        expect(described_class.replicate(constituent_ids: %w[930099 930002])).to eq(linked: 1)
+        expect(Rails.logger).to have_received(:info).with('[LGL] replicate: constituent 930099 not found')
+      end
+
+      it 're-points a tagged junk constituent with LINK_TRIGGER, never a reason that may create' do
+        described_class.replicate(constituent_ids: %w[930004])
+
+        expect(Resque).to have_received(:enqueue_in)
+          .with(0.seconds, LglSyncAddressJob, retagged.id, LglSyncAddressJob::LINK_TRIGGER)
+      end
     end
 
     it 'reports the same outcomes on a dry run but writes and enqueues nothing' do
