@@ -160,6 +160,36 @@ applies and nothing needs fixing, delete the `LGL Review` tag as you would any
 
 ---
 
+## Lapsed Donors
+
+Stagemgr reads each linked customer's gifts from LGL and marks lapsed donors
+with an `LGL Lapsed` tag in the customer's tag list:
+
+| Value | Meaning |
+|---|---|
+| `LYBUNT` | "Last year but unfortunately not this": gave last fiscal year, but nothing yet this fiscal year |
+| `SYBUNT` | "Some year but unfortunately not this": gave in an earlier fiscal year, but not last year or this year |
+
+A customer who has given this fiscal year, or has never given, has no
+`LGL Lapsed` tag; the tag is removed when a lapsed donor gives again.
+
+Only money received counts: LGL gifts of type Gift, Installment, Matching, In
+Honor of and In Memory of, with an amount above zero. Pledges, in-kind gifts,
+soft credits and other income do not. The fiscal year starts on the 1st of the
+month the theater has configured (January unless set otherwise).
+
+The tags are refreshed:
+
+- every Sunday night, for every linked customer (this takes about an hour);
+- when a customer is first linked to LGL;
+- when an administrator clicks **Re-sync with LGL** on the customer page.
+
+So a gift entered in LGL shows on the tag after the next Sunday night, or
+straight away after a **Re-sync with LGL**. Do not edit the `LGL Lapsed` tag
+by hand: the next refresh replaces it.
+
+---
+
 ## The Sync Status Page
 
 **Navigation:** Options > System Config > LGL Sync
@@ -180,18 +210,22 @@ The page shows:
   enabled starts from that moment: changes made in LGL before then are not
   copied into Stagemgr. Until it runs, the page says "not yet".
 - How many customers are linked.
+- **Lapsed donors**: how many customers carry an `LGL Lapsed` tag of each kind
+  (see [Lapsed Donors](#lapsed-donors)), and when the weekly gift history
+  refresh last finished ("never" if it has not run).
 - Every customer with an `LGL Review` tag, oldest first, with the reason and a
   link to the customer page. When the reason is that several customers match,
   the link goes to the customer list filtered by the customer's last name
   instead, so the duplicates can be merged. The list shows the oldest 100; the heading gives
   the full count.
 
-Three buttons queue the same jobs that run on their own:
+Four buttons queue the same jobs that run on their own:
 
 | Button | Does |
 |---|---|
 | **Poll for changes** | Reads recent LGL changes now instead of waiting for the next 15-minute run |
 | **Sweep all** | Checks every `LGL ID` against LGL now, not just recent changes |
+| **Refresh gift history** | Refreshes every linked customer's `LGL Lapsed` tag now instead of waiting for Sunday night. Asks for confirmation first: it reads each customer's gifts from LGL and takes about an hour |
 | **Backfill** | Links every LGL constituent whose External constituent ID names a Stagemgr customer. Changes only Stagemgr's `LGL ID` and `LGL Review` tags, never LGL. Run once after sync is first set up; running it again is harmless |
 
 The jobs run in the background; reload the page after a few minutes to see the

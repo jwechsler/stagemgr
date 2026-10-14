@@ -180,3 +180,8 @@ LglDonorLevelsFetch:
   cron: "30 4 * * *"
   description: "Nightly: download the LGL donor-tier saved report (littlegreenlight.donor_tier_report_url) and queue the donor levels import"
   queue: maintenance
+
+LglGiftHistoryWalk:
+  cron: "0 2 * * 0"
+  description: "Weekly: refresh every linked customer's LGL Lapsed tag (LYBUNT / SYBUNT) from their gifts in LGL"
+  queue: maintenance

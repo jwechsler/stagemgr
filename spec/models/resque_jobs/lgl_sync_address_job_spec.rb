@@ -24,6 +24,7 @@ RSpec.describe LglSyncAddressJob do
     allow(Lgl).to receive(:enabled?).and_return(true)
     allow(Lgl).to receive(:client).and_return(client)
     allow(client).to receive_messages(search_by_external_id: [], search_by_email: [])
+    allow(Lgl::GiftHistoryRefresh).to receive(:refresh).and_return(:unchanged)
   end
 
   it 'does nothing when LGL is disabled: no LGL call, no tag, one log line' do
@@ -566,6 +567,64 @@ RSpec.describe LglSyncAddressJob do
 
       expect(dead.lgl_id).to eq('979634')
       expect(Address.exists?(survivor.id)).to be(true)
+    end
+  end
+
+  describe 'gift history refresh' do
+    it 'refreshes after adopting a constituent, with the same client' do
+      allow(client).to receive(:search_by_external_id).and_return([constituent(900_070)])
+
+      expect(described_class.perform(address.id, 'donation').action).to eq(:adopted)
+
+      expect(Lgl::GiftHistoryRefresh).to have_received(:refresh).once.with(address, client: client)
+    end
+
+    it 'refreshes after creating a constituent' do
+      allow(client).to receive(:create).and_return({ 'id' => 900_123 })
+
+      expect(described_class.perform(address.id, 'donation').action).to eq(:created)
+
+      expect(Lgl::GiftHistoryRefresh).to have_received(:refresh).once.with(address, client: client)
+    end
+
+    context 'when tagged' do
+      before do
+        address.set_lgl_id!(900_050)
+        allow(client).to receive(:find).with('900050').and_return(constituent(900_050))
+      end
+
+      it 'refreshes on a manual Re-sync' do
+        expect(described_class.perform(address.id, described_class::MANUAL_TRIGGER).action).to eq(:unchanged)
+
+        expect(Lgl::GiftHistoryRefresh).to have_received(:refresh).once.with(address, client: client)
+      end
+
+      [described_class::LINK_TRIGGER, described_class::EDIT_TRIGGER, 'poll', 'sweep', 'donation'].each do |trigger|
+        it "does not refresh on a #{trigger} sync" do
+          described_class.perform(address.id, trigger)
+
+          expect(Lgl::GiftHistoryRefresh).not_to have_received(:refresh)
+        end
+      end
+
+      it 'logs a gift history error without failing the Re-sync' do
+        allow(Lgl::GiftHistoryRefresh).to receive(:refresh).and_raise(Lgl::Error, 'LGL 500')
+        allow(Rails.logger).to receive(:error)
+
+        expect(described_class.perform(address.id, described_class::MANUAL_TRIGGER).action).to eq(:unchanged)
+
+        expect(Rails.logger).to have_received(:error).with(a_string_including('gift history refresh failed', 'LGL 500'))
+        expect(address.lgl_id).to eq('900050')
+      end
+    end
+
+    it 'keeps the new link when the refresh after an adopt fails' do
+      allow(client).to receive(:search_by_external_id).and_return([constituent(900_070)])
+      allow(Lgl::GiftHistoryRefresh).to receive(:refresh).and_raise(Lgl::Error, 'LGL 500')
+
+      expect(described_class.perform(address.id).action).to eq(:adopted)
+
+      expect(address.lgl_id).to eq('900070')
     end
   end
 end

@@ -381,6 +381,7 @@ Rails.application.routes.draw do
     post 'lgl_sync/sweep', to: 'lgl_sync#sweep', as: :lgl_sync_sweep
     post 'lgl_sync/backfill', to: 'lgl_sync#backfill', as: :lgl_sync_backfill
     post 'lgl_sync/donor_levels', to: 'lgl_sync#donor_levels', as: :lgl_sync_donor_levels
+    post 'lgl_sync/gift_history', to: 'lgl_sync#gift_history', as: :lgl_sync_gift_history
   end
 
   namespace :current_user do

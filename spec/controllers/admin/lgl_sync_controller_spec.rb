@@ -18,6 +18,7 @@ RSpec.describe Admin::LglSyncController, type: :controller do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('Little Green Light sync is disabled (littlegreenlight.sync).')
       expect(response.body).not_to include('Poll for changes', 'Sweep all', 'Backfill', 'LGL Review', 'Linked customers')
+      expect(response.body).not_to include('Refresh gift history', 'Lapsed donors', 'Last gift history walk')
       expect(response.body).not_to include(%(href="#{admin_lgl_sync_path}"))
     end
 
@@ -127,6 +128,30 @@ RSpec.describe Admin::LglSyncController, type: :controller do
       get :index
 
       expect(response.body).to include('Poll for changes', 'Sweep all', %(href="#{admin_lgl_sync_path}"))
+      expect(response.body).to include('Refresh gift history', admin_lgl_sync_gift_history_path,
+                                       'This takes about an hour.')
+    end
+
+    it 'counts default-theater lapsed donors by kind, and shows the gift history walk as never run' do
+      2.times { FactoryBot.create(:address).set_lgl_lapsed!('LYBUNT') }
+      FactoryBot.create(:address).set_lgl_lapsed!('SYBUNT')
+      FactoryBot.create(:address).address_tags.create!(tag_label: AddressTag::LGL_LAPSED, tag_value: 'SYBUNT',
+                                                       theater: FactoryBot.create(:theater))
+
+      get :index
+
+      expect(response.body).to match(%r{<th>Lapsed donors</th>\s*<td>\s*LYBUNT 2,\s*SYBUNT 1\s*</td>})
+      expect(response.body).to match(%r{<th>Last gift history walk</th>\s*<td>never</td>})
+    end
+
+    it 'shows zero lapsed donors and the last gift history walk time' do
+      JobMetadata.record_run_at('LglGiftHistoryWalk', Time.zone.local(2026, 10, 11, 2, 40))
+
+      get :index
+
+      walked = JobMetadata.last_run('LglGiftHistoryWalk').to_formatted_s(:short_date_and_time)
+      expect(response.body).to match(%r{<th>Lapsed donors</th>\s*<td>\s*LYBUNT 0,\s*SYBUNT 0\s*</td>})
+      expect(response.body).to match(%r{<th>Last gift history walk</th>\s*<td>#{Regexp.escape(walked)}</td>})
     end
 
     it 'turns away a box office user' do
@@ -189,7 +214,8 @@ RSpec.describe Admin::LglSyncController, type: :controller do
   end
 
   describe 'run-now buttons' do
-    { poll: LglPollConstituents, sweep: LglSweepConstituents, backfill: LglBackfillLinks }.each do |action, job|
+    { poll: LglPollConstituents, sweep: LglSweepConstituents, backfill: LglBackfillLinks,
+      gift_history: LglGiftHistoryWalk }.each do |action, job|
       it "#{action} queues #{job} when LGL is configured" do
         allow(Lgl).to receive(:enabled?).and_return(true)
 

@@ -154,6 +154,13 @@ admin page says why. The nightly donor-tier report download is the one
 exception: it needs only `donor_tier_report_url` (below), not the API key or
 the sync mode.
 
+From LGL the integration reads constituents (by id, external id and email, and
+the list of every constituent id), the constituents changed since the last
+poll, and each linked constituent's gifts, which set the `LGL Lapsed` tag
+(`LYBUNT` / `SYBUNT`) by fiscal year. The fiscal year starts on
+`theater.fiscal_year_start_month` (see
+[the `theater:` block](theming.md#the-theater-block); January when unset).
+
 The API key is a secret ([above](#secrets)); the rest lives in the
 `littlegreenlight:` section of `config/server.yml`:
 
@@ -191,13 +198,14 @@ called from each environment's `after_initialize`.
 The LGL jobs run on the `maintenance` Resque queue (`LglDonorImport` runs on
 `import`). In production `script/resque-worker` serves that queue from worker
 #3 only (`default,maintenance`), so one process makes every LGL request in turn; every other environment runs a
-single worker on `QUEUE=*`. `config/schedule.yml` (and its `.example`) schedules three of them:
+single worker on `QUEUE=*`. `config/schedule.yml` (and its `.example`) schedules four of them:
 
 | Job | Schedule | Does |
 |---|---|---|
 | `LglPollConstituents` | every 15 minutes | Reads constituents changed since the last poll and reconciles LGL merges |
 | `LglSweepConstituents` | every hour | Drops `LGL ID` tags whose constituent no longer exists and re-syncs those customers |
 | `LglDonorLevelsFetch` | nightly at 04:30 | Downloads the donor-tier saved report and queues `LglDonorImport`. Runs only when `donor_tier_report_url` is set, whatever `sync` is |
+| `LglGiftHistoryWalk` | Sundays at 02:00 | Reads every linked customer's gifts from LGL (one request each, about 1.1 seconds apart to stay under LGL's 300 requests per 5 minutes, so roughly an hour) and refreshes their `LGL Lapsed` tag. Only reads LGL. Gives up after 25 consecutive LGL errors. Linking a customer and **Re-sync with LGL** refresh that one customer straight away |
 
 After the first deploy with a key, run the backfill **once** to link every
 constituent whose External constituent ID already names a customer. It only

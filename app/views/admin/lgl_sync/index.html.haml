@@ -64,6 +64,7 @@
             %tr
               %th Linked customers
               %td= number_with_delimiter(@linked_count)
+            = render 'gift_history_rows', lapsed_counts: @lapsed_counts, last_walk: @last_gift_history_walk
           -# The donor-tier report needs only its link, so these rows show even when the API sync is off.
           = render 'donor_levels_rows', enabled: @donor_levels_enabled, settings: @settings,
                                         recipient: @donor_levels_recipient,
