@@ -158,7 +158,7 @@ the key every LGL trigger, job and page button is a no-op.
 All LGL jobs run on the `lgl` Resque queue. In production
 `script/resque-worker` lists it on worker #3 only (`default,maintenance,lgl`),
 so one process makes every LGL request in turn; every other environment runs a
-single worker on `QUEUE=*`. `config/schedule.yml.example` schedules two of them:
+single worker on `QUEUE=*`. `config/schedule.yml` (and its `.example`) schedules two of them:
 
 | Job | Schedule | Does |
 |---|---|---|
