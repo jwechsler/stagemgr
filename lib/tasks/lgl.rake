@@ -3,7 +3,7 @@
 namespace :lgl do
   desc 'Queue the one-time LGL backfill (local LGL ID tags only; no LGL writes)'
   task backfill: :environment do
-    abort 'LGL is not configured (LGL_API_KEY)' unless Lgl.enabled?
+    abort Lgl::DISABLED_MESSAGE unless Lgl.enabled?
 
     Resque.enqueue(LglBackfillLinks)
     puts 'Queued LglBackfillLinks on the lgl queue'
@@ -11,7 +11,7 @@ namespace :lgl do
 
   desc 'Run the LGL backfill inline and print the counts (local LGL ID tags only; no LGL writes)'
   task backfill_now: :environment do
-    abort 'LGL is not configured (LGL_API_KEY)' unless Lgl.enabled?
+    abort Lgl::DISABLED_MESSAGE unless Lgl.enabled?
 
     counts = LglBackfillLinks.perform
     counts.sort.each { |result, count| puts "#{result.to_s.ljust(20)} #{count}" }

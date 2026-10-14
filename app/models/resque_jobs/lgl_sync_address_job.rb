@@ -20,7 +20,9 @@ require 'resque-retry'
 # read at run time, so duplicate or stale enqueues are harmless.
 #
 #   1. Tagged with an LGL ID: find it. Gone (404) -> a dead link: keep the tag
-#      for now and carry on as untagged. Otherwise point its external id at
+#      for now and carry on as untagged. An adopt replaces it; a merge drops
+#      it first, so the keeper is never flagged for the dead id as a second
+#      LGL ID. Otherwise point its external id at
 #      this address (and push contact fields on EDIT_TRIGGER).
 #   2. A constituent already carrying this address's id -> adopt it.
 #   3. Email -> Lgl::ConstituentResolver decides adopt / review / merge / create.
@@ -69,7 +71,7 @@ class LglSyncAddressJob
   end
 
   def self.perform(address_id, reason = MANUAL_TRIGGER)
-    return unless Lgl.enabled?
+    return Lgl.log_disabled("sync of address ##{address_id}") unless Lgl.enabled?
 
     address = Address.find_by(id: address_id)
     return if address.nil? || address.placeholder?
@@ -132,20 +134,40 @@ class LglSyncAddressJob
 
   def merge(decision)
     other = decision.other_address
-    result, keeper = Lgl::AddressMerger.merge_pair(@address, other)
+    result, keeper = merge_without_dead_link(other)
     case result
     when :merged
       Resque.enqueue(self.class, keeper.id, 'merge')
       Outcome.new(:merged, decision.constituent['id'], decision.reason)
     when :in_flight
       review("Same person as ##{other.id} in LGL; merge skipped while an order is in progress")
+    when :not_writable
+      review("Same person as ##{other.id} in LGL; merge skipped because LGL is read-only for these addresses")
     else
       review("Same person as ##{other.id} in LGL but not a Stagemgr duplicate; merge skipped")
     end
   end
 
+  # A dead LGL ID left on the address would survive Address#merge_and_purge as
+  # a conflicting second LGL ID, and the keeper would be flagged "Also LGL
+  # constituent <dead id>: merge the two in LGL" for a constituent LGL has
+  # already merged away. Drop it first; put it back if the merge is skipped,
+  # so the address still shows as a dead link.
+  def merge_without_dead_link(other)
+    return Lgl::AddressMerger.merge_pair(@address, other) unless @dead_lgl_id
+
+    result = nil
+    begin
+      @address.clear_lgl_id!
+      result, keeper = Lgl::AddressMerger.merge_pair(@address, other)
+      [result, keeper]
+    ensure
+      @address.set_lgl_id!(@dead_lgl_id) unless result == :merged
+    end
+  end
+
   # Adopting writes the local tag even when the PATCH was skipped read-only:
-  # the constituent's id is already known.
+  # the constituent's id is already known. link replaces a dead tag.
   def adopt(constituent, why)
     pushed?(constituent)
     link(constituent['id'])

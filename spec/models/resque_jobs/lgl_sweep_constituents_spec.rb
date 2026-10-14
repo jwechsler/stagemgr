@@ -16,6 +16,17 @@ RSpec.describe LglSweepConstituents do
     missing.set_lgl_id!(20)
   end
 
+  it 'does nothing when LGL is disabled: no LGL call, tags and completion mark untouched' do
+    allow(Lgl).to receive(:enabled?).and_return(false)
+
+    expect(described_class.perform).to be_nil
+
+    expect(Lgl).not_to have_received(:client)
+    expect(Resque).not_to have_received(:enqueue)
+    expect(missing.lgl_id).to eq('20')
+    expect(JobMetadata.find_by(job_name: described_class::COMPLETED)).to be_nil
+  end
+
   it 'aborts without touching tags when the listing is incomplete' do
     allow(client).to receive(:each_constituent_id).and_return([[10], 3])
     allow(client).to receive(:find)

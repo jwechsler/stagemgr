@@ -19,7 +19,7 @@ class LglSweepConstituents
   REASON = 'sweep'
 
   def self.perform
-    return unless Lgl.enabled?
+    return Lgl.log_disabled('sweep') unless Lgl.enabled?
 
     client = Lgl.client
     present = complete_id_set(client)

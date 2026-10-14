@@ -134,7 +134,11 @@ Rails.application.configure do
     else
       MyEmma.disable
     end
-    AppSecrets[:lgl_api_key] ? Lgl.configure(AppSecrets[:lgl_api_key]) : Lgl.disable
+    # littlegreenlight: in config/server.yml (ENV overrides), key from AppSecrets;
+    # Lgl.configure_from holds every rule (development stays read-only unless
+    # writable_address_ids lists the addresses that may be written).
+    Lgl.configure_from(Lgl::Settings.from(Rails.configuration.x.server_config),
+                       api_key: AppSecrets[:lgl_api_key], environment: Rails.env)
   end
 
   # Application configuration loaded from YAML. The loaded objects are kept

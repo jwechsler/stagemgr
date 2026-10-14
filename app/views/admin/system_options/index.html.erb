@@ -8,7 +8,7 @@
 <%- end -%>
 
 <%=link_to "Manage Payment Types", admin_payment_types_path %><br/>
-<% if can?(:manage, :lgl_sync) %>
+<% if Lgl.enabled? && can?(:manage, :lgl_sync) %>
   <%= link_to 'Little Green Light sync', admin_lgl_sync_path %><br/>
 <% end %>
 

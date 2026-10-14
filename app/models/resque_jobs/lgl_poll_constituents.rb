@@ -19,7 +19,7 @@ class LglPollConstituents
   REASON = 'poll'
 
   def self.perform
-    return unless Lgl.enabled?
+    return Lgl.log_disabled('poll') unless Lgl.enabled?
 
     polled_through = JobMetadata.last_run(WATERMARK)
     since = [polled_through - OVERLAP, Time.at(0)].max

@@ -24,9 +24,14 @@ RSpec.describe LglPollConstituents do
     JobMetadata.last_run(described_class::WATERMARK)
   end
 
-  it 'does nothing when LGL is disabled' do
+  it 'does nothing when LGL is disabled: no LGL call, watermark untouched' do
+    JobMetadata.record_run_at(described_class::WATERMARK, watermark)
     allow(Lgl).to receive(:enabled?).and_return(false)
-    expect(described_class.perform).to be_nil
+
+    expect { expect(described_class.perform).to be_nil }.not_to(change { polled_through })
+
+    expect(Lgl).not_to have_received(:client)
+    expect(Resque).not_to have_received(:enqueue)
   end
 
   it 'searches from five minutes before the watermark' do

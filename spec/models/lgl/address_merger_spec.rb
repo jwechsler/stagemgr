@@ -39,4 +39,25 @@ RSpec.describe Lgl::AddressMerger do
     expect(described_class.merge_pair(lower, other)).to eq([:not_duplicates, nil])
     expect(Address.exists?(lower.id) && Address.exists?(other.id)).to be(true)
   end
+
+  context 'when LGL is read-only' do
+    before { allow(Lgl).to receive_messages(read_only?: true, writable_address_ids: Set[lower.id]) }
+
+    it 'skips the merge unless both ids are writable' do
+      expect(described_class.merge_pair(lower, higher)).to eq([:not_writable, nil])
+      expect(Address.exists?(lower.id) && Address.exists?(higher.id)).to be(true)
+    end
+
+    it 'merges when both ids are writable' do
+      allow(Lgl).to receive(:writable_address_ids).and_return(Set[lower.id, higher.id])
+
+      expect(described_class.merge_pair(lower, higher)).to eq([:merged, lower])
+    end
+
+    it 'still reports addresses that are not duplicates as such' do
+      other = patron('John Jones', email: 'john@example.com')
+
+      expect(described_class.merge_pair(lower, other)).to eq([:not_duplicates, nil])
+    end
+  end
 end

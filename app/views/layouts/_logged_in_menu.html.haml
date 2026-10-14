@@ -70,7 +70,7 @@
                   - if can? :read, PaymentType
                     %li
                       =link_to "Manage Payment Types", admin_payment_types_path
-                  - if can?(:manage, :lgl_sync)
+                  - if Lgl.enabled? && can?(:manage, :lgl_sync)
                     %li= link_to('LGL Sync', admin_lgl_sync_path)
                   - if (can? :edit, Venue) then
                     %li= link_to('Venues', admin_venues_path)

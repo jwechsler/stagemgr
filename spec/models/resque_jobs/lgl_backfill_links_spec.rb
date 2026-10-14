@@ -48,9 +48,11 @@ RSpec.describe LglBackfillLinks do
     expect(repointable.lgl_id).to eq('6')
   end
 
-  it 'does nothing when LGL is disabled' do
+  it 'does nothing when LGL is disabled: no LGL call, no tags' do
     allow(Lgl).to receive(:enabled?).and_return(false)
 
-    expect(described_class.perform).to eq({})
+    expect { expect(described_class.perform).to eq({}) }.not_to change(AddressTag, :count)
+
+    expect(Lgl).not_to have_received(:client)
   end
 end

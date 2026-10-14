@@ -12,10 +12,13 @@ class LglUpsertTask < OrderTask
   protected
 
   def execute! # rubocop:disable Naming/PredicateMethod -- OrderTask contract
+    # Checked first: a task created before sync was turned off completes
+    # rather than waiting on the address link and retrying forever.
+    return true unless Lgl.enabled?
+
     order.reload # the merge task may have re-pointed address_id
     # False retries on a later poll.
     return false if order.unprocessed? || address_link_pending?
-    return true unless Lgl.enabled?
 
     address = order.address
     return true if address.nil? || address.placeholder?

@@ -225,15 +225,24 @@ module Setup
 
     # Confirms the LGL API key with one cheap read. Like the MyEmma check it is
     # only ever a WARN and stays off the network when LGL is disabled (test,
-    # installs without a key) or read-only (development).
+    # littlegreenlight.sync off, no key) or read-only (development, or an
+    # acceptance-testing allowlist).
     def check_lgl
-      return record OK, 'LGL is not configured — constituent ids are not synced' unless Lgl.enabled?
-      return record OK, 'LGL is read-only in this environment — key not verified' if Lgl.read_only?
+      return record OK, 'LGL sync is disabled (littlegreenlight.sync)' unless Lgl.settings.sync_enabled?
+      return record WARN, 'littlegreenlight.sync is enabled but LGL_API_KEY is missing' if AppSecrets[:lgl_api_key].nil?
+      return record OK, 'LGL is not configured in this environment — constituent ids are not synced' unless Lgl.enabled?
+      return record OK, lgl_read_only_message if Lgl.read_only?
 
       Lgl.client.ping
       record OK, 'LGL API key accepted'
     rescue StandardError => e
       record WARN, "LGL API key not verified (#{e.class}: #{first_line(e.message)})"
+    end
+
+    def lgl_read_only_message
+      ids = Lgl.writable_address_ids.to_a.sort
+      scope = ids.empty? ? 'every address' : "every address except ids #{ids.join(', ')}"
+      "LGL is read-only in this environment for #{scope} — key not verified"
     end
 
     def myemma_group_result(key)

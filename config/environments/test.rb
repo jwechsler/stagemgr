@@ -69,6 +69,7 @@ Rails.application.configure do
     ActiveMerchant::Billing::Base.mode = :test
     PaymentProcessing.after_initialize
     MyEmma.disable
+    # Never configured from littlegreenlight: (see Lgl.configure_from); specs stub it.
     Lgl.disable
   end
 

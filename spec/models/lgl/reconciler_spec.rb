@@ -96,6 +96,18 @@ RSpec.describe Lgl::Reconciler do
       expect(Address.exists?(external.id) && Address.exists?(other.id)).to be(true)
       expect(Resque).not_to have_received(:enqueue)
     end
+
+    it 'flags both for review instead of merging when LGL is read-only for the pair' do
+      external = patron('Jane Smith')
+      other = patron('Jane Smith')
+      other.set_lgl_id!(50)
+      allow(Lgl).to receive_messages(read_only?: true, writable_address_ids: Set[external.id])
+
+      expect(reconciler.apply(constituent(50, external.id))).to eq(:review)
+
+      expect(Address.exists?(external.id) && Address.exists?(other.id)).to be(true)
+      expect(Resque).not_to have_received(:enqueue)
+    end
   end
 
   context 'when the external id is junk' do

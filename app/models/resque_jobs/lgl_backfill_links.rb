@@ -11,7 +11,10 @@ class LglBackfillLinks
   include LoggedJob
 
   def self.perform
-    return {} unless Lgl.enabled?
+    unless Lgl.enabled?
+      Lgl.log_disabled('backfill')
+      return {}
+    end
 
     reconciler = Lgl::Reconciler.new(reason: 'backfill', local_only: true)
     counts = Hash.new(0)

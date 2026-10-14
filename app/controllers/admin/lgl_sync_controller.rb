@@ -16,8 +16,12 @@ class Admin::LglSyncController < Admin::ApplicationController
 
   before_action :authorize_lgl_sync
 
+  # Disabled (littlegreenlight.sync off, or no key), the page shows only why.
   def index
     @enabled = Lgl.enabled?
+    @settings = Lgl.settings
+    return unless @enabled
+
     @read_only = Lgl.read_only?
     @writable_address_ids = Lgl.writable_address_ids.to_a.sort
     @last_poll = recorded_time(LglPollConstituents::WATERMARK)

@@ -112,9 +112,22 @@ all:
     # name blank to stop adding anyone to that group.
     newsletter_group: "Newsletter"
     coupon_group: "Flash Offers"
-  lgl:
-    # Base URL of your Little Green Light account, used to link a customer's
-    # LGL ID to their constituent page, e.g. "https://youraccount.littlegreenlight.com".
+  # Little Green Light (donor CRM) sync. The API key is a secret: set
+  # LGL_API_KEY (or the lgl.api_key credential), never here. A non-blank ENV
+  # value overrides the matching key below; a blank one is ignored.
+  littlegreenlight:
+    # "enabled" turns LGL sync on (it also needs the API key). Anything else,
+    # or missing, leaves every LGL job, trigger and page button off.
+    # ENV override: LGL_SYNC.
+    sync: disabled
+    # Optional acceptance-testing allowlist: Stagemgr address ids, comma-separated
+    # or a YAML list. When set, LGL is read-only in EVERY environment (production
+    # included) except for these addresses. When blank, production writes to LGL
+    # and development stays read-only for every address.
+    # ENV override: LGL_WRITABLE_ADDRESS_IDS.
+    writable_address_ids:
+    # Base URL of your LGL account, used to link a customer's LGL ID to their
+    # constituent page, e.g. "https://youraccount.littlegreenlight.com".
     # Leave blank to show the id as plain text.
     web_url:
   payment_processing:
@@ -182,6 +195,10 @@ test:
     stripe_billing_portal_url: "https://BILLING.TEST"
   my_emma:
     create_production_groups: false
+  # Explicit: the test environment never syncs with LGL (Lgl.disable in
+  # config/environments/test.rb); specs stub Lgl where they need it on.
+  littlegreenlight:
+    sync: disabled
   email:
     addresses:
       box_office: boxoffice@yourtheater.org

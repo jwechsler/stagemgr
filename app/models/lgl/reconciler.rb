@@ -88,6 +88,7 @@ module Lgl
       case result
       when :merged then [:merged, keeper]
       when :in_flight then [:in_flight, current]
+      # :not_writable (read-only allowlist) and :not_duplicates: a human decides.
       else review_pair(current, other, lgl_id)
       end
     end

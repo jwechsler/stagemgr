@@ -133,7 +133,7 @@ order.
 | `POSTMARK_API_TOKEN` | `email.delivery_method` is `postmark` |
 | `RESQUE_ADMIN_PASSWORD` | Always, in production -- see [the Resque dashboard](#the-resque-dashboard) |
 | `MY_EMMA_USERNAME`, `MY_EMMA_PASSWORD`, `MY_EMMA_ACCOUNT_ID` | Using MyEmma mailing lists. All three are required together; with any of them absent the integration disables itself |
-| `LGL_API_KEY` | Syncing customers with Little Green Light ([Little Green Light sync](#little-green-light-sync)). Optional: absent, the integration disables itself |
+| `LGL_API_KEY` | Syncing customers with Little Green Light ([Little Green Light sync](#little-green-light-sync)). Optional: absent, the integration disables itself; it also needs `littlegreenlight.sync: enabled` |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | ActiveStorage on S3 (uncomment the matching block in `config/storage.yml`). Blank means local disk |
 | `PAYPAL_LOGIN`, `PAYPAL_PASSWORD`, `PAYPAL_SIGNATURE`, `PAYPAL_PEM_FILE`, `PAYPAL_EXPRESS_LOGIN`, `PAYPAL_EXPRESS_PASSWORD` | Legacy PayPal gateways only |
 
@@ -144,16 +144,36 @@ order.
 
 ### Little Green Light sync
 
-With `LGL_API_KEY` set (or the `lgl.api_key` credential), Stagemgr links each
-customer to a constituent in the default theater's LGL account; see
-[Little Green Light Sync](../customers/lgl-sync.md) for what it does. Without
-the key every LGL trigger, job and page button is a no-op.
+Stagemgr links each customer to a constituent in the default theater's LGL
+account; see [Little Green Light Sync](../customers/lgl-sync.md) for what it
+does. Sync runs only when **both** `littlegreenlight.sync` is `enabled` and
+`LGL_API_KEY` (or the `lgl.api_key` credential) is set. Otherwise every LGL
+trigger, job and page button is a no-op, and the LGL Sync admin page says why.
 
-| Setting | Where | Purpose |
+The API key is a secret ([above](#secrets)); the rest lives in the
+`littlegreenlight:` section of `config/server.yml`:
+
+```yaml
+all:
+  littlegreenlight:
+    sync: enabled
+    writable_address_ids:       # optional: 12, 34  or a YAML list
+    web_url: https://youraccount.littlegreenlight.com
+```
+
+| Key | ENV override | Purpose |
 |---|---|---|
-| `LGL_API_KEY` | `.env` / process environment, or credentials `lgl.api_key` | The LGL API key |
-| `LGL_WRITABLE_ADDRESS_IDS` | `.env`, **development only** | Comma-separated Stagemgr address ids that may still be written to LGL. Development is otherwise read-only: reads hit the live account, every create and update is logged as `[LGL] read-only: skipped ...` and skipped. Production ignores this variable and always writes |
-| `lgl.web_url` | `config/server.yml` | Base URL of the LGL account, e.g. `https://youraccount.littlegreenlight.com`, used to link an LGL ID to the constituent page. Blank shows the id as plain text |
+| `sync` | `LGL_SYNC` | `enabled` turns sync on. Any other value, or none, turns it off |
+| `writable_address_ids` | `LGL_WRITABLE_ADDRESS_IDS` | Comma-separated (or YAML list) Stagemgr address ids. When set, LGL is read-only in **every** environment, production included, except for these addresses: reads hit the live account, every other create and update is logged as `[LGL] read-only: skipped ...` and skipped, and Stagemgr merges driven by LGL go to LGL Review unless both addresses are listed. Use it for acceptance testing |
+| `web_url` | -- | Base URL of the LGL account, used to link an LGL ID to the constituent page. Blank shows the id as plain text |
+
+A non-blank environment variable overrides the `server.yml` value; a blank one
+counts as absent, the same rule as [AppSecrets](#secrets).
+
+With `writable_address_ids` unset, development is read-only for every address
+(it must never write to the live account by accident) and production writes
+normally. The test environment never syncs. The rules live in
+`Lgl.configure_from`, called from each environment's `after_initialize`.
 
 All LGL jobs run on the `lgl` Resque queue. In production
 `script/resque-worker` lists it on worker #3 only (`default,maintenance,lgl`),
@@ -174,9 +194,11 @@ bundle exec rake lgl:backfill       # queue it on the lgl queue
 bundle exec rake lgl:backfill_now   # or run it inline and print the counts
 ```
 
-`setup:doctor` reports one LGL line: `LGL is not configured` and
-`LGL is read-only in this environment` are both OK; otherwise it makes one
-read to confirm the key and warns if LGL rejects it.
+`setup:doctor` reports one LGL line: `LGL sync is disabled
+(littlegreenlight.sync)` and `LGL is read-only in this environment for ...`
+(listing any writable ids) are both OK; `littlegreenlight.sync is enabled but
+LGL_API_KEY is missing` is a warning; otherwise it makes one read to confirm
+the key and warns if LGL rejects it.
 
 ### `docker compose`
 

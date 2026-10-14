@@ -26,9 +26,16 @@ RSpec.describe LglSyncAddressJob do
     allow(client).to receive_messages(search_by_external_id: [], search_by_email: [])
   end
 
-  it 'does nothing when LGL is disabled' do
+  it 'does nothing when LGL is disabled: no LGL call, no tag, one log line' do
     allow(Lgl).to receive(:enabled?).and_return(false)
+    allow(Rails.logger).to receive(:info)
+
     expect(described_class.perform(address.id)).to be_nil
+
+    expect(Lgl).not_to have_received(:client)
+    expect(address.lgl_id).to be_nil
+    expect(address.lgl_review_reason).to be_nil
+    expect(Rails.logger).to have_received(:info).with(a_string_including('skipped', 'littlegreenlight.sync')).once
   end
 
   it 'does nothing for a placeholder address' do
@@ -285,6 +292,17 @@ RSpec.describe LglSyncAddressJob do
       expect(Resque).to have_received(:enqueue).with(described_class, twin.id, 'merge')
     end
 
+    it 'flags the address for review when LGL is read-only for the pair' do
+      allow(Lgl).to receive_messages(read_only?: true, writable_address_ids: Set[address.id])
+
+      expect(described_class.perform(address.id).action).to eq(:review)
+
+      expect(address.lgl_review_reason)
+        .to eq("Same person as ##{twin.id} in LGL; merge skipped because LGL is read-only for these addresses")
+      expect(Address.exists?(twin.id)).to be(true)
+      expect(Resque).not_to have_received(:enqueue)
+    end
+
     it 'flags the address for review when an order is in flight' do
       allow(ConsolidateDuplicateAddresses).to receive(:in_flight?).and_return(true)
       expect(client).not_to receive(:create)
@@ -330,5 +348,50 @@ RSpec.describe LglSyncAddressJob do
     allow(client).to receive(:search_by_external_id).and_raise(Lgl::Error.new(status: 500))
 
     expect { described_class.perform(address.id) }.to raise_error(Lgl::Error)
+  end
+
+  # Live case: #359049 carried LGL ID 979634, merged away in LGL into 979629,
+  # which #359050 was tagged with. The merge kept #359049 and flagged it
+  # "Also LGL constituent 979634: merge the two in LGL" for a dead constituent.
+  context 'when a dead link resolves to a merge with the survivor\'s twin' do
+    let!(:dead) do
+      FactoryBot.create(:address, first_name: 'Jane', last_name: 'Smith', full_name: 'Jane Smith',
+                                  email: 'jane@example.com').tap { |a| a.set_lgl_id!(979_634) }
+    end
+    let!(:survivor) do
+      FactoryBot.create(:address, first_name: 'Jane', last_name: 'Smith', full_name: 'Jane Smith',
+                                  email: 'jane.other@example.com').tap { |a| a.set_lgl_id!(979_629) }
+    end
+
+    before do
+      allow(client).to receive(:find).with('979634').and_return(nil)
+      lgl = { 'id' => 979_629, 'first_name' => 'Jane', 'last_name' => 'Smith',
+              'external_constituent_id' => survivor.id.to_s,
+              'email_addresses' => [{ 'id' => 1, 'address' => dead.email, 'is_preferred' => true }] }
+      allow(client).to receive(:search_by_email).and_return([lgl])
+      allow(Resque).to receive(:enqueue)
+    end
+
+    it 'merges without flagging the dead id for review and keeps the survivor id' do
+      expect(dead.id).to be < survivor.id
+
+      outcome = described_class.perform(dead.id, 'sweep')
+
+      expect(outcome.action).to eq(:merged)
+      expect(Address.exists?(survivor.id)).to be(false)
+      keeper = Address.find(dead.id)
+      expect(keeper.lgl_id).to eq('979629')
+      expect(keeper.lgl_review_reason).to be_nil
+      expect(Resque).to have_received(:enqueue).with(described_class, dead.id, 'merge')
+    end
+
+    it 'keeps the dead tag when the merge is skipped' do
+      allow(ConsolidateDuplicateAddresses).to receive(:in_flight?).and_return(true)
+
+      expect(described_class.perform(dead.id, 'sweep').action).to eq(:review)
+
+      expect(dead.lgl_id).to eq('979634')
+      expect(Address.exists?(survivor.id)).to be(true)
+    end
   end
 end

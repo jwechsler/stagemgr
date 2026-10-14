@@ -97,6 +97,14 @@ RSpec.describe LglUpsertTask, type: :model do
       expect(Resque).not_to have_received(:enqueue)
     end
 
+    it 'completes without waiting on the address link once LGL has been disabled' do
+      order = processed_donation
+      allow(Lgl).to receive(:enabled?).and_return(false)
+
+      expect(run(lgl_tasks(order).first).status).to eq(OrderTask::COMPLETED)
+      expect(Resque).not_to have_received(:enqueue)
+    end
+
     it 'completes without enqueuing once LGL has been disabled' do
       order = processed_donation
       complete_link_task(order)
