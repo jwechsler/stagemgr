@@ -36,6 +36,25 @@ RSpec.describe LglSyncAddressJob do
     expect(described_class.perform(address.id)).to be_nil
   end
 
+  # resque-scheduler enqueues delayed jobs inside a Redis MULTI; a @loner's
+  # enqueue-time lock check then raised NoMethodError (to_i on Redis::Future)
+  # and the delayed sync was silently dropped.
+  it 'takes no enqueue-time lock, only a perform-time one' do
+    expect(described_class.instance_variable_get(:@loner)).to be_falsey
+    expect(described_class.lock_timeout).to be_positive
+  end
+
+  it 'survives resque-scheduler moving a delayed run onto the lgl queue' do
+    allow(Resque::Scheduler).to receive(:am_master).and_return(true) # its master lock is Lua; fakeredis has none
+    Resque.enqueue_in(2.minutes, described_class, address.id, described_class::EDIT_TRIGGER)
+    timestamp = Resque.next_delayed_timestamp(2.minutes.from_now)
+
+    Resque::Scheduler.enqueue_delayed_items_for_timestamp(timestamp)
+
+    expect(Resque.peek(:lgl)).to eq('class' => described_class.name,
+                                    'args' => [address.id, described_class::EDIT_TRIGGER])
+  end
+
   it 'uses one lock per address whatever the reason' do
     expect(described_class.redis_lock_key(5, 'donation')).to eq(described_class.redis_lock_key(5, 'manual'))
   end

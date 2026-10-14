@@ -14,7 +14,7 @@ RSpec.describe Lgl::ContactChanges do
       'is_preferred' => false }
   end
   let(:preferred_street) do
-    { 'id' => 11, 'street' => "1 Main St\nApt 2", 'city' => 'chicago', 'state' => 'IL', 'postal_code' => '60601',
+    { 'id' => 11, 'street' => "1 Main St\nApt 2", 'city' => 'Chicago', 'state' => 'IL', 'postal_code' => '60601',
       'is_preferred' => true }
   end
   let(:constituent) do
@@ -25,9 +25,16 @@ RSpec.describe Lgl::ContactChanges do
   end
 
   describe '#street' do
-    it 'is nil when the preferred entry matches, ignoring case and spacing' do
+    it 'is nil when the preferred entry matches, ignoring spacing' do
       preferred_street['street'] = "1 Main  St \nApt 2"
       expect(changes.street).to be_nil
+    end
+
+    it 'updates the preferred entry when only capitalization differs' do
+      preferred_street['street'] = "1 MAin St\nApt 2"
+      expect(changes.street.to_h).to eq(action: :update, id: 11,
+                                        attrs: { street: "1 Main St\nApt 2", city: 'Chicago', state: 'IL',
+                                                 postal_code: '60601' })
     end
 
     it 'updates the preferred entry by id with only the four street fields' do

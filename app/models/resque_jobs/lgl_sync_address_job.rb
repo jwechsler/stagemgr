@@ -28,14 +28,21 @@ require 'resque-retry'
 #
 # LGL errors raise (resque-retry retries a few times, then the failed queue).
 # In read-only environments Lgl::Client skips writes and returns nil.
+#
+# Deliberately NOT a @loner. resque-lock-timeout's loner check runs at enqueue
+# time and reads Redis; resque-scheduler moves delayed jobs (Resque.enqueue_in,
+# resque-retry's @retry_delay) onto the queue inside a Redis MULTI, where that
+# read returns a Redis::Future and the check raises, so the job is silently
+# dropped. The perform-time lock (@lock_timeout, keyed per address) still
+# keeps two runs for one address from overlapping; a burst of edits may queue
+# several runs, and the later ones find nothing left to push.
 class LglSyncAddressJob
   extend Resque::Plugins::LockTimeout
   extend Resque::Plugins::Retry
 
   @queue = :lgl
 
-  @loner = true # one queued sync per address
-  @lock_timeout = 300
+  @lock_timeout = 300 # perform-time lock only: see the class comment on @loner
 
   @retry_limit = 3
   @retry_delay = 60

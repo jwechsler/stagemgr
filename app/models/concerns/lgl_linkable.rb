@@ -15,7 +15,10 @@ module LglLinkable
   # Address columns whose edit pushes contact fields to a linked LGL
   # constituent. Email never does: LGL's email addresses are left to LGL.
   LGL_SYNCED_COLUMNS = %w[first_name last_name full_name line1 line2 city state zipcode phone].freeze
-  # Lets a burst of edits collapse into one sync (the job is a loner).
+  # Delays the sync so a burst of edits is mostly settled when it runs. The job
+  # is not a loner (resque-lock-timeout's enqueue check crashes inside
+  # resque-scheduler's MULTI), so a burst may queue several runs; each reads
+  # current state, so the later ones push nothing.
   LGL_EDIT_DEBOUNCE = 2.minutes
 
   included do

@@ -69,8 +69,9 @@ module Lgl
       Array(entries).find { |entry| entry['is_preferred'] == true }
     end
 
+    # Case-sensitive: LGL stores text verbatim, so a capitalization fix is a change.
     def same_text?(left, right)
-      left.to_s.squish.casecmp?(right.to_s.squish)
+      left.to_s.squish == right.to_s.squish
     end
 
     def digits(value)
