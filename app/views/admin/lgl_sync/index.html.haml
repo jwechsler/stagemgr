@@ -49,7 +49,7 @@
                   = source_labels[:none]
             %tr
               %th Polled LGL changes through
-              %td= @last_poll ? @last_poll.to_formatted_s(:short_date_and_time) : 'never'
+              %td= @last_poll ? @last_poll.to_formatted_s(:short_date_and_time) : 'not yet (starts from the first scheduled poll)'
             %tr
               %th Last sweep finished
               %td= @last_sweep ? @last_sweep.to_formatted_s(:short_date_and_time) : 'never'

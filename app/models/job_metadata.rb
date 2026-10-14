@@ -32,6 +32,12 @@ class JobMetadata < ApplicationRecord
     record_run_at(job_name, Time.current)
   end
 
+  # Whether the job has ever recorded a run. last_run answers the epoch when it
+  # has not, so ask this rather than comparing to the epoch.
+  def self.recorded?(job_name)
+    exists?(job_name: job_name)
+  end
+
   # Method to retrieve the last run time for a job
   def self.last_run(job_name)
     find_by(job_name: job_name)&.last_run_at || Time.at(0) # Use Unix epoch if no record exists

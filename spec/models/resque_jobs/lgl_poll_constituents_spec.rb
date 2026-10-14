@@ -34,6 +34,40 @@ RSpec.describe LglPollConstituents do
     expect(Resque).not_to have_received(:enqueue)
   end
 
+  context 'when the poll has never run' do
+    let(:go_live) { Time.utc(2026, 10, 13, 15, 0, 0) }
+
+    it 'starts the watermark at the current time without calling LGL or writing anything' do
+      travel_to(go_live) do
+        expect { expect(described_class.perform).to be_nil }
+          .not_to(change { [Address.maximum(:updated_at), AddressTag.count] })
+
+        expect(JobMetadata.recorded?(described_class::WATERMARK)).to be(true)
+        expect(polled_through).to eq(go_live)
+      end
+      expect(Lgl).not_to have_received(:client)
+      expect(Resque).not_to have_received(:enqueue)
+    end
+
+    it 'searches from that watermark minus the overlap on the next run' do
+      travel_to(go_live) { described_class.perform }
+      stub_constituents
+
+      described_class.perform
+
+      expect(client).to have_received(:search_updated_since).with(go_live - described_class::OVERLAP)
+    end
+
+    it 'records nothing when LGL is disabled' do
+      allow(Lgl).to receive(:enabled?).and_return(false)
+
+      described_class.perform
+
+      expect(JobMetadata.recorded?(described_class::WATERMARK)).to be(false)
+      expect(Lgl).not_to have_received(:client)
+    end
+  end
+
   it 'searches from five minutes before the watermark' do
     JobMetadata.record_run_at(described_class::WATERMARK, watermark)
     stub_constituents
@@ -67,6 +101,7 @@ RSpec.describe LglPollConstituents do
     end
 
     before do
+      JobMetadata.record_run_at(described_class::WATERMARK, watermark)
       allow(Resque).to receive(:enqueue_in)
       address.set_lgl_id!(979_629)
       address.update_column(:updated_at, Time.zone.parse('2026-10-01T12:00:00Z'))

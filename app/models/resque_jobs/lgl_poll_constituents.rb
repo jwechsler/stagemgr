@@ -10,6 +10,9 @@
 # every page succeeded, so an LGL error leaves it where it was and the next run
 # re-reads the same window. Each run starts OVERLAP before the watermark to
 # allow for clock skew and same-second updates; re-reading is harmless.
+#
+# The first run (no watermark yet) only starts the clock at the current time and
+# reads nothing, so LGL changes made before sync was enabled are never pulled.
 class LglPollConstituents
   @queue = :lgl
 
@@ -21,6 +24,7 @@ class LglPollConstituents
 
   def self.perform
     return Lgl.log_disabled('poll') unless Lgl.enabled?
+    return start_clock unless JobMetadata.recorded?(WATERMARK)
 
     polled_through = JobMetadata.last_run(WATERMARK)
     since = [polled_through - OVERLAP, Time.at(0)].max
@@ -28,6 +32,13 @@ class LglPollConstituents
     JobMetadata.record_run_at(WATERMARK, newest) if newest && newest > polled_through
     Rails.logger.info("[LGL] poll since #{since.utc.iso8601}: #{summary(counts)}")
     counts
+  end
+
+  def self.start_clock
+    now = Time.current
+    JobMetadata.record_run_at(WATERMARK, now)
+    Rails.logger.info("[LGL] poll: first run; starting from #{now.utc.iso8601}, earlier LGL changes are not pulled")
+    nil
   end
 
   def self.reconcile_since(since)

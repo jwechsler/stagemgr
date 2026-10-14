@@ -48,10 +48,11 @@ RSpec.describe Admin::LglSyncController, type: :controller do
       expect(response.body).to include('2 LGL constituents share this email')
     end
 
-    it 'says never when the poll and sweep have not run' do
+    it 'says the poll has not started yet and the sweep never ran when neither has run' do
       get :index
 
-      expect(response.body.scan('never').size).to eq(2)
+      expect(response.body).to include('not yet (starts from the first scheduled poll)')
+      expect(response.body.scan('never').size).to eq(1)
     end
 
     it 'formats the recorded poll watermark' do
@@ -62,7 +63,7 @@ RSpec.describe Admin::LglSyncController, type: :controller do
       # Stored and read back in process-local time (default_timezone :local).
       recorded = JobMetadata.last_run(LglPollConstituents::WATERMARK)
       expect(response.body).to include(recorded.to_formatted_s(:short_date_and_time))
-      expect(response.body.scan('never').size).to eq(1)
+      expect(response.body).not_to include('not yet')
     end
 
     it 'lists the writable address ids and where they come from when LGL is read-only' do

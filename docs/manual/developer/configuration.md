@@ -194,6 +194,11 @@ bundle exec rake lgl:backfill       # queue it on the lgl queue
 bundle exec rake lgl:backfill_now   # or run it inline and print the counts
 ```
 
+The first `LglPollConstituents` run after sync is enabled reads nothing: it
+records the current time as its watermark and logs `[LGL] poll: first run;
+starting from <time>`. Only LGL changes made after that moment are copied into
+Stagemgr; earlier ones are not. A disabled install never starts the clock.
+
 `setup:doctor` reports one LGL line: `LGL sync is disabled
 (littlegreenlight.sync)` and `LGL is read-only in this environment for ...`
 (listing any writable ids) are both OK; `littlegreenlight.sync is enabled but

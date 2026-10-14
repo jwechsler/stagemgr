@@ -118,7 +118,9 @@ The page shows:
 
 - Whether LGL sync is configured, and whether this environment may write to LGL.
 - How far the 15-minute poll has read LGL's changes, and when the hourly sweep
-  last finished ("never" if it has not run).
+  last finished ("never" if it has not run). The first poll after LGL sync is
+  enabled starts from that moment: changes made in LGL before then are not
+  copied into Stagemgr. Until it runs, the page says "not yet".
 - How many customers are linked.
 - Every customer with an `LGL Review` tag, oldest first, with the reason and a
   link to the customer page. The list shows the oldest 100; the heading gives
