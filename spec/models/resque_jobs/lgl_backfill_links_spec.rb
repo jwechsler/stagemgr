@@ -14,17 +14,17 @@ RSpec.describe LglBackfillLinks do
     allow(Lgl).to receive(:enabled?).and_return(true)
     allow(Lgl).to receive(:client).and_return(client)
     allow(Resque).to receive(:enqueue)
-    tagged.set_lgl_id!(2)
-    conflicting.set_lgl_id!(99)
-    repointable.set_lgl_id!(6)
+    tagged.set_lgl_id!(900_002)
+    conflicting.set_lgl_id!(900_099)
+    repointable.set_lgl_id!(900_006)
     constituents = [
-      { 'id' => 1, 'external_constituent_id' => untagged.id.to_s },
-      { 'id' => 2, 'external_constituent_id' => tagged.id.to_s },
-      { 'id' => 3, 'external_constituent_id' => '3' },
-      { 'id' => 4, 'external_constituent_id' => '999999999' },
-      { 'id' => 5, 'external_constituent_id' => '' },
-      { 'id' => 6, 'external_constituent_id' => '999999998' },
-      { 'id' => 7, 'external_constituent_id' => conflicting.id.to_s }
+      { 'id' => 900_001, 'external_constituent_id' => untagged.id.to_s },
+      { 'id' => 900_002, 'external_constituent_id' => tagged.id.to_s },
+      { 'id' => 900_003, 'external_constituent_id' => '900003' },
+      { 'id' => 900_004, 'external_constituent_id' => '999999999' },
+      { 'id' => 900_005, 'external_constituent_id' => '' },
+      { 'id' => 900_006, 'external_constituent_id' => '999999998' },
+      { 'id' => 900_007, 'external_constituent_id' => conflicting.id.to_s }
     ]
     allow(client).to receive(:each_constituent) { |&block| constituents.each(&block) }
   end
@@ -34,8 +34,8 @@ RSpec.describe LglBackfillLinks do
 
     expect(counts).to eq(tagged: 1, already_tagged: 1, self_referencing: 1, dead_external_id: 2,
                          blank_external_id: 1, review: 1)
-    expect(untagged.lgl_id).to eq('1')
-    expect(conflicting.lgl_review_reason).to eq('Also LGL constituent 7')
+    expect(untagged.lgl_id).to eq('900001')
+    expect(conflicting.lgl_review_reason).to eq('Also LGL constituent 900007')
   end
 
   it 'makes no LGL writes and enqueues nothing' do
@@ -45,7 +45,7 @@ RSpec.describe LglBackfillLinks do
     described_class.perform
 
     expect(Resque).not_to have_received(:enqueue)
-    expect(repointable.lgl_id).to eq('6')
+    expect(repointable.lgl_id).to eq('900006')
   end
 
   it 'does nothing when LGL is disabled: no LGL call, no tags' do

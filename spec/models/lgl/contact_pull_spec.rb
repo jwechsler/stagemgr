@@ -118,7 +118,7 @@ RSpec.describe Lgl::ContactPull do
   context 'when the constituent does not name this address' do
     before { phone['number'] = '312-555-0199' }
 
-    ['', 'junk', '1'].each do |external_id|
+    ['', 'junk', '999999999'].each do |external_id|
       it "never pulls with external id #{external_id.inspect}" do
         constituent['external_constituent_id'] = external_id
         expect(pull.apply!).to eq([])
@@ -127,7 +127,7 @@ RSpec.describe Lgl::ContactPull do
     end
 
     it 'never pulls when the address is tagged with another constituent' do
-      address.set_lgl_id!(1)
+      address.set_lgl_id!(900_001)
       expect(pull.apply!).to eq([])
     end
   end

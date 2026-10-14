@@ -46,14 +46,14 @@ RSpec.describe LglPollConstituents do
   it 'reconciles each constituent and advances the watermark to the newest updated_at' do
     JobMetadata.record_run_at(described_class::WATERMARK, watermark)
     stub_constituents(
-      { 'id' => 50, 'external_constituent_id' => address.id.to_s, 'updated_at' => '2026-10-01T13:00:00Z' },
-      { 'id' => 51, 'external_constituent_id' => '', 'updated_at' => '2026-10-01T12:30:00Z' }
+      { 'id' => 900_050, 'external_constituent_id' => address.id.to_s, 'updated_at' => '2026-10-01T13:00:00Z' },
+      { 'id' => 900_051, 'external_constituent_id' => '', 'updated_at' => '2026-10-01T12:30:00Z' }
     )
 
     counts = described_class.perform
 
     expect(counts).to eq(tagged: 1, blank_external_id: 1)
-    expect(address.lgl_id).to eq('50')
+    expect(address.lgl_id).to eq('900050')
     expect(polled_through).to eq(Time.utc(2026, 10, 1, 13, 0, 0))
   end
 
@@ -103,7 +103,7 @@ RSpec.describe LglPollConstituents do
   it 'leaves the watermark unchanged when LGL fails part-way' do
     JobMetadata.record_run_at(described_class::WATERMARK, watermark)
     allow(client).to receive(:search_updated_since) do |_time, &block|
-      block.call({ 'id' => 50, 'external_constituent_id' => '', 'updated_at' => '2026-10-01T13:00:00Z' })
+      block.call({ 'id' => 900_050, 'external_constituent_id' => '', 'updated_at' => '2026-10-01T13:00:00Z' })
       raise Lgl::Error.new(status: 500)
     end
 

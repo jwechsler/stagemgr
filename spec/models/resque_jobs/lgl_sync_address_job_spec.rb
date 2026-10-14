@@ -67,42 +67,42 @@ RSpec.describe LglSyncAddressJob do
   end
 
   context 'when tagged' do
-    before { address.set_lgl_id!(50) }
+    before { address.set_lgl_id!(900_050) }
 
     it 'makes no write when LGL already matches' do
-      allow(client).to receive(:find).with('50').and_return(constituent(50))
+      allow(client).to receive(:find).with('900050').and_return(constituent(900_050))
       expect(client).not_to receive(:update)
 
       expect(described_class.perform(address.id).action).to eq(:unchanged)
     end
 
     it 'updates LGL when the external id differs' do
-      allow(client).to receive(:find).and_return(constituent(50, external_id: ''))
+      allow(client).to receive(:find).and_return(constituent(900_050, external_id: ''))
       allow(client).to receive(:update)
 
       described_class.perform(address.id)
 
       expect(client).to have_received(:update)
-        .with(50, hash_including(external_constituent_id: address.id.to_s), for_address_id: address.id)
+        .with(900_050, hash_including(external_constituent_id: address.id.to_s), for_address_id: address.id)
     end
 
     it 'sends nothing on a donation sync when only the street differs' do
-      allow(client).to receive(:find).and_return(constituent(50).merge('street_addresses' => []))
+      allow(client).to receive(:find).and_return(constituent(900_050).merge('street_addresses' => []))
       expect(client).not_to receive(:update)
 
       described_class.perform(address.id, 'donation')
     end
 
     it "sends only the external id with LGL's own names and emails on a donation sync" do
-      lgl = constituent(50, external_id: '').merge('first_name' => 'Janie', 'street_addresses' => [])
+      lgl = constituent(900_050, external_id: '').merge('first_name' => 'Janie', 'street_addresses' => [])
       allow(client).to receive(:find).and_return(lgl)
       allow(client).to receive(:update)
 
       described_class.perform(address.id, 'donation')
 
       expect(client).to have_received(:update)
-        .with(50, { first_name: 'Janie', last_name: 'Smith', external_constituent_id: address.id.to_s,
-                    email_addresses: lgl['email_addresses'] }, for_address_id: address.id)
+        .with(900_050, { first_name: 'Janie', last_name: 'Smith', external_constituent_id: address.id.to_s,
+                         email_addresses: lgl['email_addresses'] }, for_address_id: address.id)
     end
 
     context 'on an address-edit sync' do
@@ -120,7 +120,7 @@ RSpec.describe LglSyncAddressJob do
       end
 
       it "edits only LGL's preferred street by id and keeps street out of the constituent PATCH" do
-        lgl = constituent(50, external_id: '')
+        lgl = constituent(900_050, external_id: '')
         lgl['street_addresses'] = [other_street, lgl['street_addresses'].first.merge('street' => '8 Old Rd')]
         allow(client).to receive(:find).and_return(lgl)
 
@@ -130,18 +130,18 @@ RSpec.describe LglSyncAddressJob do
           .with(2, { street: '1 Main St', city: 'Chicago', state: 'IL', postal_code: '60601' },
                 for_address_id: address.id)
         expect(client).to have_received(:update)
-          .with(50, satisfy { |body| !body.key?(:street_addresses) && !body.key?(:phone_numbers) },
+          .with(900_050, satisfy { |body| !body.key?(:street_addresses) && !body.key?(:phone_numbers) },
                 for_address_id: address.id)
         expect(client).not_to have_received(:add_street_address)
       end
 
       it 'adds a preferred Home street when LGL has no preferred entry' do
-        allow(client).to receive(:find).and_return(constituent(50).merge('street_addresses' => [other_street]))
+        allow(client).to receive(:find).and_return(constituent(900_050).merge('street_addresses' => [other_street]))
 
         expect(described_class.perform(address.id, described_class::EDIT_TRIGGER).action).to eq(:updated)
 
         expect(client).to have_received(:add_street_address)
-          .with(50, hash_including(street: '1 Main St', street_address_type_id: 1, is_preferred: true),
+          .with(900_050, hash_including(street: '1 Main St', street_address_type_id: 1, is_preferred: true),
                 for_address_id: address.id)
         expect(client).not_to have_received(:update)
         expect(client).not_to have_received(:update_street_address)
@@ -149,23 +149,23 @@ RSpec.describe LglSyncAddressJob do
 
       it "logs LGL's preferred street and phone before the first write" do
         address.update!(phone: '773-555-0100')
-        lgl = constituent(50)
+        lgl = constituent(900_050)
         lgl['street_addresses'].first['street'] = '8 Old Rd'
         allow(client).to receive(:find).and_return(lgl)
 
         described_class.perform(address.id, described_class::EDIT_TRIGGER)
 
         expect(Rails.logger).to have_received(:info)
-          .with("[LGL] address ##{address.id}: before edit, constituent 50 " \
+          .with("[LGL] address ##{address.id}: before edit, constituent 900050 " \
                 "preferred street=#{lgl['street_addresses'].first.to_json} phone=none").ordered
         expect(client).to have_received(:update_street_address).ordered
         expect(client).to have_received(:add_phone_number)
-          .with(50, { number: '773-555-0100', phone_number_type_id: 1, is_preferred: true },
+          .with(900_050, { number: '773-555-0100', phone_number_type_id: 1, is_preferred: true },
                 for_address_id: address.id)
       end
 
       it 'writes and logs nothing when LGL already matches' do
-        allow(client).to receive(:find).and_return(constituent(50))
+        allow(client).to receive(:find).and_return(constituent(900_050))
 
         expect(described_class.perform(address.id, described_class::EDIT_TRIGGER).action).to eq(:unchanged)
         expect(client).not_to have_received(:update_street_address)
@@ -175,7 +175,7 @@ RSpec.describe LglSyncAddressJob do
 
     it 'never touches street or phone entries on a non-edit sync' do
       address.update!(phone: '773-555-0100')
-      lgl = constituent(50, external_id: '').merge('street_addresses' => [], 'phone_numbers' => [])
+      lgl = constituent(900_050, external_id: '').merge('street_addresses' => [], 'phone_numbers' => [])
       allow(client).to receive(:find).and_return(lgl)
       allow(client).to receive(:update)
 
@@ -192,7 +192,7 @@ RSpec.describe LglSyncAddressJob do
       end
 
       def newer_lgl(external_id: address.id.to_s)
-        lgl = constituent(50, external_id: external_id)
+        lgl = constituent(900_050, external_id: external_id)
         lgl['street_addresses'].first.merge!('street' => '6924 N Sheridan Rd', 'postal_code' => '60657-3205',
                                              'updated_at' => '2026-10-13T12:00:00Z')
         lgl
@@ -217,7 +217,7 @@ RSpec.describe LglSyncAddressJob do
 
           expect(address.reload.line1).to eq('1 Main St')
           expect(client).to have_received(:update)
-            .with(50, hash_including(external_constituent_id: address.id.to_s), for_address_id: address.id)
+            .with(900_050, hash_including(external_constituent_id: address.id.to_s), for_address_id: address.id)
         end
       end
 
@@ -235,32 +235,32 @@ RSpec.describe LglSyncAddressJob do
 
     it 'keeps an existing review tag' do
       address.lgl_review!('also constituent 3')
-      allow(client).to receive(:find).and_return(constituent(50))
+      allow(client).to receive(:find).and_return(constituent(900_050))
       described_class.perform(address.id)
       expect(address.lgl_review_reason).to eq('also constituent 3')
     end
 
     it 'replaces a dead link with a constituent found by external id' do
       allow(client).to receive(:find).and_return(nil)
-      allow(client).to receive(:search_by_external_id).with(address.id).and_return([constituent(60)])
+      allow(client).to receive(:search_by_external_id).with(address.id).and_return([constituent(900_060)])
 
       described_class.perform(address.id, 'sweep')
 
-      expect(address.lgl_id).to eq('60')
+      expect(address.lgl_id).to eq('900060')
     end
 
     context 'when the link is dead (LGL answers 404)' do
-      before { allow(client).to receive(:find).with('50').and_return(nil) }
+      before { allow(client).to receive(:find).with('900050').and_return(nil) }
 
       it 'replaces the tag with a constituent adopted by email' do
-        allow(client).to receive(:search_by_email).and_return([constituent(80, external_id: '')])
+        allow(client).to receive(:search_by_email).and_return([constituent(900_080, external_id: '')])
         allow(client).to receive(:update)
         address.lgl_review!('old')
         expect(client).not_to receive(:create)
 
         expect(described_class.perform(address.id, 'sweep').action).to eq(:adopted)
 
-        expect(address.lgl_id).to eq('80')
+        expect(address.lgl_id).to eq('900080')
         expect(address.lgl_review_reason).to be_nil
       end
 
@@ -270,52 +270,52 @@ RSpec.describe LglSyncAddressJob do
 
           expect(described_class.perform(address.id, trigger).action).to eq(:review)
 
-          expect(address.lgl_id).to eq('50')
-          expect(address.lgl_review_reason).to eq('LGL constituent 50 no longer exists and no LGL constituent ' \
+          expect(address.lgl_id).to eq('900050')
+          expect(address.lgl_review_reason).to eq('LGL constituent 900050 no longer exists and no LGL constituent ' \
                                                   'matches; use Re-sync with LGL to create a new one')
         end
       end
 
       it 'clears the dead tag and creates a constituent on the manual trigger' do
-        allow(client).to receive(:create).and_return({ 'id' => 123 })
+        allow(client).to receive(:create).and_return({ 'id' => 900_123 })
 
         outcome = described_class.perform(address.id, described_class::MANUAL_TRIGGER)
 
         expect(outcome.action).to eq(:created)
         expect(client).to have_received(:create)
           .with(hash_including(external_constituent_id: address.id.to_s), for_address_id: address.id)
-        expect(address.lgl_id).to eq('123')
+        expect(address.lgl_id).to eq('900123')
       end
     end
   end
 
   it 'adopts a constituent found by external id' do
-    allow(client).to receive(:search_by_external_id).and_return([constituent(70)])
+    allow(client).to receive(:search_by_external_id).and_return([constituent(900_070)])
     address.lgl_review!('old')
 
     expect(described_class.perform(address.id).action).to eq(:adopted)
-    expect(address.lgl_id).to eq('70')
+    expect(address.lgl_id).to eq('900070')
     expect(address.lgl_review_reason).to be_nil
   end
 
   it 'adopts by email, pushing the external id' do
-    allow(client).to receive(:search_by_email).with(address.email).and_return([constituent(80, external_id: '')])
-    allow(client).to receive(:update).and_return({ 'id' => 80 })
+    allow(client).to receive(:search_by_email).with(address.email).and_return([constituent(900_080, external_id: '')])
+    allow(client).to receive(:update).and_return({ 'id' => 900_080 })
 
     described_class.perform(address.id)
 
     expect(client).to have_received(:update)
-      .with(80, hash_including(external_constituent_id: address.id.to_s), for_address_id: address.id)
-    expect(address.lgl_id).to eq('80')
+      .with(900_080, hash_including(external_constituent_id: address.id.to_s), for_address_id: address.id)
+    expect(address.lgl_id).to eq('900080')
   end
 
   it 'tags an adopted constituent even when the update is skipped read-only' do
-    allow(client).to receive(:search_by_email).and_return([constituent(80, external_id: '')])
+    allow(client).to receive(:search_by_email).and_return([constituent(900_080, external_id: '')])
     allow(client).to receive(:update).and_return(nil)
 
     described_class.perform(address.id)
 
-    expect(address.lgl_id).to eq('80')
+    expect(address.lgl_id).to eq('900080')
   end
 
   context 'when the email is on a constituent linked to a same-name twin with another email' do
@@ -325,7 +325,7 @@ RSpec.describe LglSyncAddressJob do
     end
 
     before do
-      allow(client).to receive(:search_by_email).and_return([constituent(90, external_id: twin.id.to_s)])
+      allow(client).to receive(:search_by_email).and_return([constituent(900_090, external_id: twin.id.to_s)])
       allow(Resque).to receive(:enqueue)
     end
 
@@ -335,7 +335,7 @@ RSpec.describe LglSyncAddressJob do
 
       outcome = described_class.perform(address.id)
 
-      expect(outcome.to_a).to eq([:merged, 90, "same person as address ##{twin.id} per LGL constituent 90"])
+      expect(outcome.to_a).to eq([:merged, 900_090, "same person as address ##{twin.id} per LGL constituent 900090"])
       expect(Address.exists?(address.id)).to be(false)
       expect(Address.exists?(twin.id)).to be(true)
       expect(Resque).to have_received(:enqueue).with(described_class, twin.id, 'merge')
@@ -366,8 +366,8 @@ RSpec.describe LglSyncAddressJob do
   end
 
   it 'flags the address for review when several constituents match' do
-    allow(client).to receive(:search_by_email).and_return([constituent(1, external_id: ''),
-                                                           constituent(2, external_id: '')])
+    allow(client).to receive(:search_by_email).and_return([constituent(900_001, external_id: ''),
+                                                           constituent(900_002, external_id: '')])
     expect(client).not_to receive(:create)
 
     described_class.perform(address.id)
@@ -377,13 +377,13 @@ RSpec.describe LglSyncAddressJob do
   end
 
   it 'creates a constituent for a never-linked address and tags it from the response' do
-    allow(client).to receive(:create).and_return({ 'id' => 123 })
+    allow(client).to receive(:create).and_return({ 'id' => 900_123 })
 
     described_class.perform(address.id, 'donation')
 
     expect(client).to have_received(:create)
       .with(hash_including(external_constituent_id: address.id.to_s, last_name: 'Smith'), for_address_id: address.id)
-    expect(address.lgl_id).to eq('123')
+    expect(address.lgl_id).to eq('900123')
   end
 
   it 'writes no tag when the create is skipped read-only' do
