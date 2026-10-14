@@ -55,6 +55,26 @@ RSpec.describe Admin::AddressesController, type: :controller do
       expect(response.body).not_to include('Issue Membership', new_admin_membership_path)
     end
 
+    it 'shows both fiscal years of donor level above the productions attended, with none for a blank year' do
+      address.update!(donor_tier_for_current_fiscal_year: 'Gold', donor_tier_for_last_fiscal_year: nil)
+
+      get :show, params: { id: address.id }
+
+      body = response.body
+      donor_box = body[%r{<legend>Donor Level</legend>.*?</fieldset>}m]
+      expect(donor_box).to match(%r{Current fiscal year</th>\s*<td>Gold</td>})
+      expect(donor_box).to match(%r{Previous fiscal year</th>\s*<td>none</td>})
+      expect(body.index('Donor Level')).to be < body.index('Attended')
+    end
+
+    it 'shows no donor level for a customer with no tier in either year' do
+      address.update!(donor_tier_for_current_fiscal_year: nil, donor_tier_for_last_fiscal_year: nil)
+
+      get :show, params: { id: address.id }
+
+      expect(response.body).not_to include('Donor Level')
+    end
+
     it 'highlights the LGL Review tag in the tag list instead of repeating it under the LGL line' do
       Theater.default_theater || FactoryBot.create(:theater, theater_class: Theater::DEFAULT)
       allow(Lgl).to receive(:enabled?).and_return(true)
