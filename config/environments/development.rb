@@ -93,6 +93,10 @@ Rails.application.configure do
     # Development must never write to the live Emma account: reads work with
     # the credentials above, writes are skipped (and logged) regardless.
     MyEmma.read_only!
+  end
+
+  # Lgl is reloadable; its configuration must be re-applied after each code reload.
+  config.to_prepare do
     # littlegreenlight: in config/server.yml (ENV overrides), key from AppSecrets;
     # Lgl.configure_from holds every rule (development stays read-only unless
     # writable_address_ids lists the addresses that may be written).
