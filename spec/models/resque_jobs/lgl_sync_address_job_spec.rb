@@ -240,6 +240,32 @@ RSpec.describe LglSyncAddressJob do
       expect(address.lgl_review_reason).to eq('also constituent 3')
     end
 
+    context 'with a several-matches review left by a merge after the link' do
+      let(:several) { Lgl::ConstituentReplicator::SEVERAL_MATCHES_REASON }
+
+      before { allow(client).to receive(:find).with('900050').and_return(constituent(900_050)) }
+
+      it 'clears the review when it names this constituent' do
+        address.lgl_review!("LGL constituent 900050 #{several}")
+
+        expect(described_class.perform(address.id, described_class::LINK_TRIGGER).action).to eq(:unchanged)
+        expect(address.lgl_review_reason).to be_nil
+        expect(address.lgl_id).to eq('900050')
+      end
+
+      it 'keeps the review when it names a different constituent' do
+        address.lgl_review!("LGL constituent 900051 #{several}")
+        described_class.perform(address.id, described_class::LINK_TRIGGER)
+        expect(address.lgl_review_reason).to eq("LGL constituent 900051 #{several}")
+      end
+
+      it 'keeps an Also LGL constituent review' do
+        address.lgl_review!('Also LGL constituent 1234')
+        described_class.perform(address.id, described_class::LINK_TRIGGER)
+        expect(address.lgl_review_reason).to eq('Also LGL constituent 1234')
+      end
+    end
+
     it 'replaces a dead link with a constituent found by external id' do
       allow(client).to receive(:find).and_return(nil)
       allow(client).to receive(:search_by_external_id).with(address.id).and_return([constituent(900_060)])

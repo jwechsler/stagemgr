@@ -30,7 +30,9 @@ require 'resque-retry'
 #      for now and carry on as untagged. An adopt replaces it; a merge drops
 #      it first, so the keeper is never flagged for the dead id as a second
 #      LGL ID. Otherwise point its external id at
-#      this address (and push contact fields on EDIT_TRIGGER).
+#      this address (and push contact fields on EDIT_TRIGGER). A "matches
+#      several customers" review naming this constituent is cleared: the tag
+#      already answers which customer it is.
 #   2. A constituent already carrying this address's id -> adopt it.
 #   3. Email -> Lgl::ConstituentResolver decides adopt / review / merge / create.
 #      Merge: the email is on a constituent linked to a same-name twin, so LGL
@@ -141,7 +143,19 @@ class LglSyncAddressJob
     # constituent re-pointed by this run is never pulled from.
     pulled = @pull_contact ? Lgl::ContactPull.new(@address, constituent).apply! : []
     action = pushed?(constituent) ? :updated : :unchanged
+    clear_resolved_review(constituent)
     Outcome.new(action, constituent['id'], pulled.any? ? "tagged; pulled #{pulled.join(', ')}" : 'tagged')
+  end
+
+  # The several-matches review asks "which of these customers is constituent
+  # N?"; an address tagged with N answers it. It can still carry that review
+  # when staff linked one candidate (Re-sync clears it) and then merged another
+  # candidate into it: Address#update_from copies the newer record's tags,
+  # review included. Only the review naming this constituent is cleared; any
+  # other reason still needs a person.
+  def clear_resolved_review(constituent)
+    resolved = "LGL constituent #{constituent['id']} #{Lgl::ConstituentReplicator::SEVERAL_MATCHES_REASON}"
+    @address.clear_lgl_review! if @address.lgl_review_reason.to_s.include?(resolved)
   end
 
   def sync_by_external_id
