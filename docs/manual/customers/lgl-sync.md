@@ -78,7 +78,7 @@ applies and nothing needs fixing, delete the `LGL Review` tag as you would any
 
 ## The Sync Status Page
 
-**Navigation:** Admin > System Options > Little Green Light sync
+**Navigation:** Options > System Config > LGL Sync
 
 The page shows:
 
