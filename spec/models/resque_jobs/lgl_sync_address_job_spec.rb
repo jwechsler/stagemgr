@@ -309,6 +309,75 @@ RSpec.describe LglSyncAddressJob do
     expect(address.lgl_id).to eq('900080')
   end
 
+  describe 'echo guard' do
+    before do
+      address.update_column(:updated_at, 1.hour.ago)
+      allow(client).to receive(:search_by_email).with(address.email).and_return([constituent(900_080, external_id: '')])
+      allow(Resque).to receive(:enqueue_in)
+    end
+
+    it 'touches the address after an external-id adopt so it is newer than LGL\'s bump' do
+      allow(client).to receive(:update).and_return({ 'id' => 900_080 })
+
+      expect { described_class.perform(address.id, 'link') }.to(change { address.reload.updated_at })
+
+      expect(address.updated_at).to be_within(1.minute).of(Time.current)
+    end
+
+    it 'queues no edit push for that touch' do
+      allow(client).to receive(:update).and_return({ 'id' => 900_080 })
+
+      described_class.perform(address.id, 'link')
+
+      expect(Resque).not_to have_received(:enqueue_in)
+    end
+
+    it 'leaves updated_at alone when the write was skipped read-only' do
+      allow(client).to receive(:update).and_return(nil)
+
+      expect { described_class.perform(address.id, 'link') }.not_to(change { address.reload.updated_at })
+    end
+
+    it 'leaves updated_at alone when nothing was written' do
+      address.set_lgl_id!(900_090)
+      allow(client).to receive(:find).with('900090').and_return(constituent(900_090))
+
+      expect { described_class.perform(address.id) }.not_to(change { address.reload.updated_at })
+    end
+  end
+
+  context 'on a link sync' do
+    before { address.update_column(:updated_at, 1.hour.ago) }
+
+    it 'never creates a constituent when nothing matches: no write, no review tag, no touch' do
+      expect(client).not_to receive(:create)
+      allow(Rails.logger).to receive(:info)
+
+      outcome = nil
+      expect { outcome = described_class.perform(address.id, described_class::LINK_TRIGGER) }
+        .not_to(change { address.reload.updated_at })
+
+      expect([outcome.action, outcome.constituent_id]).to eq([:skipped, nil])
+      expect(address.lgl_id).to be_nil
+      expect(address.lgl_review_reason).to be_nil
+      expect(Rails.logger).to have_received(:info)
+        .with("[LGL] address ##{address.id}: link found no matching constituent; nothing created")
+    end
+
+    it 'still writes the review tag when several constituents match' do
+      allow(client).to receive(:search_by_email)
+        .and_return([constituent(900_081, external_id: ''), constituent(900_082, external_id: '')])
+
+      expect(described_class.perform(address.id, described_class::LINK_TRIGGER).action).to eq(:review)
+      expect(address.lgl_review_reason).to be_present
+    end
+  end
+
+  it 'retries Lgl::RateLimited through resque-retry' do
+    expect(described_class.retry_exception?(Lgl::RateLimited)).to be(true)
+    expect(described_class.retry_limit).to be_positive
+  end
+
   it 'tags an adopted constituent even when the update is skipped read-only' do
     allow(client).to receive(:search_by_email).and_return([constituent(900_080, external_id: '')])
     allow(client).to receive(:update).and_return(nil)

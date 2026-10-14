@@ -40,7 +40,15 @@ require 'resque-retry'
 #   4. Create a new constituent. A dead link is never re-created
 #      automatically: unless the trigger is MANUAL_TRIGGER (staff clicked Link
 #      to LGL / Re-sync), the dead tag stays and the address gets an LGL Review
-#      tag instead. A never-linked address may be created by any trigger.
+#      tag instead. A never-linked address may be created by any trigger
+#      except LINK_TRIGGER, which only adopts and otherwise logs and skips.
+#
+# Echo guard: every LGL write bumps the constituent's updated_at, which would
+# make a later poll see LGL as the newer side and pull its (older) name, street
+# and phone over Stagemgr's. So after any write that actually happened (not
+# skipped read-only) the address is touched, putting its updated_at after
+# LGL's bump; Lgl::ContactPull allows for clock skew between the two. touch
+# changes no LGL_SYNCED_COLUMNS, so it queues no edit push.
 #
 # LGL errors raise (resque-retry retries a few times, then the failed queue).
 # In read-only environments Lgl::Client skips writes and returns nil.
@@ -70,6 +78,10 @@ class LglSyncAddressJob
   # replace a dead link with a new constituent.
   MANUAL_TRIGGER = 'manual'
 
+  # Trigger reason for LglBackfillLinks.link_by_email: only adopts the
+  # constituent it matched, never creates one.
+  LINK_TRIGGER = 'link'
+
   Outcome = Struct.new(:action, :constituent_id, :reason)
 
   # One lock per address whatever triggered it: the reason is only for the log.
@@ -85,23 +97,31 @@ class LglSyncAddressJob
 
     manual = reason == MANUAL_TRIGGER
     outcome = new(address, Lgl.client, push_contact: reason == EDIT_TRIGGER,
-                                       may_replace_dead_link: manual, pull_contact: manual).sync
+                                       may_replace_dead_link: manual, pull_contact: manual,
+                                       may_create: reason != LINK_TRIGGER).sync
     Rails.logger.info("[LGL] address ##{address.id}: #{outcome.action} constituent " \
                       "#{outcome.constituent_id || '-'} (#{outcome.reason}; trigger: #{reason})")
     outcome
   end
 
-  def initialize(address, client, push_contact: false, may_replace_dead_link: false, pull_contact: false)
+  def initialize(address, client, push_contact: false, may_replace_dead_link: false, pull_contact: false,
+                 may_create: true)
     @address = address
+    @may_create = may_create
     @pull_contact = pull_contact
     @client = client
     @push_contact = push_contact
     @may_replace_dead_link = may_replace_dead_link
     @dead_lgl_id = nil
+    @wrote_to_lgl = false
   end
 
+  # ensure: a write that succeeded before a later request raised still bumped
+  # LGL's updated_at.
   def sync
     sync_tagged || sync_by_external_id || sync_by_email || create
+  ensure
+    @address.touch if @wrote_to_lgl
   end
 
   private
@@ -187,15 +207,23 @@ class LglSyncAddressJob
   end
 
   def create
+    return link_skipped unless @may_create
     return dead_link_review if @dead_lgl_id && !@may_replace_dead_link
 
     # A dead tag is replaced by link below, so a read-only skip keeps it.
-    created = @client.create(Lgl::ConstituentPayload.for_create(@address), for_address_id: @address.id)
+    created = written(@client.create(Lgl::ConstituentPayload.for_create(@address), for_address_id: @address.id))
     # Skipped by the read-only guard: there is no id to tag.
     return Outcome.new(:create_skipped, nil, 'read-only') if created.nil?
 
     link(created['id'])
     Outcome.new(:created, created['id'], 'no existing constituent')
+  end
+
+  # LINK_TRIGGER: no LGL write, no review tag, no touch.
+  def link_skipped
+    reason = 'link found no matching constituent; nothing created'
+    Rails.logger.info("[LGL] address ##{@address.id}: #{reason}")
+    Outcome.new(:skipped, nil, reason)
   end
 
   def dead_link_review
@@ -218,7 +246,7 @@ class LglSyncAddressJob
     return false unless payload || street || phone
 
     log_before_edit(constituent, changes) if changes
-    @client.update(constituent['id'], payload, for_address_id: @address.id) if payload
+    written(@client.update(constituent['id'], payload, for_address_id: @address.id)) if payload
     apply_street(constituent['id'], street) if street
     apply_phone(constituent['id'], phone) if phone
     true
@@ -235,19 +263,30 @@ class LglSyncAddressJob
   end
 
   def apply_street(constituent_id, operation)
-    if operation.action == :update
-      @client.update_street_address(operation.id, operation.attrs, for_address_id: @address.id)
-    else
-      @client.add_street_address(constituent_id, operation.attrs, for_address_id: @address.id)
-    end
+    written(
+      if operation.action == :update
+        @client.update_street_address(operation.id, operation.attrs, for_address_id: @address.id)
+      else
+        @client.add_street_address(constituent_id, operation.attrs, for_address_id: @address.id)
+      end
+    )
   end
 
   def apply_phone(constituent_id, operation)
-    if operation.action == :update
-      @client.update_phone_number(operation.id, operation.attrs, for_address_id: @address.id)
-    else
-      @client.add_phone_number(constituent_id, operation.attrs, for_address_id: @address.id)
-    end
+    written(
+      if operation.action == :update
+        @client.update_phone_number(operation.id, operation.attrs, for_address_id: @address.id)
+      else
+        @client.add_phone_number(constituent_id, operation.attrs, for_address_id: @address.id)
+      end
+    )
+  end
+
+  # Notes a write that reached LGL (the client returns nil when it skipped one
+  # read-only) for the echo guard; returns the response unchanged.
+  def written(response)
+    @wrote_to_lgl = true unless response.nil?
+    response
   end
 
   def link(constituent_id)

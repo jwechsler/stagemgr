@@ -76,6 +76,25 @@ RSpec.describe Lgl::ContactPull do
     expect(pull.apply!).to eq([])
   end
 
+  context 'when LGL is newer only within CLOCK_SKEW_ALLOWANCE' do
+    let(:within_slack) { (stamp + described_class::CLOCK_SKEW_ALLOWANCE - 1.second).utc.iso8601 }
+
+    it 'does not pull (an echo of our own write, or clock skew)' do
+      constituent.merge!('first_name' => 'Janet', 'updated_at' => within_slack)
+      phone.merge!('number' => '312-555-0199', 'updated_at' => within_slack)
+
+      expect(pull.apply!).to eq([])
+      expect(address.reload.phone).to eq('773-555-0100')
+    end
+
+    it 'still pulls once LGL is clearly newer' do
+      clearly_newer = (stamp + described_class::CLOCK_SKEW_ALLOWANCE + 1.minute).utc.iso8601
+      phone.merge!('number' => '312-555-0199', 'updated_at' => clearly_newer)
+
+      expect(pull.apply!).to eq([:phone])
+    end
+  end
+
   it 'pulls a newer name into full_name and lets regularize! split it' do
     constituent['first_name'] = 'Janet'
     expect(pull.apply!).to eq([:name])

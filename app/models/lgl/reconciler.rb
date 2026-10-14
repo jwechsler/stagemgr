@@ -26,6 +26,27 @@ module Lgl
   class Reconciler
     NUMERIC = /\A\d+\z/
 
+    # Why the constituent's external id names no live address
+    # (:blank_external_id, :self_referencing or :dead_external_id), or nil when
+    # it does. Also used by LglBackfillLinks.link_by_email.
+    def self.junk_kind(constituent)
+      return nil if live_external_address(constituent)
+
+      external = constituent['external_constituent_id'].to_s.strip
+      return :blank_external_id if external.empty?
+      return :self_referencing if external == constituent['id'].to_s
+
+      :dead_external_id
+    end
+
+    def self.live_external_address(constituent)
+      external = constituent['external_constituent_id'].to_s.strip
+      return nil unless NUMERIC.match?(external)
+      return nil if external == constituent['id'].to_s
+
+      Address.find_by(id: external.to_i, placeholder: false)
+    end
+
     def initialize(reason: 'poll', local_only: false)
       @reason = reason
       @local_only = local_only
@@ -38,7 +59,7 @@ module Lgl
     # logged and counted, so one bad record never stops a run.
     def apply(constituent)
       lgl_id = constituent['id'].to_s
-      external = live_external_address(constituent)
+      external = self.class.live_external_address(constituent)
       tagged = tagged_addresses(lgl_id)
       return reconcile_junk(constituent, tagged, lgl_id) unless external
       return pull(external, constituent) if tagged.map(&:id) == [external.id]
@@ -112,7 +133,7 @@ module Lgl
     end
 
     def reconcile_junk(constituent, tagged, lgl_id)
-      kind = junk_kind(constituent)
+      kind = self.class.junk_kind(constituent)
       if tagged.size > 1
         tagged.each { |address| address.lgl_review!("#{tagged.size} addresses are tagged LGL constituent #{lgl_id}") }
         return :review
@@ -121,22 +142,6 @@ module Lgl
 
       enqueue_sync(tagged.first)
       :repointed
-    end
-
-    def junk_kind(constituent)
-      external = constituent['external_constituent_id'].to_s.strip
-      return :blank_external_id if external.empty?
-      return :self_referencing if external == constituent['id'].to_s
-
-      :dead_external_id
-    end
-
-    def live_external_address(constituent)
-      external = constituent['external_constituent_id'].to_s.strip
-      return nil unless NUMERIC.match?(external)
-      return nil if external == constituent['id'].to_s
-
-      Address.find_by(id: external.to_i, placeholder: false)
     end
 
     def tagged_addresses(lgl_id)

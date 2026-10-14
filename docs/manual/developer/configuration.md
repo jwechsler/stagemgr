@@ -194,6 +194,26 @@ bundle exec rake lgl:backfill       # queue it on the lgl queue
 bundle exec rake lgl:backfill_now   # or run it inline and print the counts
 ```
 
+#### Writing Stagemgr ids into LGL
+
+Constituents whose External constituent ID is blank, their own LGL id, or a
+customer that no longer exists can be linked by email, once, by a developer.
+A constituent is linked only when exactly one customer has one of its emails,
+the same last name (ignoring case) and no other LGL ID; constituents with
+several matches, none, or no email are only counted. Run the dry run first: it
+reads LGL, prints the counts by kind and outcome, and writes nothing. Then run
+the real one, which queues one sync per match on the `lgl` queue:
+
+```sh
+bundle exec rake lgl:link_by_email_dry_run   # counts only
+bundle exec rake lgl:link_by_email           # queue the links
+```
+
+It only sets External Constituent IDs in LGL (and the customer's `LGL ID`
+tag). It never copies a name, street, phone or email in either direction:
+each linked customer is marked as changed after the write, so the next poll
+does not treat LGL as the newer copy.
+
 The first `LglPollConstituents` run after sync is enabled reads nothing: it
 records the current time as its watermark and logs `[LGL] poll: first run;
 starting from <time>`. Only LGL changes made after that moment are copied into

@@ -13,7 +13,8 @@ module Lgl
   #
   # A group is applied only when LGL's own timestamp for it (the constituent's
   # updated_at for names; the preferred entry's updated_at for street and
-  # phone) is later than the address's updated_at, so the newer change wins:
+  # phone) is later than the address's updated_at (by more than
+  # CLOCK_SKEW_ALLOWANCE), so the newer change wins:
   # when Stagemgr is newer its edit push carries the value the other way. It is
   # applied only when it differs, by the same rules ContactChanges pushes by. A
   # missing preferred entry never blanks a Stagemgr field. Email is never
@@ -30,6 +31,13 @@ module Lgl
   # Logs the previous Stagemgr values so a bad pull can be undone by hand.
   class ContactPull
     GROUPS = %i[name street phone].freeze
+    # LGL's timestamp must beat the address's updated_at by more than this.
+    # Every LGL write Stagemgr makes bumps the constituent's updated_at, and
+    # LglSyncAddressJob then touches the address so Stagemgr is the later
+    # side; LGL's clock and ours are not in step, so without this margin a
+    # bump stamped a few seconds "after" the touch would pull LGL's older
+    # values straight back over Stagemgr's.
+    CLOCK_SKEW_ALLOWANCE = 2.minutes
     PREVIOUS_COLUMNS = {
       name: %w[full_name], street: %w[line1 line2 city state zipcode], phone: %w[phone]
     }.freeze
@@ -96,10 +104,10 @@ module Lgl
       @constituent[key]
     end
 
-    # A missing or unparseable LGL timestamp never wins.
+    # A missing or unparseable LGL timestamp never wins; see CLOCK_SKEW_ALLOWANCE.
     def newer?(value)
       lgl_time = value.present? ? Time.zone.parse(value.to_s) : nil
-      lgl_time.present? && (@address.updated_at.nil? || lgl_time > @address.updated_at)
+      lgl_time.present? && (@address.updated_at.nil? || lgl_time > @address.updated_at + CLOCK_SKEW_ALLOWANCE)
     rescue ArgumentError
       false
     end

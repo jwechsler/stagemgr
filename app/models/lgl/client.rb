@@ -23,8 +23,12 @@ module Lgl
     BASE_URL = 'https://api.littlegreenlight.com/api/v1'
     OPEN_TIMEOUT_SECONDS = 10
     READ_TIMEOUT_SECONDS = 30
-    # LGL allows 300 requests per 5 minutes; one per second keeps us well under.
-    MIN_INTERVAL_SECONDS = 1.0
+    # LGL allows 300 requests per 5 minutes (one per second). The throttle is
+    # per client instance and each Resque job runs in a fresh fork, so a run of
+    # back-to-back jobs gets no spacing before its first request; 1.2 seconds
+    # keeps such a run under the limit. A 429 raises Lgl::RateLimited, which
+    # resque-retry retries.
+    MIN_INTERVAL_SECONDS = 1.2
     PAGE_LIMIT = 1000
     SEARCH_PATH = '/constituents/search'
     CONSTITUENTS_PATH = '/constituents'
