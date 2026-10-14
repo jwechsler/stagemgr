@@ -9,9 +9,22 @@ module Lgl
   #   organisation (is_org)            -> :org_skipped
   #   neither an email nor a street    -> :no_contact
   #   neither a first nor a last name  -> :no_name
-  #   one address matches by email and last name (match_by_email)
+  #   one address matches by email and last name (match_by_email), or
+  #   several do and exactly one of them shares the constituent's first name
+  #   (Lgl::NameMatch: first word only, so couples' and spouses' records and
+  #   middle initials do not confuse it)
   #                                    -> tag it LGL ID, clear its review: :linked
-  #   several match                    -> review each: :review
+  #   several share the first name     -> review only those, "matches several
+  #                                       customers named First Last by email":
+  #                                       spellings of one person, merge them
+  #   several match, none shares it (or the constituent has no first name)
+  #                                    -> review each, "matches several
+  #                                       customers by email and last name"
+  #                                       (:review either way)
+  #
+  #   Before linking or reviewing, every candidate loses a several-matches
+  #   review naming this constituent, so a spouse flagged earlier or an old
+  #   wording does not linger.
   #   none                             -> create a tagged address: :created
   #                                       (:invalid_email when LGL's email is
   #                                       not one Address accepts;
@@ -20,9 +33,11 @@ module Lgl
   class ConstituentReplicator
     Result = Struct.new(:outcome, :address)
 
-    # Tail of the review reason when several customers match; the LGL Sync
-    # page spots it to link the customer to their same-named duplicates.
-    SEVERAL_MATCHES_REASON = 'matches several customers by email and last name'
+    # Common start of both several-matches review reasons (after "LGL
+    # constituent N "); the LGL Sync page spots it to link the customer to
+    # their same-named duplicates, and LglSyncAddressJob clears it once the
+    # address is linked to N.
+    SEVERAL_MATCHES_REASON = 'matches several customers'
 
     # Why the constituent is never replicated, or nil.
     def self.skip_reason(constituent)
@@ -46,15 +61,32 @@ module Lgl
       end
     end
 
-    # [outcome, the single matching address or nil]; outcome is :one_match,
-    # :several_matches, :no_match or :no_email.
+    # [outcome, the single matching address or nil, the addresses to flag for
+    # review (empty unless :several_matches)]; outcome is :one_match,
+    # :several_matches, :no_match or :no_email. Several email + last name
+    # matches are narrowed by first name (Lgl::NameMatch).
     def self.match_by_email(constituent)
-      return [:no_email, nil] if emails(constituent).empty?
+      return [:no_email, nil, []] if emails(constituent).empty?
 
       found = candidates(constituent)
-      return [:one_match, found.first] if found.one?
+      return [:no_match, nil, []] if found.empty?
+      return [:one_match, found.first, []] if found.one?
 
-      [found.empty? ? :no_match : :several_matches, nil]
+      named = Lgl::NameMatch.narrow(constituent['first_name'], found, &:first_name)
+      return [:one_match, named.first, []] if named&.one?
+
+      [:several_matches, nil, named.presence || found]
+    end
+
+    # The LGL Review reason for +flagged+ (match_by_email's third element).
+    def self.several_matches_reason(constituent, flagged)
+      prefix = "LGL constituent #{constituent['id']} #{SEVERAL_MATCHES_REASON}"
+      first_name = constituent['first_name'].to_s.strip
+      if flagged.all? { |address| Lgl::NameMatch.same_first_name?(first_name, address.first_name) }
+        "#{prefix} named #{full_name(constituent)} by email: merge them in Stagemgr, then Re-sync"
+      else
+        "#{prefix} by email and last name"
+      end
     end
 
     # An unsaved, untagged Address: name as Lgl::ContactPull pulls it, and the
@@ -98,10 +130,10 @@ module Lgl
       skip = self.class.skip_reason(@constituent)
       return Result.new(skip, nil) if skip
 
-      outcome, address = self.class.match_by_email(@constituent)
+      outcome, address, flagged = self.class.match_by_email(@constituent)
       case outcome
       when :one_match then link(address)
-      when :several_matches then review_all
+      when :several_matches then review(flagged)
       else create
       end
     end
@@ -109,15 +141,26 @@ module Lgl
     private
 
     def link(address)
+      clear_stale_reviews
       address.set_lgl_id!(@lgl_id)
       address.clear_lgl_review!
       Result.new(:linked, address)
     end
 
-    def review_all
-      reason = "LGL constituent #{@lgl_id} #{SEVERAL_MATCHES_REASON}"
-      self.class.candidates(@constituent).each { |address| address.lgl_review!(reason) }
+    def review(flagged)
+      clear_stale_reviews
+      reason = self.class.several_matches_reason(@constituent, flagged)
+      flagged.each { |address| address.lgl_review!(reason) }
       Result.new(:review, nil)
+    end
+
+    # Drops a several-matches review naming this constituent from every
+    # candidate; any other review still needs a person.
+    def clear_stale_reviews
+      stale = "LGL constituent #{@lgl_id} #{SEVERAL_MATCHES_REASON}"
+      self.class.candidates(@constituent).each do |address|
+        address.clear_lgl_review! if address.lgl_review_reason.to_s.start_with?(stale)
+      end
     end
 
     # The re-check guards an inline rake run overlapping the poll. No early

@@ -30,7 +30,7 @@ in LGL is the Stagemgr customer id.
 
 | Event | What happens in LGL |
 |---|---|
-| A donation is processed | About ten minutes later the donor is linked: an existing constituent with the customer's id, or with the same email and last name, is adopted and its External constituent ID set; otherwise a new constituent is created |
+| A donation is processed | About ten minutes later the donor is linked: an existing constituent with the customer's id, or with the same email and last name (narrowed by first name when several match), is adopted and its External constituent ID set; otherwise a new constituent is created |
 | An administrator clicks **Link to LGL** / **Re-sync with LGL** on the customer page | The same linking, run in the background straight away. This is the only way a customer whose LGL record was deleted or merged away gets a new one |
 | The name, street address or phone of a linked customer is edited | About two minutes after the last edit, the new values replace the constituent's **preferred** street address and phone in LGL. Other addresses and phones are left alone; if there is no preferred one, a preferred Home entry is added |
 
@@ -66,14 +66,23 @@ When a constituent is added in LGL without a Stagemgr link (its External
 constituent ID is empty or does not name a Stagemgr customer), Stagemgr picks
 it up within about 15 minutes:
 
-- If exactly **one** customer has the same email address and last name as the
-  constituent, and is not already linked to another constituent, that
-  customer is linked to it.
+Customers match the constituent when they have the same email address and
+last name and are not already linked to another constituent. When several
+match, only those with the constituent's first name count. Only the first word
+of the first name is compared, so middle initials ("Robert L.") and a couple's
+or spouse's record sharing the email do not confuse it.
+
+- If exactly **one** customer matches (or several do and exactly one has the
+  constituent's first name), that customer is linked to it.
 - If **no** customer matches, Stagemgr creates a new customer with LGL's name
   and the constituent's preferred email, preferred street address and
   preferred phone.
-- If **several** customers match, none is chosen: each gets an `LGL Review`
-  tag (see [The LGL Review Tag](#the-lgl-review-tag)).
+- If **several** customers have the constituent's first name, they are
+  spellings of one person: each of them gets an `LGL Review` tag asking for a
+  merge. Other customers sharing the email are left alone.
+- If several customers match but **none** has the constituent's first name
+  (or the constituent has no first name), none is chosen: each gets an `LGL Review` tag
+  (see [The LGL Review Tag](#the-lgl-review-tag)).
 
 A linked or newly created customer gets the `LGL ID` tag, and Stagemgr sets the
 constituent's **External constituent ID** in LGL to the customer number.
@@ -125,8 +134,9 @@ id, `#5678` for a Stagemgr customer id):
 
 | Reason | Meaning |
 |---|---|
-| `2 LGL constituents share this email` | Several constituents could be this customer |
-| `LGL constituent 1234 matches several customers by email and last name` | A new LGL constituent could be any of these customers, so Stagemgr linked none of them. On the Sync Status page this customer's name opens the customer list filtered by their last name, where the duplicates can be selected and merged with **Merge Selected** (see [Merging Duplicates](merging-duplicates.md)); then click **Re-sync with LGL** on the customer that remains. If one of the duplicates was already linked to that constituent when they were merged, the tag clears on that customer's next sync (**Re-sync with LGL**, the regular poll, or the replicate run) |
+| `2 LGL constituents share this email` | Several constituents with this customer's email and last name could be this customer, and their first names do not settle which one |
+| `LGL constituent 1234 matches several customers named Robert Holliday by email: merge them in Stagemgr, then Re-sync` | These customers are spellings of one person. On the Sync Status page this customer's name opens the customer list filtered by their last name: merge them with **Merge Selected** (see [Merging Duplicates](merging-duplicates.md)), then click **Re-sync with LGL** on the one that remains |
+| `LGL constituent 1234 matches several customers by email and last name` | A new LGL constituent could be any of these customers and none of them shares its first name, so a person must decide; Stagemgr linked none of them. On the Sync Status page this customer's name opens the customer list filtered by their last name, where the duplicates can be selected and merged with **Merge Selected** (see [Merging Duplicates](merging-duplicates.md)); then click **Re-sync with LGL** on the customer that remains. If one of the duplicates was already linked to that constituent when they were merged, the tag clears on that customer's next sync (**Re-sync with LGL**, the regular poll, or the replicate run) |
 | `2 LGL constituents carry external id 5678` | Several constituents in LGL name this customer as their External constituent ID |
 | `Also LGL constituent 1234` | LGL says this customer is constituent 1234, but the customer is already linked to a different one |
 | `Also LGL constituent 1234: merge the two in LGL` | Two Stagemgr customers linked to different constituents were merged in Stagemgr |
