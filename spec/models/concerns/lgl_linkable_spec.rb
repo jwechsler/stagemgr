@@ -65,6 +65,43 @@ RSpec.describe LglLinkable do
     expect(address.lgl_review_reason).to be_nil
   end
 
+  describe 'LGL Lapsed' do
+    it 'writes, reads and clears the lapsed tag on the default theater' do
+      address.set_lgl_lapsed!('LYBUNT')
+      expect(address.lgl_lapsed).to eq('LYBUNT')
+      expect(lgl_rows(AddressTag::LGL_LAPSED).pluck(:theater_id)).to eq([house.id])
+      address.clear_lgl_lapsed!
+      expect(address.lgl_lapsed).to be_nil
+    end
+
+    it 'applies a new value, reporting the change' do
+      expect(address.apply_lgl_lapsed!('SYBUNT')).to be(true)
+      expect(address.lgl_lapsed).to eq('SYBUNT')
+      expect(address.apply_lgl_lapsed!('LYBUNT')).to be(true)
+      expect(lgl_rows(AddressTag::LGL_LAPSED).pluck(:tag_value)).to eq(['LYBUNT'])
+    end
+
+    it 'clears the tag when applying nil' do
+      address.set_lgl_lapsed!('LYBUNT')
+      expect(address.apply_lgl_lapsed!(nil)).to be(true)
+      expect(lgl_rows(AddressTag::LGL_LAPSED)).to be_empty
+    end
+
+    it 'writes nothing when the value is unchanged' do
+      address.set_lgl_lapsed!('LYBUNT')
+      allow(address).to receive(:set_lgl_lapsed!)
+      allow(address).to receive(:clear_lgl_lapsed!)
+
+      expect(address.apply_lgl_lapsed!('LYBUNT')).to be(false)
+      expect(address).not_to have_received(:set_lgl_lapsed!)
+      expect(address).not_to have_received(:clear_lgl_lapsed!)
+    end
+
+    it 'reports no change when applying nil to an untagged address' do
+      expect(address.apply_lgl_lapsed!(nil)).to be(false)
+    end
+  end
+
   describe 'edit-triggered sync' do
     before do
       allow(Lgl).to receive(:enabled?).and_return(true)

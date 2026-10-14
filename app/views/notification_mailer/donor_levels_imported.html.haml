@@ -1,0 +1,19 @@
+%p
+  The donor levels import of
+  %b= @filestore.file_name
+  has finished.
+%ul
+  %li Constituents in file: #{@counts[:rows]}
+  %li Customer records updated: #{@counts[:updated] + @counts[:cleared]}
+  %li Update errors: #{@error_count}
+%ul
+  %li Unchanged: #{@counts[:unchanged]}
+  %li Rows without an External constituent ID: #{@counts[:blank_id]}
+  %li Customers cleared because they were not in the file: #{@counts[:cleared_absent]}
+%p
+  - if @result_file
+    The attached file
+    %b= @result_file.file_name
+    lists the rows with errors.
+  - else
+    No rows had errors.

@@ -217,6 +217,29 @@ RSpec.describe TheaterInfo do
     end
   end
 
+  describe '#fiscal_year_start_month' do
+    it 'defaults to January when unset' do
+      expect(info.fiscal_year_start_month).to eq(1)
+    end
+
+    it 'reads the configured month however it was typed' do
+      expect(info('fiscal_year_start_month' => 7).fiscal_year_start_month).to eq(7)
+      expect(info('fiscal_year_start_month' => '7').fiscal_year_start_month).to eq(7)
+    end
+
+    it 'rejects a month outside 1..12 with a warning and uses January' do
+      allow(Rails.logger).to receive(:warn)
+
+      expect(info('fiscal_year_start_month' => 13).fiscal_year_start_month).to eq(1)
+      expect(info('fiscal_year_start_month' => 'July').fiscal_year_start_month).to eq(1)
+      expect(Rails.logger).to have_received(:warn).with(/fiscal_year_start_month/).twice
+    end
+
+    it 'is readable at class level from the real configuration' do
+      expect(described_class.fiscal_year_start_month).to eq(1)
+    end
+  end
+
   # The test environment reads the tracked config/server.yml.example rather than
   # the developer's own config/server.yml, so its `test:` sentinels are the same
   # everywhere and can be asserted directly.

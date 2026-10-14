@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe Lgl::ConstituentResolver do
-  let(:subject_address) { Struct.new(:id, :last_name, :search_name).new(100, 'Smith', 'smithjane') }
+  let(:subject_address) { Struct.new(:id, :first_name, :last_name, :search_name).new(100, 'Jane', 'Smith', 'smithjane') }
   let(:live) { {} }
   let(:lookup) { ->(id) { live[id] } }
 
@@ -11,8 +11,8 @@ RSpec.describe Lgl::ConstituentResolver do
     live[id] = Struct.new(:id, :search_name).new(id, search_name)
   end
 
-  def constituent(id, external_id, last_name = 'Smith')
-    { 'id' => id, 'external_constituent_id' => external_id, 'last_name' => last_name }
+  def constituent(id, external_id, last_name = 'Smith', first_name: 'Jane')
+    { 'id' => id, 'external_constituent_id' => external_id, 'first_name' => first_name, 'last_name' => last_name }
   end
 
   def decide(*constituents)
@@ -57,6 +57,34 @@ RSpec.describe Lgl::ConstituentResolver do
   it 'flags several adoptable constituents for review' do
     decision = decide(constituent(7, ''), constituent(8, 'x'))
     expect(decision).to have_attributes(action: :review, reason: '2 LGL constituents share this email')
+  end
+
+  describe 'several adoptable constituents narrowed by first name' do
+    it 'adopts the one sharing the first name' do
+      jane = constituent(7, '', first_name: 'Jane M.')
+      decision = decide(jane, constituent(8, '', first_name: 'John'))
+      expect(decision).to have_attributes(action: :adopt, constituent: jane,
+                                          reason: 'matched by email, last name and first name')
+    end
+
+    it 'reviews when none shares the first name' do
+      decision = decide(constituent(7, '', first_name: 'Joan'), constituent(8, '', first_name: 'John'))
+      expect(decision).to have_attributes(action: :review, reason: '2 LGL constituents share this email')
+    end
+
+    it 'reviews when both share the first name' do
+      expect(decide(constituent(7, ''), constituent(8, '', first_name: 'jane')).action).to eq(:review)
+    end
+
+    it 'adopts the one sharing the first name when another has none' do
+      jane = constituent(7, '')
+      expect(decide(jane, constituent(8, '', first_name: nil))).to have_attributes(action: :adopt, constituent: jane)
+    end
+
+    it 'reviews when the address has no first name' do
+      subject_address.first_name = nil
+      expect(decide(constituent(7, ''), constituent(8, '', first_name: 'John')).action).to eq(:review)
+    end
   end
 
   it 'ignores a constituent linked to a live address when another is adoptable' do

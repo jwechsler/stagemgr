@@ -4,6 +4,8 @@ class AddressTag < ApplicationRecord
   LGL_ID = 'LGL ID'
   # Why this address needs a human to reconcile it with LGL.
   LGL_REVIEW = 'LGL Review'
+  # LYBUNT or SYBUNT from the address's LGL gift history (see Lgl::GiftHistory).
+  LGL_LAPSED = 'LGL Lapsed'
 
   validates :address, presence: true
 

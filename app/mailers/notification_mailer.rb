@@ -69,6 +69,26 @@ class NotificationMailer < ActionMailer::Base
          tag: 'File Generation Complete')
   end
 
+  # Sent by LglDonorImport every time an import finishes. counts is the job's
+  # outcome tally; result_file is the FileStore listing the rows with errors,
+  # or nil when no row had one.
+  def donor_levels_imported(filestore, counts, result_file = nil)
+    @filestore = filestore
+    @counts = Hash.new(0).merge(counts)
+    @error_count = LglDonorImport.error_count(@counts)
+    @result_file = result_file
+    if result_file
+      attachments[result_file.file_name] = {
+        mime_type: result_file.datafile.content_type,
+        content: result_file.datafile.download
+      }
+    end
+    mail(to: filestore.user.email,
+         from: Rails.configuration.x.email_address['software_address'],
+         subject: 'Donor levels import complete',
+         tag: 'Donor Levels Import')
+  end
+
   def broadcast_log_generated(filestore, recipient_email)
     return unless filestore.datafile.attached?
 

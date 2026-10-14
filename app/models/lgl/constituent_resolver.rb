@@ -5,7 +5,12 @@ module Lgl
   # given the constituents LGL returned for the address's email. Pure: no
   # HTTP, no writes.
   #
-  # +address+ responds to #id, #last_name and #search_name.
+  # Constituents with a junk external id and this address's last name are the
+  # candidates. Several are narrowed by first name (Lgl::NameMatch: first word
+  # only, since LGL keeps one first name for a couple); exactly one left is
+  # adopted, otherwise a person reviews.
+  #
+  # +address+ responds to #id, #first_name, #last_name and #search_name.
   # +address_lookup+ is a callable: Stagemgr address id (Integer) -> the live
   # address responding to #search_name, or nil when no such address exists.
   class ConstituentResolver
@@ -29,12 +34,21 @@ module Lgl
 
       candidates = @constituents.select { |c| junk_external_id?(c) && last_name_matches?(c) }
       return decision(:adopt, constituent: candidates.first, reason: 'matched by email and last name') if candidates.one?
-      return decision(:review, reason: "#{candidates.size} LGL constituents share this email") if candidates.size > 1
+      return decide_among(candidates) if candidates.size > 1
 
       decide_without_candidates
     end
 
     private
+
+    def decide_among(candidates)
+      named = Lgl::NameMatch.narrow(@address.first_name, candidates) { |c| c['first_name'] }
+      if named&.one?
+        return decision(:adopt, constituent: named.first, reason: 'matched by email, last name and first name')
+      end
+
+      decision(:review, reason: "#{candidates.size} LGL constituents share this email")
+    end
 
     # No unlinked match. A constituent linked to another live address with the
     # same name means LGL holds both emails on one person: merge the two

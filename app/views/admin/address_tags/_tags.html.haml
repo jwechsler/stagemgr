@@ -5,7 +5,7 @@
       %td Value
   %tbody
   - current_user.allowed_tags(address_tags).each do |tag|
-    %tr
+    %tr{ class: ('lgl-review' if tag.tag_label == AddressTag::LGL_REVIEW) }
       %td
         = tag.tag_label
         = " [#{tag.theater.name}]" unless (tag.theater.nil? || tag.theater.producing?)

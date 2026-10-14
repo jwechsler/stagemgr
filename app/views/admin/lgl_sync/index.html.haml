@@ -4,9 +4,12 @@
   - crumbs = [{ label: 'System Options', path: admin_system_options_path }, { label: 'Little Green Light sync' }]
   = render "shared/components/breadcrumb", items: crumbs
 
-- source_labels = { env: 'from ENV', server_yml: 'from config/server.yml', none: 'not set' }
-- sync_env = Lgl::Settings::SYNC_ENV
-- writable_env = Lgl::Settings::WRITABLE_ENV
+:ruby
+  source_labels = { env: 'from ENV', server_yml: 'from config/server.yml', none: 'not set' }
+  sync_env = Lgl::Settings::SYNC_ENV
+  writable_env = Lgl::Settings::WRITABLE_ENV
+  mode_labels = { enabled: 'Enabled', readonly: 'Read-only', disabled: 'Disabled' }
+  poll_never = 'not yet (starts from the first scheduled poll)'
 .grid-x.grid-padding-x
   .small-12.cell
     %fieldset.fieldset
@@ -14,7 +17,7 @@
       - unless @enabled
         %p
           - if @settings.sync_enabled?
-            Little Green Light sync is enabled (littlegreenlight.sync) but LGL_API_KEY is missing.
+            Little Green Light sync is #{@settings.sync_mode} (littlegreenlight.sync) but LGL_API_KEY is missing.
           - else
             Little Green Light sync is disabled (littlegreenlight.sync).
       %table.unstriped
@@ -22,7 +25,7 @@
           %tr
             %th Sync
             %td
-              = @settings.sync_enabled? ? 'Enabled' : 'Disabled'
+              = mode_labels.fetch(@settings.sync_mode)
               - if @settings.sync_source == :env
                 (#{sync_env})
               - elsif @settings.sync_source == :server_yml
@@ -32,7 +35,10 @@
               %th Writes to LGL
               %td
                 - if @read_only
-                  Read-only in this environment
+                  - if @settings.read_only_mode?
+                    Read-only (littlegreenlight.sync)
+                  - else
+                    Read-only in development
                   - if @writable_address_ids.any?
                     except address ids #{@writable_address_ids.join(', ')}
                 - else
@@ -47,23 +53,24 @@
                   #{source_labels[:server_yml]} littlegreenlight.writable_address_ids
                 - else
                   = source_labels[:none]
+                - if !@read_only && @settings.writable_address_ids_source != :none
+                  (ignored unless sync is readonly)
             %tr
               %th Polled LGL changes through
-              %td= @last_poll ? @last_poll.to_formatted_s(:short_date_and_time) : 'not yet (starts from the first scheduled poll)'
+              %td= @last_poll ? @last_poll.to_formatted_s(:short_date_and_time) : poll_never
             %tr
               %th Last sweep finished
               %td= @last_sweep ? @last_sweep.to_formatted_s(:short_date_and_time) : 'never'
             %tr
               %th Linked customers
               %td= number_with_delimiter(@linked_count)
+            = render 'gift_history_rows', lapsed_counts: @lapsed_counts, last_walk: @last_gift_history_walk
+          -# The donor-tier report needs only its link, so these rows show even when the API sync is off.
+          = render 'donor_levels_rows', enabled: @donor_levels_enabled, settings: @settings,
+                                        recipient: @donor_levels_recipient,
+                                        last_fetch: @last_donor_levels_fetch, last_import: @last_donor_levels_import
 
-      - if @enabled
-        .button-group
-          = button_to 'Poll now', admin_lgl_sync_poll_path, method: :post, class: 'button'
-          = button_to 'Sweep now', admin_lgl_sync_sweep_path, method: :post, class: 'button'
-          - backfill_confirm = 'Link every LGL constituent to its customer by external id?'
-          = button_to 'Backfill', admin_lgl_sync_backfill_path, method: :post, class: 'button secondary',
-                                                                data: { confirm: backfill_confirm }
+      = render 'buttons', sync_buttons: @enabled, donor_levels_button: @donor_levels_enabled
 
     - if @enabled
       %fieldset.fieldset
@@ -84,7 +91,7 @@
                 %tr
                   %td
                     - if tag.address
-                      = link_to tag.address.full_name.presence || "##{tag.address_id}", admin_address_path(tag.address_id)
+                      = lgl_review_customer_link(tag)
                     - else
                       = "##{tag.address_id}"
                   %td= tag.tag_value

@@ -9,6 +9,23 @@ RSpec.describe Admin::AddressesController, type: :controller do
     allow(controller).to receive(:current_user).and_return(admin_user)
   end
 
+  describe '#index' do
+    it 'puts a search term from the query string on the table for the DataTable to apply' do
+      get :index, params: { search: 'Reviewme' }
+
+      table_tag = response.body[/<table[^>]*\bid=['"]address-listing['"][^>]*>/]
+      expect(table_tag).to match(/data-search=['"]Reviewme['"]/)
+    end
+
+    it 'puts no search term on the table without one' do
+      get :index
+
+      table_tag = response.body[/<table[^>]*\bid=['"]address-listing['"][^>]*>/]
+      expect(table_tag).to be_present
+      expect(table_tag).not_to include('data-search')
+    end
+  end
+
   describe '#show' do
     let(:membership_order) { FactoryBot.create(:membership_order) }
     let(:address) { membership_order.address }
@@ -37,6 +54,39 @@ RSpec.describe Admin::AddressesController, type: :controller do
 
       expect(response.body).not_to include('Issue Membership', new_admin_membership_path)
     end
+
+    it 'shows both fiscal years of donor level above the productions attended, with none for a blank year' do
+      address.update!(donor_tier_for_current_fiscal_year: 'Gold', donor_tier_for_last_fiscal_year: nil)
+
+      get :show, params: { id: address.id }
+
+      body = response.body
+      donor_box = body[%r{<legend>Donor Level</legend>.*?</fieldset>}m]
+      expect(donor_box).to match(%r{Current fiscal year</th>\s*<td>Gold</td>})
+      expect(donor_box).to match(%r{Previous fiscal year</th>\s*<td>none</td>})
+      expect(body.index('Donor Level')).to be < body.index('Attended')
+    end
+
+    it 'shows no donor level for a customer with no tier in either year' do
+      address.update!(donor_tier_for_current_fiscal_year: nil, donor_tier_for_last_fiscal_year: nil)
+
+      get :show, params: { id: address.id }
+
+      expect(response.body).not_to include('Donor Level')
+    end
+
+    it 'highlights the LGL Review tag in the tag list instead of repeating it under the LGL line' do
+      Theater.default_theater || FactoryBot.create(:theater, theater_class: Theater::DEFAULT)
+      allow(Lgl).to receive(:enabled?).and_return(true)
+      address.lgl_review!('LGL constituent 1234 matches several customers by email and last name')
+
+      get :show, params: { id: address.id }
+
+      review_row = response.body[%r{<tr class=['"]lgl-review['"]>.*?</tr>}m]
+      expect(review_row).to include('LGL Review', 'matches several customers by email and last name')
+      expect(response.body).to include('LGL:')
+      expect(response.body).not_to include('LGL review:')
+    end
   end
 
   describe '#update' do
@@ -59,6 +109,22 @@ RSpec.describe Admin::AddressesController, type: :controller do
       put :update, params: { id: address.id, address: { full_name: 'Solo Patron Jr' } }
 
       expect(address.reload.full_name).to eq('Solo Patron Jr')
+    end
+  end
+
+  describe '#merge_selected' do
+    it 'removes the LGL Review tag from the customer that remains' do
+      FactoryBot.create(:theater, theater_class: Theater::DEFAULT) unless Theater.default_theater
+      keeper = FactoryBot.create(:address)
+      duplicate = FactoryBot.create(:address)
+      keeper.lgl_review!('Several LGL matches')
+      duplicate.lgl_review!('No LGL match')
+
+      post :merge_selected, params: { ids: [duplicate.id.to_s, keeper.id.to_s] }, format: :json
+
+      expect(response.parsed_body['result']).to be(true)
+      expect(Address.exists?(duplicate.id)).to be(false)
+      expect(keeper.reload.lgl_review_reason).to be_nil
     end
   end
 

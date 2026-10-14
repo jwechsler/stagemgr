@@ -197,10 +197,8 @@ end
     self.phone = newer.phone if newer.phone.present?
     self.vip ||= newer.vip?
     self.placeholder ||= newer.placeholder?
-    if !newer.donor_tier_updated_on.nil? && (donor_tier_updated_on.nil? || (donor_tier_updated_on < newer.donor_tier_updated_on))
-      self.donor_tier_for_last_fiscal_year = newer.donor_tier_for_last_fiscal_year
-      self.donor_tier_for_current_fiscal_year = newer.donor_tier_for_current_fiscal_year
-    end
+    self.donor_tier_for_last_fiscal_year = newer.donor_tier_for_last_fiscal_year if newer.donor_tier_for_last_fiscal_year.present?
+    self.donor_tier_for_current_fiscal_year = newer.donor_tier_for_current_fiscal_year if newer.donor_tier_for_current_fiscal_year.present?
     newer.address_tags.each do |tag|
       existing_tag = address_tags.select do |t|
         (t.tag_label == tag.tag_label) && (t.theater_id == tag.theater_id)
@@ -229,7 +227,9 @@ end
     original
   end
 
-  def merge_and_purge(from_address)
+  # clear_lgl_review: true only for merges staff choose on the Customers page;
+  # automatic merges leave review tags as update_from carries them.
+  def merge_and_purge(from_address, clear_lgl_review: false)
     Rails.logger.debug("Merging address ##{from_address.id} into ##{id}")
     # update_from copies from_address's tags over the keeper's tags with the
     # same label, so a second LGL ID would silently replace the keeper's.
@@ -253,6 +253,10 @@ end
       productions << Production.where(id: new_production_ids) unless new_production_ids.empty?
       from_address.productions.clear
       save!
+      # A staff merge resolves any LGL Review either record carried; automatic
+      # merges keep it for a person to see. LGL tags only exist under a default
+      # theater, and clear_lgl_review! raises without one.
+      clear_lgl_review! if clear_lgl_review && Theater.default_theater
       lgl_review!("Also LGL constituent #{lost_lgl_id}: merge the two in LGL") if lost_lgl_id
       from_address.reload
       # update_from re-parented every tag the keeper lacked; whatever remains
@@ -433,27 +437,11 @@ end
   end
 
   def is_donor?
-    donated_this_year? || donated_last_year?
+    most_recent_donation_tier.present?
   end
 
   def most_recent_donation_tier
     donor_tier_for_current_fiscal_year.presence || donor_tier_for_last_fiscal_year
-  end
-
-  def donated_year
-    donor_tier_updated_on.year
-  end
-
-  def donated_this_year?
-    !donor_tier_updated_on.nil? && donor_tier_updated_on.year == Date.current.year && donor_tier_for_current_fiscal_year.present?
-  end
-
-  def donated_last_year?
-    unless donor_tier_updated_on.nil?
-      return true if donor_tier_updated_on.year == Date.current.year - 1 && donor_tier_for_current_fiscal_year.present?
-      return true if donor_tier_updated_on.year == Date.current.year && donor_tier_for_last_fiscal_year.present?
-    end
-    false
   end
 
   def to_s

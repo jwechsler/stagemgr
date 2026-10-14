@@ -22,7 +22,7 @@ for_each_worker() {
   if [ "$RAILS_ENV" = "production" ]; then
     "$1" "Resque worker #1" resque.pid "notification,report,import,sync" log/resque.log
     "$1" "Resque worker #2 (printing)" resque-printing.pid "printing,batch_printing" log/printing_queue.log
-    "$1" "Resque worker #3 (maintenance)" resque-maint.pid "default,maintenance,lgl" log/maintenance_queue.log
+    "$1" "Resque worker #3 (maintenance)" resque-maint.pid "default,maintenance" log/maintenance_queue.log
   else
     "$1" "Resque worker" resque.pid "*" log/resque.log
   fi

@@ -144,4 +144,168 @@ RSpec.describe LglBackfillLinks do
       expect(Resque).not_to have_received(:enqueue)
     end
   end
+
+  describe '.replicate' do
+    def lgl(id, external_id, last_name, *emails)
+      { 'id' => id, 'external_constituent_id' => external_id, 'first_name' => 'Pat', 'last_name' => last_name,
+        'email_addresses' => emails.map { |e| { 'address' => e } } }
+    end
+
+    let(:matched) { FactoryBot.create(:address, full_name: 'Pat Match', last_name: 'Match', email: 'match@example.com') }
+    let(:retagged) { FactoryBot.create(:address) }
+    let(:search_results) do
+      [
+        lgl(930_001, '', 'Newcomer', 'new@example.com'),                 # created
+        lgl(930_002, '930002', 'Match', 'match@example.com'),            # linked
+        lgl(930_003, '', 'Org', 'org@example.com').merge('is_org' => true), # org_skipped
+        lgl(930_004, '999999996', 'Tagged'),                             # repointed
+        lgl(930_005, untagged.id.to_s, 'Live', 'live@example.com'),      # live external: skipped
+        lgl(930_006, '', 'Second', 'second@example.com'),                # created
+        lgl(930_001, '', 'Newcomer', 'new@example.com')                  # repeated by paging
+      ]
+    end
+
+    before do
+      matched
+      retagged.set_lgl_id!(930_004)
+      Lgl.read_write!
+      allow(Resque).to receive(:enqueue_in)
+      allow(client).to receive(:search_updated_since).with(described_class::LINK_SCAN_FROM)
+                                                     .and_return(search_results.each)
+    end
+
+    it 'links, creates, skips and re-points, staggering the syncs' do
+      counts = nil
+      expect { counts = described_class.replicate }.to change(Address, :count).by(2)
+
+      expect(counts).to eq(created: 2, linked: 1, org_skipped: 1, repointed: 1)
+      newcomer = Address.find_by(email: 'new@example.com')
+      second = Address.find_by(email: 'second@example.com')
+      expect([newcomer.lgl_id, matched.lgl_id]).to eq(%w[930001 930002])
+      link = LglSyncAddressJob::LINK_TRIGGER
+      expect(Resque).to have_received(:enqueue_in).with(0.seconds, LglSyncAddressJob, newcomer.id, link).ordered
+      expect(Resque).to have_received(:enqueue_in).with(3.seconds, LglSyncAddressJob, matched.id, link).ordered
+      expect(Resque).to have_received(:enqueue_in).with(6.seconds, LglSyncAddressJob, retagged.id, link).ordered
+      expect(Resque).to have_received(:enqueue_in).with(9.seconds, LglSyncAddressJob, second.id, link).ordered
+      expect(Resque).not_to have_received(:enqueue)
+    end
+
+    after { Lgl.read_write! }
+
+    context 'when LGL is read-only' do
+      it 'links and creates locally but enqueues no sync, counting the skipped ones' do
+        Lgl.read_only!
+        counts = nil
+        expect { counts = described_class.replicate }.to change(Address, :count).by(2)
+
+        expect(counts).to eq(created: 2, linked: 1, org_skipped: 1, repointed: 1, sync_skipped_readonly: 4)
+        expect(Address.find_by(email: 'new@example.com').lgl_id).to eq('930001')
+        expect(matched.lgl_id).to eq('930002')
+        expect(Resque).not_to have_received(:enqueue_in)
+        expect(Resque).not_to have_received(:enqueue)
+      end
+
+      it 'still reports the address id of each linked or created address' do
+        Lgl.read_only!
+        rows = []
+        described_class.replicate { |*row| rows << row }
+
+        expect(rows).to include(['930002', 'Pat Match', :linked, matched.id], ['930004', 'Pat Tagged', :repointed, retagged.id])
+      end
+
+      it 'enqueues an allowlisted address at once, without staggering, and skips the others' do
+        Lgl.read_only!(except_address_ids: [matched.id])
+
+        expect(described_class.replicate).to include(linked: 1, sync_skipped_readonly: 3)
+        expect(Resque).to have_received(:enqueue).once
+        expect(Resque).to have_received(:enqueue).with(LglSyncAddressJob, matched.id, LglSyncAddressJob::LINK_TRIGGER)
+        expect(Resque).not_to have_received(:enqueue_in)
+      end
+    end
+
+    it 'lists every constituent before enqueuing anything' do
+      listed = false
+      allow(client).to receive(:search_updated_since) do
+        Enumerator.new do |yielder|
+          search_results.each { |c| yielder << c }
+          listed = true
+        end
+      end
+      allow(Resque).to receive(:enqueue_in) { expect(listed).to be(true) }
+
+      described_class.replicate
+    end
+
+    it 'yields one row per junk constituent' do
+      rows = []
+      described_class.replicate { |*row| rows << row }
+
+      newcomer = Address.find_by(email: 'new@example.com')
+      expect(rows.first).to eq(['930001', 'Pat Newcomer', :created, newcomer.id])
+      expect(rows.map(&:first)).to eq(%w[930001 930002 930003 930004 930006])
+    end
+
+    context 'with constituent ids' do
+      before do
+        search_results.each { |c| allow(client).to receive(:find).with(c['id'].to_s).and_return(c) }
+        allow(client).to receive(:find).with('930099').and_return(nil)
+      end
+
+      it 'limits the run to the given constituent ids' do
+        expect(described_class.replicate(constituent_ids: %w[930002 930004])).to eq(linked: 1, repointed: 1)
+        expect(Address.find_by(email: 'new@example.com')).to be_nil
+      end
+
+      it 'fetches each id with find instead of listing every constituent' do
+        described_class.replicate(constituent_ids: %w[930002 930004])
+
+        expect(client).to have_received(:find).with('930002')
+        expect(client).to have_received(:find).with('930004')
+        expect(client).not_to have_received(:search_updated_since)
+      end
+
+      it 'skips an id LGL does not find, without raising' do
+        allow(Rails.logger).to receive(:info)
+
+        expect(described_class.replicate(constituent_ids: %w[930099 930002])).to eq(linked: 1)
+        expect(Rails.logger).to have_received(:info).with('[LGL] replicate: constituent 930099 not found')
+      end
+
+      it 're-points a tagged junk constituent with LINK_TRIGGER, never a reason that may create' do
+        described_class.replicate(constituent_ids: %w[930004])
+
+        expect(Resque).to have_received(:enqueue_in)
+          .with(0.seconds, LglSyncAddressJob, retagged.id, LglSyncAddressJob::LINK_TRIGGER)
+      end
+    end
+
+    it 'reports the same outcomes on a dry run but writes and enqueues nothing' do
+      rows = []
+      counts = nil
+      expect { counts = described_class.replicate(dry_run: true) { |*row| rows << row } }
+        .not_to(change { [Address.count, AddressTag.count] })
+
+      expect(counts).to eq(created: 2, linked: 1, org_skipped: 1, repointed: 1)
+      expect(rows).to include(['930002', 'Pat Match', :linked, matched.id], ['930004', 'Pat Tagged', :repointed, retagged.id])
+      expect(matched.lgl_id).to be_nil
+      expect(Resque).not_to have_received(:enqueue_in)
+    end
+
+    it 'lists an email Address would reject as invalid_email on a dry run' do
+      allow(client).to receive(:search_updated_since).and_return([lgl(930_007, '', 'Bad', 'bad@@example..com')].each)
+
+      expect(described_class.replicate(dry_run: true)).to eq(invalid_email: 1)
+    end
+
+    it 'is what perform runs in replicate mode' do
+      expect(described_class.perform('replicate')).to eq(created: 2, linked: 1, org_skipped: 1, repointed: 1)
+    end
+
+    it 'does nothing when LGL is disabled' do
+      allow(Lgl).to receive(:enabled?).and_return(false)
+
+      expect(described_class.replicate).to eq({})
+      expect(Lgl).not_to have_received(:client)
+    end
+  end
 end

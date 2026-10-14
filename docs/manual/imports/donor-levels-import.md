@@ -1,111 +1,194 @@
 # Donor Levels Import (LGL)
 
 !!! info "Required Role"
-    **Administrator** or **Box Office** can run donor level imports.
+    **Administrator** or **Box Office** can run a donor levels import from the
+    Imports page. Setting up the nightly import needs an administrator.
 
 **Navigation:** Options > Imports > Donor Levels Import
 
 ## Purpose
 
-This import updates existing customer records with **donor tier information** from Little Green Light (LGL) or other donor management systems. It sets current and previous fiscal year donation levels, which are then used in house management reports and donor recognition.
+This import sets each customer's **donor tiers** (the current and previous
+fiscal year) from the giving levels Little Green Light (LGL) calculates. Box
+office and house management staff then see a patron's giving level alongside
+their ticketing record, on the customer page and in the House Management
+report.
 
-Use this import to synchronize donor status from your fundraising platform into Stagemgr, so that box office and house management staff can see patron giving levels alongside ticketing data.
+The import runs in two ways, with the same file and the same rules:
 
-## User Options
+1. **Automatically every night**, from a saved report in LGL.
+2. **By hand**, by uploading the report on **Options > Imports**.
 
-| Option | Required | Description |
-|--------|----------|-------------|
-| **File Upload** | Yes | CSV file containing donor tier data from an LGL export |
+---
 
-!!! note "No Theater or Production Selection"
-    Unlike other imports, the donor levels import does not require a theater or production selection. It operates solely on customer record matching.
+## The Nightly Import
+
+Each night at 4:30 Stagemgr downloads the saved report from LGL and imports
+it. It runs whenever the report link is configured, whether or not
+[LGL sync](../customers/lgl-sync.md) is turned on.
+
+### Setting It Up
+
+1. **Build the report in LGL.** Create a constituent export that includes the
+   columns `External constituent ID`, `TG Tier Last Fiscal` and
+   `TG Tier This Fiscal`. Other columns, such as `First Name`, `Last Name`,
+   `Pref. Email` and `Address 1` / `Address 2` / `Address 3`, may be included;
+   Stagemgr ignores them and carries them through to the result file
+   untouched. Make the report cover **every** constituent with a giving
+   level (see [How It Works](#how-it-works)).
+2. **Create a permanent link** for the saved report in LGL.
+3. **Give the link to your administrator**, who stores it in Stagemgr's
+   configuration as `littlegreenlight.donor_tier_report_url`. If opening the
+   link asks for an LGL login, the administrator also stores an LGL web user
+   name and password as `LGL_USER` and `LGL_PASSWORD`.
+
+The results are emailed to the Stagemgr user whose email is the
+supervisor-notifications address. The
+[LGL Sync status page](../customers/lgl-sync.md#donor-tiers) shows whether the
+report is on, who receives the results, and when the report was last
+downloaded and imported. Its **Fetch donor levels now** button runs the
+download and import straight away.
+
+!!! note "When the download fails"
+    If Stagemgr cannot download the report (a wrong link, a rejected login, or
+    a file without the three required columns), nothing is imported and every
+    customer keeps their current tiers. The **Last report download** time on
+    the LGL Sync page stops advancing; tell your administrator.
+
+---
+
+## Uploading by Hand
+
+On **Options > Imports**, choose **Donor Levels Import** and upload the CSV
+exported from the same LGL report. There is no theater or production to
+select. The upload follows exactly the same rules as the nightly import,
+including clearing the tiers of customers who are not in the file.
 
 ## Required CSV Headers
 
 | Header | Description |
 |--------|-------------|
-| `External constituent ID` | Stagemgr customer ID for direct matching (optional) |
-| `Pref. Email` | Customer's preferred email address for matching (optional) |
-| `First Name` | Customer's first name for record matching |
-| `Last Name` | Customer's last name for record matching |
-| `TG Tier Last Fiscal` | Donor tier level from previous fiscal year |
-| `TG Tier This Fiscal` | Donor tier level for current fiscal year |
+| `External constituent ID` | The Stagemgr customer number. LGL sync keeps this set on every linked constituent |
+| `TG Tier Last Fiscal` | Donor tier for the previous fiscal year |
+| `TG Tier This Fiscal` | Donor tier for the current fiscal year |
 
-!!! warning "Headers Include Spaces and Periods"
-    Note that these header names contain spaces and periods (e.g., `Pref. Email`, `First Name`). They must match exactly as shown above. This format corresponds to the standard LGL export.
+Header names are matched regardless of capitals, but the spaces must be
+there. If any of the three is missing, the import stops before changing
+anything; the Imports page shows `Donor levels import failed: missing column`
+and the column's name.
+
+---
 
 ## How It Works
 
-### Three-Tier Customer Matching
+- **Matching is by customer number only.** Each row's
+  `External constituent ID` must be a Stagemgr customer number. Names and
+  emails in the file are never used to find a customer.
+- **The import only sets tiers.** It never creates, merges or renames
+  customers, and never changes any other field.
+- **Blank tier cells clear the tier.** A matched row with an empty
+  `TG Tier This Fiscal` leaves that customer with no current-year tier.
+- **The file is the complete list of current donors.** After the whole file
+  has loaded, every customer who has a tier but is not in the file has both
+  tiers cleared.
 
-The import uses a cascading approach to find the correct customer record:
+!!! warning "Upload complete files only"
+    Because customers missing from the file lose their tiers, uploading a
+    partial file (one fund, one campaign, a filtered list) clears everyone
+    else. If that happens, run the import again with the complete report; the
+    tiers come back.
 
-| Priority | Method | Description |
-|----------|--------|-------------|
-| **1st** | Direct ID match | Uses `External constituent ID` as a Stagemgr address ID for exact lookup |
-| **2nd** | Email match | Searches for a customer with a matching `Pref. Email` address |
-| **3rd** | Name + email match | Uses first name, last name, and email together for duplicate detection |
+---
 
-If none of these methods finds a match, a **new customer record is created** from the available data.
+## Result File
 
-!!! tip "External constituent ID is maintained automatically"
-    When [Little Green Light sync](../customers/lgl-sync.md) is configured, Stagemgr keeps each linked constituent's `External constituent ID` in LGL set to the Stagemgr customer ID, so exports from LGL match by ID.
+When some rows could not be applied, Stagemgr writes a result file
+(`donor_import_results_<your-file-name>.csv`) listing only the rows that have
+an entry in the `Error` column, with the file's own columns plus `Error`. When
+no row has an error, there is no result file. See
+[Result File](imports-overview.md#result-file) for the naming rules.
 
-### What Gets Updated
+| Row | `Error` |
+|---|---|
+| `External constituent ID` is not a number | `External constituent ID is not a number` |
+| No customer has that number | `No customer with this External constituent ID` |
+| The customer could not be saved | The reason it failed |
 
-For each matched or created customer record, the import sets:
+Matched rows and rows with a blank `External constituent ID` (organisations,
+and constituents not yet in Stagemgr) are counted but not listed.
+Organisations never become Stagemgr customers, so they always have a blank
+id.
 
-| Field | Source Column | Purpose |
-|-------|--------------|---------|
-| Previous fiscal year donor tier | `TG Tier Last Fiscal` | Historical donor recognition |
-| Current fiscal year donor tier | `TG Tier This Fiscal` | Active donor recognition |
-| Donor tier updated timestamp | (automatic) | Tracks when donor info was last refreshed |
+### Completion Email
 
-### Processing Rules
+Every time the import finishes, Stagemgr emails the person who uploaded the
+file (for the nightly import, the supervisor-notifications user) with the
+file name and its counts: constituents in the file, customer records updated
+and update errors, then unchanged rows, rows without an
+`External constituent ID`, and customers cleared because they were not in the
+file. When there is a result file it is attached; otherwise the email says no
+rows had errors.
 
-- Only records that have donor tier information in **at least one fiscal year** are processed. Rows where both tier fields are empty are skipped.
-- Duplicate customer records found during processing are **automatically merged**.
-- The `donor_tier_updated_on` timestamp is set automatically, allowing you to determine when donor information was last refreshed.
+The Imports page shows a summary line for each run, for example:
+
+```text
+Donor levels: 1250 rows; updated 40, unchanged 1150, cleared 3, no id 55, errors 2; cleared 6 absent customers
+```
+
+| Count | Meaning |
+|---|---|
+| updated | Matched customers whose tiers changed |
+| unchanged | Matched customers whose tiers were already correct |
+| cleared | Matched customers whose row had both tiers blank |
+| no id | Rows with a blank `External constituent ID` |
+| errors | Rows with an entry in the Error column: a number that matches no customer, an id that is not a number, or a row that could not be saved |
+| absent customers | Customers with a tier who were not in the file and had both tiers cleared |
+
+---
 
 ## Where Donor Tiers Appear
 
-Once imported, donor tier information is used throughout Stagemgr:
-
 | Feature | Usage |
 |---------|-------|
-| **House Management Reports** | Donor level appears alongside patron name in seating charts and check-in lists |
-| **Customer Record** | Donor tier is visible on the customer detail page |
-| **Reports** | Donor tiers can be included in attendee and customer exports |
-| **Marketing** | Donor status can inform targeted communications and special offers |
+| **Customer page** | A **Donor Level** box above the productions attended shows the current and previous fiscal year's tiers ("none" for a year without one); it appears only when either tier is set |
+| **[House Management Report](../house-management/house-management-report.md)** | The donor level appears beside the patron's name, and donors are listed even when nothing else would include them |
 
-## Expected Outcome
-
-- Customer records are updated with current donor tier information
-- The `donor_tier_updated_on` timestamp records when the update occurred
-- Duplicate customer records are consolidated during processing
-- A result file (`donor_import_results_<your-file-name>.csv`) listing every row, with an `Error` column populated for any that failed, is emailed to you when one or more rows could not be processed. See [Result File](imports-overview.md#result-file) for the full naming rules and retry workflow.
+---
 
 ## Example CSV
 
 ```csv
-External constituent ID,Pref. Email,First Name,Last Name,TG Tier Last Fiscal,TG Tier This Fiscal
-4523,jane@example.com,Jane,Smith,Gold,Platinum
-,mchen@example.com,Michael,Chen,,Silver
-,,Sarah,Johnson,Bronze,Bronze
+External constituent ID,First Name,Last Name,Pref. Email,TG Tier Last Fiscal,TG Tier This Fiscal
+4523,Jane,Smith,jane@example.com,Gold,Platinum
+7810,Michael,Chen,mchen@example.com,,Silver
+3302,Sarah,Johnson,sarah@example.com,,
+,,Example Foundation,grants@example.org,Gold,Gold
 ```
 
 In this example:
 
-- Jane Smith is matched by her Stagemgr ID (4523), then her tier is updated from Gold to Platinum
-- Michael Chen is matched by email, with no previous tier and a new Silver tier
-- Sarah Johnson is matched by name, with Bronze tier in both years
+- Customer 4523 (Jane Smith) gets Gold last year and Platinum this year.
+- Customer 7810 (Michael Chen) has no tier last year and Silver this year.
+- Customer 3302 (Sarah Johnson) has both tiers cleared.
+- Example Foundation is an organisation with no customer number. It is
+  counted as a row without an id, is not listed in the result file, and
+  changes nothing.
+- Every other customer who has a tier has both tiers cleared, because they
+  are not in the file.
+
+---
 
 ## Best Practices
 
-1. **Run periodically.** Import donor levels at the start of each fiscal year and after major fundraising campaigns to keep Stagemgr in sync with LGL.
+1. **Keep the LGL report complete.** It must list every constituent who has a
+   giving level. Do not add filters that leave donors out, or those donors
+   lose their tiers in Stagemgr the next night.
 
-2. **Include the Stagemgr ID when possible.** The `External constituent ID` provides the most reliable match. If your LGL export includes the Stagemgr customer ID, always populate this field.
+2. **Check the LGL Sync page.** The **Last report download** and
+   **Last donor levels import** rows show whether the nightly import is
+   running. If the dates stop advancing, tell your administrator.
 
-3. **Verify after import.** Spot-check a few patron records in Stagemgr to confirm their donor tiers updated correctly, especially for patrons matched by name rather than ID.
-
-4. **Check the timestamp.** The `donor_tier_updated_on` field on customer records lets you quickly see whether a patron's donor data is current or stale.
+3. **Read the completion email.** It arrives after every import. When it
+   reports update errors, open the attached result file. A row with no
+   matching customer usually means the constituent's
+   `External constituent ID` in LGL is wrong; correct it in LGL.

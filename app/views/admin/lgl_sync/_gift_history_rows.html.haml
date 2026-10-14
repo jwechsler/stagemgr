@@ -1,0 +1,9 @@
+-# Lapsed donor counts (LGL Lapsed tags) and when LglGiftHistoryWalk last finished.
+%tr
+  %th Lapsed donors
+  %td
+    LYBUNT #{number_with_delimiter(lapsed_counts.fetch(Lgl::GiftHistory::LYBUNT, 0))},
+    SYBUNT #{number_with_delimiter(lapsed_counts.fetch(Lgl::GiftHistory::SYBUNT, 0))}
+%tr
+  %th Last gift history walk
+  %td= last_walk ? last_walk.to_formatted_s(:short_date_and_time) : 'never'

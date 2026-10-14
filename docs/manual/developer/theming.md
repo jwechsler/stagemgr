@@ -39,6 +39,7 @@ phone number simply never shows a "call us" line.
 | `artistic_director_email` | Their address | see below |
 | `signature_image_url` | **Absolute** URL of a signature image for the sign-off | no image, just the typed name |
 | `stripe_billing_portal_url` | Stripe customer portal link for members managing their own subscription | the button is omitted |
+| `fiscal_year_start_month` | Month (1-12) on whose 1st the fiscal year starts, for the LGL lapsed-donor tags (`LYBUNT` / `SYBUNT`): 1 is the calendar year, 7 is July-June | 1 (January). A value that is not a month logs a warning and also means 1 |
 
 The box office **email** address is deliberately not here: it is the existing
 `email: addresses: box_office:` key, read by `TheaterInfo#box_office_email`.

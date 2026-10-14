@@ -11,7 +11,7 @@
 # An incomplete listing (fewer ids than LGL's total_items) aborts before any
 # tag is touched.
 class LglSweepConstituents
-  @queue = :lgl
+  @queue = :maintenance
 
   include LoggedJob
 

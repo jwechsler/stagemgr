@@ -64,6 +64,12 @@
 
     %fieldset.fieldset
       %legend Import Donor Levels from LGL
+      %p.help-text
+        The file must be the LGL export with the External constituent ID, TG Tier Last Fiscal
+        and TG Tier This Fiscal columns. It replaces the current donor levels: customers not in the file
+        have their donor levels cleared.
+      %p.help-text
+        When littlegreenlight.donor_tier_report_url is set, the same import runs nightly from LGL.
       =form_for @donor_import, url: donation_levels_admin_imports_path, html: {multipart: true} do |form|
         .grid-x.grid-padding-x
           .small-3.cell

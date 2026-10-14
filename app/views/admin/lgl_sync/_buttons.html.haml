@@ -1,0 +1,14 @@
+-# The sync buttons need the API sync; the donor levels button needs only the report link.
+- if sync_buttons || donor_levels_button
+  .button-group
+    - if sync_buttons
+      = button_to 'Poll for changes', admin_lgl_sync_poll_path, method: :post, class: 'button'
+      = button_to 'Sweep all', admin_lgl_sync_sweep_path, method: :post, class: 'button'
+      - gift_history_confirm = "Read every linked customer's gifts from LGL? This takes about an hour."
+      = button_to 'Refresh gift history', admin_lgl_sync_gift_history_path, method: :post, class: 'button',
+                                                                            data: { confirm: gift_history_confirm }
+      - backfill_confirm = 'Link every LGL constituent to its customer by external id?'
+      = button_to 'Backfill', admin_lgl_sync_backfill_path, method: :post, class: 'button secondary',
+                                                            data: { confirm: backfill_confirm }
+    - if donor_levels_button
+      = button_to 'Fetch donor levels now', admin_lgl_sync_donor_levels_path, method: :post, class: 'button'

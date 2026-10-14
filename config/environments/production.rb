@@ -134,6 +134,10 @@ Rails.application.configure do
     else
       MyEmma.disable
     end
+  end
+
+  # Lgl is reloadable; its configuration must be re-applied after each code reload.
+  config.to_prepare do
     # littlegreenlight: in config/server.yml (ENV overrides), key from AppSecrets;
     # Lgl.configure_from holds every rule (development stays read-only unless
     # writable_address_ids lists the addresses that may be written).

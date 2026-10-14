@@ -30,7 +30,7 @@ in LGL is the Stagemgr customer id.
 
 | Event | What happens in LGL |
 |---|---|
-| A donation is processed | About ten minutes later the donor is linked: an existing constituent with the customer's id, or with the same email and last name, is adopted and its External constituent ID set; otherwise a new constituent is created |
+| A donation is processed | About ten minutes later the donor is linked: an existing constituent with the customer's id, or with the same email and last name (narrowed by first name when several match), is adopted and its External constituent ID set; otherwise a new constituent is created |
 | An administrator clicks **Link to LGL** / **Re-sync with LGL** on the customer page | The same linking, run in the background straight away. This is the only way a customer whose LGL record was deleted or merged away gets a new one |
 | The name, street address or phone of a linked customer is edited | About two minutes after the last edit, the new values replace the constituent's **preferred** street address and phone in LGL. Other addresses and phones are left alone; if there is no preferred one, a preferred Home entry is added |
 
@@ -53,8 +53,51 @@ away.
 - Only customers whose LGL record carries their Stagemgr customer id as its
   **External constituent ID** are updated this way.
 
-**Email is never synced, in either direction**: email addresses in LGL are
-managed in LGL, and Stagemgr's are managed in Stagemgr.
+**Email is not kept in sync**: when Stagemgr creates a customer from a new LGL
+constituent (below), it copies the constituent's preferred email once. After
+that the sync never changes an email in either system: email addresses in LGL
+are managed in LGL, and Stagemgr's are managed in Stagemgr.
+
+---
+
+## New LGL Constituents Become Customers
+
+When a constituent is added in LGL without a Stagemgr link (its External
+constituent ID is empty or does not name a Stagemgr customer), Stagemgr picks
+it up within about 15 minutes:
+
+Customers match the constituent when they have the same email address and
+last name and are not already linked to another constituent. When several
+match, only those with the constituent's first name count. Only the first word
+of the first name is compared, so middle initials ("Robert L.") and a couple's
+or spouse's record sharing the email do not confuse it.
+
+- If exactly **one** customer matches (or several do and exactly one has the
+  constituent's first name), that customer is linked to it.
+- If **no** customer matches, Stagemgr creates a new customer with LGL's name
+  and the constituent's preferred email, preferred street address and
+  preferred phone.
+- If **several** customers have the constituent's first name, they are
+  spellings of one person: each of them gets an `LGL Review` tag asking for a
+  merge. Other customers sharing the email are left alone.
+- If several customers match but **none** has the constituent's first name
+  (or the constituent has no first name), none is chosen: each gets an `LGL Review` tag
+  (see [The LGL Review Tag](#the-lgl-review-tag)).
+
+A linked or newly created customer gets the `LGL ID` tag, and Stagemgr sets the
+constituent's **External constituent ID** in LGL to the customer number.
+
+Stagemgr leaves these constituents alone:
+
+- **Organisations.** Only individuals become customers.
+- Constituents with **neither an email nor a street address**.
+- Constituents with no name, or with an email address Stagemgr does not
+  accept. Correct the record in LGL; the change is picked up on the next poll.
+
+!!! note "Existing constituents"
+    Constituents that were already in LGL before this sync was set up are
+    brought over by a one-time backfill that the developer runs
+    (`rake lgl:replicate`). It is not a button on the Sync Status page.
 
 ---
 
@@ -91,7 +134,9 @@ id, `#5678` for a Stagemgr customer id):
 
 | Reason | Meaning |
 |---|---|
-| `2 LGL constituents share this email` | Several constituents could be this customer |
+| `2 LGL constituents share this email` | Several constituents with this customer's email and last name could be this customer, and their first names do not settle which one |
+| `LGL constituent 1234 matches several customers named Robert Holliday by email: merge them in Stagemgr, then Re-sync` | These customers are spellings of one person. On the Sync Status page this customer's name opens the customer list filtered by their last name: merge them with **Merge Selected** (see [Merging Duplicates](merging-duplicates.md)), then click **Re-sync with LGL** on the one that remains |
+| `LGL constituent 1234 matches several customers by email and last name` | A new LGL constituent could be any of these customers and none of them shares its first name, so a person must decide; Stagemgr linked none of them. On the Sync Status page this customer's name opens the customer list filtered by their last name, where the duplicates can be selected and merged with **Merge Selected** (see [Merging Duplicates](merging-duplicates.md)); then click **Re-sync with LGL** on the customer that remains. Merging them on the Customers page removes the tag from the customer that remains; automatic duplicate consolidation does not |
 | `2 LGL constituents carry external id 5678` | Several constituents in LGL name this customer as their External constituent ID |
 | `Also LGL constituent 1234` | LGL says this customer is constituent 1234, but the customer is already linked to a different one |
 | `Also LGL constituent 1234: merge the two in LGL` | Two Stagemgr customers linked to different constituents were merged in Stagemgr |
@@ -101,13 +146,47 @@ id, `#5678` for a Stagemgr customer id):
 | `Same person as #5678 in LGL but not a Stagemgr duplicate; merge skipped` | LGL treats the two as one person, but their names and emails differ in Stagemgr |
 | `LGL constituent 1234 no longer exists and no LGL constituent matches; use Re-sync with LGL to create a new one` | The customer's LGL record was deleted or merged away and nothing else in LGL matches. Click **Re-sync with LGL** to create a new LGL record |
 
-The customer page shows the reason under the **LGL** line.
+The customer page highlights the `LGL Review` tag in yellow in its tag list,
+with the reason as the tag's value.
 
 **To clear it:** fix the records in LGL (merge the duplicate constituents, or
 correct the External constituent ID), then click **Re-sync with LGL** on the
-customer page. A successful link removes the tag. If the reason no longer
+customer page. A successful link removes the tag. Merging the customer with
+its duplicate on the Customers page (**Merge Selected**, or merging from the
+customer's page; see [Merging Duplicates](merging-duplicates.md)) also removes
+it; automatic duplicate consolidation does not. If the reason no longer
 applies and nothing needs fixing, delete the `LGL Review` tag as you would any
 [patron tag](patron-tags.md).
+
+---
+
+## Lapsed Donors
+
+Stagemgr reads each linked customer's gifts from LGL and marks lapsed donors
+with an `LGL Lapsed` tag in the customer's tag list:
+
+| Value | Meaning |
+|---|---|
+| `LYBUNT` | "Last year but unfortunately not this": gave last fiscal year, but nothing yet this fiscal year |
+| `SYBUNT` | "Some year but unfortunately not this": gave in an earlier fiscal year, but not last year or this year |
+
+A customer who has given this fiscal year, or has never given, has no
+`LGL Lapsed` tag; the tag is removed when a lapsed donor gives again.
+
+Only money received counts: LGL gifts of type Gift, Installment, Matching, In
+Honor of and In Memory of, with an amount above zero. Pledges, in-kind gifts,
+soft credits and other income do not. The fiscal year starts on the 1st of the
+month the theater has configured (January unless set otherwise).
+
+The tags are refreshed:
+
+- every Sunday night, for every linked customer (this takes about an hour);
+- when a customer is first linked to LGL;
+- when an administrator clicks **Re-sync with LGL** on the customer page.
+
+So a gift entered in LGL shows on the tag after the next Sunday night, or
+straight away after a **Re-sync with LGL**. Do not edit the `LGL Lapsed` tag
+by hand: the next refresh replaces it.
 
 ---
 
@@ -117,23 +196,52 @@ applies and nothing needs fixing, delete the `LGL Review` tag as you would any
 
 The page shows:
 
-- Whether LGL sync is configured, and whether this environment may write to LGL.
+- The **Sync** row: **Enabled**, **Read-only** or **Disabled**, and whether
+  this environment may write to LGL.
+    - **Enabled**: changes flow both ways as described on this page.
+    - **Read-only**: used for testing. Stagemgr still reads from LGL, links
+      customers and creates new customers from LGL constituents, but writes
+      nothing to LGL, except for any customers the developer has listed for
+      acceptance testing. A development install set to enabled runs
+      read-only, and the page says so.
+    - **Disabled**: no sync in either direction.
 - How far the 15-minute poll has read LGL's changes, and when the hourly sweep
   last finished ("never" if it has not run). The first poll after LGL sync is
   enabled starts from that moment: changes made in LGL before then are not
   copied into Stagemgr. Until it runs, the page says "not yet".
 - How many customers are linked.
+- **Lapsed donors**: how many customers carry an `LGL Lapsed` tag of each kind
+  (see [Lapsed Donors](#lapsed-donors)), and when the weekly gift history
+  refresh last finished ("never" if it has not run).
 - Every customer with an `LGL Review` tag, oldest first, with the reason and a
-  link to the customer page. The list shows the oldest 100; the heading gives
+  link to the customer page. When the reason is that several customers match,
+  the link goes to the customer list filtered by the customer's last name
+  instead, so the duplicates can be merged. The list shows the oldest 100; the heading gives
   the full count.
 
-Three buttons queue the same jobs that run on their own:
+Four buttons queue the same jobs that run on their own:
 
 | Button | Does |
 |---|---|
-| **Poll now** | Reads recent LGL changes now instead of waiting for the next 15-minute run |
-| **Sweep now** | Checks every `LGL ID` against LGL now |
+| **Poll for changes** | Reads recent LGL changes now instead of waiting for the next 15-minute run |
+| **Sweep all** | Checks every `LGL ID` against LGL now, not just recent changes |
+| **Refresh gift history** | Refreshes every linked customer's `LGL Lapsed` tag now instead of waiting for Sunday night. Asks for confirmation first: it reads each customer's gifts from LGL and takes about an hour |
 | **Backfill** | Links every LGL constituent whose External constituent ID names a Stagemgr customer. Changes only Stagemgr's `LGL ID` and `LGL Review` tags, never LGL. Run once after sync is first set up; running it again is harmless |
 
 The jobs run in the background; reload the page after a few minutes to see the
 results.
+
+### Donor Tiers
+
+Three more rows report the nightly
+[donor levels import](../imports/donor-levels-import.md) from LGL. They appear
+whatever the sync mode:
+
+| Row | Shows |
+|---|---|
+| **Donor-tier report** | **On** when the LGL report link is configured, with the person the import results are emailed to; **Off** otherwise |
+| **Last report download** | When Stagemgr last downloaded the report from LGL successfully |
+| **Last donor levels import** | When a donor levels import last finished, whether from the nightly download or a manual upload on the Imports page |
+
+When the report is on, a **Fetch donor levels now** button downloads the
+report and imports it straight away instead of waiting for the nightly run.

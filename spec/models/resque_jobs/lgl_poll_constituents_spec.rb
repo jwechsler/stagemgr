@@ -86,9 +86,25 @@ RSpec.describe LglPollConstituents do
 
     counts = described_class.perform
 
-    expect(counts).to eq(tagged: 1, blank_external_id: 1)
+    expect(counts).to eq(tagged: 1, no_contact: 1)
     expect(address.lgl_id).to eq('900050')
     expect(polled_through).to eq(Time.utc(2026, 10, 1, 13, 0, 0))
+  end
+
+  it 'creates a customer for a new unlinked constituent and advances the watermark' do
+    JobMetadata.record_run_at(described_class::WATERMARK, watermark)
+    stub_constituents(
+      { 'id' => 900_052, 'external_constituent_id' => '', 'updated_at' => '2026-10-01T14:00:00Z',
+        'first_name' => 'Nora', 'last_name' => 'Newcomer',
+        'email_addresses' => [{ 'address' => 'nora@example.com', 'is_preferred' => true }] }
+    )
+
+    expect { expect(described_class.perform).to eq(created: 1) }.to change(Address, :count).by(1)
+
+    created = Address.order(:id).last
+    expect([created.full_name, created.email, created.lgl_id]).to eq(['Nora Newcomer', 'nora@example.com', '900052'])
+    expect(Resque).to have_received(:enqueue).with(LglSyncAddressJob, created.id, LglSyncAddressJob::LINK_TRIGGER)
+    expect(polled_through).to eq(Time.utc(2026, 10, 1, 14, 0, 0))
   end
 
   context 'when a linked constituent has a newer preferred street' do

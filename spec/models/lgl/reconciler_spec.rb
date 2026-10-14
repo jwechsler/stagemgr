@@ -130,7 +130,8 @@ RSpec.describe Lgl::Reconciler do
       placeholder = patron('Jane Smith')
       placeholder.update_column(:placeholder, true)
 
-      expect(reconciler.apply(constituent(900_050, placeholder.id))).to eq(:dead_external_id)
+      expect(described_class.new(replicate: false).apply(constituent(900_050, placeholder.id)))
+        .to eq(:dead_external_id)
       expect(placeholder.lgl_id).to be_nil
     end
 
@@ -145,11 +146,69 @@ RSpec.describe Lgl::Reconciler do
       expect(Resque).not_to have_received(:enqueue)
     end
 
-    it 'classifies an unlinked constituent by why its external id is junk' do
+    it 'classifies an unlinked constituent by why its external id is junk when not replicating' do
+      reconciler = described_class.new(reason: 'poll', replicate: false)
+
       expect(reconciler.apply(constituent(900_050, ''))).to eq(:blank_external_id)
       expect(reconciler.apply(constituent(900_050, 900_050))).to eq(:self_referencing)
       expect(reconciler.apply(constituent(900_050, 999_999_999))).to eq(:dead_external_id)
       expect(Resque).not_to have_received(:enqueue)
+    end
+  end
+
+  context 'when the external id is junk and no address is tagged (replication)' do
+    def person(id, email)
+      constituent(id, '').merge('first_name' => 'Jane', 'last_name' => 'Smith',
+                                'email_addresses' => [{ 'address' => email, 'is_preferred' => true }])
+    end
+
+    it 'creates a tagged customer and enqueues a link sync for it' do
+      outcome = nil
+      expect { outcome = reconciler.apply(person(900_060, 'new@example.com')) }.to change(Address, :count).by(1)
+
+      address = Address.order(:id).last
+      expect(outcome).to eq(:created)
+      expect(address.lgl_id).to eq('900060')
+      expect(Resque).to have_received(:enqueue).with(LglSyncAddressJob, address.id, LglSyncAddressJob::LINK_TRIGGER)
+    end
+
+    it 'links the one address matching by email and last name and enqueues a link sync' do
+      address = patron('Jane Smith', email: 'jane@example.com')
+
+      expect(reconciler.apply(person(900_061, 'jane@example.com'))).to eq(:linked)
+
+      expect(address.lgl_id).to eq('900061')
+      expect(Resque).to have_received(:enqueue).with(LglSyncAddressJob, address.id, LglSyncAddressJob::LINK_TRIGGER)
+    end
+
+    it 'flags several matches for review and enqueues nothing' do
+      matches = [patron('Jane Smith', email: 'jane@example.com'), patron('Jane Smith', email: 'jane@example.com')]
+
+      expect(reconciler.apply(person(900_062, 'jane@example.com'))).to eq(:review)
+
+      expect(matches.map(&:lgl_review_reason)).to all(include('matches several customers'))
+      expect(Resque).not_to have_received(:enqueue)
+    end
+
+    it 'returns the skip reason and enqueues nothing for a constituent without contact details' do
+      expect { expect(reconciler.apply(constituent(900_063, ''))).to eq(:no_contact) }.not_to change(Address, :count)
+      expect(Resque).not_to have_received(:enqueue)
+    end
+
+    it 'enqueues through the injected callable' do
+      enqueued = []
+      reconciler = described_class.new(reason: 'replicate', enqueue: ->(address, reason) { enqueued << [address.id, reason] })
+
+      reconciler.apply(person(900_064, 'new@example.com'))
+
+      expect(enqueued).to eq([[Address.order(:id).last.id, LglSyncAddressJob::LINK_TRIGGER]])
+      expect(Resque).not_to have_received(:enqueue)
+    end
+
+    it 'creates locally even when LGL is read-only' do
+      allow(Lgl).to receive_messages(read_only?: true, writable?: false)
+
+      expect(reconciler.apply(person(900_065, 'new@example.com'))).to eq(:created)
     end
   end
 
@@ -170,6 +229,14 @@ RSpec.describe Lgl::Reconciler do
       patron('Jane Smith').set_lgl_id!(900_050)
 
       expect(reconciler.apply(constituent(900_050, 999_999_999))).to eq(:dead_external_id)
+      expect(Resque).not_to have_received(:enqueue)
+    end
+
+    it 'never replicates an untagged constituent' do
+      lgl = constituent(900_070, '').merge('first_name' => 'Jane', 'last_name' => 'Smith',
+                                           'email_addresses' => [{ 'address' => 'new@example.com' }])
+
+      expect { expect(reconciler.apply(lgl)).to eq(:blank_external_id) }.not_to change(Address, :count)
       expect(Resque).not_to have_received(:enqueue)
     end
   end

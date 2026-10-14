@@ -24,6 +24,7 @@ RSpec.describe LglSyncAddressJob do
     allow(Lgl).to receive(:enabled?).and_return(true)
     allow(Lgl).to receive(:client).and_return(client)
     allow(client).to receive_messages(search_by_external_id: [], search_by_email: [])
+    allow(Lgl::GiftHistoryRefresh).to receive(:refresh).and_return(:unchanged)
   end
 
   it 'does nothing when LGL is disabled: no LGL call, no tag, one log line' do
@@ -51,15 +52,15 @@ RSpec.describe LglSyncAddressJob do
     expect(described_class.lock_timeout).to be_positive
   end
 
-  it 'survives resque-scheduler moving a delayed run onto the lgl queue' do
+  it 'survives resque-scheduler moving a delayed run onto the maintenance queue' do
     allow(Resque::Scheduler).to receive(:am_master).and_return(true) # its master lock is Lua; fakeredis has none
     Resque.enqueue_in(2.minutes, described_class, address.id, described_class::EDIT_TRIGGER)
     timestamp = Resque.next_delayed_timestamp(2.minutes.from_now)
 
     Resque::Scheduler.enqueue_delayed_items_for_timestamp(timestamp)
 
-    expect(Resque.peek(:lgl)).to eq('class' => described_class.name,
-                                    'args' => [address.id, described_class::EDIT_TRIGGER])
+    expect(Resque.peek(:maintenance)).to eq('class' => described_class.name,
+                                            'args' => [address.id, described_class::EDIT_TRIGGER])
   end
 
   it 'uses one lock per address whatever the reason' do
@@ -240,6 +241,32 @@ RSpec.describe LglSyncAddressJob do
       expect(address.lgl_review_reason).to eq('also constituent 3')
     end
 
+    context 'with a several-matches review left by a merge after the link' do
+      let(:several) { Lgl::ConstituentReplicator::SEVERAL_MATCHES_REASON }
+
+      before { allow(client).to receive(:find).with('900050').and_return(constituent(900_050)) }
+
+      it 'clears the review when it names this constituent' do
+        address.lgl_review!("LGL constituent 900050 #{several}")
+
+        expect(described_class.perform(address.id, described_class::LINK_TRIGGER).action).to eq(:unchanged)
+        expect(address.lgl_review_reason).to be_nil
+        expect(address.lgl_id).to eq('900050')
+      end
+
+      it 'keeps the review when it names a different constituent' do
+        address.lgl_review!("LGL constituent 900051 #{several}")
+        described_class.perform(address.id, described_class::LINK_TRIGGER)
+        expect(address.lgl_review_reason).to eq("LGL constituent 900051 #{several}")
+      end
+
+      it 'keeps an Also LGL constituent review' do
+        address.lgl_review!('Also LGL constituent 1234')
+        described_class.perform(address.id, described_class::LINK_TRIGGER)
+        expect(address.lgl_review_reason).to eq('Also LGL constituent 1234')
+      end
+    end
+
     it 'replaces a dead link with a constituent found by external id' do
       allow(client).to receive(:find).and_return(nil)
       allow(client).to receive(:search_by_external_id).with(address.id).and_return([constituent(900_060)])
@@ -348,6 +375,36 @@ RSpec.describe LglSyncAddressJob do
 
   context 'on a link sync' do
     before { address.update_column(:updated_at, 1.hour.ago) }
+
+    # Lgl::ConstituentReplicator tags the address before enqueuing this.
+    context 'when the address is tagged' do
+      before { address.set_lgl_id!(900_050) }
+
+      it "sends only the external id with LGL's own names and emails" do
+        lgl = constituent(900_050, external_id: '').merge('first_name' => 'Janie', 'phone_numbers' => [],
+                                                          'street_addresses' => [])
+        allow(client).to receive(:find).with('900050').and_return(lgl)
+        allow(client).to receive(:update)
+        expect(client).not_to receive(:create)
+
+        expect(described_class.perform(address.id, described_class::LINK_TRIGGER).action).to eq(:updated)
+
+        expect(client).to have_received(:update).once
+        expect(client).to have_received(:update)
+          .with(900_050, { first_name: 'Janie', last_name: 'Smith', external_constituent_id: address.id.to_s,
+                           email_addresses: lgl['email_addresses'] }, for_address_id: address.id)
+      end
+
+      it 'skips without creating or flagging review when the constituent is gone (404)' do
+        allow(client).to receive(:find).with('900050').and_return(nil)
+        expect(client).not_to receive(:create)
+
+        expect(described_class.perform(address.id, described_class::LINK_TRIGGER).action).to eq(:skipped)
+
+        expect(address.lgl_id).to eq('900050')
+        expect(address.lgl_review_reason).to be_nil
+      end
+    end
 
     it 'never creates a constituent when nothing matches: no write, no review tag, no touch' do
       expect(client).not_to receive(:create)
@@ -510,6 +567,64 @@ RSpec.describe LglSyncAddressJob do
 
       expect(dead.lgl_id).to eq('979634')
       expect(Address.exists?(survivor.id)).to be(true)
+    end
+  end
+
+  describe 'gift history refresh' do
+    it 'refreshes after adopting a constituent, with the same client' do
+      allow(client).to receive(:search_by_external_id).and_return([constituent(900_070)])
+
+      expect(described_class.perform(address.id, 'donation').action).to eq(:adopted)
+
+      expect(Lgl::GiftHistoryRefresh).to have_received(:refresh).once.with(address, client: client)
+    end
+
+    it 'refreshes after creating a constituent' do
+      allow(client).to receive(:create).and_return({ 'id' => 900_123 })
+
+      expect(described_class.perform(address.id, 'donation').action).to eq(:created)
+
+      expect(Lgl::GiftHistoryRefresh).to have_received(:refresh).once.with(address, client: client)
+    end
+
+    context 'when tagged' do
+      before do
+        address.set_lgl_id!(900_050)
+        allow(client).to receive(:find).with('900050').and_return(constituent(900_050))
+      end
+
+      it 'refreshes on a manual Re-sync' do
+        expect(described_class.perform(address.id, described_class::MANUAL_TRIGGER).action).to eq(:unchanged)
+
+        expect(Lgl::GiftHistoryRefresh).to have_received(:refresh).once.with(address, client: client)
+      end
+
+      [described_class::LINK_TRIGGER, described_class::EDIT_TRIGGER, 'poll', 'sweep', 'donation'].each do |trigger|
+        it "does not refresh on a #{trigger} sync" do
+          described_class.perform(address.id, trigger)
+
+          expect(Lgl::GiftHistoryRefresh).not_to have_received(:refresh)
+        end
+      end
+
+      it 'logs a gift history error without failing the Re-sync' do
+        allow(Lgl::GiftHistoryRefresh).to receive(:refresh).and_raise(Lgl::Error, 'LGL 500')
+        allow(Rails.logger).to receive(:error)
+
+        expect(described_class.perform(address.id, described_class::MANUAL_TRIGGER).action).to eq(:unchanged)
+
+        expect(Rails.logger).to have_received(:error).with(a_string_including('gift history refresh failed', 'LGL 500'))
+        expect(address.lgl_id).to eq('900050')
+      end
+    end
+
+    it 'keeps the new link when the refresh after an adopt fails' do
+      allow(client).to receive(:search_by_external_id).and_return([constituent(900_070)])
+      allow(Lgl::GiftHistoryRefresh).to receive(:refresh).and_raise(Lgl::Error, 'LGL 500')
+
+      expect(described_class.perform(address.id).action).to eq(:adopted)
+
+      expect(address.lgl_id).to eq('900070')
     end
   end
 end

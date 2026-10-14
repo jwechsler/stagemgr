@@ -134,6 +134,7 @@ order.
 | `RESQUE_ADMIN_PASSWORD` | Always, in production -- see [the Resque dashboard](#the-resque-dashboard) |
 | `MY_EMMA_USERNAME`, `MY_EMMA_PASSWORD`, `MY_EMMA_ACCOUNT_ID` | Using MyEmma mailing lists. All three are required together; with any of them absent the integration disables itself |
 | `LGL_API_KEY` | Syncing customers with Little Green Light ([Little Green Light sync](#little-green-light-sync)). Optional: absent, the integration disables itself; it also needs `littlegreenlight.sync: enabled` |
+| `LGL_USER`, `LGL_PASSWORD` | The LGL donor-tier report link (`littlegreenlight.donor_tier_report_url`) asks for a login. Optional: Basic auth is sent only when both LGL_USER and LGL_PASSWORD are set |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | ActiveStorage on S3 (uncomment the matching block in `config/storage.yml`). Blank means local disk |
 | `PAYPAL_LOGIN`, `PAYPAL_PASSWORD`, `PAYPAL_SIGNATURE`, `PAYPAL_PEM_FILE`, `PAYPAL_EXPRESS_LOGIN`, `PAYPAL_EXPRESS_PASSWORD` | Legacy PayPal gateways only |
 
@@ -146,9 +147,19 @@ order.
 
 Stagemgr links each customer to a constituent in the default theater's LGL
 account; see [Little Green Light Sync](../customers/lgl-sync.md) for what it
-does. Sync runs only when **both** `littlegreenlight.sync` is `enabled` and
-`LGL_API_KEY` (or the `littlegreenlight.api_key` credential) is set. Otherwise every LGL
-trigger, job and page button is a no-op, and the LGL Sync admin page says why.
+does. Sync runs only when `littlegreenlight.sync` is `enabled` or `readonly`
+**and** `LGL_API_KEY` (or the `littlegreenlight.api_key` credential) is set.
+Otherwise every LGL trigger, job and page button is a no-op, and the LGL Sync
+admin page says why. The nightly donor-tier report download is the one
+exception: it needs only `donor_tier_report_url` (below), not the API key or
+the sync mode.
+
+From LGL the integration reads constituents (by id, external id and email, and
+the list of every constituent id), the constituents changed since the last
+poll, and each linked constituent's gifts, which set the `LGL Lapsed` tag
+(`LYBUNT` / `SYBUNT`) by fiscal year. The fiscal year starts on
+`theater.fiscal_year_start_month` (see
+[the `theater:` block](theming.md#the-theater-block); January when unset).
 
 The API key is a secret ([above](#secrets)); the rest lives in the
 `littlegreenlight:` section of `config/server.yml`:
@@ -156,41 +167,52 @@ The API key is a secret ([above](#secrets)); the rest lives in the
 ```yaml
 all:
   littlegreenlight:
-    sync: enabled
-    writable_address_ids:       # optional: 12, 34  or a YAML list
+    sync: readonly              # enabled | readonly | disabled
+    writable_address_ids:       # optional, readonly only: 12, 34  or a YAML list
     web_url: https://youraccount.littlegreenlight.com
+    donor_tier_report_url:      # optional: permanent link of the LGL donor-tier saved report
 ```
 
 | Key | ENV override | Purpose |
 |---|---|---|
-| `sync` | `LGL_SYNC` | `enabled` turns sync on. Any other value, or none, turns it off |
-| `writable_address_ids` | `LGL_WRITABLE_ADDRESS_IDS` | Comma-separated (or YAML list) Stagemgr address ids. When set, LGL is read-only in **every** environment, production included, except for these addresses: reads hit the live account, every other create and update is logged as `[LGL] read-only: skipped ...` and skipped, and Stagemgr merges driven by LGL go to LGL Review unless both addresses are listed. Use it for acceptance testing |
+| `sync` | `LGL_SYNC` | The sync mode, one of the three below. Case and surrounding spaces are ignored; any other word, or none, means `disabled` |
+| `writable_address_ids` | `LGL_WRITABLE_ADDRESS_IDS` | Comma-separated (or YAML list) Stagemgr address ids that may still be written to LGL in `readonly` mode, for acceptance testing. Ignored in `enabled` mode |
 | `web_url` | -- | Base URL of the LGL account, used to link an LGL ID to the constituent page. Blank shows the id as plain text |
+| `donor_tier_report_url` | `LGL_DONOR_TIER_REPORT_URL` | Permanent link of the LGL saved report (CSV with `External constituent ID`, `TG Tier Last Fiscal`, `TG Tier This Fiscal`) that `LglDonorLevelsFetch` downloads nightly and imports as donor levels. Blank turns the nightly import off. Independent of `sync` and `LGL_API_KEY`; the import's owner and result-email recipient is the user whose email is `email.addresses.supervisor_notifications` |
 
 A non-blank environment variable overrides the `server.yml` value; a blank one
 counts as absent, the same rule as [AppSecrets](#secrets).
 
-With `writable_address_ids` unset, development is read-only for every address
-(it must never write to the live account by accident) and production writes
-normally. The test environment never syncs. The rules live in
-`Lgl.configure_from`, called from each environment's `after_initialize`.
+| `sync` | Reads from LGL, local tags and linking | Writes to LGL |
+|---|---|---|
+| `disabled` (or missing, or any other word) | Off | Off |
+| `readonly` | On | Skipped and logged as `[LGL] read-only: skipped ...`, except for addresses in `writable_address_ids`. Stagemgr merges driven by LGL go to LGL Review unless both addresses are writable |
+| `enabled` | On | On, for every address |
 
-All LGL jobs run on the `lgl` Resque queue. In production
-`script/resque-worker` lists it on worker #3 only (`default,maintenance,lgl`),
-so one process makes every LGL request in turn; every other environment runs a
-single worker on `QUEUE=*`. `config/schedule.yml` (and its `.example`) schedules two of them:
+In development `enabled` is treated as `readonly` (with the allowlist), and
+boot logs `[LGL] sync 'enabled' downgraded to readonly in development`, so a
+copied config never writes to the live account from a developer's machine.
+The test environment never syncs. The rules live in `Lgl.configure_from`,
+called from each environment's `after_initialize`.
+
+The LGL jobs run on the `maintenance` Resque queue (`LglDonorImport` runs on
+`import`). In production `script/resque-worker` serves that queue from worker
+#3 only (`default,maintenance`), so one process makes every LGL request in turn; every other environment runs a
+single worker on `QUEUE=*`. `config/schedule.yml` (and its `.example`) schedules four of them:
 
 | Job | Schedule | Does |
 |---|---|---|
 | `LglPollConstituents` | every 15 minutes | Reads constituents changed since the last poll and reconciles LGL merges |
 | `LglSweepConstituents` | every hour | Drops `LGL ID` tags whose constituent no longer exists and re-syncs those customers |
+| `LglDonorLevelsFetch` | nightly at 04:30 | Downloads the donor-tier saved report and queues `LglDonorImport`. Runs only when `donor_tier_report_url` is set, whatever `sync` is |
+| `LglGiftHistoryWalk` | Sundays at 02:00 | Reads every linked customer's gifts from LGL (one request each, about 1.1 seconds apart to stay under LGL's 300 requests per 5 minutes, so roughly an hour) and refreshes their `LGL Lapsed` tag. Only reads LGL. Gives up after 25 consecutive LGL errors. Linking a customer and **Re-sync with LGL** refresh that one customer straight away |
 
 After the first deploy with a key, run the backfill **once** to link every
 constituent whose External constituent ID already names a customer. It only
 writes local tags, never LGL:
 
 ```sh
-bundle exec rake lgl:backfill       # queue it on the lgl queue
+bundle exec rake lgl:backfill       # queue it on the maintenance queue
 bundle exec rake lgl:backfill_now   # or run it inline and print the counts
 ```
 
@@ -202,7 +224,7 @@ A constituent is linked only when exactly one customer has one of its emails,
 the same last name (ignoring case) and no other LGL ID; constituents with
 several matches, none, or no email are only counted. Run the dry run first: it
 reads LGL, prints the counts by kind and outcome, and writes nothing. Then run
-the real one, which queues one sync per match on the `lgl` queue:
+the real one, which queues one sync per match on the `maintenance` queue:
 
 ```sh
 bundle exec rake lgl:link_by_email_dry_run   # counts only
@@ -214,16 +236,39 @@ tag). It never copies a name, street, phone or email in either direction:
 each linked customer is marked as changed after the write, so the next poll
 does not treat LGL as the newer copy.
 
+#### Bringing existing constituents over
+
+`lgl:replicate` makes every constituent with such an External constituent ID
+a customer: it links it by email, creates a new customer, or leaves it in LGL
+Review, as the poll does for new constituents. Run the dry run first; it prints
+one line per constituent and writes nothing. Optional LGL ids limit either run
+to those constituents and run it inline; without ids the real run is queued on
+the `maintenance` queue:
+
+```sh
+bundle exec rake "lgl:replicate_dry_run[123,456]"   # what it would do
+bundle exec rake lgl:replicate                      # queue the run
+```
+
+With sync `enabled` it queues one sync per linked or created customer, three
+seconds apart to stay under LGL's rate limit. With sync `readonly` the
+customers are still created and linked locally, but no syncs are queued,
+except an immediate one for each address in `writable_address_ids`: nothing
+else could be written to LGL. The counts include how many were skipped, as
+`sync_skipped_readonly`.
+
 The first `LglPollConstituents` run after sync is enabled reads nothing: it
 records the current time as its watermark and logs `[LGL] poll: first run;
 starting from <time>`. Only LGL changes made after that moment are copied into
 Stagemgr; earlier ones are not. A disabled install never starts the clock.
 
-`setup:doctor` reports one LGL line: `LGL sync is disabled
-(littlegreenlight.sync)` and `LGL is read-only in this environment for ...`
-(listing any writable ids) are both OK; `littlegreenlight.sync is enabled but
-LGL_API_KEY is missing` is a warning; otherwise it makes one read to confirm
-the key and warns if LGL rejects it.
+`setup:doctor` reports one LGL line naming the mode. `LGL sync is disabled
+(littlegreenlight.sync)` and `LGL sync is readonly — writes skipped for ...`
+(listing any writable ids, and saying when `enabled` was downgraded in
+development) are both OK. It warns when `sync` is a word other than `enabled`,
+`readonly` or `disabled`, and when sync is on but `LGL_API_KEY` is missing;
+in `enabled` mode it makes one read to confirm the key and warns if LGL
+rejects it.
 
 ### `docker compose`
 

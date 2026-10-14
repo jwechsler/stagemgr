@@ -30,7 +30,9 @@ require 'resque-retry'
 #      for now and carry on as untagged. An adopt replaces it; a merge drops
 #      it first, so the keeper is never flagged for the dead id as a second
 #      LGL ID. Otherwise point its external id at
-#      this address (and push contact fields on EDIT_TRIGGER).
+#      this address (and push contact fields on EDIT_TRIGGER). A "matches
+#      several customers" review naming this constituent is cleared: the tag
+#      already answers which customer it is.
 #   2. A constituent already carrying this address's id -> adopt it.
 #   3. Email -> Lgl::ConstituentResolver decides adopt / review / merge / create.
 #      Merge: the email is on a constituent linked to a same-name twin, so LGL
@@ -50,6 +52,13 @@ require 'resque-retry'
 # LGL's bump; Lgl::ContactPull allows for clock skew between the two. touch
 # changes no LGL_SYNCED_COLUMNS, so it queues no edit push.
 #
+# Gift history: a fresh link (adopt or create) and a Re-sync (MANUAL_TRIGGER)
+# of a tagged address refresh the address's LGL Lapsed tag through
+# Lgl::GiftHistoryRefresh, one more read of LGL. No other tagged run does
+# (LINK_TRIGGER from the replicate run, poll, sweep, edit): LglGiftHistoryWalk
+# covers every linked customer weekly. A gift history error is logged and never
+# fails the sync.
+#
 # LGL errors raise (resque-retry retries a few times, then the failed queue).
 # In read-only environments Lgl::Client skips writes and returns nil.
 #
@@ -64,7 +73,7 @@ class LglSyncAddressJob
   extend Resque::Plugins::LockTimeout
   extend Resque::Plugins::Retry
 
-  @queue = :lgl
+  @queue = :maintenance
 
   @lock_timeout = 300 # perform-time lock only: see the class comment on @loner
 
@@ -78,8 +87,9 @@ class LglSyncAddressJob
   # replace a dead link with a new constituent.
   MANUAL_TRIGGER = 'manual'
 
-  # Trigger reason for LglBackfillLinks.link_by_email: only adopts the
-  # constituent it matched, never creates one.
+  # Trigger reason for LglBackfillLinks.link_by_email and for addresses that
+  # Lgl::ConstituentReplicator linked or created: adopts a tagged or
+  # email-matched constituent; never creates.
   LINK_TRIGGER = 'link'
 
   Outcome = Struct.new(:action, :constituent_id, :reason)
@@ -140,7 +150,20 @@ class LglSyncAddressJob
     # constituent re-pointed by this run is never pulled from.
     pulled = @pull_contact ? Lgl::ContactPull.new(@address, constituent).apply! : []
     action = pushed?(constituent) ? :updated : :unchanged
+    clear_resolved_review(constituent)
+    refresh_gift_history if @pull_contact
     Outcome.new(action, constituent['id'], pulled.any? ? "tagged; pulled #{pulled.join(', ')}" : 'tagged')
+  end
+
+  # The several-matches review asks "which of these customers is constituent
+  # N?"; an address tagged with N answers it. It can still carry that review
+  # when staff linked one candidate (Re-sync clears it) and then merged another
+  # candidate into it: Address#update_from copies the newer record's tags,
+  # review included. Only the review naming this constituent is cleared; any
+  # other reason still needs a person.
+  def clear_resolved_review(constituent)
+    resolved = "LGL constituent #{constituent['id']} #{Lgl::ConstituentReplicator::SEVERAL_MATCHES_REASON}"
+    @address.clear_lgl_review! if @address.lgl_review_reason.to_s.include?(resolved)
   end
 
   def sync_by_external_id
@@ -292,5 +315,15 @@ class LglSyncAddressJob
   def link(constituent_id)
     @address.set_lgl_id!(constituent_id)
     @address.clear_lgl_review!
+    refresh_gift_history
+  end
+
+  # The link is already written: a gift history failure is left for the
+  # weekly walk rather than retrying (and re-running) the whole sync.
+  def refresh_gift_history
+    Lgl::GiftHistoryRefresh.refresh(@address, client: @client)
+  rescue Lgl::Error => e
+    Rails.logger.error("[LGL] address ##{@address.id}: gift history refresh failed: #{e.class}: #{e.message}")
+    nil
   end
 end
