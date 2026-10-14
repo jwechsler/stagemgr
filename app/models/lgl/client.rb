@@ -64,6 +64,21 @@ module Lgl
       nil
     end
 
+    # Every gift on the constituent, across all pages, or nil when LGL answers
+    # 404 for the constituent (deleted or merged away), as #find does. LGL has
+    # no account-wide gifts listing, so this is one request per constituent.
+    def gifts(constituent_id)
+      items = []
+      each_page("#{CONSTITUENTS_PATH}/#{Integer(constituent_id)}/gifts.json", []) do |page|
+        items.concat(page.fetch('items', []))
+      end
+      items
+    rescue Error => e
+      raise unless e.status == HTTP_NOT_FOUND
+
+      nil
+    end
+
     # Exact match on LGL's external_constituent_id (= Stagemgr address id).
     def search_by_external_id(address_id)
       search_page([['q[]', search_term('external_id', "eq|#{Integer(address_id)}")]]).fetch('items', [])

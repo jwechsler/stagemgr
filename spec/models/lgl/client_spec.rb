@@ -158,6 +158,43 @@ RSpec.describe Lgl::Client do
     end
   end
 
+  describe '#gifts' do
+    it "returns every gift on the constituent across pages of its gifts listing" do
+      respond_with(
+        fake_response(200, { 'total_items' => 3, 'next_item' => 2,
+                             'items' => [{ 'id' => 1, 'gift_type_name' => 'Gift' }, { 'id' => 2 }] }),
+        fake_response(200, { 'total_items' => 3, 'next_item' => 3, 'items' => [{ 'id' => 3 }] })
+      )
+
+      gifts = client.gifts(42)
+
+      expect(gifts.first).to eq({ 'id' => 1, 'gift_type_name' => 'Gift' })
+      expect(gifts.pluck('id')).to eq([1, 2, 3])
+      expect(requests.map { |r| r[:uri].path }.uniq).to eq(['/api/v1/constituents/42/gifts.json'])
+      expect(requests.map { |r| r[:req].method }.uniq).to eq(['GET'])
+      expect(query_of(0)).to eq([%w[limit 1000], %w[offset 0]])
+      expect(query_of(1)).to include(%w[offset 2])
+    end
+
+    it 'returns an empty list for a constituent with no gifts' do
+      respond_with(fake_response(200, { 'total_items' => 0, 'items' => [] }))
+
+      expect(client.gifts(42)).to eq([])
+    end
+
+    it 'returns nil on 404 (deleted or merged away in LGL)' do
+      respond_with(fake_response(404, { 'error' => 'not found' }))
+
+      expect(client.gifts(42)).to be_nil
+    end
+
+    it 'raises on other errors' do
+      respond_with(fake_response(500, 'boom'))
+
+      expect { client.gifts(42) }.to raise_error(Lgl::Error)
+    end
+  end
+
   describe '#each_constituent_id' do
     it 'pages the full list and returns the ids with the reported total' do
       respond_with(

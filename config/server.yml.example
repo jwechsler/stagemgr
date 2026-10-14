@@ -107,6 +107,9 @@ all:
     signature_image_url:
     # Stripe customer portal link, for members managing their own subscription.
     stripe_billing_portal_url:
+    # Month whose 1st starts the fiscal year, for LGL lapsed-donor tags
+    # (LYBUNT / SYBUNT). 1 = calendar year; 7 = July–June.
+    fiscal_year_start_month: 1
   my_emma:
     # Names of the MyEmma groups patrons are added to when they opt in. Leave a
     # name blank to stop adding anyone to that group.
@@ -203,6 +206,7 @@ test:
     website_url: "https://WEBSITE.TEST"
     facebook_url: "https://FACEBOOK.TEST"
     stripe_billing_portal_url: "https://BILLING.TEST"
+    fiscal_year_start_month: 1
   my_emma:
     create_production_groups: false
   # Explicit: the test environment never syncs with LGL (Lgl.disable in

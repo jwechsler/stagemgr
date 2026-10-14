@@ -51,7 +51,12 @@ class TheaterInfo
     artistic_director_email
     signature_image_url
     stripe_billing_portal_url
+    fiscal_year_start_month
   ].freeze
+
+  # January: the fiscal year is the calendar year.
+  DEFAULT_FISCAL_YEAR_START_MONTH = 1
+  MONTHS = (1..12)
 
   FACTS.each do |fact|
     define_method(fact) { self[fact] }
@@ -104,6 +109,26 @@ class TheaterInfo
   # `30` and a String for `"30"`.
   def doors_open_minutes_before
     self[:doors_open_minutes_before]&.to_i
+  end
+
+  # The configured house's fiscal year start month, read from config/server.yml.
+  def self.fiscal_year_start_month
+    new.fiscal_year_start_month
+  end
+
+  # Month (1..12) on whose 1st the fiscal year starts: 1 = calendar year,
+  # 7 = July-June. Unset means 1; anything that is not a month logs a warning
+  # and also means 1, so a typo cannot stop the lapsed-donor tagging.
+  def fiscal_year_start_month
+    raw = self[:fiscal_year_start_month]
+    return DEFAULT_FISCAL_YEAR_START_MONTH if raw.nil?
+
+    month = Integer(raw.to_s, 10, exception: false)
+    return month if month && MONTHS.cover?(month)
+
+    Rails.logger.warn("[TheaterInfo] theater: fiscal_year_start_month #{raw.inspect} is not a month (1-12); " \
+                      "using #{DEFAULT_FISCAL_YEAR_START_MONTH}")
+    DEFAULT_FISCAL_YEAR_START_MONTH
   end
 
   # "1229 W Belmont, Chicago, IL 60657", or nil when neither half is set.
