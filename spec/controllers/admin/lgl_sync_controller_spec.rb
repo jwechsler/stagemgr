@@ -17,7 +17,7 @@ RSpec.describe Admin::LglSyncController, type: :controller do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('Little Green Light sync is disabled (littlegreenlight.sync).')
-      expect(response.body).not_to include('Poll now', 'Sweep now', 'Backfill', 'LGL Review', 'Linked customers')
+      expect(response.body).not_to include('Poll for changes', 'Sweep all', 'Backfill', 'LGL Review', 'Linked customers')
       expect(response.body).not_to include(%(href="#{admin_lgl_sync_path}"))
     end
 
@@ -28,7 +28,7 @@ RSpec.describe Admin::LglSyncController, type: :controller do
       get :index
 
       expect(response.body).to include('enabled (littlegreenlight.sync) but LGL_API_KEY is missing')
-      expect(response.body).not_to include('Poll now')
+      expect(response.body).not_to include('Poll for changes')
     end
 
     it 'names readonly mode when the key is missing' do
@@ -126,7 +126,7 @@ RSpec.describe Admin::LglSyncController, type: :controller do
     it 'shows the menu link and the run-now buttons' do
       get :index
 
-      expect(response.body).to include('Poll now', 'Sweep now', %(href="#{admin_lgl_sync_path}"))
+      expect(response.body).to include('Poll for changes', 'Sweep all', %(href="#{admin_lgl_sync_path}"))
     end
 
     it 'turns away a box office user' do
@@ -162,7 +162,7 @@ RSpec.describe Admin::LglSyncController, type: :controller do
 
       expect(response.body).to include("On (littlegreenlight.donor_tier_report_url), results to #{supervisor_email}")
       expect(response.body).to include('Fetch donor levels now', admin_lgl_sync_donor_levels_path)
-      expect(response.body).not_to include('Poll now')
+      expect(response.body).not_to include('Poll for changes')
     end
 
     it 'names the ENV variable when the link comes from ENV, beside the sync buttons when sync is on' do
@@ -172,7 +172,7 @@ RSpec.describe Admin::LglSyncController, type: :controller do
       get :index
 
       expect(response.body).to include('On (LGL_DONOR_TIER_REPORT_URL)')
-      expect(response.body).to include('Poll now', 'Fetch donor levels now')
+      expect(response.body).to include('Poll for changes', 'Fetch donor levels now')
     end
 
     it 'formats the last download and import times' do

@@ -2,8 +2,8 @@
 - if sync_buttons || donor_levels_button
   .button-group
     - if sync_buttons
-      = button_to 'Poll now', admin_lgl_sync_poll_path, method: :post, class: 'button'
-      = button_to 'Sweep now', admin_lgl_sync_sweep_path, method: :post, class: 'button'
+      = button_to 'Poll for changes', admin_lgl_sync_poll_path, method: :post, class: 'button'
+      = button_to 'Sweep all', admin_lgl_sync_sweep_path, method: :post, class: 'button'
       - backfill_confirm = 'Link every LGL constituent to its customer by external id?'
       = button_to 'Backfill', admin_lgl_sync_backfill_path, method: :post, class: 'button secondary',
                                                             data: { confirm: backfill_confirm }

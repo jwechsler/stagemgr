@@ -187,8 +187,8 @@ Three buttons queue the same jobs that run on their own:
 
 | Button | Does |
 |---|---|
-| **Poll now** | Reads recent LGL changes now instead of waiting for the next 15-minute run |
-| **Sweep now** | Checks every `LGL ID` against LGL now |
+| **Poll for changes** | Reads recent LGL changes now instead of waiting for the next 15-minute run |
+| **Sweep all** | Checks every `LGL ID` against LGL now, not just recent changes |
 | **Backfill** | Links every LGL constituent whose External constituent ID names a Stagemgr customer. Changes only Stagemgr's `LGL ID` and `LGL Review` tags, never LGL. Run once after sync is first set up; running it again is harmless |
 
 The jobs run in the background; reload the page after a few minutes to see the
