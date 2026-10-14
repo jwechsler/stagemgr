@@ -41,12 +41,12 @@ RSpec.describe Lgl::Client do
       expect(requests.first[:uri].to_s).to eq('https://api.littlegreenlight.com/api/v1/constituents/1.json')
     end
 
-    it 'URL-encodes each q[] value as a whole' do
-      client.search_by_email('a+b@example.com')
+    it 'double-encodes the q[] value because LGL decodes it twice' do
+      client.search_by_email('jeremy+test@theaterwit.org')
 
       raw = requests.first[:uri].query
-      expect(raw).to include('q%5B%5D=eaddr%3Da%2Bb%40example.com')
-      expect(query_of).to include(['q[]', 'eaddr=a+b@example.com'])
+      expect(raw).to include('q%5B%5D=eaddr%3Djeremy%252Btest%2540theaterwit.org')
+      expect(query_of).to include(['q[]', 'eaddr=jeremy%2Btest%40theaterwit.org'])
     end
 
     it 'searches external ids with an exact eq clause' do
@@ -54,7 +54,8 @@ RSpec.describe Lgl::Client do
 
       expect(client.search_by_external_id(42)).to eq([{ 'id' => 9 }])
       expect(requests.first[:uri].path).to eq('/api/v1/constituents/search')
-      expect(query_of).to include(['q[]', 'external_id=eq|42'])
+      expect(requests.first[:uri].query).to include('q%5B%5D=external_id%3Deq%257C42')
+      expect(query_of).to include(['q[]', 'external_id=eq%7C42'])
     end
   end
 
@@ -125,7 +126,8 @@ RSpec.describe Lgl::Client do
 
       expect(ids).to eq([1, 2, 3])
       expect(requests.size).to eq(2)
-      expect(query_of(0)).to include(['q[]', 'updated_from=2026-10-01T12:00:00Z'], %w[sort date_updated],
+      expect(requests.first[:uri].query).to include('q%5B%5D=updated_from%3D2026-10-01T12%253A00%253A00Z')
+      expect(query_of(0)).to include(['q[]', 'updated_from=2026-10-01T12%3A00%3A00Z'], %w[sort date_updated],
                                      %w[limit 1000], %w[offset 0])
       expect(query_of(1)).to include(%w[offset 2])
     end

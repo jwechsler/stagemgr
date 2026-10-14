@@ -59,7 +59,7 @@ module Lgl
 
     # Exact match on LGL's external_constituent_id (= Stagemgr address id).
     def search_by_external_id(address_id)
-      search_page([['q[]', "external_id=eq|#{Integer(address_id)}"]]).fetch('items', [])
+      search_page([['q[]', search_term('external_id', "eq|#{Integer(address_id)}")]]).fetch('items', [])
     end
 
     # LGL's eaddr search is a substring match, so the results are narrowed to
@@ -68,7 +68,7 @@ module Lgl
       wanted = email.to_s.strip.downcase
       return [] if wanted.empty?
 
-      items = search_page([['q[]', "eaddr=#{wanted}"], ['expand', 'email_addresses']]).fetch('items', [])
+      items = search_page([['q[]', search_term('eaddr', wanted)], ['expand', 'email_addresses']]).fetch('items', [])
       items.select { |constituent| email_matches?(constituent, wanted) }
     end
 
@@ -77,7 +77,7 @@ module Lgl
     def search_updated_since(time, &block)
       return enum_for(:search_updated_since, time) unless block
 
-      params = [['q[]', "updated_from=#{time.utc.iso8601}"], %w[sort date_updated],
+      params = [['q[]', search_term('updated_from', time.utc.iso8601)], %w[sort date_updated],
                 ['expand', 'email_addresses']]
       each_page(SEARCH_PATH, params) { |page| page.fetch('items', []).each(&block) }
     end
@@ -143,6 +143,14 @@ module Lgl
       return skipped(verb_class::METHOD, path, address_id) unless Lgl.writable?(address_id)
 
       request(verb_class, path, [], attrs)
+    end
+
+    # One q[] term for /constituents/search. LGL URL-decodes q[] values twice,
+    # so the value (after "field=") is encoded here once more on top of
+    # URI.encode_www_form; otherwise a '+' in an email decodes to a space and
+    # the search silently finds nothing.
+    def search_term(field, value)
+      "#{field}=#{ERB::Util.url_encode(value.to_s)}"
     end
 
     def search_page(params)
