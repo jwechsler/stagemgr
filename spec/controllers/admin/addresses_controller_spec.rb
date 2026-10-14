@@ -62,6 +62,27 @@ RSpec.describe Admin::AddressesController, type: :controller do
     end
   end
 
+  describe '#new' do
+    it 'renders the customer form posting to the addresses path' do
+      get :new
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('New Customer')
+      expect(response.body).to match(/<form[^>]+action="#{Regexp.escape(admin_addresses_path)}"[^>]+method="post"/)
+      expect(response.body).to include('Save Customer')
+    end
+  end
+
+  describe '#create' do
+    it 'creates an address from valid params' do
+      expect do
+        post :create, params: { address: { full_name: 'Brand New Patron', email: 'brandnew@example.com' } }
+      end.to change(Address, :count).by(1)
+
+      expect(response).to redirect_to(admin_address_path(Address.find_by(email: 'brandnew@example.com')))
+    end
+  end
+
   describe '#lgl_sync' do
     let!(:house) { Theater.default_theater || FactoryBot.create(:theater, theater_class: Theater::DEFAULT) }
     let(:address) { FactoryBot.create(:address) }
