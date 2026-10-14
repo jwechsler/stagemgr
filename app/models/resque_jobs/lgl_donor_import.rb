@@ -9,11 +9,13 @@ require 'csv'
 #   'TG Tier This Fiscal'      donor tier for the current fiscal year
 #
 # and may have a fourth, 'LGL Constituent ID'. When a row's External
-# constituent ID is blank, that LGL id is looked up in the customers' LGL ID
-# tags (Lgl::Reconciler.tagged_addresses): one tagged customer is matched as
-# usual and also counted as matched by LGL ID; several make an error row (they
-# should be merged); none, or no usable LGL id, leaves the row skipped as below.
-# A non-blank External constituent ID never falls back to the LGL id.
+# constituent ID is blank or a number that matches no customer, that LGL id is
+# looked up in the customers' LGL ID tags (Lgl::Reconciler.tagged_addresses):
+# one tagged customer is matched as usual and also counted as matched by LGL
+# ID; several make an error row (they should be merged); none, or no usable LGL
+# id, leaves the row as it would be without the fallback (skipped when the
+# External constituent ID is blank, an error when it matches no customer). An
+# External constituent ID that is not a number never falls back.
 #
 # Each matched row sets both tiers (blank cells clear them). The import never
 # creates, merges or renames customers. Once the whole file has loaded, every
@@ -24,9 +26,10 @@ require 'csv'
 # (organisations, and constituents not yet copied into Stagemgr) are skipped
 # and only counted. The result file lists only the rows that have an entry in
 # the Error column (an id that is not a number, a number that matches no
-# customer, an LGL id tagged on several customers, or a failed save); these
-# are the rows counted as errors. It has the upload's own columns plus Error
-# and is created only when some row has an error. When the import finishes, the
+# customer and whose LGL id no tag resolves, an LGL id tagged on several
+# customers, or a failed save); these are the rows counted as errors. It has
+# the upload's own columns plus Error and is created only when some row has an
+# error. When the import finishes, the
 # uploader (the supervisor-notifications user for the nightly LGL run) is
 # always emailed the counts, with the result file attached when there is one.
 class LglDonorImport < ImportIssuesReport
@@ -89,11 +92,11 @@ class LglDonorImport < ImportIssuesReport
 
   def self.import_row(row, columns, seen_ids)
     raw_id = row[columns[ID_HEADER]].to_s.strip
-    return import_by_lgl_id(row, columns, seen_ids) if raw_id.empty?
+    return import_by_lgl_id(row, columns, seen_ids, [:blank_id, nil]) if raw_id.empty?
     return outcome_with_message(:bad_id) unless raw_id.match?(/\A\d+\z/)
 
     address = Address.find_by(id: raw_id.to_i, placeholder: [false, nil])
-    return outcome_with_message(:unmatched) if address.nil?
+    return import_by_lgl_id(row, columns, seen_ids, outcome_with_message(:unmatched)) if address.nil?
 
     [apply_row(address, row, columns, seen_ids), nil]
   rescue StandardError => e
@@ -101,14 +104,15 @@ class LglDonorImport < ImportIssuesReport
     [:error, ImportIssuesReport.format_exception(e)]
   end
 
-  # A row with a blank External constituent ID, matched through the customer's
-  # LGL ID tag. Returns [outcome, message, matched_by_lgl_id].
-  def self.import_by_lgl_id(row, columns, seen_ids)
+  # A row whose External constituent ID is blank or matches no customer,
+  # matched through the customer's LGL ID tag. Returns [outcome, message,
+  # matched_by_lgl_id], or not_found when no customer carries the LGL id.
+  def self.import_by_lgl_id(row, columns, seen_ids, not_found)
     lgl_id = columns[LGL_ID_HEADER] && row[columns[LGL_ID_HEADER]].to_s.strip
-    return [:blank_id, nil] unless lgl_id.to_s.match?(/\A\d+\z/)
+    return not_found unless lgl_id.to_s.match?(/\A\d+\z/)
 
     addresses = Lgl::Reconciler.tagged_addresses(lgl_id)
-    return [:blank_id, nil] if addresses.empty?
+    return not_found if addresses.empty?
     return [:several_lgl_id, several_lgl_id_message(addresses)] if addresses.size > 1
 
     [apply_row(addresses.first, row, columns, seen_ids), nil, true]
@@ -161,8 +165,8 @@ class LglDonorImport < ImportIssuesReport
   end
 
   # Rows with an entry in the result file's Error column: an id that is not a
-  # number, a number that matches no customer, an LGL id tagged on several
-  # customers, or a row that could not be saved.
+  # number, a number that matches no customer (nor by LGL id), an LGL id
+  # tagged on several customers, or a row that could not be saved.
   def self.error_count(counts)
     counts[:error] + counts[:bad_id] + counts[:unmatched] + counts[:several_lgl_id]
   end

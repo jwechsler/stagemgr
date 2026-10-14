@@ -192,13 +192,42 @@ RSpec.describe LglDonorImport do
       expect(notes).to include('no id 1, errors 0;')
     end
 
-    it 'does not fall back to the LGL id when the External constituent ID matches no customer' do
+    it 'falls back to the LGL id when the External constituent ID matches no customer' do
       address = tag(FactoryBot.create(:address))
 
+      notes = run('999999999,900050,Moved,Gold,Silver', head: lgl_header).notes
+
+      expect(tiers(address)).to eq(%w[Gold Silver])
+      expect(notes).to include('updated 1,', 'matched by LGL ID 1, no id 0, errors 0;')
+      expect(FileStore.where(worker: FileStore::REPORT)).to be_empty
+    end
+
+    it 'reports an unmatched External constituent ID whose LGL id is on no customer' do
       notes = run('999999999,900050,Gone,Gold,Gold', head: lgl_header).notes
 
-      expect(tiers(address)).to eq([nil, nil])
       expect(result_rows.pluck('Error')).to eq(['No customer with this External constituent ID'])
+      expect(notes).to include('matched by LGL ID 0, no id 0, errors 1;')
+    end
+
+    it 'reports an unmatched External constituent ID whose LGL id is on several customers' do
+      first = tag(FactoryBot.create(:address))
+      second = tag(FactoryBot.create(:address))
+
+      notes = run('999999999,900050,Twin,Gold,Silver', head: lgl_header).notes
+
+      expect([tiers(first), tiers(second)]).to eq([[nil, nil], [nil, nil]])
+      expect(result_rows.pluck('Error'))
+        .to eq(["LGL Constituent ID is on customers #{first.id}, #{second.id}: merge them"])
+      expect(notes).to include('matched by LGL ID 0, no id 0, errors 1;')
+    end
+
+    it 'does not fall back to the LGL id when the External constituent ID is not a number' do
+      address = tag(FactoryBot.create(:address))
+
+      notes = run('abc,900050,Bad,Gold,Gold', head: lgl_header).notes
+
+      expect(tiers(address)).to eq([nil, nil])
+      expect(result_rows.pluck('Error')).to eq(['External constituent ID is not a number'])
       expect(notes).to include('matched by LGL ID 0, no id 0, errors 1;')
     end
 

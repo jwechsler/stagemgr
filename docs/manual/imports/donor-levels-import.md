@@ -73,8 +73,8 @@ including clearing the tiers of customers who are not in the file.
 | `TG Tier This Fiscal` | Donor tier for the current fiscal year |
 
 An optional `LGL Constituent ID` column (the constituent's LGL id) lets a row
-with a blank `External constituent ID` be matched through the customer's
-LGL ID tag; see [How It Works](#how-it-works).
+whose `External constituent ID` is blank or matches no customer be matched
+through the customer's LGL ID tag; see [How It Works](#how-it-works).
 
 Header names are matched regardless of capitals, but the spaces must be
 there. If any of the three required headers is missing, the import stops before changing
@@ -87,10 +87,11 @@ and the column's name.
 
 - **Matching is by customer number, then by LGL id.** A row's
   `External constituent ID` must be a Stagemgr customer number. When it is
-  blank, the row's `LGL Constituent ID` is matched against the customers'
-  LGL ID tags. A customer number that matches no one is an error; the LGL id
-  is not tried. Names and emails in the file are never used to find a
-  customer.
+  blank or matches no customer, the row's `LGL Constituent ID` is matched
+  against the customers' LGL ID tags. A customer number whose LGL id is on no
+  customer is an error; an `External constituent ID` that is not a number is
+  an error and the LGL id is not tried. Names and emails in the file are never
+  used to find a customer.
 - **The import only sets tiers.** It never creates, merges or renames
   customers, and never changes any other field.
 - **Blank tier cells clear the tier.** A matched row with an empty
@@ -118,8 +119,8 @@ no row has an error, there is no result file. See
 | Row | `Error` |
 |---|---|
 | `External constituent ID` is not a number | `External constituent ID is not a number` |
-| No customer has that number | `No customer with this External constituent ID` |
-| Blank customer number, and several customers carry the row's LGL ID tag | `LGL Constituent ID is on customers 123, 456: merge them` |
+| No customer has that number, and no customer carries the row's LGL ID tag | `No customer with this External constituent ID` |
+| Blank or unmatched customer number, and several customers carry the row's LGL ID tag | `LGL Constituent ID is on customers 123, 456: merge them` |
 | The customer could not be saved | The reason it failed |
 
 Matched rows (including those matched by LGL id) and rows with a blank
@@ -149,9 +150,9 @@ Donor levels: 1250 rows; updated 40, unchanged 1150, cleared 3, matched by LGL I
 | updated | Matched customers whose tiers changed |
 | unchanged | Matched customers whose tiers were already correct |
 | cleared | Matched customers whose row had both tiers blank |
-| matched by LGL ID | Rows with a blank `External constituent ID` matched through a customer's LGL ID tag (also counted as updated, unchanged or cleared) |
+| matched by LGL ID | Rows whose `External constituent ID` is blank or matches no customer, matched through a customer's LGL ID tag (also counted as updated, unchanged or cleared) |
 | no id | Rows with a blank `External constituent ID` that no LGL ID tag resolved |
-| errors | Rows with an entry in the Error column: a number that matches no customer, an id that is not a number, an LGL id on several customers, or a row that could not be saved |
+| errors | Rows with an entry in the Error column: a number that matches no customer and whose LGL id is on no customer, an id that is not a number, an LGL id on several customers, or a row that could not be saved |
 | absent customers | Customers with a tier who were not in the file and had both tiers cleared |
 
 ---
