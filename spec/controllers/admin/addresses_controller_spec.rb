@@ -54,6 +54,19 @@ RSpec.describe Admin::AddressesController, type: :controller do
 
       expect(response.body).not_to include('Issue Membership', new_admin_membership_path)
     end
+
+    it 'highlights the LGL Review tag in the tag list instead of repeating it under the LGL line' do
+      Theater.default_theater || FactoryBot.create(:theater, theater_class: Theater::DEFAULT)
+      allow(Lgl).to receive(:enabled?).and_return(true)
+      address.lgl_review!('LGL constituent 1234 matches several customers by email and last name')
+
+      get :show, params: { id: address.id }
+
+      review_row = response.body[%r{<tr class=['"]lgl-review['"]>.*?</tr>}m]
+      expect(review_row).to include('LGL Review', 'matches several customers by email and last name')
+      expect(response.body).to include('LGL:')
+      expect(response.body).not_to include('LGL review:')
+    end
   end
 
   describe '#update' do

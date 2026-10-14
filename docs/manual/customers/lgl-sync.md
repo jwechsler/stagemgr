@@ -136,7 +136,8 @@ id, `#5678` for a Stagemgr customer id):
 | `Same person as #5678 in LGL but not a Stagemgr duplicate; merge skipped` | LGL treats the two as one person, but their names and emails differ in Stagemgr |
 | `LGL constituent 1234 no longer exists and no LGL constituent matches; use Re-sync with LGL to create a new one` | The customer's LGL record was deleted or merged away and nothing else in LGL matches. Click **Re-sync with LGL** to create a new LGL record |
 
-The customer page shows the reason under the **LGL** line.
+The customer page highlights the `LGL Review` tag in yellow in its tag list,
+with the reason as the tag's value.
 
 **To clear it:** fix the records in LGL (merge the duplicate constituents, or
 correct the External constituent ID), then click **Re-sync with LGL** on the

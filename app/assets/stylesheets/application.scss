@@ -152,6 +152,11 @@ select[size], select[multiple] {
   }
 }
 
+// The LGL Review tag needs attention, so it stands out in the tag table.
+tr.lgl-review td {
+  background: scale-color($warning-color, $lightness: 80%);
+}
+
 .tag-input-wrap {
   .tagify {
     border-radius: 0.25rem;
