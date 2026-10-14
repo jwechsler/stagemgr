@@ -51,15 +51,15 @@ RSpec.describe LglSyncAddressJob do
     expect(described_class.lock_timeout).to be_positive
   end
 
-  it 'survives resque-scheduler moving a delayed run onto the lgl queue' do
+  it 'survives resque-scheduler moving a delayed run onto the maintenance queue' do
     allow(Resque::Scheduler).to receive(:am_master).and_return(true) # its master lock is Lua; fakeredis has none
     Resque.enqueue_in(2.minutes, described_class, address.id, described_class::EDIT_TRIGGER)
     timestamp = Resque.next_delayed_timestamp(2.minutes.from_now)
 
     Resque::Scheduler.enqueue_delayed_items_for_timestamp(timestamp)
 
-    expect(Resque.peek(:lgl)).to eq('class' => described_class.name,
-                                    'args' => [address.id, described_class::EDIT_TRIGGER])
+    expect(Resque.peek(:maintenance)).to eq('class' => described_class.name,
+                                            'args' => [address.id, described_class::EDIT_TRIGGER])
   end
 
   it 'uses one lock per address whatever the reason' do

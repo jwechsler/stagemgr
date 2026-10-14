@@ -64,7 +64,7 @@ class LglSyncAddressJob
   extend Resque::Plugins::LockTimeout
   extend Resque::Plugins::Retry
 
-  @queue = :lgl
+  @queue = :maintenance
 
   @lock_timeout = 300 # perform-time lock only: see the class comment on @loner
 

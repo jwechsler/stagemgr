@@ -17,7 +17,7 @@
 # The first run (no watermark yet) only starts the clock at the current time and
 # reads nothing, so LGL changes made before sync was enabled are never pulled.
 class LglPollConstituents
-  @queue = :lgl
+  @queue = :maintenance
 
   include LoggedJob
 

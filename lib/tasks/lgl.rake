@@ -6,7 +6,7 @@ namespace :lgl do
     abort Lgl::DISABLED_MESSAGE unless Lgl.enabled?
 
     Resque.enqueue(LglBackfillLinks)
-    puts 'Queued LglBackfillLinks on the lgl queue'
+    puts 'Queued LglBackfillLinks on the maintenance queue'
   end
 
   desc 'Run the LGL backfill inline and print the counts (local LGL ID tags only; no LGL writes)'
@@ -22,7 +22,7 @@ namespace :lgl do
     abort Lgl::DISABLED_MESSAGE unless Lgl.enabled?
 
     Resque.enqueue(LglBackfillLinks, LglBackfillLinks::LINK_BY_EMAIL_MODE)
-    puts 'Queued LglBackfillLinks (link_by_email) on the lgl queue'
+    puts 'Queued LglBackfillLinks (link_by_email) on the maintenance queue'
   end
 
   desc 'Count what lgl:link_by_email would link, inline; enqueues and writes nothing'
@@ -56,7 +56,7 @@ namespace :lgl do
     ids = lgl_constituent_ids.call(args)
     if ids.nil?
       Resque.enqueue(LglBackfillLinks, LglBackfillLinks::REPLICATE_MODE)
-      next puts 'Queued LglBackfillLinks (replicate) on the lgl queue'
+      next puts 'Queued LglBackfillLinks (replicate) on the maintenance queue'
     end
 
     counts = LglBackfillLinks.replicate(constituent_ids: ids) do |lgl_id, _name, outcome, address_id|

@@ -16,7 +16,7 @@ require 'stringio'
 # The link can carry a secret token, so it is never logged; download failures
 # raise Lgl::Error naming only the host (Lgl::DonorLevelsDownload).
 class LglDonorLevelsFetch
-  @queue = :lgl
+  @queue = :maintenance
 
   include LoggedJob
 

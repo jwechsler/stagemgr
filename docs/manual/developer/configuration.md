@@ -188,9 +188,9 @@ copied config never writes to the live account from a developer's machine.
 The test environment never syncs. The rules live in `Lgl.configure_from`,
 called from each environment's `after_initialize`.
 
-All LGL jobs run on the `lgl` Resque queue. In production
-`script/resque-worker` lists it on worker #3 only (`default,maintenance,lgl`),
-so one process makes every LGL request in turn; every other environment runs a
+The LGL jobs run on the `maintenance` Resque queue (`LglDonorImport` runs on
+`import`). In production `script/resque-worker` serves that queue from worker
+#3 only (`default,maintenance`), so one process makes every LGL request in turn; every other environment runs a
 single worker on `QUEUE=*`. `config/schedule.yml` (and its `.example`) schedules three of them:
 
 | Job | Schedule | Does |
@@ -204,7 +204,7 @@ constituent whose External constituent ID already names a customer. It only
 writes local tags, never LGL:
 
 ```sh
-bundle exec rake lgl:backfill       # queue it on the lgl queue
+bundle exec rake lgl:backfill       # queue it on the maintenance queue
 bundle exec rake lgl:backfill_now   # or run it inline and print the counts
 ```
 
@@ -216,7 +216,7 @@ A constituent is linked only when exactly one customer has one of its emails,
 the same last name (ignoring case) and no other LGL ID; constituents with
 several matches, none, or no email are only counted. Run the dry run first: it
 reads LGL, prints the counts by kind and outcome, and writes nothing. Then run
-the real one, which queues one sync per match on the `lgl` queue:
+the real one, which queues one sync per match on the `maintenance` queue:
 
 ```sh
 bundle exec rake lgl:link_by_email_dry_run   # counts only

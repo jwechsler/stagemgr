@@ -28,7 +28,7 @@
 # `rake lgl:replicate_dry_run` (inline, writes nothing) first, then
 # `rake lgl:replicate`.
 class LglBackfillLinks
-  @queue = :lgl
+  @queue = :maintenance
 
   include LoggedJob
 

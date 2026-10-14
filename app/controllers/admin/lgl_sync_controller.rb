@@ -4,7 +4,7 @@
 # poll and sweep last finished, how many customers are linked, and the
 # addresses waiting for a human to reconcile them in LGL, plus the nightly
 # donor-tier report download (which needs only its link, not the API sync).
-# The buttons only queue the jobs on the lgl queue; nothing here calls LGL in
+# The buttons only queue the jobs on the maintenance queue; nothing here calls LGL in
 # the request.
 class Admin::LglSyncController < Admin::ApplicationController
   # The review list is capped; the page shows the full count beside it.
