@@ -21,6 +21,10 @@ module LglLinkable
   # current state, so the later ones push nothing.
   LGL_EDIT_DEBOUNCE = 2.minutes
 
+  # Set (never persisted) by Lgl::ContactPull while it saves values copied from
+  # LGL, so enqueue_lgl_contact_sync does not push them straight back.
+  attr_accessor :lgl_pull_in_progress
+
   included do
     after_commit :enqueue_lgl_contact_sync, on: :update
   end
@@ -51,8 +55,10 @@ module LglLinkable
 
   private
 
-  # saved_changes still holds the last save's changes in after_commit.
+  # saved_changes still holds the last save's changes in after_commit. A pull
+  # from LGL is not an edit: pushing it back would be an echo.
   def enqueue_lgl_contact_sync
+    return if lgl_pull_in_progress
     return unless Lgl.enabled? && saved_changes.keys.intersect?(LGL_SYNCED_COLUMNS) && lgl_id.present?
 
     Resque.enqueue_in(LGL_EDIT_DEBOUNCE, LglSyncAddressJob, id, LglSyncAddressJob::EDIT_TRIGGER)

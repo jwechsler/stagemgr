@@ -10,7 +10,9 @@ module Lgl
   # address other than the constituent's own id (otherwise "junk");
   # T = the live addresses tagged LGL ID = constituent id.
   #
-  #   E live, T == [E]        -> nothing
+  #   E live, T == [E]        -> linked: pull newer LGL name / preferred street /
+  #                              phone into E (Lgl::ContactPull; never under
+  #                              local_only)
   #   E live, T empty         -> tag E locally (review if E names another constituent)
   #   E live, T has others X  -> merge E and X (Lgl::AddressMerger) when they are
   #                              Stagemgr duplicates and neither is in flight,
@@ -29,7 +31,7 @@ module Lgl
       @local_only = local_only
     end
 
-    # A result symbol for counting: :already_tagged, :tagged, :merged,
+    # A result symbol for counting: :already_tagged, :pulled, :tagged, :merged,
     # :repointed, :review, :in_flight, :deferred, :self_referencing,
     # :dead_external_id, :blank_external_id or :error. Lgl::Error (including
     # RateLimited) is re-raised so the calling job fails; anything else is
@@ -38,7 +40,10 @@ module Lgl
       lgl_id = constituent['id'].to_s
       external = live_external_address(constituent)
       tagged = tagged_addresses(lgl_id)
-      external ? reconcile_live(external, tagged, lgl_id) : reconcile_junk(constituent, tagged, lgl_id)
+      return reconcile_junk(constituent, tagged, lgl_id) unless external
+      return pull(external, constituent) if tagged.map(&:id) == [external.id]
+
+      reconcile_live(external, tagged, lgl_id)
     rescue Lgl::Error
       raise
     rescue StandardError => e
@@ -48,8 +53,15 @@ module Lgl
 
     private
 
+    # Reached only when the constituent's external id names +address+ and the
+    # address alone carries its LGL ID: the one case a pull is allowed.
+    def pull(address, constituent)
+      return :already_tagged if @local_only
+
+      Lgl::ContactPull.new(address, constituent).apply!.any? ? :pulled : :already_tagged
+    end
+
     def reconcile_live(external, tagged, lgl_id)
-      return :already_tagged if tagged.map(&:id) == [external.id]
       return tag_external(external, lgl_id) if tagged.empty?
 
       reconcile_others(external, tagged.reject { |address| address.id == external.id }, lgl_id)

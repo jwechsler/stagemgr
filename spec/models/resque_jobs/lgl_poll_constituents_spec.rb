@@ -57,6 +57,40 @@ RSpec.describe LglPollConstituents do
     expect(polled_through).to eq(Time.utc(2026, 10, 1, 13, 0, 0))
   end
 
+  context 'when a linked constituent has a newer preferred street' do
+    def changed(external_id)
+      { 'id' => 979_629, 'external_constituent_id' => external_id, 'updated_at' => '2026-10-13T12:00:00Z',
+        'first_name' => address.first_name, 'last_name' => address.last_name,
+        'street_addresses' => [{ 'id' => 2, 'street' => '6924 N Sheridan Rd', 'city' => 'Chicago', 'state' => 'IL',
+                                 'postal_code' => '60657-3205', 'is_preferred' => true,
+                                 'updated_at' => '2026-10-13T12:00:00Z' }] }
+    end
+
+    before do
+      allow(Resque).to receive(:enqueue_in)
+      address.set_lgl_id!(979_629)
+      address.update_column(:updated_at, Time.zone.parse('2026-10-01T12:00:00Z'))
+    end
+
+    it 'pulls it into the address and counts it as pulled' do
+      stub_constituents(changed(address.id.to_s))
+
+      expect(described_class.perform).to eq(pulled: 1)
+
+      address.reload
+      expect([address.line1, address.city, address.zipcode]).to eq(['6924 N Sheridan Rd', 'Chicago', '60657-3205'])
+      expect(Resque).not_to have_received(:enqueue_in)
+    end
+
+    it 'never pulls when the external id is blank' do
+      stub_constituents(changed(''))
+      line1 = address.line1
+
+      expect(described_class.perform).not_to have_key(:pulled)
+      expect(address.reload.line1).to eq(line1)
+    end
+  end
+
   it 'leaves the watermark unchanged when nothing is newer' do
     JobMetadata.record_run_at(described_class::WATERMARK, watermark)
     stub_constituents

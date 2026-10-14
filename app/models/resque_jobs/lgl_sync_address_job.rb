@@ -10,6 +10,13 @@ require 'resque-retry'
 # equal this address's id, so LGL staff corrections are never overwritten by
 # an older Stagemgr copy. A new constituent always gets the full payload.
 #
+# On MANUAL_TRIGGER (Re-sync) a tagged address first pulls newer name, street
+# and phone from LGL (Lgl::ContactPull), so a Re-sync after an LGL-side edit
+# updates Stagemgr instead of overwriting LGL. The pull reads the constituent
+# as fetched, before any re-point: it happens only when LGL's external id
+# already equals this address's id. EDIT_TRIGGER never pulls (Stagemgr is the
+# newer side by definition).
+#
 # On an edit, street and phone go through LGL's per-entry endpoints: only the
 # constituent's preferred entry is edited in place (or a preferred Home entry
 # added when it has none), so its other entries are never touched. LGL's
@@ -76,15 +83,17 @@ class LglSyncAddressJob
     address = Address.find_by(id: address_id)
     return if address.nil? || address.placeholder?
 
+    manual = reason == MANUAL_TRIGGER
     outcome = new(address, Lgl.client, push_contact: reason == EDIT_TRIGGER,
-                                       may_replace_dead_link: reason == MANUAL_TRIGGER).sync
+                                       may_replace_dead_link: manual, pull_contact: manual).sync
     Rails.logger.info("[LGL] address ##{address.id}: #{outcome.action} constituent " \
                       "#{outcome.constituent_id || '-'} (#{outcome.reason}; trigger: #{reason})")
     outcome
   end
 
-  def initialize(address, client, push_contact: false, may_replace_dead_link: false)
+  def initialize(address, client, push_contact: false, may_replace_dead_link: false, pull_contact: false)
     @address = address
+    @pull_contact = pull_contact
     @client = client
     @push_contact = push_contact
     @may_replace_dead_link = may_replace_dead_link
@@ -107,8 +116,11 @@ class LglSyncAddressJob
       return nil
     end
 
+    # Before pushed?: ContactPull checks LGL's external id as fetched, so a
+    # constituent re-pointed by this run is never pulled from.
+    pulled = @pull_contact ? Lgl::ContactPull.new(@address, constituent).apply! : []
     action = pushed?(constituent) ? :updated : :unchanged
-    Outcome.new(action, constituent['id'], 'tagged')
+    Outcome.new(action, constituent['id'], pulled.any? ? "tagged; pulled #{pulled.join(', ')}" : 'tagged')
   end
 
   def sync_by_external_id

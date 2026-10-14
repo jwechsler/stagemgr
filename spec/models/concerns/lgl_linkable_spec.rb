@@ -112,6 +112,12 @@ RSpec.describe LglLinkable do
       expect(Resque).not_to have_received(:enqueue_in)
     end
 
+    it 'does not queue while a pull from LGL is saving' do
+      linked.lgl_pull_in_progress = true
+      linked.update!(phone: '312-555-0100')
+      expect(Resque).not_to have_received(:enqueue_in)
+    end
+
     it 'does not queue when only the LGL link itself is written' do
       address.set_lgl_id!(42)
       address.set_lgl_id!(43)

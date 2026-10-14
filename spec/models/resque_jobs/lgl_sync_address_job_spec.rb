@@ -184,6 +184,55 @@ RSpec.describe LglSyncAddressJob do
       expect(client).to have_received(:update).exactly(4).times
     end
 
+    context 'when LGL has a newer preferred street' do
+      before do
+        address.update_column(:updated_at, Time.zone.parse('2026-10-01T12:00:00Z'))
+        allow(client).to receive(:update)
+        allow(client).to receive(:update_street_address)
+      end
+
+      def newer_lgl(external_id: address.id.to_s)
+        lgl = constituent(50, external_id: external_id)
+        lgl['street_addresses'].first.merge!('street' => '6924 N Sheridan Rd', 'postal_code' => '60657-3205',
+                                             'updated_at' => '2026-10-13T12:00:00Z')
+        lgl
+      end
+
+      it 'pulls it into Stagemgr on a manual Re-sync instead of overwriting LGL' do
+        allow(client).to receive(:find).and_return(newer_lgl)
+
+        outcome = described_class.perform(address.id, described_class::MANUAL_TRIGGER)
+
+        expect(outcome.reason).to eq('tagged; pulled street')
+        expect(address.reload.attributes.values_at('line1', 'zipcode')).to eq(['6924 N Sheridan Rd', '60657-3205'])
+        expect(client).not_to have_received(:update)
+        expect(client).not_to have_received(:update_street_address)
+      end
+
+      ['', '999999'].each do |external_id|
+        it "does not pull on a manual Re-sync when LGL's external id is #{external_id.inspect}, but still re-points" do
+          allow(client).to receive(:find).and_return(newer_lgl(external_id: external_id))
+
+          described_class.perform(address.id, described_class::MANUAL_TRIGGER)
+
+          expect(address.reload.line1).to eq('1 Main St')
+          expect(client).to have_received(:update)
+            .with(50, hash_including(external_constituent_id: address.id.to_s), for_address_id: address.id)
+        end
+      end
+
+      it 'does not pull on an edit sync: Stagemgr pushes its own street' do
+        allow(client).to receive(:find).and_return(newer_lgl)
+        allow(Rails.logger).to receive(:info)
+
+        described_class.perform(address.id, described_class::EDIT_TRIGGER)
+
+        expect(address.reload.line1).to eq('1 Main St')
+        expect(client).to have_received(:update_street_address)
+          .with(2, hash_including(street: '1 Main St'), for_address_id: address.id)
+      end
+    end
+
     it 'keeps an existing review tag' do
       address.lgl_review!('also constituent 3')
       allow(client).to receive(:find).and_return(constituent(50))

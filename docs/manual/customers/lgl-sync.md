@@ -34,8 +34,27 @@ in LGL is the Stagemgr customer id.
 | An administrator clicks **Link to LGL** / **Re-sync with LGL** on the customer page | The same linking, run in the background straight away. This is the only way a customer whose LGL record was deleted or merged away gets a new one |
 | The name, street address or phone of a linked customer is edited | About two minutes after the last edit, the new values replace the constituent's **preferred** street address and phone in LGL. Other addresses and phones are left alone; if there is no preferred one, a preferred Home entry is added |
 
-Stagemgr never sends **email** changes to LGL; email addresses in LGL are
-managed in LGL. Stagemgr never deletes anything in LGL.
+Stagemgr never deletes anything in LGL.
+
+---
+
+## When LGL Changes Reach Stagemgr
+
+When someone edits a linked customer's **name**, **preferred street address**
+or **preferred phone** in LGL, the change appears on the Stagemgr customer
+within about 15 minutes. Clicking **Re-sync with LGL** brings it over straight
+away.
+
+- **The newer change wins.** If the customer was edited in Stagemgr more
+  recently than in LGL, Stagemgr keeps its own values and sends them to LGL
+  instead.
+- Only the **preferred** street address and phone are copied. If the
+  constituent has no preferred one, the Stagemgr field is left as it is.
+- Only customers whose LGL record carries their Stagemgr customer id as its
+  **External constituent ID** are updated this way.
+
+**Email is never synced, in either direction**: email addresses in LGL are
+managed in LGL, and Stagemgr's are managed in Stagemgr.
 
 ---
 

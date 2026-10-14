@@ -12,6 +12,9 @@ module Lgl
   #
   # Only the preferred entry is ever edited; every other entry is left alone,
   # and nothing is ever removed.
+  #
+  # The comparison rules (same_street?, same_phone?, same_text?) are shared
+  # with Lgl::ContactPull, so a push and a pull agree on what "differs" means.
   class ContactChanges
     Operation = Struct.new(:action, :id, :attrs)
 
@@ -22,17 +25,41 @@ module Lgl
         postal_code: address.zipcode.to_s.strip }
     end
 
+    # True when the address's street fields equal the LGL street entry's.
+    def self.same_street?(address, entry)
+      street_fields(address).all? { |key, value| same_text?(value, entry[key.to_s]) }
+    end
+
+    # Phones compare by digits only: LGL and Stagemgr format numbers differently.
+    def self.same_phone?(address, entry)
+      digits(address.phone) == digits(entry['number'])
+    end
+
+    # Case-sensitive: LGL stores text verbatim, so a capitalization fix is a change.
+    def self.same_text?(left, right)
+      left.to_s.squish == right.to_s.squish
+    end
+
+    def self.digits(value)
+      value.to_s.gsub(/\D/, '')
+    end
+
+    # The constituent's preferred entry (is_preferred == true) or nil.
+    def self.preferred(entries)
+      Array(entries).find { |entry| entry['is_preferred'] == true }
+    end
+
     def initialize(address, constituent)
       @address = address
       @constituent = constituent
     end
 
     def preferred_street
-      preferred(@constituent['street_addresses'])
+      self.class.preferred(@constituent['street_addresses'])
     end
 
     def preferred_phone
-      preferred(@constituent['phone_numbers'])
+      self.class.preferred(@constituent['phone_numbers'])
     end
 
     def street
@@ -44,7 +71,7 @@ module Lgl
         return Operation.new(:add, nil, wanted.merge(street_address_type_id: Client::HOME_STREET_ADDRESS_TYPE_ID,
                                                      is_preferred: true))
       end
-      return nil if wanted.all? { |key, value| same_text?(value, current[key.to_s]) }
+      return nil if self.class.same_street?(@address, current)
 
       Operation.new(:update, current['id'], wanted)
     end
@@ -58,24 +85,9 @@ module Lgl
         return Operation.new(:add, nil, { number: wanted, phone_number_type_id: Client::HOME_PHONE_NUMBER_TYPE_ID,
                                           is_preferred: true })
       end
-      return nil if digits(wanted) == digits(current['number'])
+      return nil if self.class.same_phone?(@address, current)
 
       Operation.new(:update, current['id'], { number: wanted })
-    end
-
-    private
-
-    def preferred(entries)
-      Array(entries).find { |entry| entry['is_preferred'] == true }
-    end
-
-    # Case-sensitive: LGL stores text verbatim, so a capitalization fix is a change.
-    def same_text?(left, right)
-      left.to_s.squish == right.to_s.squish
-    end
-
-    def digits(value)
-      value.to_s.gsub(/\D/, '')
     end
   end
 end
