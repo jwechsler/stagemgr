@@ -147,7 +147,7 @@ order.
 Stagemgr links each customer to a constituent in the default theater's LGL
 account; see [Little Green Light Sync](../customers/lgl-sync.md) for what it
 does. Sync runs only when **both** `littlegreenlight.sync` is `enabled` and
-`LGL_API_KEY` (or the `lgl.api_key` credential) is set. Otherwise every LGL
+`LGL_API_KEY` (or the `littlegreenlight.api_key` credential) is set. Otherwise every LGL
 trigger, job and page button is a no-op, and the LGL Sync admin page says why.
 
 The API key is a secret ([above](#secrets)); the rest lives in the

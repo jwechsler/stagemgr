@@ -56,6 +56,19 @@ RSpec.describe AppSecrets do
       expect(value).to eq('99999999')
     end
 
+    it 'reads the LGL API key from littlegreenlight.api_key when LGL_API_KEY is blank' do
+      value = resolver({ 'LGL_API_KEY' => '' }, { littlegreenlight: { api_key: 'lgl_from_credentials' } })[:lgl_api_key]
+
+      expect(value).to eq('lgl_from_credentials')
+    end
+
+    it 'prefers a non-blank LGL_API_KEY over the littlegreenlight.api_key credential' do
+      value = resolver({ 'LGL_API_KEY' => 'lgl_from_env' },
+                       { littlegreenlight: { api_key: 'lgl_from_credentials' } })[:lgl_api_key]
+
+      expect(value).to eq('lgl_from_env')
+    end
+
     it 'survives a credential whose shape has drifted to a scalar' do
       expect(resolver({}, { stripe: 'sk_oops' })[:stripe_secret_key]).to be_nil
     end
