@@ -136,7 +136,7 @@ id, `#5678` for a Stagemgr customer id):
 |---|---|
 | `2 LGL constituents share this email` | Several constituents with this customer's email and last name could be this customer, and their first names do not settle which one |
 | `LGL constituent 1234 matches several customers named Robert Holliday by email: merge them in Stagemgr, then Re-sync` | These customers are spellings of one person. On the Sync Status page this customer's name opens the customer list filtered by their last name: merge them with **Merge Selected** (see [Merging Duplicates](merging-duplicates.md)), then click **Re-sync with LGL** on the one that remains |
-| `LGL constituent 1234 matches several customers by email and last name` | A new LGL constituent could be any of these customers and none of them shares its first name, so a person must decide; Stagemgr linked none of them. On the Sync Status page this customer's name opens the customer list filtered by their last name, where the duplicates can be selected and merged with **Merge Selected** (see [Merging Duplicates](merging-duplicates.md)); then click **Re-sync with LGL** on the customer that remains. If one of the duplicates was already linked to that constituent when they were merged, the tag clears on that customer's next sync (**Re-sync with LGL**, the regular poll, or the replicate run) |
+| `LGL constituent 1234 matches several customers by email and last name` | A new LGL constituent could be any of these customers and none of them shares its first name, so a person must decide; Stagemgr linked none of them. On the Sync Status page this customer's name opens the customer list filtered by their last name, where the duplicates can be selected and merged with **Merge Selected** (see [Merging Duplicates](merging-duplicates.md)); then click **Re-sync with LGL** on the customer that remains. Merging removes the tag from the customer that remains |
 | `2 LGL constituents carry external id 5678` | Several constituents in LGL name this customer as their External constituent ID |
 | `Also LGL constituent 1234` | LGL says this customer is constituent 1234, but the customer is already linked to a different one |
 | `Also LGL constituent 1234: merge the two in LGL` | Two Stagemgr customers linked to different constituents were merged in Stagemgr |
@@ -151,7 +151,9 @@ with the reason as the tag's value.
 
 **To clear it:** fix the records in LGL (merge the duplicate constituents, or
 correct the External constituent ID), then click **Re-sync with LGL** on the
-customer page. A successful link removes the tag. If the reason no longer
+customer page. A successful link removes the tag. Merging the customer with
+its duplicate (see [Merging Duplicates](merging-duplicates.md)) also removes
+it. If the reason no longer
 applies and nothing needs fixing, delete the `LGL Review` tag as you would any
 [patron tag](patron-tags.md).
 

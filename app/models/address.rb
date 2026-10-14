@@ -251,6 +251,9 @@ end
       productions << Production.where(id: new_production_ids) unless new_production_ids.empty?
       from_address.productions.clear
       save!
+      # Merging resolves any LGL Review either record carried. LGL tags only
+      # exist under a default theater, and clear_lgl_review! raises without one.
+      clear_lgl_review! if Theater.default_theater
       lgl_review!("Also LGL constituent #{lost_lgl_id}: merge the two in LGL") if lost_lgl_id
       from_address.reload
       # update_from re-parented every tag the keeper lacked; whatever remains
