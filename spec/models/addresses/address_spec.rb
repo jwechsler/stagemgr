@@ -108,15 +108,25 @@ RSpec.describe 'a customer record' do
       expect(keeper.lgl_review_reason).to be_nil
     end
 
-    it 'removes the LGL Review tags both records carried' do
+    it 'removes the LGL Review tags both records carried on a staff merge' do
       keeper.lgl_review!('Several LGL matches')
       duplicate.lgl_review!('No LGL match')
       duplicate_id = duplicate.id
 
-      keeper.merge_and_purge(duplicate)
+      keeper.merge_and_purge(duplicate, clear_lgl_review: true)
 
       expect(keeper.lgl_review_reason).to be_nil
       expect(AddressTag.where(tag_label: AddressTag::LGL_REVIEW, address_id: [keeper.id, duplicate_id])).to be_empty
+    end
+
+    it 'carries the newer record\'s LGL Review onto the original on an automatic merge' do
+      keeper.lgl_review!('Several LGL matches')
+      duplicate.lgl_review!('No LGL match')
+
+      keeper.merge_and_purge(duplicate)
+
+      expect(keeper.lgl_review_reason).to eq('No LGL match')
+      expect(AddressTag.where(tag_label: AddressTag::LGL_REVIEW, address_id: keeper.id).count).to eq(1)
     end
 
     it 'keeps only the review the merge raises when the two were linked to different constituents' do

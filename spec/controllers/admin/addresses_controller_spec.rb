@@ -92,6 +92,22 @@ RSpec.describe Admin::AddressesController, type: :controller do
     end
   end
 
+  describe '#merge_selected' do
+    it 'removes the LGL Review tag from the customer that remains' do
+      FactoryBot.create(:theater, theater_class: Theater::DEFAULT) unless Theater.default_theater
+      keeper = FactoryBot.create(:address)
+      duplicate = FactoryBot.create(:address)
+      keeper.lgl_review!('Several LGL matches')
+      duplicate.lgl_review!('No LGL match')
+
+      post :merge_selected, params: { ids: [duplicate.id.to_s, keeper.id.to_s] }, format: :json
+
+      expect(response.parsed_body['result']).to be(true)
+      expect(Address.exists?(duplicate.id)).to be(false)
+      expect(keeper.reload.lgl_review_reason).to be_nil
+    end
+  end
+
   describe '#new' do
     it 'renders the customer form posting to the addresses path' do
       get :new

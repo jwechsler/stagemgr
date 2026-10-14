@@ -227,7 +227,9 @@ end
     original
   end
 
-  def merge_and_purge(from_address)
+  # clear_lgl_review: true only for merges staff choose on the Customers page;
+  # automatic merges leave review tags as update_from carries them.
+  def merge_and_purge(from_address, clear_lgl_review: false)
     Rails.logger.debug("Merging address ##{from_address.id} into ##{id}")
     # update_from copies from_address's tags over the keeper's tags with the
     # same label, so a second LGL ID would silently replace the keeper's.
@@ -251,9 +253,10 @@ end
       productions << Production.where(id: new_production_ids) unless new_production_ids.empty?
       from_address.productions.clear
       save!
-      # Merging resolves any LGL Review either record carried. LGL tags only
-      # exist under a default theater, and clear_lgl_review! raises without one.
-      clear_lgl_review! if Theater.default_theater
+      # A staff merge resolves any LGL Review either record carried; automatic
+      # merges keep it for a person to see. LGL tags only exist under a default
+      # theater, and clear_lgl_review! raises without one.
+      clear_lgl_review! if clear_lgl_review && Theater.default_theater
       lgl_review!("Also LGL constituent #{lost_lgl_id}: merge the two in LGL") if lost_lgl_id
       from_address.reload
       # update_from re-parented every tag the keeper lacked; whatever remains

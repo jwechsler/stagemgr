@@ -60,7 +60,7 @@ the original wherever the newer record has a value.
 | Tags for different theaters | Kept side by side. Two tags with the same label, such as `External ID`, both end up on the original record when each belongs to a different theater |
 | Tags with the same label for the same theater | The newer record's value replaces the original's. Only one tag remains |
 | Tags only on the newer record | Moved to the original record |
-| `LGL Review` tags | Removed from the original record: merging is how the review is resolved. The only one that stays is the flag the merge itself raises when the two records were linked to different LGL constituents |
+| `LGL Review` tags | Merging on the Customers page (**Merge Selected**, or merging from a customer's page) removes them from the original record: merging is how the review is resolved. The only one that stays is the flag the merge itself raises when the two records were linked to different LGL constituents. Automatic duplicate consolidation does not remove them; the newer record's `LGL Review` tag replaces the original's like any other tag |
 | VIP and placeholder flags | Set on the original if either record had them |
 | Donor levels | The newer record's donor level, when it has one |
 | Photo | Copied from the newer record only if the original has none |
@@ -93,7 +93,7 @@ Review the following checklist before performing a merge:
 - [ ] Verify that the records truly belong to the same person.
 - [ ] Note which record has the lowest ID: it is the original and is kept.
 - [ ] Check the newest record's name, email, address and phone. Wherever it has a value, that value will replace the original's.
-- [ ] Review tags on all records. A tag on the newer record replaces the original's tag with the same label for the same theater, and any `LGL Review` tag is removed.
+- [ ] Review tags on all records. A tag on the newer record replaces the original's tag with the same label for the same theater, and any `LGL Review` tag is removed when you merge on the Customers page.
 - [ ] Confirm you have administrator access.
 
 ---

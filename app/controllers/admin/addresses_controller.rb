@@ -82,7 +82,7 @@ class Admin::AddressesController < Admin::ApplicationController
       # A true merge: field-copying alone (the old behavior) left the edited
       # record and all of its orders behind as a permanent duplicate.
       begin
-        match.merge_and_purge(@address)
+        match.merge_and_purge(@address, clear_lgl_review: true)
         @address = match
         notice = "Updated data merged with existing audience member"
       rescue StandardError => e
@@ -127,7 +127,7 @@ class Admin::AddressesController < Admin::ApplicationController
     address = Address.find(ids[0])
     ids.drop(1).each do |id|
       address2 = Address.find(id)
-      address.merge_and_purge(address2)
+      address.merge_and_purge(address2, clear_lgl_review: true)
     end
     render json: { result: true }
   rescue => e
