@@ -30,6 +30,9 @@ RSpec.describe Admin::AddressesController, type: :controller do
     let(:membership_order) { FactoryBot.create(:membership_order) }
     let(:address) { membership_order.address }
     let(:membership) { membership_order.membership_line_item.membership }
+    # A theater user may read a customer only through an order at one of their theaters.
+    let(:readable_order) { FactoryBot.create(:ticket_order, address: address) }
+    let(:readable_order_theater) { readable_order.performance.production.theater }
 
     it 'links each active member code to its membership order' do
       get :show, params: { id: address.id }
@@ -87,6 +90,44 @@ RSpec.describe Admin::AddressesController, type: :controller do
       get :show, params: { id: address.id }
 
       expect(response.body).not_to include('donor-tier-labels', 'Current FY', 'Previous FY')
+    end
+
+    it 'hides active memberships and donor tier labels from a theater user but still shows the tag list' do
+      theater_user = FactoryBot.create(:user, theaters: [readable_order_theater])
+      allow(controller).to receive(:current_user).and_return(theater_user)
+      address.update!(donor_tier_for_current_fiscal_year: 'Gold', donor_tier_for_last_fiscal_year: 'Silver')
+      expect(address.is_current_member?).to be(true)
+
+      get :show, params: { id: address.id }
+
+      expect(response.body).to include('<td>Tag</td>')
+      expect(response.body).not_to include('Active Memberships', membership.member_code)
+      expect(response.body).not_to include('donor-tier-labels', 'Current FY', 'Previous FY')
+    end
+
+    context 'when the customer attended productions at two theaters' do
+      let(:own_production) { readable_order.performance.production }
+      let!(:other_production) do
+        FactoryBot.create(:production, theater: FactoryBot.create(:theater), name: 'Elsewhere Show')
+      end
+
+      before { address.productions << [own_production, other_production] }
+
+      it 'lists only productions at the theater user\'s theaters' do
+        theater_user = FactoryBot.create(:user, theaters: [readable_order_theater])
+        allow(controller).to receive(:current_user).and_return(theater_user)
+
+        get :show, params: { id: address.id }
+
+        expect(response.body).to include('1 Production Attended', own_production.name)
+        expect(response.body).not_to include('Elsewhere Show')
+      end
+
+      it 'lists every attended production for staff' do
+        get :show, params: { id: address.id }
+
+        expect(response.body).to include('2 Productions Attended', own_production.name, 'Elsewhere Show')
+      end
     end
 
     it 'highlights the LGL Review tag in the tag list' do

@@ -7,7 +7,8 @@
   .small-12.medium-6.cell
     = render :partial=>"/admin/addresses/address_contact_info", :locals=>{:address=>@address}
   .small-12.medium-6.cell
-    - if @address.is_current_member?
+    - staff = !current_user.is_theater_user?
+    - if staff && @address.is_current_member?
       %fieldset.fieldset
         %legend Active Memberships
         - active = @address.memberships.select(&:active?)
@@ -19,7 +20,7 @@
           = fp.decorate.description
           %br
     
-    - if @address.is_donor?
+    - if staff && @address.is_donor?
       .donor-tier-labels.text-right
         - if @address.donor_tier_for_last_fiscal_year.present?
           %span.label.warning Previous FY: #{@address.donor_tier_for_last_fiscal_year}
@@ -28,7 +29,8 @@
     = render(:partial=>"/admin/address_tags/tags", :locals=>{:address_tags=>@address.address_tags})
   .small-12.cell.right
     = link_to 'Edit', edit_admin_address_path(@address), :class=>'small button'
-- productions_attended = @address.productions.order(opening_at: :desc).uniq
+- attended_scope = staff ? @address.productions : @address.productions.where(theater_id: current_user.theater_ids)
+- productions_attended = attended_scope.order(opening_at: :desc).uniq
 %fieldset.fieldset
   %legend
     = "#{pluralize(productions_attended.size,'Production')} Attended"

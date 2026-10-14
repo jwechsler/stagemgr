@@ -18,7 +18,7 @@ class AddressDatatable < DatatableBase
         full_name: record.decorate.full_name,
         email: record.decorate.email,
         visits: record.decorate.visits(current_user),
-        description: record.decorate.description
+        description: record.decorate.description(current_user)
       }
     end
   end

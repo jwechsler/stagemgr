@@ -26,7 +26,7 @@ class AddressDecorator < ApplicationDecorator
     h.link_to(object.full_name, [:admin, object])
   end
 
-  def description
+  def description(current_user)
     d = ''
     if object.is_current_flex_pass_holder?
       passes = object.flex_passes.filter_map do |fp|
@@ -36,19 +36,26 @@ class AddressDecorator < ApplicationDecorator
       d += "FlexPass Holder [#{h.raw(passes)}]"
     end
     if object.is_current_member?
-      memberships = []
-      object.memberships.select { |membership| membership.active? }.each do |membership|
-        memberships << if membership.membership_order.nil?
-                         h.link_to(membership.member_code, [:admin, membership])
-                       else
-                         h.link_to(membership.member_code, [:admin, membership.membership_order])
-                       end
-      end
+      memberships = membership_labels(current_user)
       unless memberships.empty?
         memberships = h.safe_join(memberships, ',')
         d = (d.blank? ? '' : "#{d}; ") + "Member [#{h.raw(memberships)}]"
       end
     end
     h.raw d
+  end
+
+  private
+
+  # Theater users see the offer name as plain text; staff see the member code
+  # linked to its order (or to the membership when it has no order).
+  def membership_labels(current_user)
+    object.memberships.select(&:active?).map do |membership|
+      if current_user.is_theater_user?
+        ERB::Util.html_escape(membership.membership_offer.name)
+      else
+        h.link_to(membership.member_code, [:admin, membership.membership_order || membership])
+      end
+    end
   end
 end
