@@ -161,7 +161,7 @@ Donor levels: 1250 rows; updated 40, unchanged 1150, cleared 3, matched by LGL I
 
 | Feature | Usage |
 |---------|-------|
-| **Customer page** | A **Donor Level** box above the productions attended shows the current and previous fiscal year's tiers ("none" for a year without one); it appears only when either tier is set |
+| **Customer page** | Two labels above the tag list: the previous fiscal year's tier in yellow and the current fiscal year's in green, each shown only when that tier is set |
 | **[House Management Report](../house-management/house-management-report.md)** | The donor level appears beside the patron's name, and donors are listed even when nothing else would include them |
 
 ---

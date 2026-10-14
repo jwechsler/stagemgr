@@ -10,7 +10,14 @@
         = tag.tag_label
         = " [#{tag.theater.name}]" unless (tag.theater.nil? || tag.theater.producing?)
       %td
-        = tag.tag_value
-        - if tag.tag_label == AddressTag::LGL_ID && Lgl.enabled? && can?(:lgl_sync, tag.address)
-          - resync_path = lgl_sync_admin_address_path(tag.address)
-          = button_to 'Re-sync with LGL', resync_path, method: :post, class: 'tiny button', form_class: 'lgl-resync'
+        - if tag.tag_label == AddressTag::LGL_ID
+          - lgl_url = Lgl.constituent_url(tag.tag_value)
+          - if lgl_url
+            = link_to tag.tag_value, lgl_url, target: '_blank', rel: 'noopener'
+          - else
+            = tag.tag_value
+          - if Lgl.enabled? && can?(:lgl_sync, tag.address)
+            - resync_path = lgl_sync_admin_address_path(tag.address)
+            = button_to 'Re-sync with LGL', resync_path, method: :post, class: 'tiny button', form_class: 'lgl-resync'
+        - else
+          = tag.tag_value

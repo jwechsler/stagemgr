@@ -89,7 +89,7 @@ RSpec.describe Admin::AddressesController, type: :controller do
       expect(response.body).not_to include('donor-tier-labels', 'Current FY', 'Previous FY')
     end
 
-    it 'highlights the LGL Review tag in the tag list instead of repeating it under the LGL line' do
+    it 'highlights the LGL Review tag in the tag list' do
       Theater.default_theater || FactoryBot.create(:theater, theater_class: Theater::DEFAULT)
       allow(Lgl).to receive(:enabled?).and_return(true)
       address.lgl_review!('LGL constituent 1234 matches several customers by email and last name')
@@ -98,7 +98,6 @@ RSpec.describe Admin::AddressesController, type: :controller do
 
       review_row = response.body[%r{<tr class=['"]lgl-review['"]>.*?</tr>}m]
       expect(review_row).to include('LGL Review', 'matches several customers by email and last name')
-      expect(response.body).to include('LGL:')
       expect(response.body).not_to include('LGL review:')
     end
   end
@@ -190,7 +189,7 @@ RSpec.describe Admin::AddressesController, type: :controller do
         expect(response).to redirect_to(root_path)
       end
 
-      it 'links the LGL ID to the configured account and shows the sync button on the LGL ID tag row' do
+      it 'links the LGL ID tag value to the configured account beside the sync button' do
         address.set_lgl_id!(4321)
         allow(Lgl).to receive(:constituent_url).with('4321')
                                                .and_return('https://house.littlegreenlight.com/constituents/4321')
@@ -199,10 +198,9 @@ RSpec.describe Admin::AddressesController, type: :controller do
 
         page = Nokogiri::HTML(response.body)
         lgl_id_row = page.css('tr').find { |row| row.css('td').first&.text&.strip == AddressTag::LGL_ID }
-        expect(response.body).to include('href="https://house.littlegreenlight.com/constituents/4321"')
         expect(lgl_id_row).to be_present
+        expect(lgl_id_row.to_html).to include('href="https://house.littlegreenlight.com/constituents/4321"')
         expect(lgl_id_row.to_html).to include('Re-sync with LGL', lgl_sync_admin_address_path(address))
-        expect(page.css('.lgl-status').text).not_to include('Re-sync with LGL')
       end
 
       it 'shows the LGL ID as plain text when no LGL web URL is configured' do
@@ -214,13 +212,13 @@ RSpec.describe Admin::AddressesController, type: :controller do
         expect(response.body).not_to include('littlegreenlight.com')
       end
 
-      it 'shows an unlinked address and its review reason' do
+      it 'shows the review reason for an unlinked address' do
         address.lgl_review!('2 LGL constituents share this email')
 
         get :show, params: { id: address.id }
 
-        expect(response.body).to include('not linked', '2 LGL constituents share this email')
-        expect(Nokogiri::HTML(response.body).css('.lgl-status').to_html).to include('Link to LGL')
+        review_row = response.body[%r{<tr class=['"]lgl-review['"]>.*?</tr>}m]
+        expect(review_row).to include('LGL Review', '2 LGL constituents share this email')
       end
     end
 
@@ -233,10 +231,13 @@ RSpec.describe Admin::AddressesController, type: :controller do
         expect(flash[:alert]).to be_present
       end
 
-      it 'shows no LGL line on the customer page' do
+      it 'shows no Re-sync button on the customer page' do
+        address.set_lgl_id!(4321)
+
         get :show, params: { id: address.id }
 
-        expect(response.body).not_to include('Link to LGL')
+        expect(response.body).to include('4321')
+        expect(response.body).not_to include('Re-sync with LGL')
       end
     end
   end
