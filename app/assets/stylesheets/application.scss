@@ -157,6 +157,16 @@ tr.lgl-review td {
   background: scale-color($warning-color, $lightness: 80%);
 }
 
+// Customer page: "Re-sync with LGL" sits inline beside the LGL ID tag value.
+form.lgl-resync {
+  display: inline-block;
+  margin-left: 0.5rem;
+
+  .button {
+    margin-bottom: 0;
+  }
+}
+
 // Customer page: donor tiers sit as labels above the tag table.
 .donor-tier-labels .label + .label {
   margin-left: 0.25rem;

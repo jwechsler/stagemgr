@@ -1,4 +1,7 @@
--# Little Green Light link for one address; shown only when LGL is enabled.
+-#
+  Little Green Light link for one address; shown only when LGL is enabled.
+  An unlinked address gets its "Link to LGL" button here; a linked one gets
+  "Re-sync with LGL" beside the value on its LGL ID tag row (address_tags/_tags).
 :ruby
   lgl_id = address.lgl_id
   lgl_url = Lgl.constituent_url(lgl_id)
@@ -10,6 +13,5 @@
     = lgl_id
   - else
     not linked
-  - if can?(:lgl_sync, address)
-    - sync_label = lgl_id.present? ? 'Re-sync with LGL' : 'Link to LGL'
-    = button_to sync_label, lgl_sync_admin_address_path(address), method: :post, class: 'tiny button'
+  - if lgl_id.blank? && can?(:lgl_sync, address)
+    = button_to 'Link to LGL', lgl_sync_admin_address_path(address), method: :post, class: 'tiny button'

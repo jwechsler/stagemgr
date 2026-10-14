@@ -190,15 +190,19 @@ RSpec.describe Admin::AddressesController, type: :controller do
         expect(response).to redirect_to(root_path)
       end
 
-      it 'links the LGL ID to the configured account and shows the sync button' do
+      it 'links the LGL ID to the configured account and shows the sync button on the LGL ID tag row' do
         address.set_lgl_id!(4321)
         allow(Lgl).to receive(:constituent_url).with('4321')
                                                .and_return('https://house.littlegreenlight.com/constituents/4321')
 
         get :show, params: { id: address.id }
 
+        page = Nokogiri::HTML(response.body)
+        lgl_id_row = page.css('tr').find { |row| row.css('td').first&.text&.strip == AddressTag::LGL_ID }
         expect(response.body).to include('href="https://house.littlegreenlight.com/constituents/4321"')
-        expect(response.body).to include('Re-sync with LGL', lgl_sync_admin_address_path(address))
+        expect(lgl_id_row).to be_present
+        expect(lgl_id_row.to_html).to include('Re-sync with LGL', lgl_sync_admin_address_path(address))
+        expect(page.css('.lgl-status').text).not_to include('Re-sync with LGL')
       end
 
       it 'shows the LGL ID as plain text when no LGL web URL is configured' do
@@ -215,7 +219,8 @@ RSpec.describe Admin::AddressesController, type: :controller do
 
         get :show, params: { id: address.id }
 
-        expect(response.body).to include('not linked', 'Link to LGL', '2 LGL constituents share this email')
+        expect(response.body).to include('not linked', '2 LGL constituents share this email')
+        expect(Nokogiri::HTML(response.body).css('.lgl-status').to_html).to include('Link to LGL')
       end
     end
 
