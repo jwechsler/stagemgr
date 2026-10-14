@@ -12,8 +12,9 @@ module Lgl
   #
   #   E live, T == [E]        -> nothing
   #   E live, T empty         -> tag E locally (review if E names another constituent)
-  #   E live, T has others X  -> merge E and X when they are Stagemgr duplicates
-  #                              and neither is in flight, then sync the keeper;
+  #   E live, T has others X  -> merge E and X (Lgl::AddressMerger) when they are
+  #                              Stagemgr duplicates and neither is in flight,
+  #                              then sync the keeper;
   #                              review both when they are not duplicates
   #   E junk, one tagged      -> sync it, so LGL is re-pointed
   #   E junk, several tagged  -> review each
@@ -79,26 +80,22 @@ module Lgl
 
     # [result, the address that stands for the constituent afterwards]
     def reconcile_pair(current, other, lgl_id)
-      unless duplicates?(current, other)
-        current.lgl_review!("LGL constituent #{lgl_id} is also linked to ##{other.id}")
-        other.lgl_review!("LGL constituent #{lgl_id} is also linked to ##{current.id}")
-        return [:review, current]
-      end
-      return [:deferred, current] if @local_only
-
-      if ConsolidateDuplicateAddresses.in_flight?([current, other])
-        Rails.logger.info("[LGL] constituent #{lgl_id}: ##{current.id} / ##{other.id} in flight; merge skipped")
-        return [:in_flight, current]
+      if @local_only
+        return Lgl::AddressMerger.duplicates?(current, other) ? [:deferred, current] : review_pair(current, other, lgl_id)
       end
 
-      [:merged, merge(current, other)]
+      result, keeper = Lgl::AddressMerger.merge_pair(current, other)
+      case result
+      when :merged then [:merged, keeper]
+      when :in_flight then [:in_flight, current]
+      else review_pair(current, other, lgl_id)
+      end
     end
 
-    def merge(first, second)
-      keeper, duplicate = [first, second].sort_by(&:id)
-      keeper.merge_and_purge(duplicate)
-      Rails.logger.info("[LGL] merged address ##{duplicate.id} into ##{keeper.id} (LGL merge)")
-      keeper
+    def review_pair(current, other, lgl_id)
+      current.lgl_review!("LGL constituent #{lgl_id} is also linked to ##{other.id}")
+      other.lgl_review!("LGL constituent #{lgl_id} is also linked to ##{current.id}")
+      [:review, current]
     end
 
     def reconcile_junk(constituent, tagged, lgl_id)
@@ -119,18 +116,6 @@ module Lgl
       return :self_referencing if external == constituent['id'].to_s
 
       :dead_external_id
-    end
-
-    # Same non-blank search_name, or same non-blank email: Stagemgr's own
-    # duplicate test, looser than ConsolidateDuplicateAddresses because LGL has
-    # already said the two are one person.
-    def duplicates?(first, second)
-      same_present?(first.search_name, second.search_name) ||
-        same_present?(first.email.to_s.strip.downcase, second.email.to_s.strip.downcase)
-    end
-
-    def same_present?(first, second)
-      first.present? && first == second
     end
 
     def live_external_address(constituent)

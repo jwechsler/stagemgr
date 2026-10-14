@@ -65,11 +65,12 @@ RSpec.describe Lgl::ConstituentResolver do
     expect(decide(constituent(7, '200'), c)).to have_attributes(action: :adopt, constituent: c)
   end
 
-  it 'defers when the email belongs to a live address with the same search name' do
-    other_address(200, 'smithjane')
-    decision = decide(constituent(7, '200'))
-    expect(decision.action).to eq(:defer)
-    expect(decision.reason).to include('#200')
+  it 'merges with a live address of the same search name that carries the constituent' do
+    twin = other_address(200, 'smithjane')
+    c = constituent(7, '200')
+    decision = decide(c)
+    expect(decision).to have_attributes(action: :merge, constituent: c, other_address: twin,
+                                        reason: 'same person as address #200 per LGL constituent 7')
   end
 
   it 'creates for a household member: live address with a different search name' do

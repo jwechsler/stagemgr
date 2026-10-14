@@ -23,7 +23,11 @@ require 'resque-retry'
 #      untagged. Otherwise point its external id at this address (and push
 #      contact fields on EDIT_TRIGGER).
 #   2. A constituent already carrying this address's id -> adopt it.
-#   3. Email -> Lgl::ConstituentResolver decides adopt / review / defer / create.
+#   3. Email -> Lgl::ConstituentResolver decides adopt / review / merge / create.
+#      Merge: the email is on a constituent linked to a same-name twin, so LGL
+#      says the two are one person; Lgl::AddressMerger merges them (lowest id
+#      kept) and a fresh run for the keeper re-points LGL. Nothing is written
+#      to LGL in this run.
 #   4. Create a new constituent.
 #
 # LGL errors raise (resque-retry retries a few times, then the failed queue).
@@ -108,11 +112,25 @@ class LglSyncAddressJob
 
     candidates = @client.search_by_email(@address.email)
     decision = Lgl::ConstituentResolver.decide(@address, candidates,
-                                               address_lookup: ->(id) { Address.find_by(id: id) })
+                                               address_lookup: ->(id) { Address.find_by(id: id, placeholder: false) })
     case decision.action
     when :adopt then adopt(decision.constituent, decision.reason)
     when :review then review(decision.reason)
-    when :defer then Outcome.new(:deferred, nil, decision.reason)
+    when :merge then merge(decision)
+    end
+  end
+
+  def merge(decision)
+    other = decision.other_address
+    result, keeper = Lgl::AddressMerger.merge_pair(@address, other)
+    case result
+    when :merged
+      Resque.enqueue(self.class, keeper.id, 'merge')
+      Outcome.new(:merged, decision.constituent['id'], decision.reason)
+    when :in_flight
+      review("Same person as ##{other.id} in LGL; merge skipped while an order is in progress")
+    else
+      review("Same person as ##{other.id} in LGL but not a Stagemgr duplicate; merge skipped")
     end
   end
 

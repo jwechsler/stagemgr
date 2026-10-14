@@ -223,15 +223,40 @@ RSpec.describe LglSyncAddressJob do
     expect(address.lgl_id).to eq('80')
   end
 
-  it 'defers to duplicate consolidation without writing anything' do
-    twin = FactoryBot.create(:address, first_name: 'Jane', last_name: 'Smith', full_name: 'Jane Smith',
-                                       email: address.email)
-    allow(client).to receive(:search_by_email).and_return([constituent(90, external_id: twin.id.to_s)])
-    expect(client).not_to receive(:create)
+  context 'when the email is on a constituent linked to a same-name twin with another email' do
+    let!(:twin) do
+      FactoryBot.create(:address, first_name: 'Jane', last_name: 'Smith', full_name: 'Jane Smith',
+                                  email: 'jane.other@example.com')
+    end
 
-    expect(described_class.perform(address.id).action).to eq(:deferred)
-    expect(address.lgl_id).to be_nil
-    expect(address.lgl_review_reason).to be_nil
+    before do
+      allow(client).to receive(:search_by_email).and_return([constituent(90, external_id: twin.id.to_s)])
+      allow(Resque).to receive(:enqueue)
+    end
+
+    it 'merges into the lower id and enqueues a sync for the keeper, writing nothing to LGL now' do
+      expect(client).not_to receive(:create)
+      expect(client).not_to receive(:update)
+
+      outcome = described_class.perform(address.id)
+
+      expect(outcome.to_a).to eq([:merged, 90, "same person as address ##{twin.id} per LGL constituent 90"])
+      expect(Address.exists?(address.id)).to be(false)
+      expect(Address.exists?(twin.id)).to be(true)
+      expect(Resque).to have_received(:enqueue).with(described_class, twin.id, 'merge')
+    end
+
+    it 'flags the address for review when an order is in flight' do
+      allow(ConsolidateDuplicateAddresses).to receive(:in_flight?).and_return(true)
+      expect(client).not_to receive(:create)
+
+      expect(described_class.perform(address.id).action).to eq(:review)
+
+      expect(address.lgl_review_reason)
+        .to eq("Same person as ##{twin.id} in LGL; merge skipped while an order is in progress")
+      expect(Address.exists?(twin.id)).to be(true)
+      expect(Resque).not_to have_received(:enqueue)
+    end
   end
 
   it 'flags the address for review when several constituents match' do

@@ -9,10 +9,10 @@ module Lgl
   # +address_lookup+ is a callable: Stagemgr address id (Integer) -> the live
   # address responding to #search_name, or nil when no such address exists.
   class ConstituentResolver
-    ACTIONS = %i[adopt create review defer].freeze
+    ACTIONS = %i[adopt create review merge].freeze
     NUMERIC = /\A\d+\z/
 
-    Decision = Struct.new(:action, :constituent, :reason, keyword_init: true)
+    Decision = Struct.new(:action, :constituent, :reason, :other_address, keyword_init: true)
 
     def self.decide(address, constituents, address_lookup:)
       new(address, constituents, address_lookup: address_lookup).decide
@@ -37,16 +37,21 @@ module Lgl
     private
 
     # No unlinked match. A constituent linked to another live address with the
-    # same name is a Stagemgr duplicate that ConsolidateDuplicateAddresses will
-    # merge; a different name is a household sharing one email.
+    # same name means LGL holds both emails on one person: merge the two
+    # Stagemgr addresses (+other_address+ is the twin). A different name is a
+    # household sharing one email.
     def decide_without_candidates
-      linked = @constituents.filter_map { |c| other_live_address(c) }
-      twin = linked.find { |other| other.search_name.to_s == @address.search_name.to_s }
+      pairs = @constituents.filter_map do |c|
+        other = other_live_address(c)
+        [c, other] if other
+      end
+      constituent, twin = pairs.find { |_c, other| same_search_name?(other) }
       if twin
-        return decision(:defer, reason: "same person as address ##{twin.id}; waiting for duplicate consolidation")
+        return decision(:merge, constituent: constituent, other_address: twin,
+                                reason: "same person as address ##{twin.id} per LGL constituent #{constituent['id']}")
       end
 
-      reason = linked.any? ? 'email shared with another household member' : 'no unlinked LGL constituent matches'
+      reason = pairs.any? ? 'email shared with another household member' : 'no unlinked LGL constituent matches'
       decision(:create, reason: reason)
     end
 
@@ -68,13 +73,17 @@ module Lgl
       @address_lookup.call(external_id)
     end
 
+    def same_search_name?(other)
+      other.search_name.to_s == @address.search_name.to_s
+    end
+
     def last_name_matches?(constituent)
       mine = @address.last_name.to_s.strip
       mine.present? && mine.casecmp?(constituent['last_name'].to_s.strip)
     end
 
-    def decision(action, constituent: nil, reason: nil)
-      Decision.new(action: action, constituent: constituent, reason: reason)
+    def decision(action, constituent: nil, reason: nil, other_address: nil)
+      Decision.new(action: action, constituent: constituent, reason: reason, other_address: other_address)
     end
   end
 end
