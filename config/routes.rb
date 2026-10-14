@@ -380,6 +380,7 @@ Rails.application.routes.draw do
     post 'lgl_sync/poll', to: 'lgl_sync#poll', as: :lgl_sync_poll
     post 'lgl_sync/sweep', to: 'lgl_sync#sweep', as: :lgl_sync_sweep
     post 'lgl_sync/backfill', to: 'lgl_sync#backfill', as: :lgl_sync_backfill
+    post 'lgl_sync/donor_levels', to: 'lgl_sync#donor_levels', as: :lgl_sync_donor_levels
   end
 
   namespace :current_user do

@@ -168,10 +168,15 @@ ExpireOneTimeMembershipsJob:
 
 LglPollConstituents:
   every: "15m"
-  description: "Read LGL constituents changed since the last poll; merge LGL-merged duplicates and re-point LGL"
+  description: "Read LGL constituents changed since the last poll; merge LGL-merged duplicates and re-point LGL; link or create customers for new unlinked constituents"
   queue: lgl
 
 LglSweepConstituents:
   every: "1h"
   description: "Hourly: drop LGL ID tags whose LGL constituent was deleted or merged away, and re-sync those addresses"
+  queue: lgl
+
+LglDonorLevelsFetch:
+  cron: "30 4 * * *"
+  description: "Nightly: download the LGL donor-tier saved report (littlegreenlight.donor_tier_report_url) and queue the donor levels import"
   queue: lgl

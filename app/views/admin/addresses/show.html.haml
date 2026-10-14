@@ -7,7 +7,7 @@
   .small-12.medium-6.cell
     = render :partial=>"/admin/addresses/address_contact_info", :locals=>{:address=>@address}
     - if @address.is_donor?
-      %b= "Donor Level: #{@address.most_recent_donation_tier}, #{@address.donor_tier_updated_on.strftime('%B %Y')}"
+      %b Donor Level: #{@address.most_recent_donation_tier}
     - if Lgl.enabled?
       = render "/admin/addresses/lgl_status", address: @address
   .small-12.medium-6.cell

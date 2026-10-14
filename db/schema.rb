@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_10_13_130000) do
+ActiveRecord::Schema.define(version: 2026_10_14_120000) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -83,7 +83,6 @@ ActiveRecord::Schema.define(version: 2026_10_13_130000) do
     t.string "processor_id"
     t.string "donor_tier_for_last_fiscal_year"
     t.string "donor_tier_for_current_fiscal_year"
-    t.date "donor_tier_updated_on"
     t.index ["email"], name: "index_addresses_on_email"
     t.index ["first_name"], name: "index_addresses_on_first_name"
     t.index ["last_first_name"], name: "index_addresses_on_last_first_name"
@@ -829,7 +828,6 @@ ActiveRecord::Schema.define(version: 2026_10_13_130000) do
     t.boolean "external", default: false, null: false
   end
 
-  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "address_tags", "addresses", name: "address_tags_to_address", on_delete: :cascade
   add_foreign_key "address_tags", "theaters", name: "address_tags_to_theater", on_delete: :cascade

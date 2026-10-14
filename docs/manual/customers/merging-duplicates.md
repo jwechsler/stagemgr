@@ -61,7 +61,7 @@ the original wherever the newer record has a value.
 | Tags with the same label for the same theater | The newer record's value replaces the original's. Only one tag remains |
 | Tags only on the newer record | Moved to the original record |
 | VIP and placeholder flags | Set on the original if either record had them |
-| Donor levels | Taken from whichever record's donor information was updated more recently |
+| Donor levels | The newer record's donor level, when it has one |
 | Photo | Copied from the newer record only if the original has none |
 | Orders, including gifts the patron received | Moved to the original record |
 | Memberships and flex passes | Moved to the original record |

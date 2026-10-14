@@ -197,10 +197,8 @@ end
     self.phone = newer.phone if newer.phone.present?
     self.vip ||= newer.vip?
     self.placeholder ||= newer.placeholder?
-    if !newer.donor_tier_updated_on.nil? && (donor_tier_updated_on.nil? || (donor_tier_updated_on < newer.donor_tier_updated_on))
-      self.donor_tier_for_last_fiscal_year = newer.donor_tier_for_last_fiscal_year
-      self.donor_tier_for_current_fiscal_year = newer.donor_tier_for_current_fiscal_year
-    end
+    self.donor_tier_for_last_fiscal_year = newer.donor_tier_for_last_fiscal_year if newer.donor_tier_for_last_fiscal_year.present?
+    self.donor_tier_for_current_fiscal_year = newer.donor_tier_for_current_fiscal_year if newer.donor_tier_for_current_fiscal_year.present?
     newer.address_tags.each do |tag|
       existing_tag = address_tags.select do |t|
         (t.tag_label == tag.tag_label) && (t.theater_id == tag.theater_id)
@@ -433,27 +431,11 @@ end
   end
 
   def is_donor?
-    donated_this_year? || donated_last_year?
+    most_recent_donation_tier.present?
   end
 
   def most_recent_donation_tier
     donor_tier_for_current_fiscal_year.presence || donor_tier_for_last_fiscal_year
-  end
-
-  def donated_year
-    donor_tier_updated_on.year
-  end
-
-  def donated_this_year?
-    !donor_tier_updated_on.nil? && donor_tier_updated_on.year == Date.current.year && donor_tier_for_current_fiscal_year.present?
-  end
-
-  def donated_last_year?
-    unless donor_tier_updated_on.nil?
-      return true if donor_tier_updated_on.year == Date.current.year - 1 && donor_tier_for_current_fiscal_year.present?
-      return true if donor_tier_updated_on.year == Date.current.year && donor_tier_for_last_fiscal_year.present?
-    end
-    false
   end
 
   def to_s

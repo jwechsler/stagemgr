@@ -1,0 +1,19 @@
+:ruby
+  report_url_labels = {
+    env: Lgl::Settings::DONOR_TIER_REPORT_URL_ENV,
+    server_yml: 'littlegreenlight.donor_tier_report_url'
+  }
+%tr
+  %th Donor-tier report
+  %td
+    - if enabled
+      On (#{report_url_labels[settings.donor_tier_report_url_source]}), results to #{recipient}
+    - else
+      Off
+%tr
+  %th Last report download
+  %td= last_fetch ? last_fetch.to_formatted_s(:short_date_and_time) : 'never'
+-# A manual Donor Levels upload on the Imports page updates this too.
+%tr
+  %th Last donor levels import
+  %td= last_import ? last_import.to_formatted_s(:short_date_and_time) : 'never'
