@@ -102,20 +102,32 @@ and the column's name.
 
 ## Result File
 
-When the import finishes, Stagemgr writes a result file
-(`donor_import_results_<your-file-name>.csv`) listing every row of the file
-with an added `Error` column. See [Result File](imports-overview.md#result-file)
-for the naming rules.
+When some rows could not be applied, Stagemgr writes a result file
+(`donor_import_results_<your-file-name>.csv`) listing only the rows that have
+an entry in the `Error` column, with the file's own columns plus `Error`. When
+no row has an error, there is no result file. See
+[Result File](imports-overview.md#result-file) for the naming rules.
 
 | Row | `Error` |
 |---|---|
-| Matched a customer | blank |
-| Blank `External constituent ID` (organisations, and constituents not yet in Stagemgr) | blank. The row is listed and counted but is not an error |
 | `External constituent ID` is not a number | `External constituent ID is not a number` |
 | No customer has that number | `No customer with this External constituent ID` |
+| The customer could not be saved | The reason it failed |
 
-Organisations never become Stagemgr customers, so they always appear with a
-blank id. The result file is emailed only when at least one row has an error.
+Matched rows and rows with a blank `External constituent ID` (organisations,
+and constituents not yet in Stagemgr) are counted but not listed.
+Organisations never become Stagemgr customers, so they always have a blank
+id.
+
+### Completion Email
+
+Every time the import finishes, Stagemgr emails the person who uploaded the
+file (for the nightly import, the supervisor-notifications user) with the
+file name and its counts: constituents in the file, customer records updated
+and update errors, then unchanged rows, rows without an
+`External constituent ID`, and customers cleared because they were not in the
+file. When there is a result file it is attached; otherwise the email says no
+rows had errors.
 
 The Imports page shows a summary line for each run, for example:
 
@@ -159,8 +171,9 @@ In this example:
 - Customer 4523 (Jane Smith) gets Gold last year and Platinum this year.
 - Customer 7810 (Michael Chen) has no tier last year and Silver this year.
 - Customer 3302 (Sarah Johnson) has both tiers cleared.
-- Example Foundation is an organisation with no customer number. It is listed
-  in the result file without an error and changes nothing.
+- Example Foundation is an organisation with no customer number. It is
+  counted as a row without an id, is not listed in the result file, and
+  changes nothing.
 - Every other customer who has a tier has both tiers cleared, because they
   are not in the file.
 
@@ -176,6 +189,7 @@ In this example:
    **Last donor levels import** rows show whether the nightly import is
    running. If the dates stop advancing, tell your administrator.
 
-3. **Read the result email.** It arrives only when some rows could not be
-   matched. A row with no matching customer usually means the constituent's
+3. **Read the completion email.** It arrives after every import. When it
+   reports update errors, open the attached result file. A row with no
+   matching customer usually means the constituent's
    `External constituent ID` in LGL is wrong; correct it in LGL.

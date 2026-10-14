@@ -93,14 +93,14 @@ RSpec.describe LglDonorImport do
     expect(notes).to end_with('cleared 2 absent customers')
   end
 
-  it 'lists blank ids without an error and reports bad, unmatched and placeholder ids, headers intact' do
+  it 'lists only bad, unmatched and placeholder ids in the result file, headers intact' do
     placeholder = FactoryBot.create(:address, placeholder: true)
 
     notes = run(',Blank,Gold,', 'abc,Bad,Gold,', '999999999,Gone,Gold,', "#{placeholder.id},Ph,Gold,").notes
 
     expect(result_rows.headers).to eq(header.split(',') + ['Error'])
     expect(result_rows.map { |r| [r['First Name'], r['Error']] }).to eq(
-      [['Blank', nil], ['Bad', 'External constituent ID is not a number'],
+      [['Bad', 'External constituent ID is not a number'],
        ['Gone', 'No customer with this External constituent ID'],
        ['Ph', 'No customer with this External constituent ID']]
     )
@@ -128,27 +128,56 @@ RSpec.describe LglDonorImport do
     expect { run('999999999,Nobody,Gold,Gold', ',New,Gold,Gold') }.not_to(change(Address, :count))
   end
 
-  it 'names the result file after the upload and lists every row' do
+  it 'creates no result file when no row has an error' do
     address = FactoryBot.create(:address)
 
-    run("#{address.id},Ann,Gold,", filename: 'LGL donors (Oct).csv')
+    expect { run("#{address.id},Ann,Gold,", ',Org,Gold,') }
+      .not_to(change { FileStore.where(worker: FileStore::REPORT).count })
+  end
+
+  it 'names the result file after the upload' do
+    run('999999999,Gone,Gold,', filename: 'LGL donors (Oct).csv')
 
     expect(result_file.file_name).to eq('donor_import_results_LGL_donors_Oct.csv')
-    expect(result_rows['First Name']).to eq(['Ann'])
+    expect(result_rows['First Name']).to eq(['Gone'])
   end
 
-  it 'emails the uploader only when some row has an issue' do
-    address = FactoryBot.create(:address)
+  describe 'completion email' do
+    def last_mail
+      ActionMailer::Base.deliveries.last
+    end
 
-    expect { run("#{address.id},Ann,Gold,") }.not_to(change { ActionMailer::Base.deliveries.size })
-    expect { run('999999999,Gone,Gold,') }.to change { ActionMailer::Base.deliveries.size }.by(1)
-  end
+    it 'emails the uploader the headline counts and attaches the error rows' do
+      address = FactoryBot.create(:address)
 
-  it 'sends no email when the only oddity is rows without an id' do
-    address = FactoryBot.create(:address)
+      expect { run("#{address.id},Ann,Gold,", '999999999,Gone,Gold,', ',Org,Gold,', filename: 'LGL donors.csv') }
+        .to change { ActionMailer::Base.deliveries.size }.by(1)
 
-    expect { run("#{address.id},Ann,Gold,", ',Org,Gold,', ',New,,Silver') }
-      .not_to(change { ActionMailer::Base.deliveries.size })
+      body = last_mail.body.encoded
+      expect(last_mail.to).to eq([user.email])
+      expect(last_mail.subject).to eq('Donor levels import complete')
+      expect(body).to include('LGL donors.csv', 'Constituents in file: 3', 'Customer records updated: 1',
+                              'Update errors: 1', 'Rows without an External constituent ID: 1')
+      expect(last_mail.attachments.map(&:filename)).to eq(['donor_import_results_LGL_donors.csv'])
+    end
+
+    it 'still emails, with nothing attached, when no row has an error' do
+      address = FactoryBot.create(:address)
+
+      expect { run("#{address.id},Ann,Gold,", ',Org,Gold,') }.to change { ActionMailer::Base.deliveries.size }.by(1)
+
+      expect(last_mail.attachments).to be_empty
+      expect(last_mail.body.encoded).to include('No rows had errors', 'Update errors: 0')
+    end
+
+    it 'sends nothing and does not raise when the upload has no user' do
+      address = FactoryBot.create(:address)
+      file_store = filestore_for("#{header}\n#{address.id},Ann,Gold,\n")
+      file_store.update_columns(user_id: nil)
+
+      expect { described_class.perform(file_store.id) }.not_to(change { ActionMailer::Base.deliveries.size })
+      expect(tiers(address)).to eq(['Gold', nil])
+    end
   end
 
   context 'with LGL sync enabled' do

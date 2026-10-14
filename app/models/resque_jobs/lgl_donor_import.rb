@@ -14,10 +14,12 @@ require 'csv'
 # file is the complete list of current donors.
 #
 # Rows without an External constituent ID (organisations, and constituents
-# not yet copied into Stagemgr) are skipped and counted; they are listed in the
-# result file without an error. The result file lists every row with an Error
-# column for rows that could not be applied; the uploader is emailed only when
-# some row has an error.
+# not yet copied into Stagemgr) are skipped and only counted. The result file
+# lists only the rows that have an entry in the Error column (a bad or unknown
+# id, or a failed save), with the upload's own columns plus Error; it is
+# created only when some row has an error. When the import finishes, the
+# uploader (the supervisor-notifications user for the nightly LGL run) is
+# always emailed the counts, with the result file attached when there is one.
 class LglDonorImport < ImportIssuesReport
   include LoggedJob
 
@@ -44,7 +46,7 @@ class LglDonorImport < ImportIssuesReport
     counts = import_rows(filestore, columns, problems)
     filestore.notes = summary(counts)
     filestore.save
-    write_results(filestore, problems)
+    notify_uploader(filestore, counts, write_results(filestore, problems))
   end
 
   # Maps each required header to the file's own spelling of it.
@@ -67,7 +69,7 @@ class LglDonorImport < ImportIssuesReport
       counts[:rows] += 1
       outcome, message = import_row(row, columns, seen_ids)
       counts[outcome] += 1
-      problems.add_problem_row(row: row.to_h, message: message)
+      problems.add_problem_row(row: row.to_h, message: message) if message
     end
     counts[:cleared_absent] = clear_absent(seen_ids)
     counts
@@ -124,11 +126,20 @@ class LglDonorImport < ImportIssuesReport
       "errors #{counts[:error] + counts[:bad_id]}; cleared #{counts[:cleared_absent]} absent customers"
   end
 
+  # The result FileStore listing the rows with an Error entry, or nil when
+  # no row had one.
   def self.write_results(filestore, problems)
     fs = problems.create(import_name: filestore.file_name, result_prefix: 'donor_import_results')
-    return unless fs
+    fs&.save!
+    fs
+  end
 
-    fs.save!
-    notify_user_on_completion(fs) if problems.any_issues?
+  def self.notify_uploader(filestore, counts, result_file)
+    if filestore.user.nil?
+      Rails.logger.info("LglDonorImport: FileStore #{filestore.id} has no user; no completion email sent")
+      return
+    end
+
+    NotificationMailer.donor_levels_imported(filestore, counts, result_file).deliver_now
   end
 end
