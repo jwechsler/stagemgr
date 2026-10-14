@@ -87,20 +87,31 @@ RSpec.describe Lgl do
 
     %w[development production staging].each do |environment|
       context "in #{environment}" do
-        it 'is disabled when sync is not enabled, even with a key' do
-          configure(environment, sync: 'disabled')
+        %w[disabled bogus].each do |word|
+          it "is disabled when sync is #{word.inspect}, even with a key" do
+            configure(environment, sync: word)
 
-          expect(described_class).not_to be_enabled
+            expect(described_class).not_to be_enabled
+          end
         end
 
-        it 'is disabled without a key, even with sync enabled' do
-          configure(environment, api_key: ' ')
+        %w[enabled readonly].each do |word|
+          it "is disabled without a key, even with sync #{word}" do
+            configure(environment, sync: word, api_key: ' ')
 
-          expect(described_class).not_to be_enabled
+            expect(described_class).not_to be_enabled
+          end
         end
 
-        it 'is read-only except the listed ids when writable_address_ids is set' do
-          configure(environment, ids: '5, 12')
+        it 'is read-only for every address in readonly mode with no allowlist' do
+          configure(environment, sync: 'readonly')
+
+          expect(described_class).to be_enabled.and be_read_only
+          expect(described_class.writable?(5)).to be(false)
+        end
+
+        it 'is read-only except the listed ids in readonly mode with an allowlist' do
+          configure(environment, sync: 'readonly', ids: '5, 12')
 
           expect(described_class).to be_enabled.and be_read_only
           expect(described_class.writable_address_ids).to eq(Set[5, 12])
@@ -110,20 +121,50 @@ RSpec.describe Lgl do
       end
     end
 
-    it 'leaves development read-only for every address when no ids are listed' do
-      configure('development')
+    context 'when sync is enabled in development' do
+      before { allow(Rails.logger).to receive(:info) }
 
-      expect(described_class).to be_enabled.and be_read_only
-      expect(described_class.writable?(5)).to be(false)
+      it 'downgrades to read-only for every address and logs it once' do
+        configure('development')
+
+        expect(described_class).to be_enabled.and be_read_only
+        expect(described_class.writable?(5)).to be(false)
+        expect(Rails.logger).to have_received(:info)
+          .with("[LGL] sync 'enabled' downgraded to readonly in development").once
+      end
+
+      it 'keeps the allowlist when downgraded' do
+        configure('development', ids: '5')
+
+        expect(described_class).to be_read_only
+        expect(described_class.writable?(5)).to be(true)
+        expect(described_class.writable?(6)).to be(false)
+      end
+    end
+
+    it 'does not log a downgrade in readonly mode' do
+      allow(Rails.logger).to receive(:info)
+
+      configure('development', sync: 'readonly')
+
+      expect(Rails.logger).not_to have_received(:info).with(a_string_including('downgraded'))
     end
 
     %w[production staging].each do |environment|
-      it "makes #{environment} fully writable when no ids are listed" do
+      it "makes #{environment} fully writable when sync is enabled" do
         configure(environment)
 
         expect(described_class).to be_enabled
         expect(described_class).not_to be_read_only
         expect(described_class.writable?(5)).to be(true)
+      end
+
+      it "ignores the allowlist in #{environment} when sync is enabled" do
+        configure(environment, ids: '5, 12')
+
+        expect(described_class).not_to be_read_only
+        expect(described_class.writable_address_ids).to be_empty
+        expect(described_class.writable?(6)).to be(true)
       end
     end
 

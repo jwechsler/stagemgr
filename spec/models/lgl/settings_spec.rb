@@ -13,17 +13,54 @@ RSpec.describe Lgl::Settings do
       expect(settings.sync_source).to eq(:none)
     end
 
+    it 'is disabled, with no word, when the section is missing' do
+      expect(settings.sync_mode).to eq(:disabled)
+      expect(settings.sync_value).to be_nil
+      expect(settings).to be_sync_value_recognized
+    end
+
     it 'is enabled by "enabled" in server.yml, ignoring case and spaces' do
       result = settings({ 'sync' => ' Enabled ' })
 
+      expect(result.sync_mode).to eq(:enabled)
       expect(result).to be_sync_enabled
+      expect(result).not_to be_read_only_mode
       expect(result.sync_source).to eq(:server_yml)
     end
 
-    ['disabled', 'true', 'yes', 'on', true, 1].each do |value|
-      it "is disabled by #{value.inspect}" do
-        expect(settings({ 'sync' => value })).not_to be_sync_enabled
+    it 'is readonly by "readonly", ignoring case and spaces, and counts as sync on' do
+      result = settings({ 'sync' => ' ReadOnly ' })
+
+      expect(result.sync_mode).to eq(:readonly)
+      expect(result).to be_sync_enabled.and be_read_only_mode
+      expect(result).to be_sync_value_recognized
+    end
+
+    it 'is disabled by "disabled" and recognises the word' do
+      result = settings({ 'sync' => 'Disabled' })
+
+      expect(result.sync_mode).to eq(:disabled)
+      expect(result).not_to be_sync_enabled
+      expect(result).not_to be_read_only_mode
+      expect(result).to be_sync_value_recognized
+    end
+
+    ['true', 'yes', 'on', 'read-only', 'read_only', true, 1].each do |value|
+      it "is disabled by the unknown word #{value.inspect}" do
+        result = settings({ 'sync' => value })
+
+        expect(result.sync_mode).to eq(:disabled)
+        expect(result).not_to be_sync_enabled
+        expect(result).not_to be_sync_value_recognized
+        expect(result.sync_value).to eq(value.to_s)
       end
+    end
+
+    it 'takes readonly from LGL_SYNC over server.yml' do
+      result = settings({ 'sync' => 'enabled' }, env: { 'LGL_SYNC' => 'readonly' })
+
+      expect(result.sync_mode).to eq(:readonly)
+      expect(result.sync_source).to eq(:env)
     end
 
     it 'lets a non-blank LGL_SYNC override server.yml' do
@@ -92,6 +129,39 @@ RSpec.describe Lgl::Settings do
     end
   end
 
+  describe 'donor_tier_report_url' do
+    let(:url) { 'https://house.littlegreenlight.com/reports/abc' }
+
+    it 'reads the url from server.yml, stripped' do
+      result = settings({ 'donor_tier_report_url' => " #{url} " })
+
+      expect(result.donor_tier_report_url).to eq(url)
+      expect(result.donor_tier_report_url_source).to eq(:server_yml)
+      expect(result).to be_donor_levels_enabled
+    end
+
+    it 'lets a non-blank LGL_DONOR_TIER_REPORT_URL override server.yml' do
+      result = settings({ 'donor_tier_report_url' => url }, env: { 'LGL_DONOR_TIER_REPORT_URL' => "#{url}2" })
+
+      expect(result.donor_tier_report_url).to eq("#{url}2")
+      expect(result.donor_tier_report_url_source).to eq(:env)
+    end
+
+    it 'ignores a blank LGL_DONOR_TIER_REPORT_URL' do
+      result = settings({ 'donor_tier_report_url' => url }, env: { 'LGL_DONOR_TIER_REPORT_URL' => ' ' })
+
+      expect(result.donor_tier_report_url).to eq(url)
+    end
+
+    it 'is nil, and donor levels are off, when blank everywhere' do
+      result = settings({ 'donor_tier_report_url' => '  ' })
+
+      expect(result.donor_tier_report_url).to be_nil
+      expect(result.donor_tier_report_url_source).to eq(:none)
+      expect(result).not_to be_donor_levels_enabled
+    end
+  end
+
   describe 'web_url' do
     it 'drops a trailing slash' do
       expect(settings({ 'web_url' => 'https://house.littlegreenlight.com/ ' }).web_url)
@@ -103,7 +173,10 @@ RSpec.describe Lgl::Settings do
     end
   end
 
-  it 'reads the test block of config/server.yml.example as disabled' do
-    expect(described_class.from(Rails.configuration.x.server_config, env: {})).not_to be_sync_enabled
+  it 'reads the test block of config/server.yml.example as disabled, with no donor report' do
+    result = described_class.from(Rails.configuration.x.server_config, env: {})
+
+    expect(result.sync_mode).to eq(:disabled)
+    expect(result).not_to be_donor_levels_enabled
   end
 end

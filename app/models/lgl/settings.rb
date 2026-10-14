@@ -4,9 +4,17 @@ module Lgl
   # The `littlegreenlight:` section of config/server.yml, with ENV overrides.
   #
   #   littlegreenlight:
-  #     sync: enabled                # anything else (or missing) = disabled; ENV LGL_SYNC
-  #     writable_address_ids: 12, 34 # or a YAML list; ENV LGL_WRITABLE_ADDRESS_IDS
+  #     sync: readonly               # enabled | readonly | disabled (any other word or
+  #                                  # missing = disabled); ENV LGL_SYNC
+  #     writable_address_ids: 12, 34 # or a YAML list; only used in readonly mode;
+  #                                  # ENV LGL_WRITABLE_ADDRESS_IDS
   #     web_url: https://youraccount.littlegreenlight.com
+  #     donor_tier_report_url: https://...  # ENV LGL_DONOR_TIER_REPORT_URL
+  #
+  # sync_mode is :enabled (reads and writes), :readonly (reads; writes skipped
+  # except writable_address_ids) or :disabled. Lgl.configure_from turns the
+  # mode into the running state (and downgrades enabled to readonly in
+  # development).
   #
   # Same rule as AppSecrets: a non-blank ENV value wins, a blank one counts as
   # absent. The API key is a secret and never comes from here (AppSecrets).
@@ -15,14 +23,21 @@ module Lgl
     SECTION = 'littlegreenlight'
     SYNC_ENV = 'LGL_SYNC'
     WRITABLE_ENV = 'LGL_WRITABLE_ADDRESS_IDS'
-    ENABLED = 'enabled'
+    DONOR_TIER_REPORT_URL_ENV = 'LGL_DONOR_TIER_REPORT_URL'
+    SYNC_MODES = %i[enabled readonly disabled].freeze
     ID_PATTERN = /\A\d+\z/
 
     # Set of Integer, or nil when no allowlist is configured. A non-blank value
     # with no valid id gives an empty Set: read-only for everyone, never wide open.
     attr_reader :writable_address_ids, :web_url
+    # The configured sync word, stripped and downcased; nil when not set.
+    attr_reader :sync_value
+    # :enabled, :readonly or :disabled
+    attr_reader :sync_mode
+    # Permanent link of the LGL saved report imported as donor levels, or nil.
+    attr_reader :donor_tier_report_url
     # :env, :server_yml or :none
-    attr_reader :sync_source, :writable_address_ids_source
+    attr_reader :sync_source, :writable_address_ids_source, :donor_tier_report_url_source
 
     def self.from(server_config, env: ENV)
       section = server_config.respond_to?(:[]) ? (server_config[SECTION] || server_config[SECTION.to_sym]) : nil
@@ -30,7 +45,8 @@ module Lgl
       new(
         sync: pick(env[SYNC_ENV], value_in(section, 'sync')),
         writable: pick(env[WRITABLE_ENV], value_in(section, 'writable_address_ids')),
-        web_url: value_in(section, 'web_url')
+        web_url: value_in(section, 'web_url'),
+        donor_tier_report_url: pick(env[DONOR_TIER_REPORT_URL_ENV], value_in(section, 'donor_tier_report_url'))
       )
     end
 
@@ -53,17 +69,34 @@ module Lgl
     end
     private_class_method :pick, :value_in, :blank_value?
 
-    def initialize(sync:, writable:, web_url:)
-      sync_value, @sync_source = sync
+    def initialize(sync:, writable:, web_url:, donor_tier_report_url:)
+      raw_sync, @sync_source = sync
       ids_value, @writable_address_ids_source = writable
-      @sync_enabled = sync_value.to_s.strip.casecmp?(ENABLED)
+      report_url, @donor_tier_report_url_source = donor_tier_report_url
+      @sync_value = raw_sync.to_s.strip.downcase.presence
+      @sync_mode = SYNC_MODES.find { |mode| mode.to_s == @sync_value } || :disabled
       @writable_address_ids = ids_value.nil? ? nil : parse_ids(ids_value)
       @web_url = web_url.to_s.strip.chomp('/').presence
+      @donor_tier_report_url = report_url.to_s.strip.presence
       freeze
     end
 
+    # True in enabled and readonly mode; existing callers rely on it.
     def sync_enabled?
-      @sync_enabled
+      sync_mode != :disabled
+    end
+
+    def read_only_mode?
+      sync_mode == :readonly
+    end
+
+    # False when sync is set to a word other than enabled, readonly or disabled.
+    def sync_value_recognized?
+      sync_value.nil? || SYNC_MODES.any? { |mode| mode.to_s == sync_value }
+    end
+
+    def donor_levels_enabled?
+      !donor_tier_report_url.nil?
     end
 
     private
