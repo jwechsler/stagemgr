@@ -1,0 +1,91 @@
+= content_for :title do
+  Little Green Light sync
+= content_for :breadcrumbs do
+  - crumbs = [{ label: 'System Options', path: admin_system_options_path }, { label: 'Little Green Light sync' }]
+  = render "shared/components/breadcrumb", items: crumbs
+
+- source_labels = { env: 'from ENV', server_yml: 'from config/server.yml', none: 'not set' }
+- sync_env = Lgl::Settings::SYNC_ENV
+- writable_env = Lgl::Settings::WRITABLE_ENV
+.grid-x.grid-padding-x
+  .small-12.cell
+    %fieldset.fieldset
+      %legend Status
+      - unless @enabled
+        %p
+          - if @settings.sync_enabled?
+            Little Green Light sync is enabled (littlegreenlight.sync) but LGL_API_KEY is missing.
+          - else
+            Little Green Light sync is disabled (littlegreenlight.sync).
+      %table.unstriped
+        %tbody
+          %tr
+            %th Sync
+            %td
+              = @settings.sync_enabled? ? 'Enabled' : 'Disabled'
+              - if @settings.sync_source == :env
+                (#{sync_env})
+              - elsif @settings.sync_source == :server_yml
+                (littlegreenlight.sync)
+          - if @enabled
+            %tr
+              %th Writes to LGL
+              %td
+                - if @read_only
+                  Read-only in this environment
+                  - if @writable_address_ids.any?
+                    except address ids #{@writable_address_ids.join(', ')}
+                - else
+                  Enabled
+            %tr
+              %th Writable address ids
+              %td
+                - case @settings.writable_address_ids_source
+                - when :env
+                  #{source_labels[:env]} #{writable_env}
+                - when :server_yml
+                  #{source_labels[:server_yml]} littlegreenlight.writable_address_ids
+                - else
+                  = source_labels[:none]
+            %tr
+              %th Polled LGL changes through
+              %td= @last_poll ? @last_poll.to_formatted_s(:short_date_and_time) : 'not yet (starts from the first scheduled poll)'
+            %tr
+              %th Last sweep finished
+              %td= @last_sweep ? @last_sweep.to_formatted_s(:short_date_and_time) : 'never'
+            %tr
+              %th Linked customers
+              %td= number_with_delimiter(@linked_count)
+
+      - if @enabled
+        .button-group
+          = button_to 'Poll now', admin_lgl_sync_poll_path, method: :post, class: 'button'
+          = button_to 'Sweep now', admin_lgl_sync_sweep_path, method: :post, class: 'button'
+          - backfill_confirm = 'Link every LGL constituent to its customer by external id?'
+          = button_to 'Backfill', admin_lgl_sync_backfill_path, method: :post, class: 'button secondary',
+                                                                data: { confirm: backfill_confirm }
+
+    - if @enabled
+      %fieldset.fieldset
+        %legend LGL Review (#{number_with_delimiter(@review_count)})
+        - if @review_tags.empty?
+          %p No customers need review.
+        - else
+          - if @review_count > @review_tags.size
+            %p Showing the oldest #{@review_tags.size} of #{number_with_delimiter(@review_count)}.
+          %table
+            %thead
+              %tr
+                %th Customer
+                %th Reason
+                %th Flagged
+            %tbody
+              - @review_tags.each do |tag|
+                %tr
+                  %td
+                    - if tag.address
+                      = link_to tag.address.full_name.presence || "##{tag.address_id}", admin_address_path(tag.address_id)
+                    - else
+                      = "##{tag.address_id}"
+                  %td= tag.tag_value
+                  %td= tag.created_at&.to_formatted_s(:short_date_and_time)

@@ -2,6 +2,8 @@ require 'street_address'
 require 'csv'
 
 class Address < ApplicationRecord
+  include LglLinkable
+
   # audited only:[:first_name, :last_name, :line1, :line2, :email, :city, :state, :zipcode, :phone], max_audits: 30
 
   validates :full_name, presence: true
@@ -229,6 +231,10 @@ end
 
   def merge_and_purge(from_address)
     Rails.logger.debug("Merging address ##{from_address.id} into ##{id}")
+    # update_from copies from_address's tags over the keeper's tags with the
+    # same label, so a second LGL ID would silently replace the keeper's.
+    # Remember the one about to be lost and flag it for a human to merge in LGL.
+    lost_lgl_id = conflicting_lgl_id(from_address)
     Address.transaction do
       update_from(from_address)
       from_address.orders.update_all(address_id: id)
@@ -247,6 +253,7 @@ end
       productions << Production.where(id: new_production_ids) unless new_production_ids.empty?
       from_address.productions.clear
       save!
+      lgl_review!("Also LGL constituent #{lost_lgl_id}: merge the two in LGL") if lost_lgl_id
       from_address.reload
       # update_from re-parented every tag the keeper lacked; whatever remains
       # on from_address duplicates a tag already on the keeper.

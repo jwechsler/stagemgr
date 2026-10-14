@@ -61,4 +61,98 @@ RSpec.describe Admin::AddressesController, type: :controller do
       expect(address.reload.full_name).to eq('Solo Patron Jr')
     end
   end
+
+  describe '#new' do
+    it 'renders the customer form posting to the addresses path' do
+      get :new
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('New Customer')
+      expect(response.body).to match(/<form[^>]+action="#{Regexp.escape(admin_addresses_path)}"[^>]+method="post"/)
+      expect(response.body).to include('Save Customer')
+    end
+  end
+
+  describe '#create' do
+    it 'creates an address from valid params' do
+      expect do
+        post :create, params: { address: { full_name: 'Brand New Patron', email: 'brandnew@example.com' } }
+      end.to change(Address, :count).by(1)
+
+      expect(response).to redirect_to(admin_address_path(Address.find_by(email: 'brandnew@example.com')))
+    end
+  end
+
+  describe '#lgl_sync' do
+    let!(:house) { Theater.default_theater || FactoryBot.create(:theater, theater_class: Theater::DEFAULT) }
+    let(:address) { FactoryBot.create(:address) }
+
+    before { allow(Resque).to receive(:enqueue) }
+
+    context 'when LGL is enabled' do
+      before { allow(Lgl).to receive(:enabled?).and_return(true) }
+
+      it 'queues a manual sync and returns to the customer page' do
+        post :lgl_sync, params: { id: address.id }
+
+        expect(Resque).to have_received(:enqueue).with(LglSyncAddressJob, address.id, 'manual')
+        expect(response).to redirect_to(admin_address_path(address))
+        expect(flash[:notice]).to eq('Queued a sync with Little Green Light')
+      end
+
+      it 'refuses a box office user without queuing' do
+        box_office = FactoryBot.create(:user, is_box_office_user: true)
+        allow(controller).to receive(:current_user).and_return(box_office)
+
+        post :lgl_sync, params: { id: address.id }
+
+        expect(Resque).not_to have_received(:enqueue)
+        expect(response).to redirect_to(root_path)
+      end
+
+      it 'links the LGL ID to the configured account and shows the sync button' do
+        address.set_lgl_id!(4321)
+        allow(Lgl).to receive(:constituent_url).with('4321')
+                                               .and_return('https://house.littlegreenlight.com/constituents/4321')
+
+        get :show, params: { id: address.id }
+
+        expect(response.body).to include('href="https://house.littlegreenlight.com/constituents/4321"')
+        expect(response.body).to include('Re-sync with LGL', lgl_sync_admin_address_path(address))
+      end
+
+      it 'shows the LGL ID as plain text when no LGL web URL is configured' do
+        address.set_lgl_id!(4321)
+
+        get :show, params: { id: address.id }
+
+        expect(response.body).to include('4321')
+        expect(response.body).not_to include('littlegreenlight.com')
+      end
+
+      it 'shows an unlinked address and its review reason' do
+        address.lgl_review!('2 LGL constituents share this email')
+
+        get :show, params: { id: address.id }
+
+        expect(response.body).to include('not linked', 'Link to LGL', '2 LGL constituents share this email')
+      end
+    end
+
+    context 'when LGL is disabled' do
+      it 'redirects with an alert and queues nothing' do
+        post :lgl_sync, params: { id: address.id }
+
+        expect(Resque).not_to have_received(:enqueue)
+        expect(response).to redirect_to(admin_address_path(address))
+        expect(flash[:alert]).to be_present
+      end
+
+      it 'shows no LGL line on the customer page' do
+        get :show, params: { id: address.id }
+
+        expect(response.body).not_to include('Link to LGL')
+      end
+    end
+  end
 end

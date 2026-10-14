@@ -135,6 +135,17 @@ class Admin::AddressesController < Admin::ApplicationController
     render json: { result: false, error: e.message }, status: :unprocessable_entity
   end
 
+  # POST /admin/addresses/1/lgl_sync
+  # Only queues the sync; never calls Little Green Light in the request.
+  def lgl_sync
+    unless Lgl.enabled?
+      return redirect_to(admin_address_path(@address), alert: 'Little Green Light is not configured')
+    end
+
+    Resque.enqueue(LglSyncAddressJob, @address.id, LglSyncAddressJob::MANUAL_TRIGGER)
+    redirect_to(admin_address_path(@address), notice: 'Queued a sync with Little Green Light')
+  end
+
   def autocomplete_address
     _, first_name, last_name = Address.parse_name(params[:term])
     last_name = first_name if last_name.blank?

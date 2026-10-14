@@ -133,6 +133,7 @@ order.
 | `POSTMARK_API_TOKEN` | `email.delivery_method` is `postmark` |
 | `RESQUE_ADMIN_PASSWORD` | Always, in production -- see [the Resque dashboard](#the-resque-dashboard) |
 | `MY_EMMA_USERNAME`, `MY_EMMA_PASSWORD`, `MY_EMMA_ACCOUNT_ID` | Using MyEmma mailing lists. All three are required together; with any of them absent the integration disables itself |
+| `LGL_API_KEY` | Syncing customers with Little Green Light ([Little Green Light sync](#little-green-light-sync)). Optional: absent, the integration disables itself; it also needs `littlegreenlight.sync: enabled` |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | ActiveStorage on S3 (uncomment the matching block in `config/storage.yml`). Blank means local disk |
 | `PAYPAL_LOGIN`, `PAYPAL_PASSWORD`, `PAYPAL_SIGNATURE`, `PAYPAL_PEM_FILE`, `PAYPAL_EXPRESS_LOGIN`, `PAYPAL_EXPRESS_PASSWORD` | Legacy PayPal gateways only |
 
@@ -140,6 +141,89 @@ order.
     `config/environments/development.rb` calls `MyEmma.read_only!` after setting
     credentials: reads work, writes are logged and skipped, whatever account the
     credentials point at.
+
+### Little Green Light sync
+
+Stagemgr links each customer to a constituent in the default theater's LGL
+account; see [Little Green Light Sync](../customers/lgl-sync.md) for what it
+does. Sync runs only when **both** `littlegreenlight.sync` is `enabled` and
+`LGL_API_KEY` (or the `littlegreenlight.api_key` credential) is set. Otherwise every LGL
+trigger, job and page button is a no-op, and the LGL Sync admin page says why.
+
+The API key is a secret ([above](#secrets)); the rest lives in the
+`littlegreenlight:` section of `config/server.yml`:
+
+```yaml
+all:
+  littlegreenlight:
+    sync: enabled
+    writable_address_ids:       # optional: 12, 34  or a YAML list
+    web_url: https://youraccount.littlegreenlight.com
+```
+
+| Key | ENV override | Purpose |
+|---|---|---|
+| `sync` | `LGL_SYNC` | `enabled` turns sync on. Any other value, or none, turns it off |
+| `writable_address_ids` | `LGL_WRITABLE_ADDRESS_IDS` | Comma-separated (or YAML list) Stagemgr address ids. When set, LGL is read-only in **every** environment, production included, except for these addresses: reads hit the live account, every other create and update is logged as `[LGL] read-only: skipped ...` and skipped, and Stagemgr merges driven by LGL go to LGL Review unless both addresses are listed. Use it for acceptance testing |
+| `web_url` | -- | Base URL of the LGL account, used to link an LGL ID to the constituent page. Blank shows the id as plain text |
+
+A non-blank environment variable overrides the `server.yml` value; a blank one
+counts as absent, the same rule as [AppSecrets](#secrets).
+
+With `writable_address_ids` unset, development is read-only for every address
+(it must never write to the live account by accident) and production writes
+normally. The test environment never syncs. The rules live in
+`Lgl.configure_from`, called from each environment's `after_initialize`.
+
+All LGL jobs run on the `lgl` Resque queue. In production
+`script/resque-worker` lists it on worker #3 only (`default,maintenance,lgl`),
+so one process makes every LGL request in turn; every other environment runs a
+single worker on `QUEUE=*`. `config/schedule.yml` (and its `.example`) schedules two of them:
+
+| Job | Schedule | Does |
+|---|---|---|
+| `LglPollConstituents` | every 15 minutes | Reads constituents changed since the last poll and reconciles LGL merges |
+| `LglSweepConstituents` | every hour | Drops `LGL ID` tags whose constituent no longer exists and re-syncs those customers |
+
+After the first deploy with a key, run the backfill **once** to link every
+constituent whose External constituent ID already names a customer. It only
+writes local tags, never LGL:
+
+```sh
+bundle exec rake lgl:backfill       # queue it on the lgl queue
+bundle exec rake lgl:backfill_now   # or run it inline and print the counts
+```
+
+#### Writing Stagemgr ids into LGL
+
+Constituents whose External constituent ID is blank, their own LGL id, or a
+customer that no longer exists can be linked by email, once, by a developer.
+A constituent is linked only when exactly one customer has one of its emails,
+the same last name (ignoring case) and no other LGL ID; constituents with
+several matches, none, or no email are only counted. Run the dry run first: it
+reads LGL, prints the counts by kind and outcome, and writes nothing. Then run
+the real one, which queues one sync per match on the `lgl` queue:
+
+```sh
+bundle exec rake lgl:link_by_email_dry_run   # counts only
+bundle exec rake lgl:link_by_email           # queue the links
+```
+
+It only sets External Constituent IDs in LGL (and the customer's `LGL ID`
+tag). It never copies a name, street, phone or email in either direction:
+each linked customer is marked as changed after the write, so the next poll
+does not treat LGL as the newer copy.
+
+The first `LglPollConstituents` run after sync is enabled reads nothing: it
+records the current time as its watermark and logs `[LGL] poll: first run;
+starting from <time>`. Only LGL changes made after that moment are copied into
+Stagemgr; earlier ones are not. A disabled install never starts the clock.
+
+`setup:doctor` reports one LGL line: `LGL sync is disabled
+(littlegreenlight.sync)` and `LGL is read-only in this environment for ...`
+(listing any writable ids) are both OK; `littlegreenlight.sync is enabled but
+LGL_API_KEY is missing` is a warning; otherwise it makes one read to confirm
+the key and warns if LGL rejects it.
 
 ### `docker compose`
 

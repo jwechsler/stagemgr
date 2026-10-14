@@ -1,0 +1,93 @@
+# frozen_string_literal: true
+
+module Lgl
+  # Compares a Stagemgr address's street and phone with the constituent's
+  # PREFERRED LGL entries (is_preferred == true; no fallback to another entry)
+  # and says what to write:
+  #
+  #   :update -> edit the preferred entry (id) in place with the four street
+  #              fields / the number
+  #   :add    -> the constituent has no preferred entry; add a preferred Home one
+  #   nil     -> already equal, or Stagemgr has nothing to push
+  #
+  # Only the preferred entry is ever edited; every other entry is left alone,
+  # and nothing is ever removed.
+  #
+  # The comparison rules (same_street?, same_phone?, same_text?) are shared
+  # with Lgl::ContactPull, so a push and a pull agree on what "differs" means.
+  class ContactChanges
+    Operation = Struct.new(:action, :id, :attrs)
+
+    # The street entry fields Stagemgr sends for an address.
+    def self.street_fields(address)
+      street = [address.line1, address.line2].map { |line| line.to_s.strip }.reject(&:empty?).join("\n")
+      { street: street, city: address.city.to_s.strip, state: address.state.to_s.strip,
+        postal_code: address.zipcode.to_s.strip }
+    end
+
+    # True when the address's street fields equal the LGL street entry's.
+    def self.same_street?(address, entry)
+      street_fields(address).all? { |key, value| same_text?(value, entry[key.to_s]) }
+    end
+
+    # Phones compare by digits only: LGL and Stagemgr format numbers differently.
+    def self.same_phone?(address, entry)
+      digits(address.phone) == digits(entry['number'])
+    end
+
+    # Case-sensitive: LGL stores text verbatim, so a capitalization fix is a change.
+    def self.same_text?(left, right)
+      left.to_s.squish == right.to_s.squish
+    end
+
+    def self.digits(value)
+      value.to_s.gsub(/\D/, '')
+    end
+
+    # The constituent's preferred entry (is_preferred == true) or nil.
+    def self.preferred(entries)
+      Array(entries).find { |entry| entry['is_preferred'] == true }
+    end
+
+    def initialize(address, constituent)
+      @address = address
+      @constituent = constituent
+    end
+
+    def preferred_street
+      self.class.preferred(@constituent['street_addresses'])
+    end
+
+    def preferred_phone
+      self.class.preferred(@constituent['phone_numbers'])
+    end
+
+    def street
+      return nil if @address.line1.blank?
+
+      wanted = self.class.street_fields(@address)
+      current = preferred_street
+      if current.nil?
+        return Operation.new(:add, nil, wanted.merge(street_address_type_id: Client::HOME_STREET_ADDRESS_TYPE_ID,
+                                                     is_preferred: true))
+      end
+      return nil if self.class.same_street?(@address, current)
+
+      Operation.new(:update, current['id'], wanted)
+    end
+
+    def phone
+      return nil if @address.phone.blank?
+
+      wanted = @address.phone.strip
+      current = preferred_phone
+      if current.nil?
+        return Operation.new(:add, nil, { number: wanted, phone_number_type_id: Client::HOME_PHONE_NUMBER_TYPE_ID,
+                                          is_preferred: true })
+      end
+      return nil if self.class.same_phone?(@address, current)
+
+      Operation.new(:update, current['id'], { number: wanted })
+    end
+  end
+end

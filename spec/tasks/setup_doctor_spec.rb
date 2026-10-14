@@ -199,6 +199,83 @@ RSpec.describe Setup::Doctor do
     end
   end
 
+  # Like MyEmma, every example stubs Lgl so the suite never reaches the network.
+  describe 'the LGL key' do
+    let(:lgl_client) { instance_double(Lgl::Client, ping: {}) }
+    let(:sync_on) { Lgl::Settings.from({ 'littlegreenlight' => { 'sync' => 'enabled' } }, env: {}) }
+
+    before do
+      allow(Lgl).to receive_messages(enabled?: true, read_only?: false, client: lgl_client, settings: sync_on)
+      allow(AppSecrets).to receive(:[]).and_call_original
+      allow(AppSecrets).to receive(:[]).with(:lgl_api_key).and_return('key')
+    end
+
+    it 'reports sync disabled, without an API call, when littlegreenlight.sync is off' do
+      allow(Lgl).to receive_messages(enabled?: false, settings: Lgl::Settings.from({}, env: {}))
+
+      doctor.send(:check_lgl)
+
+      expect(lgl_client).not_to have_received(:ping)
+      expect(output.string).to include('LGL sync is disabled (littlegreenlight.sync)')
+      expect(doctor).to be_healthy
+    end
+
+    it 'warns when sync is enabled but the key is missing' do
+      allow(Lgl).to receive(:enabled?).and_return(false)
+      allow(AppSecrets).to receive(:[]).with(:lgl_api_key).and_return(nil)
+
+      doctor.send(:check_lgl)
+
+      expect(lgl_client).not_to have_received(:ping)
+      expect(output.string).to include('warn', 'littlegreenlight.sync is enabled but LGL_API_KEY is missing')
+      expect(doctor).to be_healthy
+    end
+
+    it 'makes no API call when LGL is otherwise not configured (the test environment)' do
+      allow(Lgl).to receive(:enabled?).and_return(false)
+
+      doctor.send(:check_lgl)
+
+      expect(lgl_client).not_to have_received(:ping)
+      expect(output.string).to include('LGL is not configured in this environment')
+    end
+
+    it 'makes no API call in a read-only environment such as development' do
+      allow(Lgl).to receive_messages(read_only?: true, writable_address_ids: Set[])
+
+      doctor.send(:check_lgl)
+
+      expect(lgl_client).not_to have_received(:ping)
+      expect(output.string).to include('LGL is read-only in this environment for every address')
+    end
+
+    it 'lists the writable ids when an allowlist is set' do
+      allow(Lgl).to receive_messages(read_only?: true, writable_address_ids: Set[42, 7])
+
+      doctor.send(:check_lgl)
+
+      expect(lgl_client).not_to have_received(:ping)
+      expect(output.string).to include('every address except ids 7, 42')
+    end
+
+    it 'confirms the key with one request when writable' do
+      doctor.send(:check_lgl)
+
+      expect(lgl_client).to have_received(:ping).once
+      expect(output.string).to include('LGL API key accepted')
+      expect(doctor).to be_healthy
+    end
+
+    it 'warns rather than failing when the key is rejected' do
+      allow(lgl_client).to receive(:ping).and_raise(Lgl::Error.new(status: 401, body: 'unauthorized'))
+
+      doctor.send(:check_lgl)
+
+      expect(output.string).to include('warn', 'LGL API key not verified')
+      expect(doctor).to be_healthy
+    end
+  end
+
   describe 'the membership card spec' do
     it 'warns — never fails — when the generated config file is missing' do
       allow(MembershipCards::Spec).to receive(:load).and_call_original
