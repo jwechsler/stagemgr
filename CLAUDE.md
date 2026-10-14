@@ -58,6 +58,9 @@ stagemgr.theaterwit.org) and `README.md`. The essentials:
 - Delegate each coding task to the `coder` subagent and each testing task to the
   `tester` subagent (`.claude/agents/`). Every handoff states the goal, the files in
   scope, and what "done" means.
+- Coding always goes to Opus 5.5 (`coder`). Tasks the orchestrator judges
+  low-complexity (lookups, sweeps, log or DB checks, running known specs) may go
+  to an agent on `model: "sonnet"` instead.
 - Evaluate every subagent report critically: read the actual diff, check it against
   the plan and these conventions, and send it back with specific fixes if it falls
   short. Work is not done until the tester reports green.
