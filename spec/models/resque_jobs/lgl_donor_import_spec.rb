@@ -36,8 +36,8 @@ RSpec.describe LglDonorImport do
     notes = run("#{address.id},Ann,Gold,Silver").notes
 
     expect(tiers(address)).to eq(%w[Gold Silver])
-    expect(notes).to eq('Donor levels: 1 rows; updated 1, unchanged 0, cleared 0, unmatched 0, no id 0, ' \
-                        'errors 0; cleared 0 absent customers')
+    expect(notes).to eq('Donor levels: 1 rows; updated 1, unchanged 0, cleared 0, no id 0, errors 0; ' \
+                        'cleared 0 absent customers')
   end
 
   it 'finds headers whatever their case, spacing or byte-order mark' do
@@ -104,7 +104,7 @@ RSpec.describe LglDonorImport do
        ['Gone', 'No customer with this External constituent ID'],
        ['Ph', 'No customer with this External constituent ID']]
     )
-    expect(notes).to include('unmatched 2, no id 1, errors 1')
+    expect(notes).to include('cleared 0, no id 1, errors 3;')
     expect(tiers(placeholder)).to eq([nil, nil])
   end
 

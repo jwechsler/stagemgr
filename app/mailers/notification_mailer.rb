@@ -75,6 +75,7 @@ class NotificationMailer < ActionMailer::Base
   def donor_levels_imported(filestore, counts, result_file = nil)
     @filestore = filestore
     @counts = Hash.new(0).merge(counts)
+    @error_count = LglDonorImport.error_count(@counts)
     @result_file = result_file
     if result_file
       attachments[result_file.file_name] = {

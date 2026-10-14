@@ -5,7 +5,7 @@
 %ul
   %li Constituents in file: #{@counts[:rows]}
   %li Customer records updated: #{@counts[:updated] + @counts[:cleared]}
-  %li Update errors: #{@counts[:error] + @counts[:bad_id] + @counts[:unmatched]}
+  %li Update errors: #{@error_count}
 %ul
   %li Unchanged: #{@counts[:unchanged]}
   %li Rows without an External constituent ID: #{@counts[:blank_id]}

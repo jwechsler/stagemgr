@@ -132,7 +132,7 @@ rows had errors.
 The Imports page shows a summary line for each run, for example:
 
 ```text
-Donor levels: 1250 rows; updated 40, unchanged 1150, cleared 3, unmatched 2, no id 55, errors 0; cleared 6 absent customers
+Donor levels: 1250 rows; updated 40, unchanged 1150, cleared 3, no id 55, errors 2; cleared 6 absent customers
 ```
 
 | Count | Meaning |
@@ -140,9 +140,8 @@ Donor levels: 1250 rows; updated 40, unchanged 1150, cleared 3, unmatched 2, no 
 | updated | Matched customers whose tiers changed |
 | unchanged | Matched customers whose tiers were already correct |
 | cleared | Matched customers whose row had both tiers blank |
-| unmatched | Rows whose number matched no customer |
 | no id | Rows with a blank `External constituent ID` |
-| errors | Rows whose id was not a number, or that could not be saved |
+| errors | Rows with an entry in the Error column: a number that matches no customer, an id that is not a number, or a row that could not be saved |
 | absent customers | Customers with a tier who were not in the file and had both tiers cleared |
 
 ---

@@ -15,9 +15,10 @@ require 'csv'
 #
 # Rows without an External constituent ID (organisations, and constituents
 # not yet copied into Stagemgr) are skipped and only counted. The result file
-# lists only the rows that have an entry in the Error column (a bad or unknown
-# id, or a failed save), with the upload's own columns plus Error; it is
-# created only when some row has an error. When the import finishes, the
+# lists only the rows that have an entry in the Error column (an id that is
+# not a number, a number that matches no customer, or a failed save); these
+# are the rows counted as errors. It has the upload's own columns plus Error
+# and is created only when some row has an error. When the import finishes, the
 # uploader (the supervisor-notifications user for the nightly LGL run) is
 # always emailed the counts, with the result file attached when there is one.
 class LglDonorImport < ImportIssuesReport
@@ -122,8 +123,14 @@ class LglDonorImport < ImportIssuesReport
 
   def self.summary(counts)
     "Donor levels: #{counts[:rows]} rows; updated #{counts[:updated]}, unchanged #{counts[:unchanged]}, " \
-      "cleared #{counts[:cleared]}, unmatched #{counts[:unmatched]}, no id #{counts[:blank_id]}, " \
-      "errors #{counts[:error] + counts[:bad_id]}; cleared #{counts[:cleared_absent]} absent customers"
+      "cleared #{counts[:cleared]}, no id #{counts[:blank_id]}, errors #{error_count(counts)}; " \
+      "cleared #{counts[:cleared_absent]} absent customers"
+  end
+
+  # Rows with an entry in the result file's Error column: an id that is not a
+  # number, a number that matches no customer, or a row that could not be saved.
+  def self.error_count(counts)
+    counts[:error] + counts[:bad_id] + counts[:unmatched]
   end
 
   # The result FileStore listing the rows with an Error entry, or nil when
