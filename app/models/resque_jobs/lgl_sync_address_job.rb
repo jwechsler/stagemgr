@@ -19,16 +19,19 @@ require 'resque-retry'
 # The ONLY code that writes an address's LGL link. Idempotent: everything is
 # read at run time, so duplicate or stale enqueues are harmless.
 #
-#   1. Tagged with an LGL ID: find it. Gone (404) -> drop the tag, carry on as
-#      untagged. Otherwise point its external id at this address (and push
-#      contact fields on EDIT_TRIGGER).
+#   1. Tagged with an LGL ID: find it. Gone (404) -> a dead link: keep the tag
+#      for now and carry on as untagged. Otherwise point its external id at
+#      this address (and push contact fields on EDIT_TRIGGER).
 #   2. A constituent already carrying this address's id -> adopt it.
 #   3. Email -> Lgl::ConstituentResolver decides adopt / review / merge / create.
 #      Merge: the email is on a constituent linked to a same-name twin, so LGL
 #      says the two are one person; Lgl::AddressMerger merges them (lowest id
 #      kept) and a fresh run for the keeper re-points LGL. Nothing is written
 #      to LGL in this run.
-#   4. Create a new constituent.
+#   4. Create a new constituent. A dead link is never re-created
+#      automatically: unless the trigger is MANUAL_TRIGGER (staff clicked Link
+#      to LGL / Re-sync), the dead tag stays and the address gets an LGL Review
+#      tag instead. A never-linked address may be created by any trigger.
 #
 # LGL errors raise (resque-retry retries a few times, then the failed queue).
 # In read-only environments Lgl::Client skips writes and returns nil.
@@ -54,6 +57,10 @@ class LglSyncAddressJob
   # Trigger reason for an address edit: the only one that pushes contact fields.
   EDIT_TRIGGER = 'change'
 
+  # Trigger reason for the Link to LGL / Re-sync button: the only one that may
+  # replace a dead link with a new constituent.
+  MANUAL_TRIGGER = 'manual'
+
   Outcome = Struct.new(:action, :constituent_id, :reason)
 
   # One lock per address whatever triggered it: the reason is only for the log.
@@ -61,22 +68,25 @@ class LglSyncAddressJob
     ['lock', name, address_id.to_i].join(':')
   end
 
-  def self.perform(address_id, reason = 'manual')
+  def self.perform(address_id, reason = MANUAL_TRIGGER)
     return unless Lgl.enabled?
 
     address = Address.find_by(id: address_id)
     return if address.nil? || address.placeholder?
 
-    outcome = new(address, Lgl.client, push_contact: reason == EDIT_TRIGGER).sync
+    outcome = new(address, Lgl.client, push_contact: reason == EDIT_TRIGGER,
+                                       may_replace_dead_link: reason == MANUAL_TRIGGER).sync
     Rails.logger.info("[LGL] address ##{address.id}: #{outcome.action} constituent " \
                       "#{outcome.constituent_id || '-'} (#{outcome.reason}; trigger: #{reason})")
     outcome
   end
 
-  def initialize(address, client, push_contact: false)
+  def initialize(address, client, push_contact: false, may_replace_dead_link: false)
     @address = address
     @client = client
     @push_contact = push_contact
+    @may_replace_dead_link = may_replace_dead_link
+    @dead_lgl_id = nil
   end
 
   def sync
@@ -91,7 +101,7 @@ class LglSyncAddressJob
 
     constituent = @client.find(lgl_id)
     if constituent.nil?
-      @address.clear_lgl_id!
+      @dead_lgl_id = lgl_id
       return nil
     end
 
@@ -143,12 +153,20 @@ class LglSyncAddressJob
   end
 
   def create
+    return dead_link_review if @dead_lgl_id && !@may_replace_dead_link
+
+    # A dead tag is replaced by link below, so a read-only skip keeps it.
     created = @client.create(Lgl::ConstituentPayload.for_create(@address), for_address_id: @address.id)
     # Skipped by the read-only guard: there is no id to tag.
     return Outcome.new(:create_skipped, nil, 'read-only') if created.nil?
 
     link(created['id'])
     Outcome.new(:created, created['id'], 'no existing constituent')
+  end
+
+  def dead_link_review
+    review("LGL constituent #{@dead_lgl_id} no longer exists and no LGL constituent matches; " \
+           'use Re-sync with LGL to create a new one')
   end
 
   def review(reason)

@@ -27,13 +27,13 @@ RSpec.describe LglSweepConstituents do
     expect(JobMetadata.find_by(job_name: described_class::COMPLETED)).to be_nil
   end
 
-  it 'clears the tag and enqueues a sync only after LGL confirms a 404' do
+  it 'keeps the dead tag and enqueues a sync only after LGL confirms a 404' do
     allow(client).to receive(:each_constituent_id).and_return([[10, 30], 2])
     allow(client).to receive(:find).with('20').and_return(nil)
 
-    expect(described_class.perform).to eq(cleared: 1)
+    expect(described_class.perform).to eq(dead: 1)
 
-    expect(missing.lgl_id).to be_nil
+    expect(missing.lgl_id).to eq('20')
     expect(present.lgl_id).to eq('10')
     expect(Resque).to have_received(:enqueue).once.with(LglSyncAddressJob, missing.id, 'sweep')
     expect(JobMetadata.find_by(job_name: described_class::COMPLETED)).to be_present

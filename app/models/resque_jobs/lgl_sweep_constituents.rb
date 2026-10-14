@@ -2,9 +2,11 @@
 
 # Nightly: lists every LGL constituent id and, for each default-theater LGL ID
 # tag naming an id that is not in the list, confirms with a direct lookup.
-# Only a confirmed 404 (deleted, or merged away in LGL) drops the tag and
-# enqueues the address's LglSyncAddressJob (reason 'sweep'), which
-# re-resolves it by external id and email. Only reads LGL.
+# Only a confirmed 404 (deleted, or merged away in LGL) enqueues the address's
+# LglSyncAddressJob (reason 'sweep'), which re-resolves it by external id and
+# email. The dead tag is left for that job: it is replaced when a match is
+# found, and otherwise kept with an LGL Review tag, since only staff may have a
+# new constituent created for a once-linked address. Only reads LGL.
 #
 # An incomplete listing (fewer ids than LGL's total_items) aborts before any
 # tag is touched.
@@ -60,8 +62,7 @@ class LglSweepConstituents
     address = Address.find_by(id: address_id)
     return :address_gone if address.nil?
 
-    address.clear_lgl_id!
     Resque.enqueue(LglSyncAddressJob, address.id, REASON)
-    :cleared
+    :dead
   end
 end

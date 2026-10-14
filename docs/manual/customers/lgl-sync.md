@@ -31,7 +31,7 @@ in LGL is the Stagemgr customer id.
 | Event | What happens in LGL |
 |---|---|
 | A donation is processed | About ten minutes later the donor is linked: an existing constituent with the customer's id, or with the same email and last name, is adopted and its External constituent ID set; otherwise a new constituent is created |
-| An administrator clicks **Link to LGL** / **Re-sync with LGL** on the customer page | The same linking, run in the background straight away |
+| An administrator clicks **Link to LGL** / **Re-sync with LGL** on the customer page | The same linking, run in the background straight away. This is the only way a customer whose LGL record was deleted or merged away gets a new one |
 | The name, street address or phone of a linked customer is edited | About two minutes after the last edit, the new values replace the constituent's **preferred** street address and phone in LGL. Other addresses and phones are left alone; if there is no preferred one, a preferred Home entry is added |
 
 Stagemgr never sends **email** changes to LGL; email addresses in LGL are
@@ -48,23 +48,37 @@ the same person (same name or same email). The customer with the **lowest id**
 is kept, exactly as in [Merging Duplicates](merging-duplicates.md), and the
 surviving LGL constituent is pointed at it.
 
+The same rule applies when Stagemgr links a customer by email: if that email
+is on an LGL constituent already linked to another Stagemgr customer with the
+same name, LGL is treating them as one person, so Stagemgr merges the two
+customers (lowest id kept) and links the survivor.
+
 Each night Stagemgr also checks that every `LGL ID` still exists in LGL. A
 customer whose constituent was deleted or merged away is re-linked by customer
-id and email, or gets a new constituent if nothing matches.
+id and email. If nothing in LGL matches, Stagemgr does **not** create a new LGL
+record on its own: the customer keeps the old `LGL ID` and gets an
+`LGL Review` tag. Click **Re-sync with LGL** on the customer page to create a
+new LGL record for them.
 
 ---
 
 ## The LGL Review Tag
 
 When Stagemgr cannot decide safely, it does not guess. It adds an `LGL Review`
-tag to the customer whose value says why, for example:
+tag to the customer whose value says why (`1234` stands for an LGL constituent
+id, `#5678` for a Stagemgr customer id):
 
-- `2 LGL constituents share this email` -- several constituents could be this
-  customer.
-- `Also LGL constituent 1234: merge the two in LGL` -- two Stagemgr customers
-  linked to different constituents were merged in Stagemgr.
-- `LGL constituent 1234 is also linked to #5678` -- LGL merged two
-  constituents whose Stagemgr customers do not look like the same person.
+| Reason | Meaning |
+|---|---|
+| `2 LGL constituents share this email` | Several constituents could be this customer |
+| `2 LGL constituents carry external id 5678` | Several constituents in LGL name this customer as their External constituent ID |
+| `Also LGL constituent 1234` | LGL says this customer is constituent 1234, but the customer is already linked to a different one |
+| `Also LGL constituent 1234: merge the two in LGL` | Two Stagemgr customers linked to different constituents were merged in Stagemgr |
+| `LGL constituent 1234 is also linked to #5678` | LGL merged two constituents whose Stagemgr customers do not look like the same person |
+| `2 addresses are tagged LGL constituent 1234` | Several Stagemgr customers carry the same `LGL ID` and LGL does not say which one is right |
+| `Same person as #5678 in LGL; merge skipped while an order is in progress` | LGL treats this customer and #5678 as one person, but one of them has an order mid-checkout or mid-exchange, so they were not merged |
+| `Same person as #5678 in LGL but not a Stagemgr duplicate; merge skipped` | LGL treats the two as one person, but their names and emails differ in Stagemgr |
+| `LGL constituent 1234 no longer exists and no LGL constituent matches; use Re-sync with LGL to create a new one` | The customer's LGL record was deleted or merged away and nothing else in LGL matches. Click **Re-sync with LGL** to create a new LGL record |
 
 The customer page shows the reason under the **LGL** line.
 

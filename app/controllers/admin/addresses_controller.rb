@@ -5,8 +5,6 @@ class Admin::AddressesController < Admin::ApplicationController
 
   respond_to :html, :json
 
-  LGL_MANUAL_TRIGGER = 'manual'.freeze
-
   # GET /admin/addresses
   # GET /admin/addresses.xml
   def index
@@ -144,7 +142,7 @@ class Admin::AddressesController < Admin::ApplicationController
       return redirect_to(admin_address_path(@address), alert: 'Little Green Light is not configured')
     end
 
-    Resque.enqueue(LglSyncAddressJob, @address.id, LGL_MANUAL_TRIGGER)
+    Resque.enqueue(LglSyncAddressJob, @address.id, LglSyncAddressJob::MANUAL_TRIGGER)
     redirect_to(admin_address_path(@address), notice: 'Queued a sync with Little Green Light')
   end
 

@@ -184,13 +184,52 @@ RSpec.describe LglSyncAddressJob do
       expect(address.lgl_review_reason).to eq('also constituent 3')
     end
 
-    it 'drops the tag and falls through when LGL answers 404' do
+    it 'replaces a dead link with a constituent found by external id' do
       allow(client).to receive(:find).and_return(nil)
       allow(client).to receive(:search_by_external_id).with(address.id).and_return([constituent(60)])
 
-      described_class.perform(address.id)
+      described_class.perform(address.id, 'sweep')
 
       expect(address.lgl_id).to eq('60')
+    end
+
+    context 'when the link is dead (LGL answers 404)' do
+      before { allow(client).to receive(:find).with('50').and_return(nil) }
+
+      it 'replaces the tag with a constituent adopted by email' do
+        allow(client).to receive(:search_by_email).and_return([constituent(80, external_id: '')])
+        allow(client).to receive(:update)
+        address.lgl_review!('old')
+        expect(client).not_to receive(:create)
+
+        expect(described_class.perform(address.id, 'sweep').action).to eq(:adopted)
+
+        expect(address.lgl_id).to eq('80')
+        expect(address.lgl_review_reason).to be_nil
+      end
+
+      %w[sweep donation].each do |trigger|
+        it "keeps the dead tag and flags review instead of creating on a #{trigger} trigger" do
+          expect(client).not_to receive(:create)
+
+          expect(described_class.perform(address.id, trigger).action).to eq(:review)
+
+          expect(address.lgl_id).to eq('50')
+          expect(address.lgl_review_reason).to eq('LGL constituent 50 no longer exists and no LGL constituent ' \
+                                                  'matches; use Re-sync with LGL to create a new one')
+        end
+      end
+
+      it 'clears the dead tag and creates a constituent on the manual trigger' do
+        allow(client).to receive(:create).and_return({ 'id' => 123 })
+
+        outcome = described_class.perform(address.id, described_class::MANUAL_TRIGGER)
+
+        expect(outcome.action).to eq(:created)
+        expect(client).to have_received(:create)
+          .with(hash_including(external_constituent_id: address.id.to_s), for_address_id: address.id)
+        expect(address.lgl_id).to eq('123')
+      end
     end
   end
 
@@ -270,7 +309,7 @@ RSpec.describe LglSyncAddressJob do
     expect(address.lgl_id).to be_nil
   end
 
-  it 'creates a constituent and tags the address from the response' do
+  it 'creates a constituent for a never-linked address and tags it from the response' do
     allow(client).to receive(:create).and_return({ 'id' => 123 })
 
     described_class.perform(address.id, 'donation')
