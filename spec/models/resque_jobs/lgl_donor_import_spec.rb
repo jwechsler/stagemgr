@@ -36,8 +36,8 @@ RSpec.describe LglDonorImport do
     notes = run("#{address.id},Ann,Gold,Silver").notes
 
     expect(tiers(address)).to eq(%w[Gold Silver])
-    expect(notes).to eq('Donor levels: 1 rows; updated 1, unchanged 0, cleared 0, no id 0, errors 0; ' \
-                        'cleared 0 absent customers')
+    expect(notes).to eq('Donor levels: 1 rows; updated 1, unchanged 0, cleared 0, matched by LGL ID 0, no id 0, ' \
+                        'errors 0; cleared 0 absent customers')
   end
 
   it 'finds headers whatever their case, spacing or byte-order mark' do
@@ -104,7 +104,7 @@ RSpec.describe LglDonorImport do
        ['Gone', 'No customer with this External constituent ID'],
        ['Ph', 'No customer with this External constituent ID']]
     )
-    expect(notes).to include('cleared 0, no id 1, errors 3;')
+    expect(notes).to include('cleared 0, matched by LGL ID 0, no id 1, errors 3;')
     expect(tiers(placeholder)).to eq([nil, nil])
   end
 
@@ -140,6 +140,113 @@ RSpec.describe LglDonorImport do
 
     expect(result_file.file_name).to eq('donor_import_results_LGL_donors_Oct.csv')
     expect(result_rows['First Name']).to eq(['Gone'])
+  end
+
+  describe 'matching by LGL Constituent ID' do
+    let(:lgl_header) { 'External constituent ID,LGL Constituent ID,First Name,TG Tier Last Fiscal,TG Tier This Fiscal' }
+
+    def tag(address, lgl_id = '900050')
+      address.address_tags.create!(tag_label: AddressTag::LGL_ID, tag_value: lgl_id, theater_id: house.id)
+      address
+    end
+
+    def house
+      @house ||= Theater.default_theater || FactoryBot.create(:theater, theater_class: Theater::DEFAULT)
+    end
+
+    it 'applies the tiers to the one customer tagged with the LGL id when the External constituent ID is blank' do
+      address = tag(FactoryBot.create(:address))
+
+      notes = run(',900050,Ann,Gold,Silver', head: lgl_header).notes
+
+      expect(tiers(address)).to eq(%w[Gold Silver])
+      expect(notes).to include('updated 1,', 'matched by LGL ID 1, no id 0, errors 0;', 'cleared 0 absent customers')
+      expect(FileStore.where(worker: FileStore::REPORT)).to be_empty
+    end
+
+    it 'reports an LGL id tagged on several customers and changes neither' do
+      first = tag(FactoryBot.create(:address))
+      second = tag(FactoryBot.create(:address))
+
+      notes = run(',900050,Twin,Gold,Silver', head: lgl_header).notes
+
+      expect([tiers(first), tiers(second)]).to eq([[nil, nil], [nil, nil]])
+      expect(result_rows.pluck('Error'))
+        .to eq(["LGL Constituent ID is on customers #{first.id}, #{second.id}: merge them"])
+      expect(notes).to include('matched by LGL ID 0, no id 0, errors 1;')
+    end
+
+    it 'skips a row whose LGL id is on no customer without an error' do
+      notes = run(',900050,Example Foundation,Gold,Gold', head: lgl_header).notes
+
+      expect(notes).to include('matched by LGL ID 0, no id 1, errors 0;')
+      expect(FileStore.where(worker: FileStore::REPORT)).to be_empty
+    end
+
+    it 'skips a row whose LGL id is not a number' do
+      address = tag(FactoryBot.create(:address))
+
+      notes = run(',abc,Ann,Gold,Gold', head: lgl_header).notes
+
+      expect(tiers(address)).to eq([nil, nil])
+      expect(notes).to include('no id 1, errors 0;')
+    end
+
+    it 'falls back to the LGL id when the External constituent ID matches no customer' do
+      address = tag(FactoryBot.create(:address))
+
+      notes = run('999999999,900050,Moved,Gold,Silver', head: lgl_header).notes
+
+      expect(tiers(address)).to eq(%w[Gold Silver])
+      expect(notes).to include('updated 1,', 'matched by LGL ID 1, no id 0, errors 0;')
+      expect(FileStore.where(worker: FileStore::REPORT)).to be_empty
+    end
+
+    it 'reports an unmatched External constituent ID whose LGL id is on no customer' do
+      notes = run('999999999,900050,Gone,Gold,Gold', head: lgl_header).notes
+
+      expect(result_rows.pluck('Error')).to eq(['No customer with this External constituent ID'])
+      expect(notes).to include('matched by LGL ID 0, no id 0, errors 1;')
+    end
+
+    it 'reports an unmatched External constituent ID whose LGL id is on several customers' do
+      first = tag(FactoryBot.create(:address))
+      second = tag(FactoryBot.create(:address))
+
+      notes = run('999999999,900050,Twin,Gold,Silver', head: lgl_header).notes
+
+      expect([tiers(first), tiers(second)]).to eq([[nil, nil], [nil, nil]])
+      expect(result_rows.pluck('Error'))
+        .to eq(["LGL Constituent ID is on customers #{first.id}, #{second.id}: merge them"])
+      expect(notes).to include('matched by LGL ID 0, no id 0, errors 1;')
+    end
+
+    it 'does not fall back to the LGL id when the External constituent ID is not a number' do
+      address = tag(FactoryBot.create(:address))
+
+      notes = run('abc,900050,Bad,Gold,Gold', head: lgl_header).notes
+
+      expect(tiers(address)).to eq([nil, nil])
+      expect(result_rows.pluck('Error')).to eq(['External constituent ID is not a number'])
+      expect(notes).to include('matched by LGL ID 0, no id 0, errors 1;')
+    end
+
+    it 'does not match a placeholder customer tagged with the LGL id' do
+      placeholder = tag(FactoryBot.create(:address, placeholder: true))
+
+      notes = run(',900050,Ph,Gold,Gold', head: lgl_header).notes
+
+      expect(tiers(placeholder)).to eq([nil, nil])
+      expect(notes).to include('matched by LGL ID 0, no id 1, errors 0;')
+    end
+
+    it 'counts LGL-id matches in the completion email' do
+      tag(FactoryBot.create(:address))
+
+      run(',900050,Ann,Gold,', head: lgl_header)
+
+      expect(ActionMailer::Base.deliveries.last.body.encoded).to include('Rows matched by LGL Constituent ID: 1')
+    end
   end
 
   describe 'completion email' do

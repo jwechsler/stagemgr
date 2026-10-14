@@ -1,8 +1,8 @@
 # Little Green Light Sync
 
 !!! info "Role: Administrators"
-    Anyone can see a customer's LGL ID. The **Link to LGL** / **Re-sync with LGL**
-    button and the sync status page are for administrators.
+    Anyone can see a customer's LGL ID. The **Re-sync with LGL** button and the
+    sync status page are for administrators.
 
 When Little Green Light (LGL) sync is configured, Stagemgr keeps each customer
 linked to the matching constituent in the default theater's LGL account, so a
@@ -13,9 +13,10 @@ donor is one person in both systems.
 ## The LGL ID
 
 A linked customer carries an `LGL ID` tag for the default theater: the
-constituent's id in LGL. The customer page shows it on the **LGL** line, linked
-to the constituent's page in LGL when the account's web address is configured.
-"not linked" means Stagemgr has not yet matched the customer to a constituent.
+constituent's id in LGL. The customer page shows it in the tag list, linked to
+the constituent's page in LGL when the account's web address is configured,
+with the **Re-sync with LGL** button beside it. A customer without the tag has
+not yet been matched to a constituent.
 
 In the other direction, each linked constituent's **External constituent ID**
 in LGL is the Stagemgr customer id.
@@ -31,7 +32,7 @@ in LGL is the Stagemgr customer id.
 | Event | What happens in LGL |
 |---|---|
 | A donation is processed | About ten minutes later the donor is linked: an existing constituent with the customer's id, or with the same email and last name (narrowed by first name when several match), is adopted and its External constituent ID set; otherwise a new constituent is created |
-| An administrator clicks **Link to LGL** / **Re-sync with LGL** on the customer page | The same linking, run in the background straight away. This is the only way a customer whose LGL record was deleted or merged away gets a new one |
+| An administrator clicks **Re-sync with LGL** beside a customer's LGL ID | The same linking, run in the background straight away. This is the only way a customer whose LGL record was deleted or merged away gets a new one |
 | The name, street address or phone of a linked customer is edited | About two minutes after the last edit, the new values replace the constituent's **preferred** street address and phone in LGL. Other addresses and phones are left alone; if there is no preferred one, a preferred Home entry is added |
 
 Stagemgr never deletes anything in LGL.

@@ -6,8 +6,6 @@
 .grid-x.grid-padding-x
   .small-12.medium-6.cell
     = render :partial=>"/admin/addresses/address_contact_info", :locals=>{:address=>@address}
-    - if Lgl.enabled?
-      = render "/admin/addresses/lgl_status", address: @address
   .small-12.medium-6.cell
     - if @address.is_current_member?
       %fieldset.fieldset
@@ -21,19 +19,15 @@
           = fp.decorate.description
           %br
     
+    - if @address.is_donor?
+      .donor-tier-labels.text-right
+        - if @address.donor_tier_for_last_fiscal_year.present?
+          %span.label.warning Previous FY: #{@address.donor_tier_for_last_fiscal_year}
+        - if @address.donor_tier_for_current_fiscal_year.present?
+          %span.label.success Current FY: #{@address.donor_tier_for_current_fiscal_year}
     = render(:partial=>"/admin/address_tags/tags", :locals=>{:address_tags=>@address.address_tags})
   .small-12.cell.right
     = link_to 'Edit', edit_admin_address_path(@address), :class=>'small button'
-- if @address.is_donor?
-  %fieldset.fieldset
-    %legend Donor Level
-    %table.unstriped
-      %tr
-        %th Current fiscal year
-        %td= @address.donor_tier_for_current_fiscal_year.presence || 'none'
-      %tr
-        %th Previous fiscal year
-        %td= @address.donor_tier_for_last_fiscal_year.presence || 'none'
 - productions_attended = @address.productions.order(opening_at: :desc).uniq
 %fieldset.fieldset
   %legend

@@ -9,6 +9,7 @@
 %ul
   %li Unchanged: #{@counts[:unchanged]}
   %li Rows without an External constituent ID: #{@counts[:blank_id]}
+  %li Rows matched by LGL Constituent ID: #{@counts[:by_lgl_id]}
   %li Customers cleared because they were not in the file: #{@counts[:cleared_absent]}
 %p
   - if @result_file

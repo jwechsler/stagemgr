@@ -55,27 +55,41 @@ RSpec.describe Admin::AddressesController, type: :controller do
       expect(response.body).not_to include('Issue Membership', new_admin_membership_path)
     end
 
-    it 'shows both fiscal years of donor level above the productions attended, with none for a blank year' do
+    it 'shows only the current fiscal year donor tier as a green label above the tag list' do
       address.update!(donor_tier_for_current_fiscal_year: 'Gold', donor_tier_for_last_fiscal_year: nil)
 
       get :show, params: { id: address.id }
 
       body = response.body
-      donor_box = body[%r{<legend>Donor Level</legend>.*?</fieldset>}m]
-      expect(donor_box).to match(%r{Current fiscal year</th>\s*<td>Gold</td>})
-      expect(donor_box).to match(%r{Previous fiscal year</th>\s*<td>none</td>})
-      expect(body.index('Donor Level')).to be < body.index('Attended')
+      donor_labels = body[%r{<div class=['"]donor-tier-labels text-right['"]>.*?</div>}m]
+      expect(donor_labels).to match(%r{<span class=['"]label success['"]>Current FY: Gold</span>})
+      expect(donor_labels).not_to include('warning', 'Previous FY', 'none')
+      expect(body.index('donor-tier-labels')).to be < body.index('<td>Tag</td>')
+      expect(body.index('donor-tier-labels')).to be < body.index('Attended')
     end
 
-    it 'shows no donor level for a customer with no tier in either year' do
+    it 'shows the previous fiscal year tier in yellow before the current fiscal year tier in green' do
+      address.update!(donor_tier_for_current_fiscal_year: 'Gold', donor_tier_for_last_fiscal_year: 'Silver')
+
+      get :show, params: { id: address.id }
+
+      donor_labels = response.body[%r{<div class=['"]donor-tier-labels text-right['"]>.*?</div>}m]
+      previous_label = %r{<span class=['"]label warning['"]>Previous FY: Silver</span>}
+      current_label = %r{<span class=['"]label success['"]>Current FY: Gold</span>}
+      expect(donor_labels).to match(previous_label)
+      expect(donor_labels).to match(current_label)
+      expect(donor_labels.index(previous_label)).to be < donor_labels.index(current_label)
+    end
+
+    it 'shows no donor tier labels for a customer with no tier in either year' do
       address.update!(donor_tier_for_current_fiscal_year: nil, donor_tier_for_last_fiscal_year: nil)
 
       get :show, params: { id: address.id }
 
-      expect(response.body).not_to include('Donor Level')
+      expect(response.body).not_to include('donor-tier-labels', 'Current FY', 'Previous FY')
     end
 
-    it 'highlights the LGL Review tag in the tag list instead of repeating it under the LGL line' do
+    it 'highlights the LGL Review tag in the tag list' do
       Theater.default_theater || FactoryBot.create(:theater, theater_class: Theater::DEFAULT)
       allow(Lgl).to receive(:enabled?).and_return(true)
       address.lgl_review!('LGL constituent 1234 matches several customers by email and last name')
@@ -84,7 +98,6 @@ RSpec.describe Admin::AddressesController, type: :controller do
 
       review_row = response.body[%r{<tr class=['"]lgl-review['"]>.*?</tr>}m]
       expect(review_row).to include('LGL Review', 'matches several customers by email and last name')
-      expect(response.body).to include('LGL:')
       expect(response.body).not_to include('LGL review:')
     end
   end
@@ -176,15 +189,18 @@ RSpec.describe Admin::AddressesController, type: :controller do
         expect(response).to redirect_to(root_path)
       end
 
-      it 'links the LGL ID to the configured account and shows the sync button' do
+      it 'links the LGL ID tag value to the configured account beside the sync button' do
         address.set_lgl_id!(4321)
         allow(Lgl).to receive(:constituent_url).with('4321')
                                                .and_return('https://house.littlegreenlight.com/constituents/4321')
 
         get :show, params: { id: address.id }
 
-        expect(response.body).to include('href="https://house.littlegreenlight.com/constituents/4321"')
-        expect(response.body).to include('Re-sync with LGL', lgl_sync_admin_address_path(address))
+        page = Nokogiri::HTML(response.body)
+        lgl_id_row = page.css('tr').find { |row| row.css('td').first&.text&.strip == AddressTag::LGL_ID }
+        expect(lgl_id_row).to be_present
+        expect(lgl_id_row.to_html).to include('href="https://house.littlegreenlight.com/constituents/4321"')
+        expect(lgl_id_row.to_html).to include('Re-sync with LGL', lgl_sync_admin_address_path(address))
       end
 
       it 'shows the LGL ID as plain text when no LGL web URL is configured' do
@@ -196,12 +212,13 @@ RSpec.describe Admin::AddressesController, type: :controller do
         expect(response.body).not_to include('littlegreenlight.com')
       end
 
-      it 'shows an unlinked address and its review reason' do
+      it 'shows the review reason for an unlinked address' do
         address.lgl_review!('2 LGL constituents share this email')
 
         get :show, params: { id: address.id }
 
-        expect(response.body).to include('not linked', 'Link to LGL', '2 LGL constituents share this email')
+        review_row = response.body[%r{<tr class=['"]lgl-review['"]>.*?</tr>}m]
+        expect(review_row).to include('LGL Review', '2 LGL constituents share this email')
       end
     end
 
@@ -214,10 +231,13 @@ RSpec.describe Admin::AddressesController, type: :controller do
         expect(flash[:alert]).to be_present
       end
 
-      it 'shows no LGL line on the customer page' do
+      it 'shows no Re-sync button on the customer page' do
+        address.set_lgl_id!(4321)
+
         get :show, params: { id: address.id }
 
-        expect(response.body).not_to include('Link to LGL')
+        expect(response.body).to include('4321')
+        expect(response.body).not_to include('Re-sync with LGL')
       end
     end
   end
