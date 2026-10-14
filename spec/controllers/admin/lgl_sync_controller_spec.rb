@@ -57,6 +57,18 @@ RSpec.describe Admin::LglSyncController, type: :controller do
       expect(response.body).to include('2 LGL constituents share this email')
     end
 
+    it 'links a customer matching several others to the customer list filtered by their last name' do
+      flagged = FactoryBot.create(:address, full_name: 'Pat Reviewme')
+      flagged.lgl_review!("LGL constituent 1234 #{Lgl::ConstituentReplicator::SEVERAL_MATCHES_REASON}")
+
+      get :index
+
+      expect(response.body).to include(
+        %(<a title="Customers named Reviewme" href="#{admin_addresses_path(search: 'Reviewme')}">Pat Reviewme</a>)
+      )
+      expect(response.body).not_to include(%(href="#{admin_address_path(flagged)}"))
+    end
+
     it 'says the poll has not started yet and the sweep never ran when neither has run' do
       get :index
 

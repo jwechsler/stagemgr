@@ -20,6 +20,10 @@ module Lgl
   class ConstituentReplicator
     Result = Struct.new(:outcome, :address)
 
+    # Tail of the review reason when several customers match; the LGL Sync
+    # page spots it to link the customer to their same-named duplicates.
+    SEVERAL_MATCHES_REASON = 'matches several customers by email and last name'
+
     # Why the constituent is never replicated, or nil.
     def self.skip_reason(constituent)
       return :org_skipped if constituent['is_org'] == true
@@ -111,7 +115,7 @@ module Lgl
     end
 
     def review_all
-      reason = "LGL constituent #{@lgl_id} matches several customers by email and last name"
+      reason = "LGL constituent #{@lgl_id} #{SEVERAL_MATCHES_REASON}"
       self.class.candidates(@constituent).each { |address| address.lgl_review!(reason) }
       Result.new(:review, nil)
     end

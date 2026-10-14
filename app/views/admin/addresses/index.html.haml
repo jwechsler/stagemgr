@@ -5,7 +5,7 @@
 
 .grid-x.grid-padding-x
   .small-12.cell
-    %table#address-listing{:data=>{:source=>"#{admin_addresses_path(format: :json)}"}}
+    %table#address-listing{ data: { source: admin_addresses_path(format: :json), search: params[:search].presence } }
       %thead
         %tr
           %th id
@@ -82,6 +82,10 @@
             "lengthMenu": [25, 50, 100],
         order: [[1, "asc"]],
       });
+
+      // ?search= (e.g. from the LGL Sync page) overrides the saved search.
+      var initial_search = $('#address-listing').attr('data-search');
+      if (initial_search) { address_listing.search(initial_search).draw(); }
 
       $("#merge-selected-button").prop("disabled", true);
 

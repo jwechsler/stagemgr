@@ -90,8 +90,7 @@
                 %tr
                   %td
                     - if tag.address
-                      - label = tag.address.full_name.presence || "##{tag.address_id}"
-                      = link_to label, admin_address_path(tag.address_id)
+                      = lgl_review_customer_link(tag)
                     - else
                       = "##{tag.address_id}"
                   %td= tag.tag_value

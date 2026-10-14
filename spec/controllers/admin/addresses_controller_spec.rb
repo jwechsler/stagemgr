@@ -9,6 +9,23 @@ RSpec.describe Admin::AddressesController, type: :controller do
     allow(controller).to receive(:current_user).and_return(admin_user)
   end
 
+  describe '#index' do
+    it 'puts a search term from the query string on the table for the DataTable to apply' do
+      get :index, params: { search: 'Reviewme' }
+
+      table_tag = response.body[/<table[^>]*\bid=['"]address-listing['"][^>]*>/]
+      expect(table_tag).to match(/data-search=['"]Reviewme['"]/)
+    end
+
+    it 'puts no search term on the table without one' do
+      get :index
+
+      table_tag = response.body[/<table[^>]*\bid=['"]address-listing['"][^>]*>/]
+      expect(table_tag).to be_present
+      expect(table_tag).not_to include('data-search')
+    end
+  end
+
   describe '#show' do
     let(:membership_order) { FactoryBot.create(:membership_order) }
     let(:address) { membership_order.address }

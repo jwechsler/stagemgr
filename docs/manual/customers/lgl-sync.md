@@ -126,7 +126,7 @@ id, `#5678` for a Stagemgr customer id):
 | Reason | Meaning |
 |---|---|
 | `2 LGL constituents share this email` | Several constituents could be this customer |
-| `LGL constituent 1234 matches several customers by email and last name` | A new LGL constituent could be any of these customers, so Stagemgr linked none of them. Merge the duplicates in Stagemgr (see [Merging Duplicates](merging-duplicates.md)), then click **Re-sync with LGL** on the customer that remains |
+| `LGL constituent 1234 matches several customers by email and last name` | A new LGL constituent could be any of these customers, so Stagemgr linked none of them. On the Sync Status page this customer's name opens the customer list filtered by their last name, where the duplicates can be selected and merged with **Merge Selected** (see [Merging Duplicates](merging-duplicates.md)); then click **Re-sync with LGL** on the customer that remains |
 | `2 LGL constituents carry external id 5678` | Several constituents in LGL name this customer as their External constituent ID |
 | `Also LGL constituent 1234` | LGL says this customer is constituent 1234, but the customer is already linked to a different one |
 | `Also LGL constituent 1234: merge the two in LGL` | Two Stagemgr customers linked to different constituents were merged in Stagemgr |
@@ -167,7 +167,9 @@ The page shows:
   copied into Stagemgr. Until it runs, the page says "not yet".
 - How many customers are linked.
 - Every customer with an `LGL Review` tag, oldest first, with the reason and a
-  link to the customer page. The list shows the oldest 100; the heading gives
+  link to the customer page. When the reason is that several customers match,
+  the link goes to the customer list filtered by the customer's last name
+  instead, so the duplicates can be merged. The list shows the oldest 100; the heading gives
   the full count.
 
 Three buttons queue the same jobs that run on their own:
