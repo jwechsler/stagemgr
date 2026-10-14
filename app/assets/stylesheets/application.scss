@@ -157,6 +157,11 @@ tr.lgl-review td {
   background: scale-color($warning-color, $lightness: 80%);
 }
 
+// Customer page: donor tiers sit as labels above the tag table.
+.donor-tier-labels .label + .label {
+  margin-left: 0.25rem;
+}
+
 .tag-input-wrap {
   .tagify {
     border-radius: 0.25rem;

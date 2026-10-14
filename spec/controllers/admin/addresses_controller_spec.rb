@@ -55,24 +55,38 @@ RSpec.describe Admin::AddressesController, type: :controller do
       expect(response.body).not_to include('Issue Membership', new_admin_membership_path)
     end
 
-    it 'shows both fiscal years of donor level above the productions attended, with none for a blank year' do
+    it 'shows only the current fiscal year donor tier as a green label above the tag list' do
       address.update!(donor_tier_for_current_fiscal_year: 'Gold', donor_tier_for_last_fiscal_year: nil)
 
       get :show, params: { id: address.id }
 
       body = response.body
-      donor_box = body[%r{<legend>Donor Level</legend>.*?</fieldset>}m]
-      expect(donor_box).to match(%r{Current fiscal year</th>\s*<td>Gold</td>})
-      expect(donor_box).to match(%r{Previous fiscal year</th>\s*<td>none</td>})
-      expect(body.index('Donor Level')).to be < body.index('Attended')
+      donor_labels = body[%r{<div class=['"]donor-tier-labels text-right['"]>.*?</div>}m]
+      expect(donor_labels).to match(%r{<span class=['"]label success['"]>Current FY: Gold</span>})
+      expect(donor_labels).not_to include('warning', 'Previous FY', 'none')
+      expect(body.index('donor-tier-labels')).to be < body.index('<td>Tag</td>')
+      expect(body.index('donor-tier-labels')).to be < body.index('Attended')
     end
 
-    it 'shows no donor level for a customer with no tier in either year' do
+    it 'shows the previous fiscal year tier in yellow before the current fiscal year tier in green' do
+      address.update!(donor_tier_for_current_fiscal_year: 'Gold', donor_tier_for_last_fiscal_year: 'Silver')
+
+      get :show, params: { id: address.id }
+
+      donor_labels = response.body[%r{<div class=['"]donor-tier-labels text-right['"]>.*?</div>}m]
+      previous_label = %r{<span class=['"]label warning['"]>Previous FY: Silver</span>}
+      current_label = %r{<span class=['"]label success['"]>Current FY: Gold</span>}
+      expect(donor_labels).to match(previous_label)
+      expect(donor_labels).to match(current_label)
+      expect(donor_labels.index(previous_label)).to be < donor_labels.index(current_label)
+    end
+
+    it 'shows no donor tier labels for a customer with no tier in either year' do
       address.update!(donor_tier_for_current_fiscal_year: nil, donor_tier_for_last_fiscal_year: nil)
 
       get :show, params: { id: address.id }
 
-      expect(response.body).not_to include('Donor Level')
+      expect(response.body).not_to include('donor-tier-labels', 'Current FY', 'Previous FY')
     end
 
     it 'highlights the LGL Review tag in the tag list instead of repeating it under the LGL line' do
