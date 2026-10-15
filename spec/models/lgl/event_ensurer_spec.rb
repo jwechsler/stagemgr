@@ -54,11 +54,16 @@ RSpec.describe Lgl::EventEnsurer do
       expect(ensurer.ensure_for(production)).to eq(1519)
     end
 
-    it 're-activates an event LGL staff deactivated' do
-      allow(client).to receive(:find_event).and_return(event(1519, is_active: false))
-      expect(client).to receive(:update_event).with(1519, wanted.except(:campaign_id), for_address_id: 5)
+    it 'never patches a linked inactive event, clears the link and creates a new event' do
+      expect(client).to receive(:find_event).with(1519).ordered.and_return(event(1519, is_active: false))
+      expect(client).to receive(:search_events).with('Adolescent Salvation').ordered.and_return([])
+      expect(client).to receive(:create_event).with(wanted, for_address_id: 5).ordered.and_return(event(2001))
+      expect(client).not_to receive(:update_event)
 
-      ensurer.ensure_for(production)
+      expect(ensurer.ensure_for(production)).to eq(2001)
+      expect(production.reload.lgl_event_id).to eq(2001)
+      expect(Rails.logger).to have_received(:info)
+        .with("[LGL] production ##{production.id}: linked event 1519 is inactive; linking a new one")
     end
 
     it 'clears the id when LGL answers 404, then searches and creates' do
@@ -93,6 +98,24 @@ RSpec.describe Lgl::EventEnsurer do
       allow(client).to receive(:update_event)
 
       expect(ensurer.ensure_for(production)).to eq(1800)
+    end
+
+    it 'creates a new event when the only exact name match is inactive' do
+      allow(client).to receive(:search_events).and_return([event(1519, is_active: false)])
+      expect(client).not_to receive(:update_event)
+      expect(client).to receive(:create_event).with(wanted, for_address_id: 5).and_return(event(2001))
+
+      expect(ensurer.ensure_for(production)).to eq(2001)
+      expect(production.reload.lgl_event_id).to eq(2001)
+    end
+
+    it 'adopts the active exact name match over an inactive one whatever their dates and ids' do
+      allow(client).to receive(:search_events)
+        .and_return([event(1900, is_active: false), event(1500, date: '2024-01-01')])
+      allow(client).to receive(:update_event)
+
+      expect(ensurer.ensure_for(production)).to eq(1500)
+      expect(production.reload.lgl_event_id).to eq(1500)
     end
 
     it 'creates the event with the exact payload and stores its id' do

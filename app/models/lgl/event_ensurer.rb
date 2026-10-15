@@ -2,16 +2,22 @@
 
 module Lgl
   # Finds or creates the LGL event standing for one Production, stores its id
-  # in productions.lgl_event_id, and keeps it reconciled: active and dated from
-  # the production's run. The gift campaign is set on a new event, or on one
+  # in productions.lgl_event_id, and keeps it reconciled: dated from the
+  # production's run. The gift campaign is set on a new event, or on one
   # whose campaign is blank; an event already on another campaign keeps it,
   # since gifts posted to it keep theirs. Events made by hand in LGL
   # (campaign_id and end_date often blank) are adopted by exact name and patched.
   #
+  # Only active events are used. An event marked inactive in LGL is never
+  # adopted, kept as the link, or re-activated: a new event is created instead.
+  # The house runs annual shows under the same name (a holiday show every
+  # December), and each year's run must get its own event rather than reopen
+  # last year's.
+  #
   # Returns the event id, or nil when the read-only guard skipped the create
   # (nothing is stored).
   class EventEnsurer
-    COMPARED_KEYS = %i[campaign_id date end_date is_active].freeze
+    COMPARED_KEYS = %i[campaign_id date end_date].freeze
 
     def initialize(client, campaign_id:, for_address_id:)
       @client = client
@@ -52,18 +58,31 @@ module Lgl
       [production.first_preview_at, production.press_opening_at, production.opening_at].any?(&:present?)
     end
 
-    # The stored event, or nil (after clearing the stale id) when LGL 404s.
+    # The stored event, or nil (after clearing the stale id) when LGL 404s or
+    # the event is inactive.
     def linked_event(production)
       return nil if production.lgl_event_id.blank?
 
       event = client.find_event(production.lgl_event_id)
-      production.update_column(:lgl_event_id, nil) if event.nil?
-      event
+      return event if active?(event)
+
+      if event
+        Rails.logger.info("[LGL] production ##{production.id}: linked event #{production.lgl_event_id} " \
+                          'is inactive; linking a new one')
+      end
+      production.update_column(:lgl_event_id, nil)
+      nil
+    end
+
+    def active?(event)
+      event.present? && event['is_active'] == true
     end
 
     def find_by_name(name, season)
       wanted = name.downcase
-      matches = client.search_events(name).select { |event| event['name'].to_s.strip.downcase == wanted }
+      matches = client.search_events(name).select do |event|
+        active?(event) && event['name'].to_s.strip.downcase == wanted
+      end
       return matches.first if matches.size <= 1
 
       in_season = matches.select { |event| event['date'].to_s[0, 4] == season.to_s }
@@ -96,11 +115,7 @@ module Lgl
     end
 
     def drifted?(event, wanted)
-      COMPARED_KEYS.any? do |key|
-        next false unless wanted.key?(key)
-
-        key == :is_active ? event['is_active'] != true : event[key.to_s].to_s != wanted[key].to_s
-      end
+      COMPARED_KEYS.any? { |key| wanted.key?(key) && event[key.to_s].to_s != wanted[key].to_s }
     end
   end
 end

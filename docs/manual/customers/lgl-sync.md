@@ -243,9 +243,11 @@ with that exact name.
 **Event.** Each production is an LGL event with the production's name, dated
 from its first performance to its closing date, tied to the campaign and
 marked active. Stagemgr creates the event when none exists, adopts an existing
-event with the production's exact name, and fills in the campaign, dates and
-active flag on an event that lacks them, including re-activating one marked
-inactive. The production is known for donations placed since gift replication
+event with the production's exact name, and fills in the campaign and dates on
+an event that lacks them. An event marked inactive in LGL is never reused or
+re-activated: Stagemgr creates a new event instead, so each year's run of a
+same-named show gets its own event. Staff can mark last year's event inactive
+in LGL before the show returns. The production is known for donations placed since gift replication
 began; for older donations Stagemgr matches the production name recorded on the
 donation. A donation with no matching production gets a gift with no event.
 
