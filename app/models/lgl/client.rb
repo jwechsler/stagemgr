@@ -43,6 +43,8 @@ module Lgl
     HTTP_NOT_FOUND = 404
     HTTP_TOO_MANY_REQUESTS = 429
 
+    include Fundraising
+
     def initialize(api_key:, http: nil, min_interval: MIN_INTERVAL_SECONDS)
       raise ArgumentError, 'LGL api_key is blank' if api_key.to_s.strip.empty?
 
