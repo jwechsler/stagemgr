@@ -882,6 +882,15 @@ class Order < ApplicationRecord
     LglUpsertTask.create!(order: self, execute_at: Time.now + LglUpsertTask::LGL_DELAY)
   end
 
+  # A replicated donation's refund is noted on its LGL gift. enqueue_in
+  # rather than enqueue: this runs after_save, before the transaction commits.
+  LGL_REFUND_NOTE_DELAY = 1.minute
+  def enqueue_lgl_refund_note
+    return unless is_a?(DonationOrder) && Lgl.enabled? && lgl_gift_id.present?
+
+    Resque.enqueue_in(LGL_REFUND_NOTE_DELAY, LglReplicateDonationJob, id, LglReplicateDonationJob::REFUND_ACTION)
+  end
+
   def create_receipt_task; end
 
   def create_transfer_ownership_task; end
@@ -900,6 +909,7 @@ class Order < ApplicationRecord
         create_receipt_task
         create_transfer_ownership_task if gift?
         create_lgl_upsert_task
+      when REFUNDED then enqueue_lgl_refund_note
       end
     end
     return unless saved_change_to_status? && status.eql?(Order::PROCESSED)

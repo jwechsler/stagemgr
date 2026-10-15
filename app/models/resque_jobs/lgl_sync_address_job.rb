@@ -59,6 +59,12 @@ require 'resque-retry'
 # covers every linked customer weekly. A gift history error is logged and never
 # fails the sync.
 #
+# A fresh link (adopt or create) also queues LglReplicateDonationJob for each
+# of the address's processed default-theater donations since
+# LglSetting.gifts_since that has no LGL gift yet: the hands-free recovery for
+# a donation skipped while its address awaited LGL review, or whose replicate
+# job gave up.
+#
 # LGL errors raise (resque-retry retries a few times, then the failed queue).
 # In read-only environments Lgl::Client skips writes and returns nil.
 #
@@ -316,6 +322,20 @@ class LglSyncAddressJob
     @address.set_lgl_id!(constituent_id)
     @address.clear_lgl_review!
     refresh_gift_history
+    enqueue_gift_replication
+  end
+
+  # The hands-free recovery for a donation that was skipped while its address
+  # awaited LGL review, or whose replicate job gave up. Nothing before go-live.
+  def enqueue_gift_replication
+    since = LglSetting.gifts_since
+    return if since.nil?
+
+    DonationOrder.where(address_id: @address.id, theater_id: Theater.default_theater&.id, lgl_gift_id: nil,
+                        status: [Order::PROCESSED, Order::FULFILLED])
+                 .where(created_at: since..)
+                 .pluck(:id)
+                 .each { |order_id| Resque.enqueue(LglReplicateDonationJob, order_id) }
   end
 
   # The link is already written: a gift history failure is left for the

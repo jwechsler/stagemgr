@@ -8,6 +8,7 @@ RSpec.describe LglUpsertTask, type: :model do
   before do
     allow(Lgl).to receive(:enabled?).and_return(true)
     allow(Resque).to receive(:enqueue)
+    allow(Resque).to receive(:enqueue_in)
   end
 
   def processed_donation
@@ -65,6 +66,7 @@ RSpec.describe LglUpsertTask, type: :model do
       expect(task.status).to eq(OrderTask::FAILED)
       expect(task).to be_uncompleted
       expect(Resque).not_to have_received(:enqueue)
+      expect(Resque).not_to have_received(:enqueue_in)
     end
 
     it 'defers while the order is unprocessed' do
@@ -75,6 +77,7 @@ RSpec.describe LglUpsertTask, type: :model do
 
       expect(run(task).status).to eq(OrderTask::FAILED)
       expect(Resque).not_to have_received(:enqueue)
+      expect(Resque).not_to have_received(:enqueue_in)
     end
 
     it 'enqueues a donation sync for the address the order points at when it runs' do
@@ -86,6 +89,8 @@ RSpec.describe LglUpsertTask, type: :model do
 
       expect(run(task).status).to eq(OrderTask::COMPLETED)
       expect(Resque).to have_received(:enqueue).with(LglSyncAddressJob, keeper.id, 'donation')
+      expect(Resque).to have_received(:enqueue_in)
+        .with(LglUpsertTask::REPLICATE_DELAY, LglReplicateDonationJob, order.id)
     end
 
     it 'completes without enqueuing for a placeholder address' do
@@ -95,6 +100,7 @@ RSpec.describe LglUpsertTask, type: :model do
 
       expect(run(lgl_tasks(order).first).status).to eq(OrderTask::COMPLETED)
       expect(Resque).not_to have_received(:enqueue)
+      expect(Resque).not_to have_received(:enqueue_in)
     end
 
     it 'completes without waiting on the address link once LGL has been disabled' do
@@ -103,6 +109,7 @@ RSpec.describe LglUpsertTask, type: :model do
 
       expect(run(lgl_tasks(order).first).status).to eq(OrderTask::COMPLETED)
       expect(Resque).not_to have_received(:enqueue)
+      expect(Resque).not_to have_received(:enqueue_in)
     end
 
     it 'completes without enqueuing once LGL has been disabled' do
@@ -112,6 +119,7 @@ RSpec.describe LglUpsertTask, type: :model do
 
       expect(run(lgl_tasks(order).first).status).to eq(OrderTask::COMPLETED)
       expect(Resque).not_to have_received(:enqueue)
+      expect(Resque).not_to have_received(:enqueue_in)
     end
   end
 end
