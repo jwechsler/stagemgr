@@ -43,7 +43,7 @@ Stagemgr never deletes anything in LGL.
 
 When someone edits a linked customer's **name**, **preferred street address**
 or **preferred phone** in LGL, the change appears on the Stagemgr customer
-within about 15 minutes. Clicking **Re-sync with LGL** brings it over straight
+within about three hours. Clicking **Re-sync with LGL** brings it over straight
 away.
 
 - **The newer change wins.** If the customer was edited in Stagemgr more
@@ -65,7 +65,7 @@ are managed in LGL, and Stagemgr's are managed in Stagemgr.
 
 When a constituent is added in LGL without a Stagemgr link (its External
 constituent ID is empty or does not name a Stagemgr customer), Stagemgr picks
-it up within about 15 minutes:
+it up within about three hours:
 
 Customers match the constituent when they have the same email address and
 last name and are not already linked to another constituent. When several
@@ -104,8 +104,8 @@ Stagemgr leaves these constituents alone:
 
 ## How LGL Merges Reach Stagemgr
 
-Every hour Stagemgr checks that every `LGL ID` still exists in LGL, so an LGL
-merge reaches Stagemgr within about an hour. (The 15-minute poll picks up
+Every night Stagemgr checks that every `LGL ID` still exists in LGL, so an LGL
+merge reaches Stagemgr by the next morning. (The three-hourly poll picks up
 other LGL changes, but a merge does not mark the constituent LGL kept as
 changed.) When two constituents have been merged in LGL and both were linked
 to Stagemgr customers, Stagemgr merges those two customers as well, provided they look like
@@ -119,7 +119,7 @@ is on an LGL constituent already linked to another Stagemgr customer with the
 same name, LGL is treating them as one person, so Stagemgr folds the newer
 customer into the original and links the original.
 
-In the same hourly check, a customer whose constituent was deleted or merged
+In the nightly check, a customer whose constituent was deleted or merged
 away is re-linked by customer id and email. If nothing in LGL matches, Stagemgr does **not** create a new LGL
 record on its own: the customer keeps the old `LGL ID` and gets an
 `LGL Review` tag. Click **Re-sync with LGL** on the customer page to create a
@@ -280,7 +280,7 @@ The page shows:
       acceptance testing. A development install set to enabled runs
       read-only, and the page says so.
     - **Disabled**: no sync in either direction.
-- How far the 15-minute poll has read LGL's changes, and when the hourly sweep
+- How far the three-hourly poll has read LGL's changes, and when the nightly sweep
   last finished ("never" if it has not run). The first poll after LGL sync is
   enabled starts from that moment: changes made in LGL before then are not
   copied into Stagemgr. Until it runs, the page says "not yet".
@@ -304,7 +304,7 @@ Four buttons queue the same jobs that run on their own:
 
 | Button | Does |
 |---|---|
-| **Poll for changes** | Reads recent LGL changes now instead of waiting for the next 15-minute run |
+| **Poll for changes** | Reads recent LGL changes now instead of waiting for the next three-hourly run |
 | **Sweep all** | Checks every `LGL ID` against LGL now, not just recent changes |
 | **Refresh gift history** | Refreshes every linked customer's `LGL Lapsed` tag now instead of waiting for Sunday night. Asks for confirmation first: it reads each customer's gifts from LGL and takes about an hour |
 | **Backfill** | Links every LGL constituent whose External constituent ID names a Stagemgr customer. Changes only Stagemgr's `LGL ID` and `LGL Review` tags, never LGL. Run once after sync is first set up; running it again is harmless |

@@ -202,9 +202,9 @@ single worker on `QUEUE=*`. `config/schedule.yml` (and its `.example`) schedules
 
 | Job | Schedule | Does |
 |---|---|---|
-| `LglPollConstituents` | every 15 minutes | Reads constituents changed since the last poll and reconciles LGL merges |
-| `LglSweepConstituents` | every hour | Drops `LGL ID` tags whose constituent no longer exists and re-syncs those customers |
-| `LglDonorLevelsFetch` | nightly at 04:30 | Downloads the donor-tier saved report and queues `LglDonorImport`. Runs only when `donor_tier_report_url` is set, whatever `sync` is |
+| `LglPollConstituents` | every 3 hours | Reads constituents changed since the last poll and reconciles LGL merges |
+| `LglSweepConstituents` | nightly at 03:10 | Drops `LGL ID` tags whose constituent no longer exists and re-syncs those customers |
+| `LglDonorLevelsFetch` | nightly at 05:30 | Downloads the donor-tier saved report and queues `LglDonorImport`. Runs only when `donor_tier_report_url` is set, whatever `sync` is |
 | `LglGiftHistoryWalk` | Sundays at 02:00 | Reads every linked customer's gifts from LGL (one request each, about 1.1 seconds apart to stay under LGL's 300 requests per 5 minutes, so roughly an hour) and refreshes their `LGL Lapsed` tag. Only reads LGL. Gives up after 25 consecutive LGL errors. Linking a customer and **Re-sync with LGL** refresh that one customer straight away |
 
 After the first deploy with a key, run the backfill **once** to link every
