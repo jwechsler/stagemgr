@@ -50,6 +50,12 @@ RSpec.describe Lgl::GiftPayload do
       expect(described_class.for_create(order.reload, **ids)).to include(payment_type_name: 'Check')
     end
 
+    it 'names the first currency tender even when a non-currency payment comes first' do
+      pay(:external_payment, 400.0)
+      pay(:credit_card_payment, 600.0)
+      expect(described_class.for_create(order.reload, **ids)).to include(payment_type_name: 'Credit Card')
+    end
+
     it 'omits the payment type for an unmapped payment class and dates by the order' do
       pay(:external_payment, 1000.0)
       payload = described_class.for_create(order.reload, **ids)

@@ -31,7 +31,7 @@ module Lgl
         external_id: external_id(order), campaign_id: campaign_id, appeal_id: appeal_id, event_id: event_id,
         received_amount: total, deductible_amount: total, deposited_amount: total,
         received_date: date, deposit_date: date,
-        payment_type_name: PAYMENT_TYPE_NAMES[first_positive_payment(order)&.type],
+        payment_type_name: PAYMENT_TYPE_NAMES[tenders(order).first&.type],
         note: "Stagemgr donation order ##{order.id}"
       ).compact
     end
@@ -52,10 +52,6 @@ module Lgl
       (first_paid || order.updated_at).to_date.iso8601
     end
 
-    def self.first_positive_payment(order)
-      order.payments.find { |payment| payment.amount.to_f.positive? }
-    end
-
     def self.refund_date(order)
       refunds = order.payments.select { |payment| payment.amount.to_f.negative? }
       refunded = refunds.map(&:processed_on).compact.max
@@ -70,6 +66,6 @@ module Lgl
     def self.gift_type
       { gift_type_id: GIFT_TYPE_ID, gift_type_name: GIFT_TYPE_NAME }
     end
-    private_class_method :first_positive_payment, :refund_date, :tenders, :gift_type
+    private_class_method :refund_date, :tenders, :gift_type
   end
 end
