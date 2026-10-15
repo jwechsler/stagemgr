@@ -231,7 +231,9 @@ later the gift follows.
 
 **Campaign.** Choose the campaign on the Sync Status page from LGL's active
 campaigns (the **Gift campaign** row, with a **Change** link). Until one is
-chosen no gifts are written. Changing it affects future gifts only.
+chosen no gifts are written. Changing it affects future gifts, and the appeals
+and events created after the change; existing appeals and events keep their
+campaign.
 
 **Appeal.** Every gift goes on an appeal named `<season> Ticketing` (for
 example `2026 Ticketing`, type Ticketing) under the chosen campaign. Stagemgr

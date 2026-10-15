@@ -28,18 +28,26 @@ RSpec.describe Lgl::AppealEnsurer do
       expect(LglSetting.season_appeal_id(2026)).to eq(12)
     end
 
-    it 'patches it onto the campaign when its campaign differs' do
+    it 'leaves an appeal on a different campaign alone and remembers it' do
+      allow(client).to receive(:search_appeals).and_return([appeal(12, campaign_id: 99)])
+      expect(client).not_to receive(:update_appeal)
+
+      expect(ensurer.ensure_for_season(2026)).to eq(12)
+      expect(LglSetting.season_appeal_id(2026)).to eq(12)
+    end
+
+    it 'gives it the campaign when its campaign is blank' do
       allow(client).to receive(:search_appeals).and_return([appeal(12, campaign_id: nil)])
       expect(client).to receive(:update_appeal)
-        .with(12, { name: '2026 Ticketing', campaign_id: 77, is_active: true }, for_address_id: 5)
+        .with(12, { name: '2026 Ticketing', is_active: true, campaign_id: 77 }, for_address_id: 5)
 
       expect(ensurer.ensure_for_season(2026)).to eq(12)
     end
 
-    it 're-activates it when inactive' do
-      allow(client).to receive(:search_appeals).and_return([appeal(12, is_active: false)])
+    it 're-activates an inactive appeal without moving it off its campaign' do
+      allow(client).to receive(:search_appeals).and_return([appeal(12, campaign_id: 99, is_active: false)])
       expect(client).to receive(:update_appeal)
-        .with(12, { name: '2026 Ticketing', campaign_id: 77, is_active: true }, for_address_id: 5)
+        .with(12, { name: '2026 Ticketing', is_active: true }, for_address_id: 5)
 
       expect(ensurer.ensure_for_season(2026)).to eq(12)
     end

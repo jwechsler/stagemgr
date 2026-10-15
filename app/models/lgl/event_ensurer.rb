@@ -2,8 +2,10 @@
 
 module Lgl
   # Finds or creates the LGL event standing for one Production, stores its id
-  # in productions.lgl_event_id, and keeps it reconciled: on the gift campaign,
-  # active, and dated from the production's run. Events made by hand in LGL
+  # in productions.lgl_event_id, and keeps it reconciled: active and dated from
+  # the production's run. The gift campaign is set on a new event, or on one
+  # whose campaign is blank; an event already on another campaign keeps it,
+  # since gifts posted to it keep theirs. Events made by hand in LGL
   # (campaign_id and end_date often blank) are adopted by exact name and patched.
   #
   # Returns the event id, or nil when the read-only guard skipped the create
@@ -83,8 +85,14 @@ module Lgl
 
     def reconcile(event, wanted)
       id = Integer(event['id'])
-      client.update_event(id, wanted, for_address_id: for_address_id) if drifted?(event, wanted)
+      patch = wanted_for(event, wanted)
+      client.update_event(id, patch, for_address_id: for_address_id) if drifted?(event, patch)
       id
+    end
+
+    # Never overwrite a campaign the event already has.
+    def wanted_for(event, wanted)
+      event['campaign_id'].present? ? wanted.except(:campaign_id) : wanted
     end
 
     def drifted?(event, wanted)

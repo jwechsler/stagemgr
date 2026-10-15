@@ -40,9 +40,23 @@ RSpec.describe Lgl::EventEnsurer do
       expect(ensurer.ensure_for(production)).to eq(1519)
     end
 
+    it 'leaves an event on another campaign alone when dates and status match' do
+      allow(client).to receive(:find_event).and_return(event(1519, campaign_id: 99))
+      expect(client).not_to receive(:update_event)
+
+      expect(ensurer.ensure_for(production)).to eq(1519)
+    end
+
+    it 'fills in a missing end date without moving the event off its campaign' do
+      allow(client).to receive(:find_event).and_return(event(1519, campaign_id: 99, end_date: nil))
+      expect(client).to receive(:update_event).with(1519, wanted.except(:campaign_id), for_address_id: 5)
+
+      expect(ensurer.ensure_for(production)).to eq(1519)
+    end
+
     it 're-activates an event LGL staff deactivated' do
       allow(client).to receive(:find_event).and_return(event(1519, is_active: false))
-      expect(client).to receive(:update_event).with(1519, wanted, for_address_id: 5)
+      expect(client).to receive(:update_event).with(1519, wanted.except(:campaign_id), for_address_id: 5)
 
       ensurer.ensure_for(production)
     end
@@ -60,7 +74,7 @@ RSpec.describe Lgl::EventEnsurer do
     it 'adopts an exact name match, stores it and reconciles it' do
       allow(client).to receive(:search_events).with('Adolescent Salvation')
                                               .and_return([event(1519, end_date: nil), event(1600, name: 'Adolescent Salvation 2')])
-      expect(client).to receive(:update_event).with(1519, wanted, for_address_id: 5)
+      expect(client).to receive(:update_event).with(1519, wanted.except(:campaign_id), for_address_id: 5)
 
       expect(ensurer.ensure_for(production)).to eq(1519)
       expect(production.reload.lgl_event_id).to eq(1519)
