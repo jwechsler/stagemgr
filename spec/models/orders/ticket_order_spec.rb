@@ -656,6 +656,13 @@ RSpec.describe TicketOrder do
     expect(donation_orders[0].theater).to eq(Theater.first)
   end
 
+  it "records the ticket order's production on an additional donation" do
+    o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets)
+    o.additional_donation = 25.00
+    o.transition_to!(Order::PROCESSED)
+    expect(DonationOrder.last.production_id).to eq(o.performance.production_id)
+  end
+
   context "when overselling" do
     it "cannot processes if it would oversell a particular ticket class" do
       production = FactoryBot.create(:production, :capacity => 4)

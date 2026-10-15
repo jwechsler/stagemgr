@@ -12,6 +12,8 @@ class Order < ApplicationRecord
   # Associations
   belongs_to :theater, required: false, inverse_of: :orders
   belongs_to :performance, required: false, inverse_of: :orders
+  # A donation records the production it was added to (checkout or convert-to-donation); ticket orders answer through their performance.
+  belongs_to :production, optional: true
 
   belongs_to :payment_type, required: false
   belongs_to :address, inverse_of: :orders
@@ -183,11 +185,6 @@ class Order < ApplicationRecord
   }
 
   # implementation
-
-  # Only ticket orders have a production
-  def production
-    nil
-  end
 
   # Payment and total utility methods
 
@@ -974,7 +971,7 @@ class Order < ApplicationRecord
                                  :payment_type => pass_paid ? CreditCardPaymentType.first! : payment_type)
     donation.copy_payment_information(self)
     donation.flex_pass_code = donation.member_code = nil if pass_paid
-    donation.campaign = performance.production.name unless performance.nil?
+    donation.assign_attributes(campaign: performance.production.name, production_id: performance.production_id) unless performance.nil?
     donation.theater = credit_to_theater.nil? ? theater : credit_to_theater
     donation.donation_line_items.build(:amount => donation_amount)
     donation

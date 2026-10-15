@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_10_14_120000) do
+ActiveRecord::Schema.define(version: 2026_10_15_120003) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -245,6 +245,14 @@ ActiveRecord::Schema.define(version: 2026_10_14_120000) do
     t.index ["job_name"], name: "index_job_metadata_on_job_name", unique: true
   end
 
+  create_table "lgl_settings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "value"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["key"], name: "index_lgl_settings_on_key", unique: true
+  end
+
   create_table "line_items", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "ticket_class_id"
     t.integer "order_id", null: false
@@ -383,12 +391,16 @@ ActiveRecord::Schema.define(version: 2026_10_14_120000) do
     t.datetime "reviewed_at"
     t.integer "reviewed_by_id"
     t.text "review_note"
+    t.integer "production_id"
+    t.bigint "lgl_gift_id"
     t.index ["address_id"], name: "address_owns_orders"
     t.index ["created_at"], name: "index_orders_on_created_at"
     t.index ["exchange_source_id"], name: "index_orders_on_exchange_source_id"
     t.index ["flex_pass_code"], name: "index_orders_on_flex_pass_code"
     t.index ["id"], name: "orders_id_i"
+    t.index ["lgl_gift_id"], name: "index_orders_on_lgl_gift_id"
     t.index ["performance_id"], name: "index_orders_on_performance_id"
+    t.index ["production_id"], name: "index_orders_on_production_id"
     t.index ["recipient_address_id"], name: "recipient_address_id_idx"
     t.index ["review_flagged_at"], name: "index_orders_on_review_flagged_at"
     t.index ["split_source_id"], name: "index_orders_on_split_source_id"
@@ -561,6 +573,7 @@ ActiveRecord::Schema.define(version: 2026_10_14_120000) do
     t.integer "allocation_sync_pending_count", default: 0, null: false
     t.bigint "festival_id"
     t.boolean "sales_recorded_externally", default: false, null: false
+    t.bigint "lgl_event_id"
     t.index ["festival_id"], name: "index_productions_on_festival_id"
     t.index ["production_code"], name: "index_productions_on_production_code"
     t.index ["seat_map_id"], name: "index_productions_on_seat_map_id"

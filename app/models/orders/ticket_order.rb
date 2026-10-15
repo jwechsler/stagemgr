@@ -771,6 +771,7 @@ end
         payment_type: payment_type,
         theater: theater,
         campaign: performance&.production&.name,
+        production_id: performance&.production_id,
         status: Order::PROCESSED
       )
       donation.donation_line_items.build(amount: donation_amount)

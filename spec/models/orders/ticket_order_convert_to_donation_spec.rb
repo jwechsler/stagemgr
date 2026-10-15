@@ -100,6 +100,14 @@ RSpec.describe 'converting a ticket order to a donation' do
         expect(donation.campaign).to eq(order.performance.production.name)
       end
 
+      it 'records the production on the donation' do
+        expect(donation.production_id).to eq(order.performance.production_id)
+      end
+
+      it 'answers the production through the donation' do
+        expect(donation.reload.production).to eq(order.performance.production)
+      end
+
       it 'moves all payments to the donation order' do
         donation.reload
         expect(donation.payments.count).to be > 0
