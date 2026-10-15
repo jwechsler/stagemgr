@@ -191,6 +191,78 @@ by hand: the next refresh replaces it.
 
 ---
 
+## Donations Become LGL Gifts
+
+Stagemgr writes each qualifying donation to LGL as a gift on the donor's
+constituent record, so the development team does not re-key it.
+
+### Which Donations, and When
+
+A donation is written when its order reaches Processed and is credited to the
+**default theater**. That includes a donation added to a ticket order at
+checkout for any show in the building. A donation credited to another company
+is not written, and neither is a standalone donation with no theater.
+
+Only donations placed after gift replication went live are written: the moment
+the first gift campaign was chosen on the Sync Status page. Earlier donations
+stay as entered by hand.
+
+The gift is written about 13 minutes after the order is processed. Ten minutes
+after processing the customer's address is synced to LGL (see
+[When Stagemgr Writes to LGL](#when-stagemgr-writes-to-lgl)); three minutes
+later the gift follows.
+
+- If the customer is not yet linked to an LGL constituent, the gift job waits
+  and retries for about 8 hours.
+- If the customer carries an `LGL Review` tag, the gift waits until a person
+  resolves the review. Once the customer is linked (for example after
+  **Re-sync with LGL**), any waiting gifts are written automatically.
+
+### What the Gift Contains
+
+| Field | Value |
+|---|---|
+| Type | Gift |
+| Amount | The donation amount; the received, deductible and deposited amounts all equal it |
+| Received date and deposit date | The day the payment was taken |
+| Payment type | Credit Card, Cash or Check |
+| Note | `Stagemgr donation order #<order number>` |
+| External id | `stagemgr-<order number>`, which keeps the same donation from ever being written twice |
+
+**Campaign.** Choose the campaign on the Sync Status page from LGL's active
+campaigns (the **Gift campaign** row, with a **Change** link). Until one is
+chosen no gifts are written. Changing it affects future gifts only.
+
+**Appeal.** Every gift goes on an appeal named `<season> Ticketing` (for
+example `2026 Ticketing`, type Ticketing) under the chosen campaign. Stagemgr
+creates the appeal in LGL when it does not exist, and adopts an existing one
+with that exact name.
+
+**Event.** Each production is an LGL event with the production's name, dated
+from its first performance to its closing date, tied to the campaign and
+marked active. Stagemgr creates the event when none exists, adopts an existing
+event with the production's exact name, and fills in the campaign, dates and
+active flag on an event that lacks them, including re-activating one marked
+inactive. The production is known for donations placed since gift replication
+began; for older donations Stagemgr matches the production name recorded on the
+donation. A donation with no matching production gets a gift with no event.
+
+### Refunds and the Order Page
+
+Refunding a donation in Stagemgr never deletes or zeroes the LGL gift. About a
+minute later the gift's note gains the line `Refunded in Stagemgr on <date>`.
+Adjust the gift in LGL by hand if needed.
+
+A donation order's page shows **Little Green Light: Gift #<id>** (or "not in
+LGL") and a link to the constituent, with a **Send to LGL** button that queues
+the gift again. It is safe to press: an existing gift is never duplicated, and
+donations from before go-live are never sent.
+
+In a read-only environment nothing is written; the log lines say the write was
+skipped.
+
+---
+
 ## The Sync Status Page
 
 **Navigation:** Options > System Config > LGL Sync
@@ -214,6 +286,12 @@ The page shows:
 - **Lapsed donors**: how many customers carry an `LGL Lapsed` tag of each kind
   (see [Lapsed Donors](#lapsed-donors)), and when the weekly gift history
   refresh last finished ("never" if it has not run).
+- **Gift campaign**: the campaign gifts go on (name and id, with a **Change**
+  link). When none is set the row shows the chooser and the note "Donations are
+  not sent to LGL until a campaign is chosen."
+- **Donations in LGL**: how many donations have been written as gifts (see
+  [Donations Become LGL Gifts](#donations-become-lgl-gifts)).
+- **Last gift replicated**: when a gift was last written ("never" if none has).
 - Every customer with an `LGL Review` tag, oldest first, with the reason and a
   link to the customer page. When the reason is that several customers match,
   the link goes to the customer list filtered by the customer's last name
