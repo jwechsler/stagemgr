@@ -247,6 +247,24 @@ RSpec.describe Admin::LglSyncController, type: :controller do
       expect(response.body).to match(%r{<th>Donations in LGL</th>\s*<td>0</td>})
     end
 
+    it 'shows when a gift was last replicated' do
+      LglSetting.store_campaign(1092, 'Individual Giving')
+      JobMetadata.record_run_at(Lgl::GiftReplicator::LAST_GIFT, Time.zone.local(2026, 10, 14, 9, 15))
+
+      get :index
+
+      written = JobMetadata.last_run(Lgl::GiftReplicator::LAST_GIFT).to_formatted_s(:short_date_and_time)
+      expect(response.body).to match(%r{<th>Last gift replicated</th>\s*<td>#{Regexp.escape(written)}</td>})
+    end
+
+    it 'says never when no gift has been replicated' do
+      LglSetting.store_campaign(1092, 'Individual Giving')
+
+      get :index
+
+      expect(response.body).to match(%r{<th>Last gift replicated</th>\s*<td>never</td>})
+    end
+
     it 'offers the campaigns with the current one selected when asked to change it' do
       LglSetting.store_campaign(1092, 'Individual Giving')
 

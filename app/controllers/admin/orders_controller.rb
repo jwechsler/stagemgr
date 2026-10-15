@@ -1,5 +1,7 @@
 class Admin::OrdersController < Admin::ApplicationController
   authorize_resource
+  # lgl_replicate is authorized as the LGL sync (admins), not as an Order action.
+  skip_authorize_resource only: :lgl_replicate
 
   include OrdersHelper
 
@@ -7,6 +9,8 @@ class Admin::OrdersController < Admin::ApplicationController
                 except: %i[index new create update fulfill_selected
                            autocomplete_service_item_templates_name]
   before_action :redirect_edits_to_proper_action, only: %i[show edit]
+
+  LGL_DONATIONS_ONLY = 'Only donations are sent to LGL as gifts'
 
   VALID_SEARCH_COLUMNS = [
     'orders.id',
@@ -112,6 +116,20 @@ class Admin::OrdersController < Admin::ApplicationController
       flash[:error] = @order.errors.full_messages.to_sentence
       redirect_to action: 'edit', id: @order.id
     end
+  end
+
+  # POST /admin/orders/1/lgl_replicate
+  # Only queues the job, which decides whether to write or adopt the gift, so
+  # pressing it again is safe. Never calls Little Green Light in the request.
+  def lgl_replicate
+    authorize! :manage, :lgl_sync
+    return redirect_to(admin_order_path(@order), alert: LGL_DONATIONS_ONLY) unless @order.is_a?(DonationOrder)
+
+    order_page = admin_donation_order_path(@order)
+    return redirect_to(order_page, alert: Admin::LglSyncController::NOT_CONFIGURED) unless Lgl.enabled?
+
+    Resque.enqueue(LglReplicateDonationJob, @order.id)
+    redirect_to(order_page, notice: "Queued the LGL gift for order ##{@order.id}")
   end
 
   protected

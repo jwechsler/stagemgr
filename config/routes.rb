@@ -264,6 +264,7 @@ Rails.application.routes.draw do
         post :fulfill
         get :unclaimed
         post :update_notes
+        post :lgl_replicate
       end
       resources :refund_orders, only: %i[new create]
       # Fixes on the review banner (ReviewFlaggable)

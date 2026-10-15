@@ -102,6 +102,7 @@ class Admin::LglSyncController < Admin::ApplicationController
   def assign_gift_status
     @campaign = LglSetting.campaign
     @gift_count = DonationOrder.where.not(lgl_gift_id: nil).count
+    @last_gift = recorded_time(Lgl::GiftReplicator::LAST_GIFT)
     @choosing_campaign = @campaign.nil? || params[:choose_campaign].present?
     @campaigns = active_campaigns if @choosing_campaign
   end
