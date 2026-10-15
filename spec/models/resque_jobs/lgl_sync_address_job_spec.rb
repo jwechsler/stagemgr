@@ -570,6 +570,57 @@ RSpec.describe LglSyncAddressJob do
     end
   end
 
+  describe 'gift replication on a fresh link' do
+    before { allow(Resque).to receive(:enqueue) }
+
+    def processed_donation(theater: house)
+      FactoryBot.create(:donation_order_for_one_thousand_dollars, address: address, theater: theater)
+                .tap { |o| o.update_column(:status, Order::PROCESSED) }
+    end
+
+    context 'once a campaign is chosen' do
+      before { LglSetting.store_campaign(1, 'x') }
+
+      it 'queues replication of the address\'s donations after adopting a constituent' do
+        order = processed_donation
+        allow(client).to receive(:search_by_external_id).and_return([constituent(900_070)])
+
+        expect(described_class.perform(address.id, 'donation').action).to eq(:adopted)
+
+        expect(Resque).to have_received(:enqueue).with(LglReplicateDonationJob, order.id)
+      end
+
+      it 'queues replication of the address\'s donations after creating a constituent' do
+        order = processed_donation
+        allow(client).to receive(:create).and_return({ 'id' => 900_123 })
+
+        expect(described_class.perform(address.id, 'donation').action).to eq(:created)
+
+        expect(Resque).to have_received(:enqueue).with(LglReplicateDonationJob, order.id)
+      end
+
+      it 'skips donations from before go-live, already replicated, or for another theater' do
+        processed_donation.update_column(:created_at, LglSetting.gifts_since - 1.minute)
+        processed_donation.update_column(:lgl_gift_id, 7001)
+        processed_donation(theater: FactoryBot.create(:theater))
+        allow(client).to receive(:search_by_external_id).and_return([constituent(900_070)])
+
+        described_class.perform(address.id, 'donation')
+
+        expect(Resque).not_to have_received(:enqueue).with(LglReplicateDonationJob, anything)
+      end
+    end
+
+    it 'queues nothing before a campaign is chosen' do
+      processed_donation
+      allow(client).to receive(:search_by_external_id).and_return([constituent(900_070)])
+
+      described_class.perform(address.id, 'donation')
+
+      expect(Resque).not_to have_received(:enqueue).with(LglReplicateDonationJob, anything)
+    end
+  end
+
   describe 'gift history refresh' do
     it 'refreshes after adopting a constituent, with the same client' do
       allow(client).to receive(:search_by_external_id).and_return([constituent(900_070)])

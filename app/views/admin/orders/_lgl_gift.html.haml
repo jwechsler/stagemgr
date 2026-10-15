@@ -1,0 +1,17 @@
+-# The donation's gift in Little Green Light and a button to (re)queue it; the
+  job writes or adopts the gift, so sending again is safe.
+- lgl_id = order.address&.lgl_id
+- constituent_url = lgl_id.present? ? Lgl.constituent_url(lgl_id) : nil
+.callout.small.secondary#lgl-gift
+  .grid-x.align-middle
+    .cell.auto
+      %strong Little Green Light:
+      - if order.lgl_gift_id.present?
+        Gift ##{order.lgl_gift_id}
+      - else
+        not in LGL
+      - if constituent_url
+        &middot;
+        = link_to "constituent #{lgl_id}", constituent_url, target: '_blank', rel: 'noopener'
+    .cell.shrink
+      = button_to 'Send to LGL', lgl_replicate_admin_order_path(order), method: :post, class: 'button tiny'

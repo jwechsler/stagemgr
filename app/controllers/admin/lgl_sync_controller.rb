@@ -5,8 +5,9 @@
 # linked and how many are lapsed donors, and the
 # addresses waiting for a human to reconcile them in LGL, plus the nightly
 # donor-tier report download (which needs only its link, not the API sync).
-# The buttons only queue the jobs on the maintenance queue; nothing here calls LGL in
-# the request.
+# The buttons only queue the jobs on the maintenance queue. The one call to LGL
+# in a request is reading the campaign list, made only while no gift campaign
+# is chosen or the administrator asks to change it (and when saving a choice).
 class Admin::LglSyncController < Admin::ApplicationController
   # The review list is capped; the page shows the full count beside it.
   REVIEW_LIMIT = 100
@@ -23,6 +24,8 @@ class Admin::LglSyncController < Admin::ApplicationController
   }.freeze
   NOT_CONFIGURED = 'Little Green Light is not configured'
   DONOR_LEVELS_NOT_CONFIGURED = 'The LGL donor-tier report is not configured'
+  CAMPAIGN_INACTIVE = 'That LGL campaign is not active'
+  CAMPAIGN_ERRORS = [Lgl::Error, SocketError, Timeout::Error, Errno::ECONNREFUSED].freeze
 
   before_action :authorize_lgl_sync
 
@@ -44,6 +47,7 @@ class Admin::LglSyncController < Admin::ApplicationController
     review_tags = lgl_tags(AddressTag::LGL_REVIEW)
     @review_count = review_tags.count
     @review_tags = review_tags.includes(:address).order(:created_at, :id).limit(REVIEW_LIMIT)
+    assign_gift_status
   end
 
   def poll
@@ -66,6 +70,21 @@ class Admin::LglSyncController < Admin::ApplicationController
     enqueue(:donor_levels, allowed: Lgl.settings.donor_levels_enabled?, alert: DONOR_LEVELS_NOT_CONFIGURED)
   end
 
+  # Re-reads the active campaigns so only one LGL still has open can be stored.
+  def campaign
+    return redirect_to(admin_lgl_sync_path, alert: NOT_CONFIGURED) unless Lgl.enabled?
+
+    id = params.permit(:campaign_id)[:campaign_id].to_i
+    @campaigns = active_campaigns
+    return redirect_to(admin_lgl_sync_path, alert: @campaign_error) if @campaign_error
+
+    chosen = @campaigns.find { |c| c['id'].to_i == id }
+    return redirect_to(admin_lgl_sync_path, alert: CAMPAIGN_INACTIVE) if chosen.nil?
+
+    LglSetting.store_campaign(chosen['id'], chosen['name'])
+    redirect_to(admin_lgl_sync_path, notice: "LGL gift campaign set to #{chosen['name']}")
+  end
+
   private
 
   def authorize_lgl_sync
@@ -77,6 +96,22 @@ class Admin::LglSyncController < Admin::ApplicationController
 
     Resque.enqueue(JOBS.fetch(job))
     redirect_to(admin_lgl_sync_path, notice: QUEUED.fetch(job))
+  end
+
+  # The campaign list comes from LGL, so it is read only when needed.
+  def assign_gift_status
+    @campaign = LglSetting.campaign
+    @gift_count = DonationOrder.where.not(lgl_gift_id: nil).count
+    @last_gift = recorded_time(Lgl::GiftReplicator::LAST_GIFT)
+    @choosing_campaign = @campaign.nil? || params[:choose_campaign].present?
+    @campaigns = active_campaigns if @choosing_campaign
+  end
+
+  def active_campaigns
+    Lgl.client.campaigns.select { |c| c['is_active'] }.sort_by { |c| c['name'].to_s }
+  rescue *CAMPAIGN_ERRORS => e
+    @campaign_error = "Could not read campaigns from LGL: #{e.message}"
+    []
   end
 
   # LglDonorImport also records manual uploads from the Imports page.

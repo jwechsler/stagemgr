@@ -1,6 +1,8 @@
 .grid-x.grid-padding-x
   .cell
     = render '/admin/orders/review_banner', order: @donation_order
+    - if Lgl.enabled? && can?(:manage, :lgl_sync)
+      = render '/admin/orders/lgl_gift', order: @donation_order
   .cell
     = render 'full_order', :order=>@donation_order
   .cell.small-12

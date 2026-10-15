@@ -309,6 +309,13 @@ FactoryBot.define do
   factory :donation_order do
     order
 
+    # A donation made alongside a show: it records the production, and its
+    # campaign is the production's name, as build_additional_donation_order does.
+    trait :for_production do
+      association :production
+      campaign { production.name }
+    end
+
     factory :donation_order_for_one_thousand_dollars, traits: [:one_thousand_dollar_donation]
   end
 

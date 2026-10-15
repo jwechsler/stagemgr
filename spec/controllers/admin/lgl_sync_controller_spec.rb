@@ -5,10 +5,17 @@ RSpec.describe Admin::LglSyncController, type: :controller do
 
   let!(:default_theater) { Theater.default_theater || FactoryBot.create(:theater, theater_class: Theater::DEFAULT) }
   let(:admin_user) { FactoryBot.create(:admin_user) }
+  let(:campaigns) do
+    [{ 'id' => 1092, 'name' => 'Individual Giving', 'is_active' => true },
+     { 'id' => 7, 'name' => 'Annual Fund 2019', 'is_active' => false },
+     { 'id' => 1201, 'name' => 'Benefit', 'is_active' => true }]
+  end
+  let(:lgl_client) { instance_double(Lgl::Client, campaigns: campaigns) }
 
   before do
     allow(controller).to receive(:current_user).and_return(admin_user)
     allow(Resque).to receive(:enqueue)
+    allow(Lgl).to receive(:client).and_return(lgl_client)
   end
 
   describe 'GET #index when disabled' do
@@ -210,6 +217,111 @@ RSpec.describe Admin::LglSyncController, type: :controller do
       imported = JobMetadata.last_run('LglDonorImport').to_formatted_s(:short_date_and_time)
       expect(response.body).to match(%r{<th>Last report download</th>\s*<td>#{Regexp.escape(fetched)}</td>})
       expect(response.body).to match(%r{<th>Last donor levels import</th>\s*<td>#{Regexp.escape(imported)}</td>})
+    end
+  end
+
+  describe 'GET #index gift campaign rows' do
+    before { allow(Lgl).to receive(:enabled?).and_return(true) }
+
+    it 'shows the chosen campaign and the donation count without calling LGL' do
+      LglSetting.store_campaign(1092, 'Individual Giving')
+      order = FactoryBot.create(:donation_order)
+      order.update_column(:lgl_gift_id, 555)
+
+      get :index
+
+      expect(Lgl).not_to have_received(:client)
+      expect(response.body).to include('Individual Giving (#1092)', %(href="#{admin_lgl_sync_path(choose_campaign: 1)}"))
+      expect(response.body).to match(%r{<th>Donations in LGL</th>\s*<td>1</td>})
+      expect(response.body).not_to include('Choose a campaign')
+    end
+
+    it 'offers the active campaigns sorted by name when none is chosen' do
+      get :index
+
+      expect(lgl_client).to have_received(:campaigns)
+      expect(response.body).to include(admin_lgl_sync_campaign_path, 'Choose a campaign',
+                                       'Donations are not sent to LGL until a campaign is chosen.')
+      expect(response.body).to match(/<option value="1201">Benefit<.*<option value="1092">Individual Giving</m)
+      expect(response.body).not_to include('Annual Fund 2019')
+      expect(response.body).to match(%r{<th>Donations in LGL</th>\s*<td>0</td>})
+    end
+
+    it 'shows when a gift was last replicated' do
+      LglSetting.store_campaign(1092, 'Individual Giving')
+      JobMetadata.record_run_at(Lgl::GiftReplicator::LAST_GIFT, Time.zone.local(2026, 10, 14, 9, 15))
+
+      get :index
+
+      written = JobMetadata.last_run(Lgl::GiftReplicator::LAST_GIFT).to_formatted_s(:short_date_and_time)
+      expect(response.body).to match(%r{<th>Last gift replicated</th>\s*<td>#{Regexp.escape(written)}</td>})
+    end
+
+    it 'says never when no gift has been replicated' do
+      LglSetting.store_campaign(1092, 'Individual Giving')
+
+      get :index
+
+      expect(response.body).to match(%r{<th>Last gift replicated</th>\s*<td>never</td>})
+    end
+
+    it 'offers the campaigns with the current one selected when asked to change it' do
+      LglSetting.store_campaign(1092, 'Individual Giving')
+
+      get :index, params: { choose_campaign: 1 }
+
+      expect(response.body).to include('Choose a campaign', '<option selected="selected" value="1092">')
+      expect(response.body).not_to include('Donations are not sent to LGL')
+    end
+
+    it 'shows why the campaigns could not be read' do
+      allow(lgl_client).to receive(:campaigns).and_raise(Lgl::Error.new('LGL is down'))
+
+      get :index
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('callout alert', 'Could not read campaigns from LGL: LGL is down')
+    end
+  end
+
+  describe 'POST #campaign' do
+    before { allow(Lgl).to receive(:enabled?).and_return(true) }
+
+    it 'stores an active campaign and says so' do
+      post :campaign, params: { campaign_id: '1092' }
+
+      expect(LglSetting.campaign).to eq(LglSetting::Campaign.new(1092, 'Individual Giving'))
+      expect(response).to redirect_to(admin_lgl_sync_path)
+      expect(flash[:notice]).to eq('LGL gift campaign set to Individual Giving')
+    end
+
+    %w[7 999].each do |id|
+      it "stores nothing and alerts for campaign #{id}, which is not active" do
+        post :campaign, params: { campaign_id: id }
+
+        expect(LglSetting.campaign).to be_nil
+        expect(response).to redirect_to(admin_lgl_sync_path)
+        expect(flash[:alert]).to eq('That LGL campaign is not active')
+      end
+    end
+
+    it 'stores nothing and alerts when the campaigns cannot be read' do
+      allow(lgl_client).to receive(:campaigns).and_raise(SocketError, 'getaddrinfo failed')
+
+      post :campaign, params: { campaign_id: '1092' }
+
+      expect(LglSetting.campaign).to be_nil
+      expect(flash[:alert]).to eq('Could not read campaigns from LGL: getaddrinfo failed')
+    end
+
+    it 'stores nothing and alerts when LGL is not configured' do
+      allow(Lgl).to receive(:enabled?).and_return(false)
+
+      post :campaign, params: { campaign_id: '1092' }
+
+      expect(Lgl).not_to have_received(:client)
+      expect(LglSetting.campaign).to be_nil
+      expect(flash[:alert]).to eq('Little Green Light is not configured')
     end
   end
 
