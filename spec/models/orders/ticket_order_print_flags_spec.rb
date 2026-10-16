@@ -29,33 +29,59 @@ RSpec.describe TicketOrder, '#build_tktprint_payload print flags' do
       expect(payload[:flags]).to eq(['flag'])
     end
 
-    it 'is not sent for a current-fiscal-year tier the test config excludes' do
-      address.update!(donor_tier_for_current_fiscal_year: 'Up to $99.99')
-
-      expect(payload[:flags]).to eq([])
-    end
-
-    it 'is not sent for a nil current-fiscal-year tier' do
-      expect(payload[:flags]).to eq([])
-    end
-
-    it 'is not sent for a blank current-fiscal-year tier' do
-      address.update!(donor_tier_for_current_fiscal_year: '   ')
-
-      expect(payload[:flags]).to eq([])
-    end
-
-    it 'is not sent for a patron with only a last-fiscal-year tier' do
+    it 'is sent for a last-fiscal-year tier the install does not exclude' do
       address.update!(donor_tier_for_last_fiscal_year: '$100-$249.99')
 
+      expect(payload[:flags]).to eq(['flag'])
+    end
+
+    it 'is not sent when both years hold a tier the test config excludes' do
+      address.update!(donor_tier_for_current_fiscal_year: 'Up to $99.99',
+                      donor_tier_for_last_fiscal_year: 'Up to $99.99')
+
       expect(payload[:flags]).to eq([])
     end
 
-    it 'is sent for every current-fiscal-year tier when no tiers are excluded' do
-      allow(Lgl).to receive(:settings).and_return(Lgl::Settings.from({ 'littlegreenlight' => {} }, env: {}))
-      address.update!(donor_tier_for_current_fiscal_year: 'Up to $99.99')
+    it 'is sent when the current year is excluded and the last year qualifies' do
+      address.update!(donor_tier_for_current_fiscal_year: 'Up to $99.99',
+                      donor_tier_for_last_fiscal_year: '$100-$249.99')
 
       expect(payload[:flags]).to eq(['flag'])
+    end
+
+    it 'is sent when the last year is excluded and the current year qualifies' do
+      address.update!(donor_tier_for_current_fiscal_year: '$100-$249.99',
+                      donor_tier_for_last_fiscal_year: 'Up to $99.99')
+
+      expect(payload[:flags]).to eq(['flag'])
+    end
+
+    it 'is not sent when both tiers are nil' do
+      expect(payload[:flags]).to eq([])
+    end
+
+    it 'is not sent when both tiers are blank' do
+      address.update!(donor_tier_for_current_fiscal_year: '   ', donor_tier_for_last_fiscal_year: '')
+
+      expect(payload[:flags]).to eq([])
+    end
+
+    context 'when no tiers are excluded' do
+      before do
+        allow(Lgl).to receive(:settings).and_return(Lgl::Settings.from({ 'littlegreenlight' => {} }, env: {}))
+      end
+
+      it 'is sent for any current-fiscal-year tier' do
+        address.update!(donor_tier_for_current_fiscal_year: 'Up to $99.99')
+
+        expect(payload[:flags]).to eq(['flag'])
+      end
+
+      it 'is sent for any last-fiscal-year tier' do
+        address.update!(donor_tier_for_last_fiscal_year: 'Up to $99.99')
+
+        expect(payload[:flags]).to eq(['flag'])
+      end
     end
   end
 

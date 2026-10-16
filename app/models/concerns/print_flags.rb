@@ -12,7 +12,7 @@ module PrintFlags
   # Icon names are tktprint's; the meaning is ours. Rule order is print order.
   PRINT_FLAG_RULES = [
     [:star, ->(order) { order.address.vip? }],
-    [:flag, ->(order) { order.address.current_fy_flagged_donor? }],
+    [:flag, ->(order) { order.address.flagged_donor? }],
     [:checkmark, ->(order) { order.notes.present? }]
   ].freeze
 
