@@ -162,6 +162,36 @@ RSpec.describe Lgl::Settings do
     end
   end
 
+  describe 'donor_flag_excluded_tiers' do
+    it 'reads a YAML list, stripped' do
+      result = settings({ 'donor_flag_excluded_tiers' => [' Up to $99.99 ', '$100-$249.99'] })
+
+      expect(result.donor_flag_excluded_tiers).to eq(['Up to $99.99', '$100-$249.99'])
+      expect(result.donor_flag_excluded_tiers).to be_frozen
+    end
+
+    it 'turns a single string into a one-element list' do
+      expect(settings({ 'donor_flag_excluded_tiers' => 'Up to $99.99' }).donor_flag_excluded_tiers)
+        .to eq(['Up to $99.99'])
+    end
+
+    it 'is an empty list when unset' do
+      expect(settings({}).donor_flag_excluded_tiers).to eq([])
+      expect(settings.donor_flag_excluded_tiers).to eq([])
+    end
+
+    it 'drops blank entries' do
+      expect(settings({ 'donor_flag_excluded_tiers' => ['Up to $99.99', '', '  ', nil] }).donor_flag_excluded_tiers)
+        .to eq(['Up to $99.99'])
+    end
+
+    it 'is read when sync is disabled' do
+      result = settings({ 'sync' => 'disabled', 'donor_flag_excluded_tiers' => ['Up to $99.99'] })
+
+      expect(result.donor_flag_excluded_tiers).to eq(['Up to $99.99'])
+    end
+  end
+
   describe 'web_url' do
     it 'drops a trailing slash' do
       expect(settings({ 'web_url' => 'https://house.littlegreenlight.com/ ' }).web_url)

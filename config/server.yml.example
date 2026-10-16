@@ -143,6 +143,11 @@ all:
     # that off. If the link needs a login, set LGL_USER / LGL_PASSWORD (secrets,
     # never here). ENV override: LGL_DONOR_TIER_REPORT_URL.
     donor_tier_report_url:
+    # LGL donor tier labels that do NOT earn the heart icon on box office
+    # receipts; any other tier for the current or last fiscal year does. Labels vary
+    # by LGL install, so copy them exactly. A YAML list or a single label;
+    # unset means every tier earns it. Used whatever sync is.
+    # donor_flag_excluded_tiers: ["Up to $99.99"]
   payment_processing:
     additional_card_types:
 
@@ -213,6 +218,7 @@ test:
   # config/environments/test.rb); specs stub Lgl where they need it on.
   littlegreenlight:
     sync: disabled
+    donor_flag_excluded_tiers: ["Up to $99.99"]
   email:
     addresses:
       box_office: boxoffice@yourtheater.org

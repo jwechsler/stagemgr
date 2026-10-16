@@ -10,6 +10,7 @@ module Lgl
   #                                  # ENV LGL_WRITABLE_ADDRESS_IDS
   #     web_url: https://youraccount.littlegreenlight.com
   #     donor_tier_report_url: https://...  # ENV LGL_DONOR_TIER_REPORT_URL
+  #     donor_flag_excluded_tiers: ["Up to $99.99"]  # or one label; no ENV override
   #
   # sync_mode is :enabled (reads and writes), :readonly (reads; writes skipped
   # except writable_address_ids) or :disabled. Lgl.configure_from turns the
@@ -36,6 +37,9 @@ module Lgl
     attr_reader :sync_mode
     # Permanent link of the LGL saved report imported as donor levels, or nil.
     attr_reader :donor_tier_report_url
+    # Frozen Array of LGL donor tier labels that earn no heart icon on box office
+    # receipts, in either the current or last fiscal year; [] when unset. Read whatever sync_mode is.
+    attr_reader :donor_flag_excluded_tiers
     # :env, :server_yml or :none
     attr_reader :sync_source, :writable_address_ids_source, :donor_tier_report_url_source
 
@@ -46,7 +50,8 @@ module Lgl
         sync: pick(env[SYNC_ENV], value_in(section, 'sync')),
         writable: pick(env[WRITABLE_ENV], value_in(section, 'writable_address_ids')),
         web_url: value_in(section, 'web_url'),
-        donor_tier_report_url: pick(env[DONOR_TIER_REPORT_URL_ENV], value_in(section, 'donor_tier_report_url'))
+        donor_tier_report_url: pick(env[DONOR_TIER_REPORT_URL_ENV], value_in(section, 'donor_tier_report_url')),
+        donor_flag_excluded_tiers: value_in(section, 'donor_flag_excluded_tiers')
       )
     end
 
@@ -69,7 +74,7 @@ module Lgl
     end
     private_class_method :pick, :value_in, :blank_value?
 
-    def initialize(sync:, writable:, web_url:, donor_tier_report_url:)
+    def initialize(sync:, writable:, web_url:, donor_tier_report_url:, donor_flag_excluded_tiers:)
       raw_sync, @sync_source = sync
       ids_value, @writable_address_ids_source = writable
       report_url, @donor_tier_report_url_source = donor_tier_report_url
@@ -78,6 +83,7 @@ module Lgl
       @writable_address_ids = ids_value.nil? ? nil : parse_ids(ids_value)
       @web_url = web_url.to_s.strip.chomp('/').presence
       @donor_tier_report_url = report_url.to_s.strip.presence
+      @donor_flag_excluded_tiers = parse_tiers(donor_flag_excluded_tiers)
       freeze
     end
 
@@ -100,6 +106,11 @@ module Lgl
     end
 
     private
+
+    # A YAML list or a single label; stripped, blanks dropped.
+    def parse_tiers(value)
+      Array(value).map { |tier| tier.to_s.strip }.reject(&:empty?).freeze
+    end
 
     def parse_ids(value)
       list = value.is_a?(Array) ? value : value.to_s.split(',')

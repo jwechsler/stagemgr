@@ -85,6 +85,7 @@ module TktprintPrintable
       credit_1: credit_1 ? CGI.unescapeHTML(credit_1) : nil,
       credit_2: credit_2 ? CGI.unescapeHTML(credit_2) : nil,
       patron_code: address.customer_tag,
+      flags: print_flags,
       performance_date: performance.performance_date,
       performance_time: performance.performance_time,
       amount: visible_amount,
