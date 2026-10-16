@@ -52,7 +52,7 @@ The rules live in one place, `PRINT_FLAG_RULES` in the `PrintFlags` concern
 | order | icon (tktprint name) | rule |
 |---|---|---|
 | 1 | `star` | `address.vip?` |
-| 2 | `flag` | `address.donor_tier_for_current_fiscal_year` or `address.donor_tier_for_last_fiscal_year` is present and **not** in the configured excluded-tier list (Theater Wit excludes `"Up to $99.99"`) |
+| 2 | `heart` | `address.donor_tier_for_current_fiscal_year` or `address.donor_tier_for_last_fiscal_year` is present and **not** in the configured excluded-tier list (Theater Wit excludes `"Up to $99.99"`) |
 | 3 | `checkmark` | the order's `notes` are non-blank (including notes the app appends itself) |
 
 The order of the rules is the order the icons print. `print_flags` returns the names as strings,
@@ -60,10 +60,10 @@ capped at 3 (`MAX_PRINT_FLAGS`).
 
 The excluded tiers are the `littlegreenlight: donor_flag_excluded_tiers` key in `config/server.yml`, a
 list of LGL tier labels copied exactly as the install's LGL names them (for example
-`["Up to $99.99"]`). Unset means any tier in either year earns the flag. The check is
+`["Up to $99.99"]`). Unset means any tier in either year earns the heart. The check is
 `Address#flagged_donor?`.
 
-Donor tiers come from LGL and always belong to the default theater, so the flag appears on every
+Donor tiers come from LGL and always belong to the default theater, so the heart appears on every
 receipt for that patron, whatever the show. That is intended: no theater scoping, no donation
 order lookup, no dollar threshold. All three rules read stored columns, so `PrintBatchJob` makes
 no extra queries and no LGL API calls.

@@ -171,7 +171,7 @@ all:
     writable_address_ids:       # optional, readonly only: 12, 34  or a YAML list
     web_url: https://youraccount.littlegreenlight.com
     donor_tier_report_url:      # optional: permanent link of the LGL donor-tier saved report
-    donor_flag_excluded_tiers:  # optional: ["Up to $99.99"]  tiers that earn no receipt flag
+    donor_flag_excluded_tiers:  # optional: ["Up to $99.99"]  tiers that earn no receipt heart
 ```
 
 | Key | ENV override | Purpose |
@@ -180,7 +180,7 @@ all:
 | `writable_address_ids` | `LGL_WRITABLE_ADDRESS_IDS` | Comma-separated (or YAML list) Stagemgr address ids that may still be written to LGL in `readonly` mode, for acceptance testing. Ignored in `enabled` mode |
 | `web_url` | -- | Base URL of the LGL account, used to link an LGL ID to the constituent page. Blank shows the id as plain text |
 | `donor_tier_report_url` | `LGL_DONOR_TIER_REPORT_URL` | Permanent link of the LGL saved report (CSV with `External constituent ID`, `TG Tier Last Fiscal`, `TG Tier This Fiscal`) that `LglDonorLevelsFetch` downloads nightly and imports as donor levels. Blank turns the nightly import off. Independent of `sync` and `LGL_API_KEY`; the import's owner and result-email recipient is the user whose email is `email.addresses.supervisor_notifications` |
-| `donor_flag_excluded_tiers` | -- | Donor tier labels that do **not** earn the flag icon on box office receipts, copied exactly as this install's LGL names them, e.g. `["Up to $99.99"]`. A YAML list or a single label. Any other tier for the current or last fiscal year earns the flag; unset means every tier does. Independent of `sync` and `LGL_API_KEY` |
+| `donor_flag_excluded_tiers` | -- | Donor tier labels that do **not** earn the heart icon on box office receipts, copied exactly as this install's LGL names them, e.g. `["Up to $99.99"]`. A YAML list or a single label. Any other tier for the current or last fiscal year earns the heart; unset means every tier does. Independent of `sync` and `LGL_API_KEY` |
 
 A non-blank environment variable overrides the `server.yml` value; a blank one
 counts as absent, the same rule as [AppSecrets](#secrets).

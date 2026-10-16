@@ -37,7 +37,7 @@ module Lgl
     attr_reader :sync_mode
     # Permanent link of the LGL saved report imported as donor levels, or nil.
     attr_reader :donor_tier_report_url
-    # Frozen Array of LGL donor tier labels that earn no flag icon on box office
+    # Frozen Array of LGL donor tier labels that earn no heart icon on box office
     # receipts, in either the current or last fiscal year; [] when unset. Read whatever sync_mode is.
     attr_reader :donor_flag_excluded_tiers
     # :env, :server_yml or :none

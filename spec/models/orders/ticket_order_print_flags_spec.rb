@@ -22,17 +22,17 @@ RSpec.describe TicketOrder, '#build_tktprint_payload print flags' do
     expect(payload[:flags]).to eq(['star'])
   end
 
-  describe 'the donor flag' do
+  describe 'the donor heart' do
     it 'is sent for a current-fiscal-year tier the install does not exclude' do
       address.update!(donor_tier_for_current_fiscal_year: '$100-$249.99')
 
-      expect(payload[:flags]).to eq(['flag'])
+      expect(payload[:flags]).to eq(['heart'])
     end
 
     it 'is sent for a last-fiscal-year tier the install does not exclude' do
       address.update!(donor_tier_for_last_fiscal_year: '$100-$249.99')
 
-      expect(payload[:flags]).to eq(['flag'])
+      expect(payload[:flags]).to eq(['heart'])
     end
 
     it 'is not sent when both years hold a tier the test config excludes' do
@@ -46,14 +46,14 @@ RSpec.describe TicketOrder, '#build_tktprint_payload print flags' do
       address.update!(donor_tier_for_current_fiscal_year: 'Up to $99.99',
                       donor_tier_for_last_fiscal_year: '$100-$249.99')
 
-      expect(payload[:flags]).to eq(['flag'])
+      expect(payload[:flags]).to eq(['heart'])
     end
 
     it 'is sent when the last year is excluded and the current year qualifies' do
       address.update!(donor_tier_for_current_fiscal_year: '$100-$249.99',
                       donor_tier_for_last_fiscal_year: 'Up to $99.99')
 
-      expect(payload[:flags]).to eq(['flag'])
+      expect(payload[:flags]).to eq(['heart'])
     end
 
     it 'is not sent when both tiers are nil' do
@@ -74,13 +74,13 @@ RSpec.describe TicketOrder, '#build_tktprint_payload print flags' do
       it 'is sent for any current-fiscal-year tier' do
         address.update!(donor_tier_for_current_fiscal_year: 'Up to $99.99')
 
-        expect(payload[:flags]).to eq(['flag'])
+        expect(payload[:flags]).to eq(['heart'])
       end
 
       it 'is sent for any last-fiscal-year tier' do
         address.update!(donor_tier_for_last_fiscal_year: 'Up to $99.99')
 
-        expect(payload[:flags]).to eq(['flag'])
+        expect(payload[:flags]).to eq(['heart'])
       end
     end
   end
@@ -97,11 +97,11 @@ RSpec.describe TicketOrder, '#build_tktprint_payload print flags' do
     expect(payload[:flags]).to eq([])
   end
 
-  it 'sends star, flag and checkmark in rule order when all apply' do
+  it 'sends star, heart and checkmark in rule order when all apply' do
     address.update!(vip: true, donor_tier_for_current_fiscal_year: '$100-$249.99')
     order.update!(notes: 'Birthday')
 
-    expect(payload[:flags]).to eq(%w[star flag checkmark])
+    expect(payload[:flags]).to eq(%w[star heart checkmark])
   end
 
   describe 'reprinting an order already in tktprint' do

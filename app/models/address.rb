@@ -444,7 +444,7 @@ end
     donor_tier_for_current_fiscal_year.presence || donor_tier_for_last_fiscal_year
   end
 
-  # Earns the flag icon on box office receipts: has an LGL tier for the current
+  # Earns the heart icon on box office receipts: has an LGL tier for the current
   # or last fiscal year that the install has not excluded (littlegreenlight:
   # donor_flag_excluded_tiers). Uses only the tier list, so it works whatever
   # the LGL sync mode is.
