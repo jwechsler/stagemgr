@@ -46,37 +46,27 @@ alone (it deep-transforms arrays of strings too).
 
 ### 2. Mapping rules to icons
 
-Add one place that maps business rules to icon names, so the meaning of each icon is easy to find
-and change. For example, a constant or config on `TicketOrder` or `Address`:
+The rules live in one place, `PRINT_FLAG_RULES` in the `PrintFlags` concern
+(`app/models/concerns/print_flags.rb`), included in `TicketOrder`:
 
-```ruby
-# Icon names are tktprint's (config/flags.yml); the meaning is ours.
-PRINT_FLAG_RULES = [
-  [:star,  ->(address) { address.major_donor? }],          # e.g. tier at or above a threshold
-  [:heart, ->(address) { address.gave_in_last_months?(6) }],
-  [:ticket, ->(address) { address.is_current_member? }],
-].freeze
+| order | icon (tktprint name) | rule |
+|---|---|---|
+| 1 | `star` | `address.vip?` |
+| 2 | `flag` | `address.donor_tier_for_current_fiscal_year` is present and **not** in the configured excluded-tier list (Theater Wit excludes `"Up to $99.99"`) |
+| 3 | `checkmark` | the order's `notes` are non-blank (including notes the app appends itself) |
 
-def print_flags
-  return [] unless address
+The order of the rules is the order the icons print. `print_flags` returns the names as strings,
+capped at 3 (`MAX_PRINT_FLAGS`).
 
-  PRINT_FLAG_RULES.select { |_, rule| rule.call(address) }.map { |name, _| name.to_s }.first(3)
-end
-```
+The excluded tiers are the `littlegreenlight: donor_flag_excluded_tiers` key in `config/server.yml`, a
+list of LGL tier labels copied exactly as the install's LGL names them (for example
+`["Up to $99.99"]`). Unset means any current-year tier earns the flag. The check is
+`Address#current_fy_flagged_donor?`.
 
-The order of the rules is the order the icons print, so put the most important first.
-
-Candidate inputs for the rules (confirm with the box office and development):
-
-- `Address#donor_tier_for_current_fiscal_year` and `#donor_tier_for_last_fiscal_year` (LGL tiers)
-- `Address#vip`
-- `Address#is_donor?` and `#most_recent_donation_tier`
-- `Address#is_current_member?`, `#current_membership`
-- `Lgl::GiftHistory` (LYBUNT/SYBUNT classification) and the `LGL Lapsed` address tag
-- Donation line items (`DonationOrder` / `DonationLineItem`) by date, for "gave in the last six months"
-
-Keep the rules cheap. The payload is built once per order inside `PrintBatchJob`, so avoid
-per-order LGL API calls. Use stored columns and tags.
+Donor tiers come from LGL and always belong to the default theater, so the flag appears on every
+receipt for that patron, whatever the show. That is intended: no theater scoping, no donation
+order lookup, no dollar threshold. All three rules read stored columns, so `PrintBatchJob` makes
+no extra queries and no LGL API calls.
 
 ### 3. Legend for staff
 

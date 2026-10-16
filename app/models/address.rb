@@ -444,6 +444,15 @@ end
     donor_tier_for_current_fiscal_year.presence || donor_tier_for_last_fiscal_year
   end
 
+  # Earns the flag icon on box office receipts: has a current-fiscal-year LGL
+  # tier that the install has not excluded (littlegreenlight:
+  # donor_flag_excluded_tiers). Uses only the tier list, so it works whatever
+  # the LGL sync mode is.
+  def current_fy_flagged_donor?
+    tier = donor_tier_for_current_fiscal_year
+    tier.present? && Lgl.settings.donor_flag_excluded_tiers.exclude?(tier)
+  end
+
   def to_s
     "#{full_name} <#{email}>"
   end

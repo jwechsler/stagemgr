@@ -1,5 +1,7 @@
 class TicketOrder < Order
   include TktprintPrintable
+  # Icons (star, flag, checkmark) requested on the box office receipt.
+  include PrintFlags
   include TicketOrderAdmission
   # Hard cap on shared physical equipment (ResourcedTicketClass device pools).
   include ResourcedStockValidatable

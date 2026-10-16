@@ -67,6 +67,20 @@ Only tickets whose class has [Admission](../productions/ticket-classes.md#admiss
 
 ---
 
+## Receipt Icons
+
+Up to three small icons print on the receipt, just right of the RECEIPT banner, so staff can spot a patron who needs special attention when handing over tickets. They appear on the receipt only, never on the patron's tickets.
+
+| Icon | Meaning |
+|------|---------|
+| Star | The customer is marked **VIP** |
+| Flag | The customer has a donor tier for the current fiscal year, from LGL. Tiers your administrator excludes (usually the lowest) don't earn the flag; see `littlegreenlight: donor_flag_excluded_tiers` in [Configuration](../developer/configuration.md) |
+| Check mark | The order has **notes**. Read them before handing over the tickets |
+
+Icons print in the order shown. A reprint uses the customer's and order's details at the time of the reprint, so a flag can appear or disappear after the first print.
+
+---
+
 ## Fulfill-Then-Print Workflow
 
 A common workflow combines batch printing with batch fulfillment:
