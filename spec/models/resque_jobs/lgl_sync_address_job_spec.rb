@@ -148,7 +148,7 @@ RSpec.describe LglSyncAddressJob do
         expect(client).not_to have_received(:update_street_address)
       end
 
-      it "logs LGL's preferred street and phone before the first write" do
+      it 'logs the groups it is about to change before the first write, never their values' do
         address.update!(phone: '773-555-0100')
         lgl = constituent(900_050)
         lgl['street_addresses'].first['street'] = '8 Old Rd'
@@ -158,11 +158,24 @@ RSpec.describe LglSyncAddressJob do
 
         expect(Rails.logger).to have_received(:info)
           .with("[LGL] address ##{address.id}: before edit, constituent 900050 " \
-                "preferred street=#{lgl['street_addresses'].first.to_json} phone=none").ordered
+                'changing street (preferred entry 2); phone (add preferred entry)').ordered
         expect(client).to have_received(:update_street_address).ordered
+        expect(Rails.logger).not_to have_received(:info)
+          .with(a_string_matching(/Jane|Smith|Main St|Old Rd|Chicago|60601|555/))
         expect(client).to have_received(:add_phone_number)
           .with(900_050, { number: '773-555-0100', phone_number_type_id: 1, is_preferred: true },
                 for_address_id: address.id)
+      end
+
+      it 'names the constituent fields it is about to change, never their values' do
+        allow(client).to receive(:find).and_return(constituent(900_050).merge('first_name' => 'Janie'))
+
+        described_class.perform(address.id, described_class::EDIT_TRIGGER)
+
+        expect(Rails.logger).to have_received(:info)
+          .with(a_string_including("address ##{address.id}: before edit, constituent 900050 changing fields ",
+                                   'first_name'))
+        expect(Rails.logger).not_to have_received(:info).with(a_string_matching(/Jane|Smith/))
       end
 
       it 'writes and logs nothing when LGL already matches' do

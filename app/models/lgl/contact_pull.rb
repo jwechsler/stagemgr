@@ -28,7 +28,10 @@ module Lgl
   # yet known to belong to this address. Callers must pass the constituent as
   # fetched, before any re-point is sent. Writes only
   # Stagemgr, so the LGL write allowlist does not apply; Lgl.enabled? does.
-  # Logs the previous Stagemgr values so a bad pull can be undone by hand.
+  # Logs the address id, the constituent id and the groups and columns that
+  # changed. Values are never logged: patron names, streets and phones do not
+  # belong in the info log, so it is a record of what changed, not an undo
+  # trail.
   class ContactPull
     GROUPS = %i[name street phone].freeze
     # LGL's timestamp must beat the address's updated_at by more than this.
@@ -38,10 +41,6 @@ module Lgl
     # bump stamped a few seconds "after" the touch would pull LGL's older
     # values straight back over Stagemgr's.
     CLOCK_SKEW_ALLOWANCE = 2.minutes
-    PREVIOUS_COLUMNS = {
-      name: %w[full_name], street: %w[line1 line2 city state zipcode], phone: %w[phone]
-    }.freeze
-
     # An LGL street entry as Address columns: street (line1, and line2 after
     # the first newline), city, state, postal_code -> zipcode. Also used by
     # Lgl::ConstituentReplicator for a new address.
@@ -63,9 +62,10 @@ module Lgl
       changes = GROUPS.index_with { |group| send("#{group}_attributes") }.compact
       return [] if changes.empty?
 
-      previous = previous_values(changes.keys)
-      save_without_echo!(changes.values.reduce(:merge))
-      log(changes.keys, previous)
+      attributes = changes.values.reduce(:merge)
+      changed_columns = attributes.keys.reject { |column| @address[column] == attributes[column] }
+      save_without_echo!(attributes)
+      log(changes.keys, changed_columns)
       changes.keys
     end
 
@@ -130,13 +130,10 @@ module Lgl
       @address.lgl_pull_in_progress = false
     end
 
-    def previous_values(groups)
-      groups.flat_map { |group| PREVIOUS_COLUMNS[group] }.index_with { |column| @address[column] }
-    end
-
-    def log(groups, previous)
+    # Column names only, never values (see class comment).
+    def log(groups, changed_columns)
       Rails.logger.info("[LGL] address ##{@address.id}: pulled #{groups.join(', ')} from constituent " \
-                        "#{@constituent['id']} (previous #{previous.to_json})")
+                        "#{@constituent['id']} (changed columns: #{changed_columns.join(', ')})")
     end
   end
 end
