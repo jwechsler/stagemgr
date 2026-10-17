@@ -11,6 +11,8 @@ class TicketOrder < Order
   include TicketConfirmationResendable
   # Add to Order: an addition is its own order until it merges into its target.
   include TicketOrderMergeable
+  # LEGACY: pre-per-seat aggregated line items (reconcile + split helper).
+  include LegacyAggregateLineItems
 
   SEATING_REQUESTS = (
     WHEELCHAIR, WHEELCHAIR_TRANSFER, STAIRS =
@@ -343,22 +345,13 @@ end
     priced_seats.each do |sa|
       next if ticket_line_items.any? { |tli| tli.seat_assignment_id == sa.id }
 
+      # LEGACY: an aggregated-by-class line item (see LegacyAggregateLineItems).
       aggregated = ticket_line_items.detect do |tli|
         tli.ticket_class_id == sa.ticket_class_id && tli.seat_assignment_id.nil? && tli.ticket_count.to_i.positive?
       end
       next if aggregated.nil?
 
-      if aggregated.ticket_count > 1
-        aggregated.update_columns(ticket_count: aggregated.ticket_count - 1)
-        ticket_line_items.create!(
-          ticket_class_id: sa.ticket_class_id,
-          ticket_count: 1,
-          seat_assignment_id: sa.id,
-          price_override: sa.price_override
-        )
-      else
-        aggregated.update_columns(seat_assignment_id: sa.id, price_override: sa.price_override)
-      end
+      split_seat_from_aggregate!(aggregated, sa)
     end
   end
 
