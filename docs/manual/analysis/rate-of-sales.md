@@ -17,9 +17,11 @@ the run?"*
 
 Productions whose
 [sales are recorded externally](../productions/creating-a-production.md#sales-recorded-externally)
-are left out entirely: they do not appear in either picker, and a saved link naming one
-drops it from the run. Their sales are keyed in after the fact, so the dates behind the
-charts and projection would be data-entry dates.
+are left out entirely: they do not appear in either picker. A saved link that names one
+as a comparison show runs without it, with a warning that some bookmarked shows were
+left out; a saved link that names one as the current show does not run, and the page
+says that show's sales are recorded externally. Their sales are keyed in after the fact,
+so the dates behind the charts and projection would be data-entry dates.
 
 The analysis page has five sections:
 
