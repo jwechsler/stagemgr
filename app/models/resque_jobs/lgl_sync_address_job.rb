@@ -19,9 +19,12 @@ require 'resque-retry'
 #
 # On an edit, street and phone go through LGL's per-entry endpoints: only the
 # constituent's preferred entry is edited in place (or a preferred Home entry
-# added when it has none), so its other entries are never touched. LGL's
-# current preferred values are logged before the first write so a bad edit can
-# be undone by hand.
+# added when it has none), so its other entries are never touched. Before the
+# first write the job logs which constituent fields and groups it is about to
+# change and how (the preferred street or phone entry's LGL id when edited in
+# place, or "add"). Values are never logged: patron names, streets and phones
+# do not belong in the info log, so it is a record of what changed, not an
+# undo trail.
 #
 # The ONLY code that writes an address's LGL link. Idempotent: everything is
 # read at run time, so duplicate or stale enqueues are harmless.
@@ -274,21 +277,26 @@ class LglSyncAddressJob
     phone = changes&.phone
     return false unless payload || street || phone
 
-    log_before_edit(constituent, changes) if changes
+    log_before_edit(constituent, payload, street, phone) if changes
     written(@client.update(constituent['id'], payload, for_address_id: @address.id)) if payload
     apply_street(constituent['id'], street) if street
     apply_phone(constituent['id'], phone) if phone
     true
   end
 
-  def log_before_edit(constituent, changes)
+  # Group names and LGL entry ids only, never values (see class comment).
+  def log_before_edit(constituent, payload, street, phone)
+    parts = []
+    parts << "fields #{payload.keys.join(', ')}" if payload
+    { street: street, phone: phone }.each do |group, operation|
+      parts << "#{group} (#{edit_target(operation)})" if operation
+    end
     Rails.logger.info("[LGL] address ##{@address.id}: before edit, constituent #{constituent['id']} " \
-                      "preferred street=#{lgl_value(changes.preferred_street)} " \
-                      "phone=#{lgl_value(changes.preferred_phone)}")
+                      "changing #{parts.join('; ')}")
   end
 
-  def lgl_value(entry)
-    entry.nil? ? 'none' : entry.to_json
+  def edit_target(operation)
+    operation.action == :update ? "preferred entry #{operation.id}" : 'add preferred entry'
   end
 
   def apply_street(constituent_id, operation)
