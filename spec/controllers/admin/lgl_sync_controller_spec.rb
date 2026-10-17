@@ -379,4 +379,39 @@ RSpec.describe Admin::LglSyncController, type: :controller do
       expect(response).to redirect_to(root_path)
     end
   end
+
+  describe 'a theater user' do
+    before do
+      allow(Lgl).to receive(:enabled?).and_return(true)
+      allow(controller).to receive(:current_user).and_return(FactoryBot.create(:user, theaters: [default_theater]))
+    end
+
+    it 'is turned away from the status page' do
+      get :index
+
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to eq('You are not authorized to access this page.')
+    end
+
+    %i[poll sweep backfill donor_levels gift_history].each do |action|
+      it "is refused #{action} without queuing" do
+        post action
+
+        expect(Resque).not_to have_received(:enqueue)
+        expect(response).to redirect_to(root_path)
+        expect(flash[:alert]).to eq('You are not authorized to access this page.')
+      end
+    end
+
+    it 'is refused a campaign change without reading LGL or storing one' do
+      allow(LglSetting).to receive(:store_campaign)
+
+      post :campaign, params: { campaign_id: 1092 }
+
+      expect(lgl_client).not_to have_received(:campaigns)
+      expect(LglSetting).not_to have_received(:store_campaign)
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to eq('You are not authorized to access this page.')
+    end
+  end
 end

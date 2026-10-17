@@ -230,6 +230,16 @@ RSpec.describe Admin::AddressesController, type: :controller do
         expect(response).to redirect_to(root_path)
       end
 
+      it 'refuses a theater user without queuing' do
+        theater_user = FactoryBot.create(:user, theaters: [house])
+        allow(controller).to receive(:current_user).and_return(theater_user)
+
+        post :lgl_sync, params: { id: address.id }
+
+        expect(Resque).not_to have_received(:enqueue)
+        expect(response).to redirect_to(root_path)
+      end
+
       it 'links the LGL ID tag value to the configured account beside the sync button' do
         address.set_lgl_id!(4321)
         allow(Lgl).to receive(:constituent_url).with('4321')
