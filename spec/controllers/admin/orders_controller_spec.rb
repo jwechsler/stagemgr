@@ -40,6 +40,16 @@ RSpec.describe Admin::OrdersController, type: :controller do
         expect(Resque).not_to have_received(:enqueue).with(LglReplicateDonationJob, anything)
         expect(response).to redirect_to(root_path)
       end
+
+      it 'refuses a theater user without queuing' do
+        theater_user = FactoryBot.create(:user, theaters: [FactoryBot.create(:theater)])
+        allow(controller).to receive(:current_user).and_return(theater_user)
+
+        post :lgl_replicate, params: { id: donation.id }
+
+        expect(Resque).not_to have_received(:enqueue).with(LglReplicateDonationJob, anything)
+        expect(response).to redirect_to(root_path)
+      end
     end
 
     context 'when LGL is disabled' do
