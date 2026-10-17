@@ -1,0 +1,25 @@
+-# The LGL campaign donations are written to (the list is read from LGL only while choosing), their count
+  and when a gift was last written.
+%tr
+  %th Gift campaign
+  %td
+    - if campaign && !choosing
+      #{campaign.name} (##{campaign.id})
+      = link_to 'Change', admin_lgl_sync_path(choose_campaign: 1), class: 'button tiny clear'
+    - else
+      = form_with url: admin_lgl_sync_campaign_path, method: :post, local: true do
+        .input-group
+          = select_tag :campaign_id, options_for_select(campaigns.map { |c| [c['name'], c['id']] }, campaign&.id),
+                       prompt: 'Choose a campaign', class: 'input-group-field'
+          .input-group-button
+            = submit_tag 'Save', class: 'button small'
+      - if campaign_error
+        .callout.alert= campaign_error
+      - if campaign.nil?
+        %p.help-text Donations are not sent to LGL until a campaign is chosen.
+%tr
+  %th Donations in LGL
+  %td= number_with_delimiter(gift_count)
+%tr
+  %th Last gift replicated
+  %td= last_gift ? last_gift.to_formatted_s(:short_date_and_time) : 'never'

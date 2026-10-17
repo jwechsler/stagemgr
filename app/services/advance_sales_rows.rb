@@ -13,7 +13,7 @@
 # Building-wide flex passes and memberships count as single tickets.
 # membership_offers has no theater or festival column, so memberships are
 # always single today; if a membership ever becomes theater-bound, the rule
-# extends to it. Theaters flagged sales_recorded_externally are left out
+# extends to it. Productions flagged sales_recorded_externally are left out
 # unless include_external.
 class AdvanceSalesRows
   Row = Struct.new(:performance_id, :production_id, :theater_id, :season, :segment, :lead_days, :tickets,
@@ -27,18 +27,19 @@ class AdvanceSalesRows
   # treated like nil (no clause), not as "match nothing". Returns Array<Row>,
   # one per (performance, segment, lead_days), with integer fields.
   def self.fetch(theater_ids: nil, seasons: nil, before_season: nil, production_ids: nil,
-                 from_date: nil, include_external: false)
+                 performance_ids: nil, from_date: nil, include_external: false)
     sql = to_sql(theater_ids: theater_ids, seasons: seasons, before_season: before_season,
-                 production_ids: production_ids, from_date: from_date, include_external: include_external)
+                 production_ids: production_ids, performance_ids: performance_ids, from_date: from_date,
+                 include_external: include_external)
     ActiveRecord::Base.connection.select_all(sql).map { |h| build_row(h) }
   end
 
   # The sanitized SQL fetch runs; exposed for EXPLAIN and debugging.
   def self.to_sql(theater_ids: nil, seasons: nil, before_season: nil, production_ids: nil,
-                  from_date: nil, include_external: false)
+                  performance_ids: nil, from_date: nil, include_external: false)
     clauses, binds = filter_clauses(theater_ids: theater_ids, seasons: seasons, before_season: before_season,
-                                    production_ids: production_ids, from_date: from_date,
-                                    include_external: include_external)
+                                    production_ids: production_ids, performance_ids: performance_ids,
+                                    from_date: from_date, include_external: include_external)
     sql = base_sql.sub("/* filters */", clauses.map { |c| "AND #{c}" }.join(" "))
     ActiveRecord::Base.sanitize_sql_array(
       [sql, binds.merge(max_depth: MAX_CHAIN_DEPTH, pass_type: PASS_PAYMENT_TYPE,
@@ -66,14 +67,16 @@ class AdvanceSalesRows
     Time.zone.tzinfo.identifier # e.g. America/Chicago
   end
 
-  def self.filter_clauses(theater_ids:, seasons:, before_season:, production_ids:, from_date:, include_external:)
+  def self.filter_clauses(theater_ids:, seasons:, before_season:, production_ids:, performance_ids:, from_date:,
+                          include_external:)
     clauses = []
     binds = {}
-    clauses << 'th.sales_recorded_externally = 0' unless include_external
+    clauses << 'pr.sales_recorded_externally = 0' unless include_external
     {
       theater_ids: ['pr.theater_id IN (:theater_ids)', theater_ids],
       seasons: ['pr.season IN (:seasons)', seasons],
-      production_ids: ['pr.id IN (:production_ids)', production_ids]
+      production_ids: ['pr.id IN (:production_ids)', production_ids],
+      performance_ids: ['pf.id IN (:performance_ids)', performance_ids]
     }.each do |key, (clause, values)|
       next if Array(values).empty?
 
@@ -105,7 +108,6 @@ class AdvanceSalesRows
         SELECT o.id, o.created_at, o.exchange_source_id, o.split_source_id,
                pf.id AS performance_id, pr.id AS production_id, pr.theater_id, pr.season, pf.performance_date
         FROM productions pr
-        JOIN theaters th     ON th.id = pr.theater_id
         JOIN performances pf ON pf.production_id = pr.id
         JOIN orders o        ON o.performance_id = pf.id
         WHERE o.type = 'TicketOrder' AND o.status IN (:sold) AND pf.status = :active

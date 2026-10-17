@@ -90,6 +90,7 @@ nav:
     - Patron Tags: customers/patron-tags.md
     - Merging Duplicates: customers/merging-duplicates.md
     - Patron History: customers/patron-history.md
+    - Little Green Light Sync: customers/lgl-sync.md
   - House Management:
     - Daily Operations: house-management/daily-operations.md
     - House Counts: house-management/house-counts.md

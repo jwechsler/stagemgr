@@ -3,6 +3,18 @@ require 'rails_helper'
 RSpec.describe JobMetadata do
   let(:job_name) { 'SpecJob' }
 
+  describe '.recorded?' do
+    it 'is false when the job has no row' do
+      expect(described_class.recorded?(job_name)).to be(false)
+    end
+
+    it 'is true once the job has recorded a run' do
+      described_class.record_last_run(job_name)
+
+      expect(described_class.recorded?(job_name)).to be(true)
+    end
+  end
+
   describe '.record_run_at' do
     it 'creates the row when the job has no watermark yet' do
       described_class.record_run_at(job_name, 3.days.ago)

@@ -278,24 +278,24 @@ RSpec.describe AdvanceSalesRows, type: :service do
       expect(described_class.time_zone_tables_loaded?).to be true
     end
 
-    context 'with a theater whose sales are recorded externally' do
-      let(:external_theater) { FactoryBot.create(:theater, sales_recorded_externally: true) }
-      let(:external_performance) do
-        make_performance(make_production(theater: external_theater, season: 2025), on: show_date)
+    context 'with a production whose sales are recorded externally' do
+      let(:external_production) do
+        make_production(theater: theater, season: 2025).tap { |p| p.update!(sales_recorded_externally: true) }
       end
+      let(:external_performance) { make_performance(external_production, on: show_date) }
 
       before do
         sell(performance, tickets: 1, bought_at: bought(5), ticket_class: seat_class)
         sell(external_performance, tickets: 4, bought_at: bought(5))
       end
 
-      it 'excludes it by default' do
-        expect(described_class.fetch.map(&:theater_id).uniq).to eq([theater.id])
+      it 'excludes it by default, keeping the same theater\'s in-house production' do
+        expect(described_class.fetch.map(&:production_id).uniq).to eq([performance.production_id])
       end
 
       it 'includes it when asked' do
         rows = described_class.fetch(include_external: true)
-        expect(rows.map(&:theater_id)).to contain_exactly(theater.id, external_theater.id)
+        expect(rows.map(&:production_id)).to contain_exactly(performance.production_id, external_production.id)
         expect(total(rows)).to eq(5)
       end
     end
@@ -333,6 +333,10 @@ RSpec.describe AdvanceSalesRows, type: :service do
         expect(performance_ids(production_ids: [production.id])).to eq([performance.id])
       end
 
+      it 'filters by performance_ids' do
+        expect(performance_ids(performance_ids: [other_performance.id])).to eq([other_performance.id])
+      end
+
       it 'dates a filtered exchange from a root order in a production outside the filter' do
         root = sell(other_performance, tickets: 2, bought_at: bought(25))
         exchange(root, tickets: 2, bought_at: bought(1), onto: performance)
@@ -347,7 +351,7 @@ RSpec.describe AdvanceSalesRows, type: :service do
       end
 
       it 'treats an empty filter array as no filter' do
-        expect(performance_ids(theater_ids: [], seasons: [], production_ids: []))
+        expect(performance_ids(theater_ids: [], seasons: [], production_ids: [], performance_ids: []))
           .to contain_exactly(performance.id, old_performance.id, other_performance.id)
       end
     end

@@ -92,3 +92,23 @@ ExpireOneTimeMembershipsJob:
   cron: "15 1 * * *"
   description: "Expire one-time (gift) memberships the day after their expires_on"
   queue: maintenance
+
+LglPollConstituents:
+  every: "3h"
+  description: "Read LGL constituents changed since the last poll; merge LGL-merged duplicates and re-point LGL; link or create customers for new unlinked constituents"
+  queue: maintenance
+
+LglSweepConstituents:
+  cron: "10 3 * * *"
+  description: "Nightly: drop LGL ID tags whose LGL constituent was deleted or merged away, and re-sync those addresses"
+  queue: maintenance
+
+LglDonorLevelsFetch:
+  cron: "30 5 * * *"
+  description: "Nightly: download the LGL donor-tier saved report (littlegreenlight.donor_tier_report_url) and queue the donor levels import"
+  queue: maintenance
+
+LglGiftHistoryWalk:
+  cron: "0 2 * * 0"
+  description: "Weekly: refresh every linked customer's LGL Lapsed tag (LYBUNT / SYBUNT) from their gifts in LGL"
+  queue: maintenance

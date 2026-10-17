@@ -12,7 +12,8 @@ class ExportHouseCountsJob
       { key: :sold,      header: 'Sold',      align: :right },
       { key: :held,      header: 'Held',      align: :right },
       { key: :remaining, header: 'Remaining', align: :right },
-      { key: :max_price, header: 'Max Price', align: :right }
+      { key: :max_price, header: 'Max Price', align: :right },
+      { key: :pace,      header: 'Expected',  align: :right }
     ]
 
     rows = HouseCount.export_records.map do |house_count|
@@ -22,7 +23,8 @@ class ExportHouseCountsJob
         sold: house_count.sold_seats.to_s,
         held: house_count.held_seats.to_s,
         remaining: house_count.available_seats.to_s,
-        max_price: max_price ? format('%.2f', max_price) : ''
+        max_price: max_price ? format('%.2f', max_price) : '',
+        pace: pace_text(house_count)
       }
     end
 
@@ -34,5 +36,12 @@ class ExportHouseCountsJob
     )
 
     HudTableFormatter.write_to_file(content, file_path || self.file_path)
+  end
+
+  # "~84" from the pace snapshot, blank when nothing was projected or Sold
+  # has already passed it.
+  def self.pace_text(house_count)
+    expected = house_count.expected_seats
+    expected.present? ? "~#{expected}" : ''
   end
 end

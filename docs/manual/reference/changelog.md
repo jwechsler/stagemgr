@@ -5,6 +5,116 @@
 
 ## October 2026
 
+### Little Green Light Sync
+
+**Available to:** Administrator (Sync Status page); the tags are visible to anyone who can see the customer
+
+Stagemgr and Little Green Light (LGL) keep each other's records linked. A customer who donates is matched to, or created as, an LGL constituent and carries an `LGL ID` tag; LGL holds the Stagemgr customer number as its External constituent ID. Each system owns what it collects, and Stagemgr never deletes anything in LGL.
+
+**Key behaviors:**
+
+- A processed donation becomes an LGL gift about ten minutes later, with the amount, date, payment type and a note naming the order; the same donation is never written twice. Only the default theater's donations are sent. A refund adds a note to the gift and flags the order.
+- Name, street and phone edits on a linked customer update the constituent's preferred address and phone a couple of minutes after the last edit; edits made in LGL reach Stagemgr on the next three-hourly poll.
+- New LGL constituents become Stagemgr customers; merges in either system are mirrored when the records look like the same person.
+- When the sync cannot decide, the customer gets an `LGL Review` tag with a one-line reason. **Options > System Config > LGL Sync** lists them, with buttons to poll, sweep, backfill or refresh now.
+- Every linked customer carries an `LGL Lapsed` tag (`LYBUNT` or `SYBUNT`) refreshed from their LGL gift history early Sunday morning.
+- Sync runs in one of three modes set in configuration: enabled, read-only or disabled.
+
+See [Little Green Light Sync](../customers/lgl-sync.md).
+
+### Donor Tiers From LGL
+
+**Available to:** Administrator, Box Office
+
+Each customer's donor tiers for this fiscal year and last now come from a saved LGL report that
+Stagemgr downloads and imports itself every night at 5:30 AM. The manual upload on the Imports
+page remains for one-off runs.
+
+**Key behaviors:**
+
+- The nightly import runs whenever the report link is configured, whether or not LGL sync is on.
+- Rows that match no customer are listed in a result file emailed to the configured recipient, with the reason for each.
+- Tiers appear on the customer page and in the House Management report; the donation order page shows the linked LGL gift with a **Send to LGL** button.
+
+See [Donor Levels Import](../imports/donor-levels-import.md).
+
+### Expected Sales on House Counts
+
+**Available to:** Administrator, Box Office, House Management
+
+The **Pace** projection on the production page is now the **Expected** column on Upcoming House
+Counts and a line on the HUD: the paid count expected at curtain if the performance sells the
+way this house usually does.
+
+**Key behaviors:**
+
+- Recalculated nightly at 4:40 AM and whenever a house count is recalculated.
+- Already includes tickets sold so far; held tickets and comps are not part of it.
+- Shows nothing when there is too little history for that theater and lead time.
+
+See [Advance Sales](../analysis/advance-sales.md#expected-sales-on-house-counts) and
+[House Counts](../house-management/house-counts.md).
+
+### Theater Users See a Narrower Customer Record
+
+**Available to:** Theater User (what changes); Administrator and Box Office views are unchanged
+
+**Key behaviors:**
+
+- In the Notes column an active member shows as **Member [Offer Name]** instead of the member code.
+- The customer page has no Active Memberships box and no donor-tier labels.
+- Productions Attended lists only productions at the user's own theaters.
+
+See [Managing Patrons](../customers/managing-patrons.md#what-theater-users-see).
+
+### Advance Sales Analysis
+
+**Available to:** Administrator, Box Office, Theater User (own theaters)
+
+Admin > Analysis has an **Advance Sales** tab showing how far ahead of a performance tickets are
+bought: the share of final sales already in hand at each lead time, sales by window, and a
+week-by-week breakdown per production with extension weeks flagged.
+
+**Key behaviors:**
+
+- Compare by season, by theater or by production; seasons still playing are marked *in progress* and drawn dashed.
+- Only Active performances count. Tickets bought with a company or festival pass are drawn separately from single tickets; an exchanged ticket keeps its original purchase date.
+- Productions whose sales are recorded externally are left out by default; a tick box on the production page marks them, and a checkbox on the analysis includes them.
+
+See [Advance Sales](../analysis/advance-sales.md).
+
+### Analysis Tabs
+
+**Available to:** Administrator, Box Office, Theater User
+
+Rate of Sales, Ticket Revenue, Audience, Advance Sales and Pass Sales are tabs across the top of
+Analysis. Selections sit above the results and can be changed and re-run without leaving the
+page; each run has its own address for bookmarking. A theater user attached to one theater sees
+no theater picker.
+
+See [Analysis Overview](../analysis/analysis-overview.md).
+
+### Donation Appeals Per Theater
+
+**Available to:** Administrator
+
+Each theater's **Default appeal** is the donation wording shown on its own orders; the default
+theater's **Secondary appeal** appears alongside a visiting company's on their orders (not on
+co-productions). Both accept the same formatting as production messages, with `{{theater}}` and
+`{{company}}` placeholders. Left blank, the wording is unchanged.
+
+See [Theaters](../setup/theaters.md#default-appeal).
+
+### Donations on Pass-Paid Orders
+
+**Available to:** Administrator, Box Office, public order pages
+
+A donation added to an order paid with a membership or flex pass is charged to a card. The card
+fields stay visible when a pass is chosen and a donation entered, and the order does not go
+through without one.
+
+See [Donation Orders](../ticketing/donation-orders.md).
+
 ### Refunds Made in Stripe
 
 **Available to:** Administrator, Box Office

@@ -1,5 +1,5 @@
 # Shared production search backing the production picker typeahead
-# (analysis, reports, imports). Mixes "group" entries (season / theater /
+# (analysis, rate of sales, reports, imports). Mixes "group" entries (season / theater /
 # theater tag) with individual productions; groups resolve to concrete
 # production lists via #resolve_group.
 class ProductionSearch
@@ -7,6 +7,8 @@ class ProductionSearch
   # never define a scope.
   SCOPES = {
     'analysis' => ->(rel) { rel.where.not(status: Production::PRESALE) },
+    # Order dates of externally recorded shows are data-entry dates, not sale dates.
+    'rate_of_sales' => ->(rel) { rel.where.not(status: Production::PRESALE).sales_recorded_in_house },
     'reports' => ->(rel) { rel },
     'imports' => ->(rel) { rel.where.not(status: Production::INACTIVE) }
   }.freeze

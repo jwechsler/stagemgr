@@ -161,7 +161,6 @@ The production detail page shows all performances in a table with columns for:
 - **Performance Code** -- Click to view/edit the performance
 - **Date and Time** -- Scheduled date and curtain time
 - **Status** -- Active, Inactive, or Private
-- **Pace** -- For upcoming performances, a projected final count from the theater's sales history (see [Advance Sales](../analysis/advance-sales.md#pace-on-the-performance-list))
 - **Sold / Capacity** -- Current sales count vs. total available
 - **Actions** -- Edit, Duplicate, and Destroy links
 

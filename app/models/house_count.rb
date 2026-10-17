@@ -17,6 +17,7 @@ class HouseCount < Metric
     self.min_ticket_price = calculate_min_ticket_price
     self.sold_out = calculate_sold_out
     self.near_capacity = calculate_near_capacity
+    apply_pace(AdvanceSalesPace.for_performance(performance), as_of: Date.current)
   end
 
   def calculate!
@@ -51,6 +52,41 @@ class HouseCount < Metric
 
   def seats_total
     total_seats
+  end
+
+  # Sales pace snapshot. projected_seats, pace_share, pace_sold, pace_source
+  # and pace_as_of come from AdvanceSalesPace and are written in two places:
+  # by #calculate on every sales-driven recalculation (for_performance, so the
+  # projection follows sales intraday), and by ProjectHouseCountsJob nightly
+  # for every upcoming performance, so days_out keeps moving on performances
+  # with no order activity. They describe the performance as of pace_as_of.
+  def apply_pace(reading, as_of:)
+    self.projected_seats = reading&.projected_final
+    self.pace_share = reading&.typical_share
+    self.pace_sold = reading&.sold
+    self.pace_source = reading&.source&.to_s
+    self.pace_as_of = as_of
+  end
+
+  # The typical share in hand was under the projectable minimum.
+  def pace_too_early?
+    pace_share.present? && projected_seats.nil?
+  end
+
+  # Sold has gone past the projection (strictly greater).
+  def expected_met?
+    projected_seats.present? && sold_seats.to_i > projected_seats
+  end
+
+  # The Sold column has already passed the projection, nothing more to anticipate.
+  def expected_seats
+    expected_met? ? nil : projected_seats
+  end
+
+  def pace_days_out
+    return nil if pace_as_of.nil?
+
+    (performance.performance_date - pace_as_of).to_i
   end
 
   # Required by Metric abstract class

@@ -13,7 +13,7 @@
         %p.help-text Select the show you want to analyze
         = render 'shared/components/production_picker',
                  field_name: 'target_production_id',
-                 scope: :analysis,
+                 scope: :rate_of_sales,
                  selected: target,
                  required: true,
                  exclude_field: '#rate-of-sales-form .production-multi-picker-table input[type=hidden]'
@@ -25,7 +25,7 @@
         %p.help-text Select shows to aggregate for historical comparison
         = render 'shared/components/production_multi_picker',
                  field_name: 'comparison_production_ids',
-                 scope: :analysis,
+                 scope: :rate_of_sales,
                  selected: comparisons,
                  label: 'Shows',
                  placeholder: 'Type to search productions...',

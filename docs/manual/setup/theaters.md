@@ -95,16 +95,6 @@ Check this box if the theater is a registered 501(c)(3) nonprofit organization. 
 - Donation orders can be created for this theater
 - Donation receipts include appropriate nonprofit tax language
 
-### Sales recorded externally
-
-Check this box when the theater sells through its own box office and its tickets are
-keyed into Stagemgr afterwards. For such a theater the order date is the date of data
-entry, not the date the patron bought, so its lead times are meaningless. The
-[Advance Sales](../analysis/advance-sales.md) analysis leaves flagged theaters out by
-default (a checkbox on the form lets you include them deliberately), and never uses them
-as history for the **Pace** column. The theater's own production pages are unaffected.
-Flagged theaters show an **External sales** label on the theater detail page.
-
 ### Default appeal
 
 The message that asks patrons for a donation in the donation section of this theater's ticket orders. It appears above an **Add a donation: $** box. Markdown is enabled, and `{{theater}}` is replaced with this theater's name.

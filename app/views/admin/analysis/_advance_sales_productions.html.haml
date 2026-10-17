@@ -12,6 +12,7 @@
                 = ui_label 'in progress', variant: :secondary
               - if run.added_later_count.positive?
                 = ui_label "#{run.added_later_count} added after opening", variant: :warning
+              = ui_label 'external sales', variant: :warning if run.production.sales_recorded_externally?
             .accordion-content{ data: { tab_content: '' } }
               .table-scroll
                 %table.hover

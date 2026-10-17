@@ -599,15 +599,24 @@ RSpec.describe Admin::AnalysisController, type: :controller do
         expect(response.body).not_to include(described_class::NARROWED_NOTICE)
       end
 
-      it 'still offers the external-sales checkbox when that theater records sales externally' do
-        own.update!(sales_recorded_externally: true)
+      it 'still offers the external-sales checkbox when a production there records sales externally' do
+        own.productions.update_all(sales_recorded_externally: true)
 
         get :advance_sales, params: { seasons: ['2025'], include_external: '1' }
 
         page = Capybara.string(response.body)
         expect(page).to have_css('#advance-sales-form input#include_external[checked]')
         expect(page).not_to have_css('.theater-multi-picker', visible: :all)
+        expect(page).to have_css('.accordion-title', text: 'external sales')
         expect(assigns(:results).tickets).to eq(2)
+      end
+
+      it 'does not offer the external-sales checkbox when no readable production records sales externally' do
+        FactoryBot.create(:production, sales_recorded_externally: true)
+
+        get :advance_sales, params: { seasons: ['2025'] }
+
+        expect(Capybara.string(response.body)).not_to have_css('#advance-sales-form input#include_external')
       end
     end
 
@@ -628,6 +637,43 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       get :advance_sales
 
       expect(Capybara.string(response.body)).to have_css('#advance-sales-form .theater-multi-picker', visible: :all)
+    end
+
+    describe 'a production whose sales are recorded externally, for an administrator' do
+      let(:in_house) { make_performance(theater, season: 2025) }
+      let(:external) { make_performance(theater, season: 2025) }
+
+      before do
+        sell(in_house, tickets: 2, days_before: 5)
+        sell(external, tickets: 7, days_before: 5)
+        external.production.update!(sales_recorded_externally: true)
+      end
+
+      it 'offers the checkbox and labels only the flagged production when the run includes it' do
+        get :advance_sales, params: { seasons: ['2025'], include_external: '1' }
+
+        expect(assigns(:results).tickets).to eq(9)
+        page = Capybara.string(response.body)
+        expect(page).to have_css('#advance-sales-form input#include_external[checked]')
+        expect(page).to have_css('#advance-sales-results .accordion-title', text: external.production.picker_label)
+        expect(page).to have_css('#advance-sales-results .accordion-title .label', exact_text: 'external sales', count: 1)
+        flagged = page.find('#advance-sales-results .accordion-title', text: external.production.picker_label)
+        expect(flagged).to have_css('.label', exact_text: 'external sales')
+        in_house_title = page.find('#advance-sales-results .accordion-title', text: in_house.production.picker_label)
+        expect(in_house_title).not_to have_css('.label', exact_text: 'external sales')
+      end
+
+      it 'offers the checkbox unchecked and renders no external-sales label when the run excludes it' do
+        get :advance_sales, params: { seasons: ['2025'] }
+
+        expect(assigns(:results).tickets).to eq(2)
+        page = Capybara.string(response.body)
+        expect(page).to have_css('#advance-sales-form input#include_external')
+        expect(page).not_to have_css('#advance-sales-form input#include_external[checked]')
+        expect(page).to have_css('#advance-sales-results .accordion-title', text: in_house.production.picker_label)
+        expect(page).not_to have_css('#advance-sales-results .accordion-title', text: external.production.picker_label)
+        expect(page).not_to have_css('#advance-sales-results .label', exact_text: 'external sales')
+      end
     end
 
     it 'forbids box office users' do
@@ -777,6 +823,38 @@ RSpec.describe Admin::AnalysisController, type: :controller do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('That production could not be found.')
       expect(Capybara.string(response.body)).not_to have_css('#rate-of-sales-results')
+    end
+
+    describe 'a bookmark naming a show whose sales are recorded externally' do
+      let(:external) do
+        make_performance(theater, season: 2025, on: Date.current - 300.days).production.tap do |production|
+          production.update!(sales_recorded_externally: true)
+        end
+      end
+
+      it 'drops an external comparison with the narrowed warning and runs on the rest' do
+        get :rate_of_sales, params: { target_production_id: target.id.to_s,
+                                      comparison_production_ids: [comparison.id.to_s, external.id.to_s] }
+
+        expect(response).to have_http_status(:ok)
+        expect(flash.now[:warning]).to eq(described_class::NARROWED_NOTICE)
+        expect(flash.now[:error]).to be_nil
+        expect(assigns(:results)).to be_present
+        expect(assigns(:comparison_productions)).to eq([comparison])
+      end
+
+      it 'does not run on an external current show and says why' do
+        get :rate_of_sales, params: { target_production_id: external.id.to_s,
+                                      comparison_production_ids: [comparison.id.to_s] }
+
+        expect(response).to have_http_status(:ok)
+        expect(flash.now[:error]).to eq(described_class::EXTERNAL_SALES_TARGET_NOTICE)
+        expect(assigns(:results)).to be_nil
+        page = Capybara.string(response.body)
+        expect(page).to have_css('.flash_error', exact_text: described_class::EXTERNAL_SALES_TARGET_NOTICE,
+                                                 normalize_ws: true)
+        expect(page).not_to have_css('#rate-of-sales-results')
+      end
     end
 
     describe 'a bookmark naming shows outside the user’s theaters' do

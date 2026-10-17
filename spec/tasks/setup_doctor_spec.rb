@@ -199,6 +199,159 @@ RSpec.describe Setup::Doctor do
     end
   end
 
+  # Like MyEmma, every example stubs Lgl so the suite never reaches the network.
+  describe 'the LGL key' do
+    let(:lgl_client) { instance_double(Lgl::Client, ping: {}) }
+    let(:sync_on) { Lgl::Settings.from({ 'littlegreenlight' => { 'sync' => 'enabled' } }, env: {}) }
+
+    before do
+      allow(Lgl).to receive_messages(enabled?: true, read_only?: false, client: lgl_client, settings: sync_on)
+      allow(AppSecrets).to receive(:[]).and_call_original
+      allow(AppSecrets).to receive(:[]).with(:lgl_api_key).and_return('key')
+    end
+
+    it 'reports sync disabled, without an API call, when littlegreenlight.sync is off' do
+      allow(Lgl).to receive_messages(enabled?: false, settings: Lgl::Settings.from({}, env: {}))
+
+      doctor.send(:check_lgl)
+
+      expect(lgl_client).not_to have_received(:ping)
+      expect(output.string).to include('LGL sync is disabled (littlegreenlight.sync)')
+      expect(doctor).to be_healthy
+    end
+
+    it 'warns, without an API call, when littlegreenlight.sync is not one of the three words' do
+      allow(Lgl).to receive_messages(enabled?: false,
+                                     settings: Lgl::Settings.from({ 'littlegreenlight' => { 'sync' => 'on' } }, env: {}))
+
+      doctor.send(:check_lgl)
+
+      expect(lgl_client).not_to have_received(:ping)
+      expect(output.string).to include('warn', "littlegreenlight.sync is 'on'", 'enabled, readonly or disabled')
+      expect(doctor).to be_healthy
+    end
+
+    it 'warns when sync is enabled but the key is missing' do
+      allow(Lgl).to receive(:enabled?).and_return(false)
+      allow(AppSecrets).to receive(:[]).with(:lgl_api_key).and_return(nil)
+
+      doctor.send(:check_lgl)
+
+      expect(lgl_client).not_to have_received(:ping)
+      expect(output.string).to include('warn', 'littlegreenlight.sync is enabled but LGL_API_KEY is missing')
+      expect(doctor).to be_healthy
+    end
+
+    it 'makes no API call when LGL is otherwise not configured (the test environment)' do
+      allow(Lgl).to receive(:enabled?).and_return(false)
+
+      doctor.send(:check_lgl)
+
+      expect(lgl_client).not_to have_received(:ping)
+      expect(output.string).to include('LGL is not configured in this environment')
+    end
+
+    it 'makes no API call when enabled is downgraded to read-only in development' do
+      allow(Lgl).to receive_messages(read_only?: true, writable_address_ids: Set[])
+
+      doctor.send(:check_lgl)
+
+      expect(lgl_client).not_to have_received(:ping)
+      expect(output.string).to include('LGL sync is enabled, downgraded to readonly in development',
+                                       'writes skipped for every address')
+    end
+
+    it 'names readonly mode and lists the writable ids when an allowlist is set' do
+      readonly = Lgl::Settings.from({ 'littlegreenlight' => { 'sync' => 'readonly' } }, env: {})
+      allow(Lgl).to receive_messages(read_only?: true, writable_address_ids: Set[42, 7], settings: readonly)
+
+      doctor.send(:check_lgl)
+
+      expect(lgl_client).not_to have_received(:ping)
+      expect(output.string).to include('LGL sync is readonly', 'every address except ids 7, 42')
+    end
+
+    it 'confirms the key with one request when writable' do
+      doctor.send(:check_lgl)
+
+      expect(lgl_client).to have_received(:ping).once
+      expect(output.string).to include('LGL sync is enabled — LGL API key accepted')
+      expect(doctor).to be_healthy
+    end
+
+    it 'warns rather than failing when the key is rejected' do
+      allow(lgl_client).to receive(:ping).and_raise(Lgl::Error.new(status: 401, body: 'unauthorized'))
+
+      doctor.send(:check_lgl)
+
+      expect(output.string).to include('warn', 'LGL API key not verified')
+      expect(doctor).to be_healthy
+    end
+  end
+
+  describe 'the LGL donor levels import' do
+    let(:supervisor_email) { Rails.configuration.x.email_address['supervisor_notifications'] }
+    let(:report_on) do
+      Lgl::Settings.from({ 'littlegreenlight' => { 'donor_tier_report_url' => 'https://lgl.example/r.csv' } }, env: {})
+    end
+
+    def stub_lgl_login(user, password)
+      allow(AppSecrets).to receive(:[]).and_call_original
+      allow(AppSecrets).to receive(:[]).with(:lgl_user).and_return(user)
+      allow(AppSecrets).to receive(:[]).with(:lgl_password).and_return(password)
+    end
+
+    before do
+      allow(Lgl).to receive(:settings).and_return(report_on)
+      allow(Lgl::DonorLevelsDownload).to receive(:fetch)
+      stub_lgl_login(nil, nil)
+    end
+
+    it 'reports the import off when the report link is blank' do
+      allow(Lgl).to receive(:settings).and_return(Lgl::Settings.from({}, env: {}))
+
+      doctor.send(:check_lgl_donor_levels)
+
+      expect(output.string).to include('ok', 'LGL donor levels import is off (littlegreenlight.donor_tier_report_url blank)')
+    end
+
+    it 'reports the import on and names the recipient, without fetching the report' do
+      FactoryBot.create(:user, email: supervisor_email)
+
+      doctor.send(:check_lgl_donor_levels)
+
+      expect(output.string).to include("LGL donor levels import is on — nightly from the saved report, results to #{supervisor_email}")
+      expect(output.string).not_to include('warn')
+      expect(Lgl::DonorLevelsDownload).not_to have_received(:fetch)
+    end
+
+    it 'warns when no user has the supervisor notifications email' do
+      doctor.send(:check_lgl_donor_levels)
+
+      expect(output.string).to include('warn', "supervisor_notifications address #{supervisor_email}; the nightly import needs one")
+      expect(doctor).to be_healthy
+    end
+
+    it 'warns when only one of LGL_USER and LGL_PASSWORD is set' do
+      FactoryBot.create(:user, email: supervisor_email)
+      stub_lgl_login('reports@example.org', nil)
+
+      doctor.send(:check_lgl_donor_levels)
+
+      expect(output.string).to include('warn', 'LGL_USER is set without LGL_PASSWORD (or the reverse)')
+      expect(output.string).not_to include('reports@example.org')
+    end
+
+    it 'does not warn about the login when both halves are set' do
+      FactoryBot.create(:user, email: supervisor_email)
+      stub_lgl_login('reports@example.org', 'pw')
+
+      doctor.send(:check_lgl_donor_levels)
+
+      expect(output.string).not_to include('warn')
+    end
+  end
+
   describe 'the membership card spec' do
     it 'warns — never fails — when the generated config file is missing' do
       allow(MembershipCards::Spec).to receive(:load).and_call_original

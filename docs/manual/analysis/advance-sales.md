@@ -26,8 +26,9 @@ bought for:
 - What does a run look like week by week, and how did performances added after opening
   sell compared with the original run?
 
-A related **Pace** column on each production's performance list uses the same history to
-project where an upcoming performance is heading. See [Pace](#pace-on-the-performance-list).
+A related **Expected** column on upcoming house counts uses the same history to project
+where an upcoming performance is heading. See
+[Expected sales on house counts](#expected-sales-on-house-counts).
 
 ## Running the analysis
 
@@ -39,7 +40,7 @@ project where an upcoming performance is heading. See [Pace](#pace-on-the-perfor
 | **Theaters** | A typeahead picker. Type part of a theater's name or a [tag](../setup/theaters.md#tags); choose a theater to add it, or an **All theaters tagged ...** entry to add every member of that tag in one click. Remove rows individually or with **Remove all**. Leave the list empty to include every theater you can see. If you have access to only one theater, the picker is not shown and the analysis uses that theater. |
 | **Compare by** | What each line on the chart represents: a **Season**, a **Theater**, or a **Production**. |
 | **Tickets** | **Both** draws a single-ticket line and a pass line per group; **Single tickets** or **Passes** draws one line per group. See [What counts](#what-counts). |
-| **Include theaters with sales recorded externally** | Shown only when such a theater is in your list. Off by default. See [Sales recorded externally](#sales-recorded-externally). |
+| **Include productions with sales recorded externally** | Shown only when you can see such a production. Off by default. See [Sales recorded externally](#sales-recorded-externally). |
 
 Results are bookmarkable: the address bar carries the full selection, so you can share
 or revisit a run. Changing any filter clears the results until you click **Run analysis**
@@ -130,35 +131,72 @@ Only Active performances are counted; Private and Inactive performances are left
 
 ### Sales recorded externally
 
-Some companies sell through their own box office and have their tickets keyed into
-Stagemgr afterwards. For those theaters the order date is the data-entry date, not the
+Some productions sell through another venue's box office and have their tickets keyed
+into Stagemgr afterwards. For those the order date is the data-entry date, not the
 purchase date, so their lead times are meaningless and would distort any comparison. Tick
-**Sales recorded externally** on the [theater form](../setup/theaters.md#sales-recorded-externally)
-to keep such a theater out of Advance Sales by default. The theater's own production pages
-still show it, and the form offers a checkbox to include it in a run deliberately.
+**Sales recorded externally** on the
+[production form](../productions/creating-a-production.md#sales-recorded-externally)
+to keep such a production out of Advance Sales by default. The form offers a checkbox to
+include them in a run deliberately.
 
-## Pace on the performance list
+![Include productions with sales recorded externally](../assets/images/screenshots/advance-sales-include-external.png)
 
-![Pace column](../assets/images/screenshots/production-pace-column.png)
+Included productions carry an **external sales** label in the week-by-week list, so a run
+that mixes the two kinds says which is which.
 
-On a production's admin page, the performance list has a **Pace** column for upcoming
-performances. It projects where each performance is heading from the theater's own
-history: if this house typically has 60% of a performance's final sales in hand a week
-out, and a performance a week away has sold 30 tickets, the projection is about 50
-tickets. The cell reads **~50 (48% of capacity)**; hover over it for the basis.
+![External sales label in the week-by-week list](../assets/images/screenshots/advance-sales-external-sales-label.png)
+
+## Expected sales on house counts
+
+![Expected on Upcoming House Counts](../assets/images/screenshots/house-counts-expected-column.png)
+
+**Expected** is the paid count the performance is expected to have at curtain if it sells
+the way this house usually does. It already includes the tickets sold so far; held tickets
+and comps are not part of it.
+
+For example, MUD1019 is six days out with 19 paid tickets. At this theater, performances
+six days out have typically sold about two thirds of their final count, so 19 ÷ 0.66 gives
+~29 expected at curtain, about ten more between now and show time.
+
+On the day of the show, Expected is worked out from the tickets bought before that day and
+the share this house typically has in hand by show-day morning, so it keeps anticipating
+walk-ups and does not fall overnight. The hover text then reads, for example, "Sold 19
+before today; this house typically has 79% in hand by show day".
+
+You see it in two places:
+
+- **Upcoming House Counts** on your account page (the page you land on after signing in,
+  shown to theater users and administrators). The last column, **Expected**, reads
+  **~29**. Hover over it for the basis, for example "Sold 19 as of Oct 13; this house
+  typically has 66% in hand 6 days out".
+- The HUD file `house_counts.txt`, as a right-aligned **Expected** column (`~29`). It is
+  blank when there is nothing to project, it is too early, or Sold has already passed it. See
+  [HUD Display](../house-management/hud-display.md).
 
 | Reading | Meaning |
 |---------|---------|
-| **~N (P% of capacity)** | Projected final count and its share of the production's capacity. |
+| **~N** | Paid tickets expected at curtain, including those already sold. |
 | **Too early** | The theater typically has under 10% in hand this far out, so a projection would be noise. |
-| **--** | The performance has played, is inactive, or there is not enough history to project from. |
+| **--** | The performance has played, is inactive, the production's sales are recorded externally, or there is not enough history to project from. |
+| **--** (with hover text) | The **Sold** column has already passed the expected count; the hover text says so. |
 
-The history is the theater's earlier seasons. A theater with fewer than 1,000 tickets of
-history uses the building-wide curve instead; the hover text says so. The Pace column is
-not affected by in-progress seasons, because it only ever looks at seasons before the
-production's own.
+The history is the theater's earlier seasons, leaving out any production whose sales are
+recorded externally; such a production is never projected either. A theater with fewer
+than 1,000 tickets of history uses the building-wide curve instead, and the hover text
+ends with "(building-wide curve)". Expected is not affected by in-progress seasons, because it
+only ever looks at seasons before the production's own.
+
+The "Sold" figure Expected projects from counts paid, seat-holding tickets, leaving out
+complimentary ones, each dated by its original purchase. It can therefore be a little
+under the row's **Sold** column, which includes comps.
+
+The projection is stored on each performance's house count. It is refreshed whenever that
+performance's house count is recalculated (on every sale, hold or cancellation, and in the
+5-minute sweep) and by a nightly pass at 4:40 AM (`ProjectHouseCountsJob`) that
+re-projects every upcoming performance, so a performance with no new sales still moves
+along the curve as its date approaches.
 
 !!! note
-    Pace is a projection from typical behaviour, not a forecast of this show. A strong
+    Expected is a projection from typical behaviour, not a forecast of this show. A strong
     review, a snowstorm, or a late press push will move a performance off its house's
     usual curve.

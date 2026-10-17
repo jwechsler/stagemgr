@@ -28,7 +28,10 @@ module Stagemgr
     # each as an autoload path -- Rails leaves autoload-only paths out of eager
     # loading, so production would load these models lazily and STI parents
     # (CurrencyPayment, PassPayment) would query only the subclasses loaded so far.
-    Rails.autoloaders.main.collapse(Dir[Rails.root.join('app/models/*/')] - [Rails.root.join('app/models/concerns/').to_s])
+    # app/models/lgl/ is a real namespace (lgl/client.rb defines Lgl::Client), so
+    # it is not collapsed.
+    namespaced_model_dirs = %w[concerns lgl].map { |dir| Rails.root.join("app/models/#{dir}/").to_s }
+    Rails.autoloaders.main.collapse(Dir[Rails.root.join('app/models/*/')] - namespaced_model_dirs)
     config.autoload_paths << "#{config.root}/lib"
     # config.eager_load_paths << "#{config.root}/lib"
 

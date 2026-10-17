@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_10_12_120100) do
+ActiveRecord::Schema.define(version: 2026_10_15_120003) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -83,7 +83,6 @@ ActiveRecord::Schema.define(version: 2026_10_12_120100) do
     t.string "processor_id"
     t.string "donor_tier_for_last_fiscal_year"
     t.string "donor_tier_for_current_fiscal_year"
-    t.date "donor_tier_updated_on"
     t.index ["email"], name: "index_addresses_on_email"
     t.index ["first_name"], name: "index_addresses_on_first_name"
     t.index ["last_first_name"], name: "index_addresses_on_last_first_name"
@@ -230,6 +229,11 @@ ActiveRecord::Schema.define(version: 2026_10_12_120100) do
     t.boolean "sold_out", default: false, null: false
     t.boolean "near_capacity", default: false, null: false
     t.decimal "min_ticket_price", precision: 8, scale: 2
+    t.integer "projected_seats"
+    t.decimal "pace_share", precision: 5, scale: 4
+    t.integer "pace_sold"
+    t.string "pace_source", limit: 8
+    t.date "pace_as_of"
     t.index ["performance_id"], name: "index_house_counts_on_performance_id"
   end
 
@@ -239,6 +243,14 @@ ActiveRecord::Schema.define(version: 2026_10_12_120100) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["job_name"], name: "index_job_metadata_on_job_name", unique: true
+  end
+
+  create_table "lgl_settings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "value"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["key"], name: "index_lgl_settings_on_key", unique: true
   end
 
   create_table "line_items", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -379,12 +391,16 @@ ActiveRecord::Schema.define(version: 2026_10_12_120100) do
     t.datetime "reviewed_at"
     t.integer "reviewed_by_id"
     t.text "review_note"
+    t.integer "production_id"
+    t.bigint "lgl_gift_id"
     t.index ["address_id"], name: "address_owns_orders"
     t.index ["created_at"], name: "index_orders_on_created_at"
     t.index ["exchange_source_id"], name: "index_orders_on_exchange_source_id"
     t.index ["flex_pass_code"], name: "index_orders_on_flex_pass_code"
     t.index ["id"], name: "orders_id_i"
+    t.index ["lgl_gift_id"], name: "index_orders_on_lgl_gift_id"
     t.index ["performance_id"], name: "index_orders_on_performance_id"
+    t.index ["production_id"], name: "index_orders_on_production_id"
     t.index ["recipient_address_id"], name: "recipient_address_id_idx"
     t.index ["review_flagged_at"], name: "index_orders_on_review_flagged_at"
     t.index ["split_source_id"], name: "index_orders_on_split_source_id"
@@ -556,6 +572,8 @@ ActiveRecord::Schema.define(version: 2026_10_12_120100) do
     t.decimal "royalty_percent", precision: 5, scale: 2
     t.integer "allocation_sync_pending_count", default: 0, null: false
     t.bigint "festival_id"
+    t.boolean "sales_recorded_externally", default: false, null: false
+    t.bigint "lgl_event_id"
     t.index ["festival_id"], name: "index_productions_on_festival_id"
     t.index ["production_code"], name: "index_productions_on_production_code"
     t.index ["seat_map_id"], name: "index_productions_on_seat_map_id"
@@ -740,7 +758,6 @@ ActiveRecord::Schema.define(version: 2026_10_12_120100) do
     t.boolean "accepts_donations", default: false
     t.text "donation_appeal"
     t.text "secondary_donation_appeal"
-    t.boolean "sales_recorded_externally", default: false, null: false
   end
 
   create_table "theaters_users", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -824,7 +841,6 @@ ActiveRecord::Schema.define(version: 2026_10_12_120100) do
     t.boolean "external", default: false, null: false
   end
 
-  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "address_tags", "addresses", name: "address_tags_to_address", on_delete: :cascade
   add_foreign_key "address_tags", "theaters", name: "address_tags_to_theater", on_delete: :cascade

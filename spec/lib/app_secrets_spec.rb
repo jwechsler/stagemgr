@@ -56,6 +56,33 @@ RSpec.describe AppSecrets do
       expect(value).to eq('99999999')
     end
 
+    it 'reads the LGL API key from littlegreenlight.api_key when LGL_API_KEY is blank' do
+      value = resolver({ 'LGL_API_KEY' => '' }, { littlegreenlight: { api_key: 'lgl_from_credentials' } })[:lgl_api_key]
+
+      expect(value).to eq('lgl_from_credentials')
+    end
+
+    it 'prefers a non-blank LGL_API_KEY over the littlegreenlight.api_key credential' do
+      value = resolver({ 'LGL_API_KEY' => 'lgl_from_env' },
+                       { littlegreenlight: { api_key: 'lgl_from_credentials' } })[:lgl_api_key]
+
+      expect(value).to eq('lgl_from_env')
+    end
+
+    { lgl_user: ['LGL_USER', :user], lgl_password: ['LGL_PASSWORD', :password] }.each do |name, (env_name, key)|
+      it "reads #{name} from littlegreenlight.#{key} when #{env_name} is blank" do
+        value = resolver({ env_name => '' }, { littlegreenlight: { key => 'from_credentials' } })[name]
+
+        expect(value).to eq('from_credentials')
+      end
+
+      it "prefers a non-blank #{env_name} over the littlegreenlight.#{key} credential" do
+        value = resolver({ env_name => 'from_env' }, { littlegreenlight: { key => 'from_credentials' } })[name]
+
+        expect(value).to eq('from_env')
+      end
+    end
+
     it 'survives a credential whose shape has drifted to a scalar' do
       expect(resolver({}, { stripe: 'sk_oops' })[:stripe_secret_key]).to be_nil
     end

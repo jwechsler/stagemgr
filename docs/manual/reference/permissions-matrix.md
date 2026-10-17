@@ -129,6 +129,10 @@ Stagemgr has three staff roles, each building on the permissions of the role bel
 | View email addresses | Yes | Yes | Opted-in only* |
 | Merge customer records | Yes | -- | -- |
 | Auto-complete customer search | Yes | Yes | Yes |
+| View member codes and Active Memberships | Yes | Yes | -- |
+| View donor tiers on customer page | Yes | Yes | -- |
+| View productions attended at all theaters | Yes | Yes | -- |
+| LGL Sync page | Yes | -- | -- |
 
 *Resident company Theater Users can view all email addresses.
 
@@ -166,7 +170,7 @@ Stagemgr has three staff roles, each building on the permissions of the role bel
 | View dynamic pricing lift | Yes | -- | Yes (own theaters) |
 | Run advance sales analysis | Yes | -- | Yes (own theaters) |
 | Theater picker in advance sales | All theaters | -- | Own theaters only |
-| Pace column on the performance list | Yes | Yes | Yes (own theaters) |
+| Expected on Upcoming House Counts | Yes | -- | Yes (own theaters) |
 
 ## Imports, System Configuration, and Payments
 

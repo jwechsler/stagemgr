@@ -7,7 +7,6 @@ class PerformanceDatatable < DatatableBase
       date: { source: 'Performance.performance_date', orderable: false },
       time: { source: 'Performance.performance_time', searchable: false, orderable: false },
       status: { source: 'Performance.status', orderable: false },
-      pace: { orderable: false, searchable: false },
       actions: { orderable: false, searchable: false }
     }
   end
@@ -20,7 +19,6 @@ class PerformanceDatatable < DatatableBase
         time: performance.decorate.performance_time,
         code: performance.decorate.performance_code,
         status: performance.decorate.status,
-        pace: @view.advance_sales_pace_cell(pace_readings[performance.id]),
         actions: performance.decorate.dt_actions,
         DT_RowId: performance.id
       }
@@ -37,11 +35,6 @@ class PerformanceDatatable < DatatableBase
 
   def production
     @production ||= options[:production]
-  end
-
-  # One pace computation per request, not one per row.
-  def pace_readings
-    @pace_readings ||= AdvanceSalesPace.for_production(production)
   end
 
   # ==== These methods represent the basic operations to perform on records

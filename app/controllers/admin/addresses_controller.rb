@@ -82,7 +82,7 @@ class Admin::AddressesController < Admin::ApplicationController
       # A true merge: field-copying alone (the old behavior) left the edited
       # record and all of its orders behind as a permanent duplicate.
       begin
-        match.merge_and_purge(@address)
+        match.merge_and_purge(@address, clear_lgl_review: true)
         @address = match
         notice = "Updated data merged with existing audience member"
       rescue StandardError => e
@@ -127,12 +127,23 @@ class Admin::AddressesController < Admin::ApplicationController
     address = Address.find(ids[0])
     ids.drop(1).each do |id|
       address2 = Address.find(id)
-      address.merge_and_purge(address2)
+      address.merge_and_purge(address2, clear_lgl_review: true)
     end
     render json: { result: true }
   rescue => e
     Rails.logger.error("Merge failed: #{e.message}\n#{e.backtrace.join("\n")}")
     render json: { result: false, error: e.message }, status: :unprocessable_entity
+  end
+
+  # POST /admin/addresses/1/lgl_sync
+  # Only queues the sync; never calls Little Green Light in the request.
+  def lgl_sync
+    unless Lgl.enabled?
+      return redirect_to(admin_address_path(@address), alert: 'Little Green Light is not configured')
+    end
+
+    Resque.enqueue(LglSyncAddressJob, @address.id, LglSyncAddressJob::MANUAL_TRIGGER)
+    redirect_to(admin_address_path(@address), notice: 'Queued a sync with Little Green Light')
   end
 
   def autocomplete_address

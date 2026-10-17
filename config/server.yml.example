@@ -107,11 +107,43 @@ all:
     signature_image_url:
     # Stripe customer portal link, for members managing their own subscription.
     stripe_billing_portal_url:
+    # Month whose 1st starts the fiscal year, for LGL lapsed-donor tags
+    # (LYBUNT / SYBUNT). 1 = calendar year; 7 = July–June.
+    fiscal_year_start_month: 1
   my_emma:
     # Names of the MyEmma groups patrons are added to when they opt in. Leave a
     # name blank to stop adding anyone to that group.
     newsletter_group: "Newsletter"
     coupon_group: "Flash Offers"
+  # Little Green Light (donor CRM) sync. The API key is a secret: set
+  # LGL_API_KEY (or the littlegreenlight.api_key credential), never here. A
+  # non-blank ENV value overrides the matching key below; a blank one is
+  # ignored.
+  littlegreenlight:
+    # enabled | readonly | disabled (all need the API key to do anything).
+    #   enabled:  reads from and writes to LGL. In development it is treated
+    #             as readonly, so a copied config never writes the live account.
+    #   readonly: reads from LGL and links customers locally; every write to
+    #             LGL is skipped (and logged) except writable_address_ids.
+    #   disabled: (or missing, or any other word) every LGL job, trigger and
+    #             page button is off.
+    # ENV override: LGL_SYNC.
+    sync: disabled
+    # Acceptance-testing hatch, used only when sync is readonly: Stagemgr
+    # address ids, comma-separated or a YAML list, that may still be written to
+    # LGL. Ignored when sync is enabled.
+    # ENV override: LGL_WRITABLE_ADDRESS_IDS.
+    writable_address_ids:
+    # Base URL of your LGL account, used to link a customer's LGL ID to their
+    # constituent page, e.g. "https://youraccount.littlegreenlight.com".
+    # Leave blank to show the id as plain text.
+    web_url:
+    # Permanent link of the LGL saved report that exports External constituent
+    # ID, TG Tier Last Fiscal and TG Tier This Fiscal. When set, the report is
+    # downloaded every night and imported as donor levels; leave blank to turn
+    # that off. If the link needs a login, set LGL_USER / LGL_PASSWORD (secrets,
+    # never here). ENV override: LGL_DONOR_TIER_REPORT_URL.
+    donor_tier_report_url:
   payment_processing:
     additional_card_types:
 
@@ -175,8 +207,13 @@ test:
     website_url: "https://WEBSITE.TEST"
     facebook_url: "https://FACEBOOK.TEST"
     stripe_billing_portal_url: "https://BILLING.TEST"
+    fiscal_year_start_month: 1
   my_emma:
     create_production_groups: false
+  # Explicit: the test environment never syncs with LGL (Lgl.disable in
+  # config/environments/test.rb); specs stub Lgl where they need it on.
+  littlegreenlight:
+    sync: disabled
   email:
     addresses:
       box_office: boxoffice@yourtheater.org

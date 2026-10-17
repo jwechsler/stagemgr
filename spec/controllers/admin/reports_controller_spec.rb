@@ -179,4 +179,75 @@ RSpec.describe Admin::ReportsController, type: :controller do
       expect(flash[:alert]).to be_present
     end
   end
+
+  describe 'house management report access' do
+    let(:theater)         { FactoryBot.create(:theater) }
+    let(:theater_user)    { FactoryBot.create(:user, theaters: [theater]) }
+    let(:box_office_user) { FactoryBot.create(:user, is_box_office_user: true) }
+    let(:report_double)   { instance_double(HouseManagementReport, create: [[], []]) }
+
+    def sign_in_as(user)
+      allow(controller).to receive(:current_user).and_return(user)
+    end
+
+    it 'denies a theater user the house management seating report' do
+      sign_in_as(theater_user)
+      expect(HouseManagementReport).not_to receive(:new)
+
+      post :house_management_seating, params: { performance_day: Date.current.to_s }
+
+      expect(response).to redirect_to(root_url)
+    end
+
+    it 'denies a theater user the resource pull sheet' do
+      sign_in_as(theater_user)
+      expect(ResourcePullReport).not_to receive(:new)
+
+      post :resource_pull, params: { performance_day: Date.current.to_s }
+
+      expect(response).to redirect_to(root_url)
+    end
+
+    it 'shows a box office user the house management seating report' do
+      sign_in_as(box_office_user)
+      expect(HouseManagementReport).to receive(:new).with(Date.current).and_return(report_double)
+
+      post :house_management_seating, params: { performance_day: Date.current.to_s }
+
+      expect(response).to have_http_status(:ok)
+      expect(response).to render_template(:house_management_seating)
+    end
+
+    it 'shows an administrator the house management seating report' do
+      expect(HouseManagementReport).to receive(:new).with(Date.current).and_return(report_double)
+
+      post :house_management_seating, params: { performance_day: Date.current.to_s }
+
+      expect(response).to have_http_status(:ok)
+      expect(response).to render_template(:house_management_seating)
+    end
+
+    describe 'reports index' do
+      render_views
+
+      it 'hides the house management reports from a theater user' do
+        sign_in_as(theater_user)
+
+        get :index
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).not_to include('House Management Seating Report')
+        expect(response.body).not_to include('Resource Pull Sheet')
+      end
+
+      it 'lists the house management reports for a box office user' do
+        sign_in_as(box_office_user)
+
+        get :index
+
+        expect(response.body).to include('House Management Seating Report')
+        expect(response.body).to include('Resource Pull Sheet')
+      end
+    end
+  end
 end

@@ -116,47 +116,80 @@ RSpec.describe Admin::AdvanceSalesHelper, type: :helper do
     end
   end
 
-  describe '#advance_sales_pace_cell' do
-    def reading(**attrs)
-      AdvanceSalesPace::Reading.new(performance_id: 1, days_out: 7, sold: 20, typical_share: 0.5,
-                                    projected_final: 40, capacity: 100, projected_pct_of_capacity: 0.4,
-                                    source: :theater, **attrs)
+  describe '#house_count_pace_cell' do
+    let(:as_of) { Date.new(2026, 10, 6) }
+    let(:production) { FactoryBot.build_stubbed(:production, sales_recorded_externally: false) }
+    let(:performance) { FactoryBot.build_stubbed(:performance, production: production, performance_date: as_of + 7) }
+
+    def house_count(**attrs)
+      HouseCount.new(performance: performance, total_seats: 100, projected_seats: 40, pace_share: 0.5,
+                     pace_sold: 20, pace_source: 'theater', pace_as_of: as_of, **attrs)
     end
 
-    it 'shows the empty cell when there is no reading' do
-      expect(helper.advance_sales_pace_cell(nil)).to eq('—')
+    it 'shows the empty cell titled to explain it when sales are recorded externally' do
+      production.sales_recorded_externally = true
+
+      expect(helper.house_count_pace_cell(house_count))
+        .to have_css('span[title="Sales recorded externally"]', exact_text: '—')
     end
 
-    it 'says too early, with the basis in the title, when there is no projection' do
-      html = helper.advance_sales_pace_cell(reading(days_out: 30, sold: 5, typical_share: 0.05,
-                                                    projected_final: nil, projected_pct_of_capacity: nil))
-
-      expect(html).to have_css('span[title="Sold 5; this house typically has 5% in hand 30 days out"]',
-                               text: 'Too early')
+    it 'shows the bare empty cell when no pace snapshot has been taken' do
+      expect(helper.house_count_pace_cell(house_count(pace_as_of: nil))).to eq('—')
     end
 
-    it 'shows the projection against capacity' do
-      html = helper.advance_sales_pace_cell(reading(projected_final: 1234, capacity: 2000,
-                                                    projected_pct_of_capacity: 0.617))
-
-      expect(html).to have_css('span[title="Sold 20; this house typically has 50% in hand 7 days out"]',
-                               exact_text: '~1,234 (62% of capacity)')
+    it 'shows the bare empty cell when the snapshot had nothing to project from' do
+      expect(helper.house_count_pace_cell(house_count(pace_share: nil, projected_seats: nil))).to eq('—')
     end
 
-    it 'notes the building-wide curve in the title' do
-      html = helper.advance_sales_pace_cell(reading(source: :building))
+    it 'says too early, with the basis in the title, when the share in hand is too small to project' do
+      performance.performance_date = as_of + 30
+      html = helper.house_count_pace_cell(house_count(pace_sold: 5, pace_share: 0.05, projected_seats: nil))
 
       expect(html).to have_css(
-        'span[title="Sold 20; this house typically has 50% in hand 7 days out (building-wide curve)"]',
-        exact_text: '~40 (40% of capacity)'
+        'span[title="Sold 5 as of Oct 6; this house typically has 5% in hand 30 days out"]',
+        exact_text: 'Too early'
       )
     end
 
-    it 'leaves out the capacity part when there is no capacity' do
-      expect(helper.advance_sales_pace_cell(reading(capacity: nil, projected_pct_of_capacity: nil)))
-        .to have_css('span', exact_text: '~40')
-      expect(helper.advance_sales_pace_cell(reading(capacity: 0, projected_pct_of_capacity: nil)))
-        .to have_css('span', exact_text: '~40')
+    it 'shows the expected count alone, with the basis in the title' do
+      html = helper.house_count_pace_cell(house_count(projected_seats: 1234, total_seats: 2000))
+
+      expect(html).to have_css(
+        'span[title="Sold 20 as of Oct 6; this house typically has 50% in hand 7 days out"]',
+        exact_text: '~1,234'
+      )
+    end
+
+    it 'shows the empty cell, titled to say so, once sold has passed the expected count' do
+      html = helper.house_count_pace_cell(house_count(sold_seats: 1235, projected_seats: 1234, total_seats: 2000))
+
+      expect(html).to have_css('span[title="Sold has already passed the expected ~1,234"]', exact_text: '—')
+    end
+
+    it 'still shows the expected count when sold equals it' do
+      html = helper.house_count_pace_cell(house_count(sold_seats: 40))
+
+      expect(html).to have_css('span', exact_text: '~40')
+    end
+
+    it 'describes the show-day basis in the title on the day of the show' do
+      performance.performance_date = as_of
+      html = helper.house_count_pace_cell(house_count(pace_sold: 19, pace_share: 0.79, projected_seats: 24,
+                                                      pace_source: 'building'))
+
+      expect(html).to have_css(
+        'span[title="Sold 19 before today; this house typically has 79% in hand by show day (building-wide curve)"]',
+        exact_text: '~24'
+      )
+    end
+
+    it 'notes the building-wide curve in the title' do
+      html = helper.house_count_pace_cell(house_count(pace_source: 'building'))
+
+      expect(html).to have_css(
+        'span[title="Sold 20 as of Oct 6; this house typically has 50% in hand 7 days out (building-wide curve)"]',
+        exact_text: '~40'
+      )
     end
   end
 end

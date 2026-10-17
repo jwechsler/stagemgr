@@ -22,7 +22,7 @@ Things to know when you read it:
 - **Only Active performances count.** Private and inactive ones are left out everywhere on the page.
 - **Passes vs single tickets.** Tickets bought with a pass tied to a company or festival (the subscription kind) are drawn as a separate line from single tickets. Memberships and the building-wide passes count as single tickets.
 - **An exchanged ticket keeps its original purchase date.** Moving someone to Thursday doesn't change when they decided to buy.
-- **Northlight is out by default.** Their sales are keyed in by us after the fact, so the dates mean nothing for this; there's a new "Sales recorded externally" tick box on the theater page for that, and a checkbox on the analysis if you want them in anyway.
+- **Northlight is out by default.** Their sales are keyed in by us after the fact, so the dates mean nothing for this; there's a new "Sales recorded externally" tick box on each production's page for that (it's per show, since a company can sell one show through another venue's box office and the rest through us), and a checkbox on the analysis if you want them in anyway.
 
 **Also: a Pace column on the production page.** Each upcoming performance now shows a projection of where it's heading, e.g. **~50 (48% of capacity)**, worked out from how much of a final house that theater typically has in hand this many days out. It says "Too early" when there's not enough history yet to say anything useful. It's a projection from typical behaviour, not a forecast: a good review or a snowstorm moves a show off the curve.
 
@@ -48,7 +48,7 @@ Full write-up is in the manual under Analysis > Advance Sales.
 
 ## Donations on pass-paid orders (already live)
 
-[Name], a member, added a $15 donation to Shattered Globe on a membership-paid order, and the donation silently vanished: the system tried to pay the donation with the membership, which of course can't pay for a donation, and the error was written into the order's notes instead of telling anyone. It turned out a pass plus a donation had *never* been chargeable, because the checkout hid the card fields the moment a pass was chosen.
+A member added a $15 donation to Shattered Globe on a membership-paid order, and the donation silently vanished: the system tried to pay the donation with the membership, which of course can't pay for a donation, and the error was written into the order's notes instead of telling anyone. It turned out a pass plus a donation had *never* been chargeable, because the checkout hid the card fields the moment a pass was chosen.
 
 Now the card fields stay up when a pass is picked and a donation is entered, with a line explaining the pass covers the tickets and the card covers the gift; the order won't go through without a card. And errors in that step reach me properly instead of hiding in notes. While testing it I found that a member who had to fix a rejected order (wrong email, say) was quietly switched back to paying by card on the retry. Also fixed.
 

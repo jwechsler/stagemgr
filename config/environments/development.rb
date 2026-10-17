@@ -95,6 +95,15 @@ Rails.application.configure do
     MyEmma.read_only!
   end
 
+  # Lgl is reloadable; its configuration must be re-applied after each code reload.
+  config.to_prepare do
+    # littlegreenlight: in config/server.yml (ENV overrides), key from AppSecrets;
+    # Lgl.configure_from holds every rule (development stays read-only unless
+    # writable_address_ids lists the addresses that may be written).
+    Lgl.configure_from(Lgl::Settings.from(Rails.configuration.x.server_config),
+                       api_key: AppSecrets[:lgl_api_key], environment: Rails.env)
+  end
+
   # Application configuration loaded from YAML. The loaded objects are kept
   # exactly as parsed (string-keyed Hashes) and assigned to config.x.* so that
   # existing string-key access (e.g. config.x.server_config['host']) keeps

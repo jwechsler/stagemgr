@@ -47,6 +47,9 @@ an empty result counts as absent. So
 | `my_emma_username` | `MY_EMMA_USERNAME` | `my_emma.username` |
 | `my_emma_password` | `MY_EMMA_PASSWORD` | `my_emma.password` |
 | `my_emma_account_id` | `MY_EMMA_ACCOUNT_ID` | `my_emma.account_id` |
+| `lgl_api_key` | `LGL_API_KEY` | `littlegreenlight.api_key` |
+| `lgl_user` | `LGL_USER` | `littlegreenlight.user` (optional) |
+| `lgl_password` | `LGL_PASSWORD` | `littlegreenlight.password` (optional) |
 | `paypal_login` | `PAYPAL_LOGIN` | `paypal.login` |
 | `paypal_password` | `PAYPAL_PASSWORD` | `paypal.password` |
 | `paypal_signature` | `PAYPAL_SIGNATURE` | `paypal.signature` |

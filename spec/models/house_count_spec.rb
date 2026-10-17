@@ -250,4 +250,99 @@ RSpec.describe HouseCount, type: :model do
       end
     end
   end
+
+  describe 'pace snapshot' do
+    let(:as_of) { Date.current }
+    let(:performance) { instance_double(Performance, performance_date: as_of + 7.days) }
+    let(:house_count) { HouseCount.new(total_seats: 100) }
+
+    def reading(projected_final:, typical_share: 0.5)
+      AdvanceSalesPace::Reading.new(performance_id: 1, days_out: 7, sold: 20, typical_share: typical_share,
+                                    projected_final: projected_final, capacity: 100,
+                                    projected_pct_of_capacity: nil, source: :theater)
+    end
+
+    it 'copies a reading into the pace columns without saving' do
+      house_count.apply_pace(reading(projected_final: 40), as_of: as_of)
+
+      expect(house_count).to have_attributes(projected_seats: 40, pace_share: 0.5, pace_sold: 20,
+                                             pace_source: 'theater', pace_as_of: as_of)
+      expect(house_count).to be_new_record
+      expect(house_count).not_to be_pace_too_early
+    end
+
+    it 'clears the pace columns but stamps the day when there is no reading' do
+      house_count.apply_pace(reading(projected_final: 40), as_of: as_of - 1.day)
+      house_count.apply_pace(nil, as_of: as_of)
+
+      expect(house_count).to have_attributes(projected_seats: nil, pace_share: nil, pace_sold: nil,
+                                             pace_source: nil, pace_as_of: as_of)
+      expect(house_count).not_to be_pace_too_early
+    end
+
+    it 'is too early when a share is stored without a projection' do
+      house_count.apply_pace(reading(projected_final: nil, typical_share: 0.05), as_of: as_of)
+
+      expect(house_count).to be_pace_too_early
+    end
+
+    describe '#expected_met? and #expected_seats' do
+      it 'is met, with no expected seats, once sold passes the projection' do
+        house_count.assign_attributes(sold_seats: 41, projected_seats: 40)
+
+        expect(house_count).to be_expected_met
+        expect(house_count.expected_seats).to be_nil
+      end
+
+      it 'is not met when sold equals the projection' do
+        house_count.assign_attributes(sold_seats: 40, projected_seats: 40)
+
+        expect(house_count).not_to be_expected_met
+        expect(house_count.expected_seats).to eq(40)
+      end
+
+      it 'is never met without a projection' do
+        house_count.assign_attributes(sold_seats: 41, projected_seats: nil)
+
+        expect(house_count).not_to be_expected_met
+        expect(house_count.expected_seats).to be_nil
+      end
+    end
+
+    it 'counts days out from the day the projection was computed' do
+      allow(house_count).to receive(:performance).and_return(performance)
+
+      expect(house_count.pace_days_out).to be_nil
+      house_count.pace_as_of = as_of + 2.days
+      expect(house_count.pace_days_out).to eq(5)
+    end
+
+    context 'when recalculated after a sale' do
+      let(:production) { FactoryBot.create(:production, capacity: 50) }
+      let(:real_performance) do
+        FactoryBot.create(:general_admission, production: production, performance_date: as_of + 7.days)
+      end
+      let(:house_count) { HouseCount.new(performance: real_performance) }
+
+      it 'refreshes the pace columns from that performance\'s reading, stamped today' do
+        allow(AdvanceSalesPace).to receive(:for_performance).with(real_performance)
+                                                            .and_return(reading(projected_final: 40))
+
+        house_count.calculate
+
+        expect(house_count).to have_attributes(projected_seats: 40, pace_share: 0.5, pace_sold: 20,
+                                               pace_source: 'theater', pace_as_of: Date.current)
+      end
+
+      it 'clears a previously stored projection when the performance gets no reading' do
+        house_count.apply_pace(reading(projected_final: 40), as_of: as_of - 1.day)
+        allow(AdvanceSalesPace).to receive(:for_performance).with(real_performance).and_return(nil)
+
+        house_count.calculate
+
+        expect(house_count).to have_attributes(projected_seats: nil, pace_share: nil, pace_sold: nil,
+                                               pace_source: nil, pace_as_of: Date.current)
+      end
+    end
+  end
 end

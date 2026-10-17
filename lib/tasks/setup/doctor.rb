@@ -43,6 +43,8 @@ module Setup
       check_database
       check_redis
       check_myemma_groups
+      check_lgl
+      check_lgl_donor_levels
       check_membership_card_spec
       check_membership_card_renderer
       summarize
@@ -220,6 +222,63 @@ module Setup
       MyEmmaGroups::KEYS.each { |key| record(*myemma_group_result(key)) }
     rescue StandardError => e
       record WARN, "MyEmma groups not verified (#{e.class}: #{first_line(e.message)})"
+    end
+
+    # Confirms the LGL API key with one cheap read. Like the MyEmma check it is
+    # only ever a WARN and stays off the network when LGL is disabled (test,
+    # littlegreenlight.sync off, no key) or read-only (development, or an
+    # acceptance-testing allowlist).
+    def check_lgl
+      settings = Lgl.settings
+      return record WARN, lgl_unknown_sync_message(settings.sync_value) unless settings.sync_value_recognized?
+      return record OK, 'LGL sync is disabled (littlegreenlight.sync)' unless settings.sync_enabled?
+
+      mode = settings.sync_mode
+      return record WARN, "littlegreenlight.sync is #{mode} but LGL_API_KEY is missing" if AppSecrets[:lgl_api_key].nil?
+      unless Lgl.enabled?
+        return record OK, "LGL sync is #{mode} but LGL is not configured in this environment — " \
+                          'constituent ids are not synced'
+      end
+      return record OK, lgl_read_only_message(settings) if Lgl.read_only?
+
+      Lgl.client.ping
+      record OK, "LGL sync is #{mode} — LGL API key accepted"
+    rescue StandardError => e
+      record WARN, "LGL API key not verified (#{e.class}: #{first_line(e.message)})"
+    end
+
+    # The nightly donor levels fetch (LglDonorLevelsFetch) needs only the
+    # report link, optional Basic auth and a user to own the import. Never
+    # fetches the link: the report is slow to build and the token in it must
+    # not reach a log.
+    def check_lgl_donor_levels
+      unless Lgl.settings.donor_levels_enabled?
+        return record OK, 'LGL donor levels import is off (littlegreenlight.donor_tier_report_url blank)'
+      end
+
+      email = Rails.configuration.x.email_address['supervisor_notifications']
+      if AppSecrets[:lgl_user].nil? ^ AppSecrets[:lgl_password].nil?
+        record WARN, 'LGL_USER is set without LGL_PASSWORD (or the reverse): Basic auth is sent only when both are present'
+      end
+      unless email.present? && User.exists?(email: email)
+        return record WARN, 'littlegreenlight.donor_tier_report_url is set but no user has the ' \
+                            "email.addresses.supervisor_notifications address #{email}; the nightly import needs one"
+      end
+
+      record OK, "LGL donor levels import is on — nightly from the saved report, results to #{email}"
+    rescue StandardError => e
+      record WARN, "LGL donor levels import not checked (#{e.class}: #{first_line(e.message)})"
+    end
+
+    def lgl_unknown_sync_message(word)
+      "littlegreenlight.sync is '#{word}', which is not enabled, readonly or disabled — LGL sync is disabled"
+    end
+
+    def lgl_read_only_message(settings)
+      mode = settings.read_only_mode? ? 'readonly' : 'enabled, downgraded to readonly in development,'
+      ids = Lgl.writable_address_ids.to_a.sort
+      scope = ids.empty? ? 'every address' : "every address except ids #{ids.join(', ')}"
+      "LGL sync is #{mode} — writes skipped for #{scope} — key not verified"
     end
 
     def myemma_group_result(key)

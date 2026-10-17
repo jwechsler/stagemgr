@@ -159,6 +159,9 @@ Rails.application.routes.draw do
     resources :flex_pass_orders
 
     resources :addresses do
+      member do
+        post :lgl_sync
+      end
       collection do
         post :merge_selected, format: :json
         get :autocomplete_address
@@ -261,6 +264,7 @@ Rails.application.routes.draw do
         post :fulfill
         get :unclaimed
         post :update_notes
+        post :lgl_replicate
       end
       resources :refund_orders, only: %i[new create]
       # Fixes on the review banner (ReviewFlaggable)
@@ -371,6 +375,15 @@ Rails.application.routes.draw do
     resources :performance, only: [:destroy]
 
     get '/system_options', controller: 'system_options', action: 'index'
+
+    # Little Green Light sync status; the POSTs only queue the jobs.
+    get 'lgl_sync', to: 'lgl_sync#index', as: :lgl_sync
+    post 'lgl_sync/poll', to: 'lgl_sync#poll', as: :lgl_sync_poll
+    post 'lgl_sync/sweep', to: 'lgl_sync#sweep', as: :lgl_sync_sweep
+    post 'lgl_sync/backfill', to: 'lgl_sync#backfill', as: :lgl_sync_backfill
+    post 'lgl_sync/donor_levels', to: 'lgl_sync#donor_levels', as: :lgl_sync_donor_levels
+    post 'lgl_sync/gift_history', to: 'lgl_sync#gift_history', as: :lgl_sync_gift_history
+    post 'lgl_sync/campaign', to: 'lgl_sync#campaign', as: :lgl_sync_campaign
   end
 
   namespace :current_user do

@@ -12,6 +12,8 @@ class Order < ApplicationRecord
   # Associations
   belongs_to :theater, required: false, inverse_of: :orders
   belongs_to :performance, required: false, inverse_of: :orders
+  # A donation records the production it was added to (checkout or convert-to-donation); ticket orders answer through their performance.
+  belongs_to :production, optional: true
 
   belongs_to :payment_type, required: false
   belongs_to :address, inverse_of: :orders
@@ -183,11 +185,6 @@ class Order < ApplicationRecord
   }
 
   # implementation
-
-  # Only ticket orders have a production
-  def production
-    nil
-  end
 
   # Payment and total utility methods
 
@@ -879,6 +876,21 @@ class Order < ApplicationRecord
     task.save!
   end
 
+  def create_lgl_upsert_task
+    return unless is_a?(DonationOrder) && Lgl.enabled?
+
+    LglUpsertTask.create!(order: self, execute_at: Time.now + LglUpsertTask::LGL_DELAY)
+  end
+
+  # A replicated donation's refund is noted on its LGL gift. enqueue_in
+  # rather than enqueue: this runs after_save, before the transaction commits.
+  LGL_REFUND_NOTE_DELAY = 1.minute
+  def enqueue_lgl_refund_note
+    return unless is_a?(DonationOrder) && Lgl.enabled? && lgl_gift_id.present?
+
+    Resque.enqueue_in(LGL_REFUND_NOTE_DELAY, LglReplicateDonationJob, id, LglReplicateDonationJob::REFUND_ACTION)
+  end
+
   def create_receipt_task; end
 
   def create_transfer_ownership_task; end
@@ -896,6 +908,8 @@ class Order < ApplicationRecord
         create_mail_list_task
         create_receipt_task
         create_transfer_ownership_task if gift?
+        create_lgl_upsert_task
+      when REFUNDED then enqueue_lgl_refund_note
       end
     end
     return unless saved_change_to_status? && status.eql?(Order::PROCESSED)
@@ -967,7 +981,7 @@ class Order < ApplicationRecord
                                  :payment_type => pass_paid ? CreditCardPaymentType.first! : payment_type)
     donation.copy_payment_information(self)
     donation.flex_pass_code = donation.member_code = nil if pass_paid
-    donation.campaign = performance.production.name unless performance.nil?
+    donation.assign_attributes(campaign: performance.production.name, production_id: performance.production_id) unless performance.nil?
     donation.theater = credit_to_theater.nil? ? theater : credit_to_theater
     donation.donation_line_items.build(:amount => donation_amount)
     donation
