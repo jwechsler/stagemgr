@@ -95,6 +95,20 @@ Address records in Stagemgr are **shared across all theaters** in the system. A 
 
 ---
 
+## What Theater Users See
+
+Theater users see a narrower view of a patron than box office staff and
+administrators:
+
+- **Notes column** (customer list): an active member shows as
+  **Member [Offer Name]**, the membership offer's name as plain text, instead
+  of the linked member code.
+- **Customer page**: there is no **Active Memberships** box and no donor tier
+  labels. The tag list still shows. **Productions Attended** lists only
+  productions at the theater user's own theaters.
+
+---
+
 ## Deleting Patron Records
 
 Patron records that have finalized orders (Processed, Fulfilled, or Unclaimed) **cannot be deleted**. This protects order history and financial records. Only records with no associated finalized orders may be removed.

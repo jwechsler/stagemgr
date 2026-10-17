@@ -148,7 +148,7 @@ that mixes the two kinds says which is which.
 
 ## Expected sales on house counts
 
-![Expected on Upcoming House Counts](../assets/images/screenshots/house-counts-pace-column.png)
+![Expected on Upcoming House Counts](../assets/images/screenshots/house-counts-expected-column.png)
 
 **Expected** is the paid count the performance is expected to have at curtain if it sells
 the way this house usually does. It already includes the tickets sold so far; held tickets

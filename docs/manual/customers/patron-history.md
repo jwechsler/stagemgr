@@ -104,7 +104,7 @@ Because address records are shared across all theaters in Stagemgr, the patron h
 
 - Orders from Theater A and Theater B appear in the same history.
 - Memberships and flex passes are listed with their associated theater for clarity.
-- Productions attended span all theaters.
+- Productions attended span all theaters for administrators and box office staff; theater users see only productions at their own theaters.
 
 This unified view ensures that box office staff at any venue can see the patron's full relationship with the organization.
 

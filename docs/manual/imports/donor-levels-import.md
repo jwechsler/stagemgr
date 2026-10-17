@@ -2,7 +2,8 @@
 
 !!! info "Required Role"
     **Administrator** or **Box Office** can run a donor levels import from the
-    Imports page. Setting up the nightly import needs an administrator.
+    Imports page. The nightly import is set up in Stagemgr's configuration, by
+    whoever maintains it.
 
 **Navigation:** Options > Imports > Donor Levels Import
 
@@ -23,7 +24,7 @@ The import runs in two ways, with the same file and the same rules:
 
 ## The Nightly Import
 
-Each night at 4:30 Stagemgr downloads the saved report from LGL and imports
+Each night at 5:30 AM Stagemgr downloads the saved report from LGL and imports
 it. It runs whenever the report link is configured, whether or not
 [LGL sync](../customers/lgl-sync.md) is turned on.
 
@@ -37,9 +38,10 @@ it. It runs whenever the report link is configured, whether or not
    untouched. Make the report cover **every** constituent with a giving
    level (see [How It Works](#how-it-works)).
 2. **Create a permanent link** for the saved report in LGL.
-3. **Give the link to your administrator**, who stores it in Stagemgr's
-   configuration as `littlegreenlight.donor_tier_report_url`. If opening the
-   link asks for an LGL login, the administrator also stores an LGL web user
+3. **Give the link to whoever maintains Stagemgr's configuration**, who
+   stores it as `littlegreenlight.donor_tier_report_url`; see
+   [Little Green Light sync](../developer/configuration.md#little-green-light-sync).
+   If opening the link asks for an LGL login, they also store an LGL web user
    name and password as `LGL_USER` and `LGL_PASSWORD`.
 
 The results are emailed to the Stagemgr user whose email is the

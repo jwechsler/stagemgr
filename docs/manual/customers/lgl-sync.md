@@ -181,11 +181,11 @@ month the theater has configured (January unless set otherwise).
 
 The tags are refreshed:
 
-- every Sunday night, for every linked customer (this takes about an hour);
+- early every Sunday morning (2:00 AM), for every linked customer (this takes about an hour);
 - when a customer is first linked to LGL;
 - when an administrator clicks **Re-sync with LGL** on the customer page.
 
-So a gift entered in LGL shows on the tag after the next Sunday night, or
+So a gift entered in LGL shows on the tag after the next Sunday morning, or
 straight away after a **Re-sync with LGL**. Do not edit the `LGL Lapsed` tag
 by hand: the next refresh replaces it.
 
@@ -271,6 +271,10 @@ skipped.
 
 **Navigation:** Options > System Config > LGL Sync
 
+The sync mode, the API key and the LGL web address are set in Stagemgr's
+configuration; see
+[Little Green Light sync](../developer/configuration.md#little-green-light-sync).
+
 The page shows:
 
 - The **Sync** row: **Enabled**, **Read-only** or **Disabled**, and whether
@@ -308,7 +312,7 @@ Four buttons queue the same jobs that run on their own:
 |---|---|
 | **Poll for changes** | Reads recent LGL changes now instead of waiting for the next three-hourly run |
 | **Sweep all** | Checks every `LGL ID` against LGL now, not just recent changes |
-| **Refresh gift history** | Refreshes every linked customer's `LGL Lapsed` tag now instead of waiting for Sunday night. Asks for confirmation first: it reads each customer's gifts from LGL and takes about an hour |
+| **Refresh gift history** | Refreshes every linked customer's `LGL Lapsed` tag now instead of waiting for early Sunday morning. Asks for confirmation first: it reads each customer's gifts from LGL and takes about an hour |
 | **Backfill** | Links every LGL constituent whose External constituent ID names a Stagemgr customer. Changes only Stagemgr's `LGL ID` and `LGL Review` tags, never LGL. Run once after sync is first set up; running it again is harmless |
 
 The jobs run in the background; reload the page after a few minutes to see the
