@@ -43,11 +43,7 @@ class LglSweepConstituents
 
   # [address_id, lgl_id] for every live tag whose constituent is not listed.
   def self.missing_tags(present)
-    theater_id = Theater.default_theater&.id
-    return [] if theater_id.nil?
-
-    AddressTag.where(tag_label: AddressTag::LGL_ID, theater_id: theater_id)
-              .order(:id).pluck(:address_id, :tag_value)
+    AddressTag.lgl(AddressTag::LGL_ID).order(:id).pluck(:address_id, :tag_value)
               .reject { |_address_id, lgl_id| present.include?(lgl_id.to_s.strip) }
   end
 

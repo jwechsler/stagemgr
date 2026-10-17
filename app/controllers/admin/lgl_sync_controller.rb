@@ -41,10 +41,10 @@ class Admin::LglSyncController < Admin::ApplicationController
     @writable_address_ids = Lgl.writable_address_ids.to_a.sort
     @last_poll = recorded_time(LglPollConstituents::WATERMARK)
     @last_sweep = recorded_time(LglSweepConstituents::COMPLETED)
-    @linked_count = lgl_tags(AddressTag::LGL_ID).distinct.count(:address_id)
+    @linked_count = AddressTag.lgl(AddressTag::LGL_ID).distinct.count(:address_id)
     @last_gift_history_walk = recorded_time(LglGiftHistoryWalk.name)
-    @lapsed_counts = lgl_tags(AddressTag::LGL_LAPSED).group(:tag_value).count
-    review_tags = lgl_tags(AddressTag::LGL_REVIEW)
+    @lapsed_counts = AddressTag.lgl(AddressTag::LGL_LAPSED).group(:tag_value).count
+    review_tags = AddressTag.lgl(AddressTag::LGL_REVIEW)
     @review_count = review_tags.count
     @review_tags = review_tags.includes(:address).order(:created_at, :id).limit(REVIEW_LIMIT)
     assign_gift_status
@@ -126,12 +126,5 @@ class Admin::LglSyncController < Admin::ApplicationController
   def recorded_time(job_name)
     time = JobMetadata.last_run(job_name)
     time.to_i.zero? ? nil : time
-  end
-
-  def lgl_tags(label)
-    theater_id = Theater.default_theater&.id
-    return AddressTag.none if theater_id.nil?
-
-    AddressTag.where(tag_label: label, theater_id: theater_id)
   end
 end

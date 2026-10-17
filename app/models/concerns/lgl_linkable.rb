@@ -100,10 +100,7 @@ module LglLinkable
   def lgl_tag_value(label)
     return nil if new_record?
 
-    theater_id = Theater.default_theater&.id
-    return nil if theater_id.nil?
-
-    AddressTag.where(address_id: id, tag_label: label, theater_id: theater_id).order(:id).pick(:tag_value).presence
+    lgl_tag_scope(label).order(:id).pick(:tag_value).presence
   end
 
   def write_lgl_tag!(label, value)
@@ -112,22 +109,22 @@ module LglLinkable
       tag = address_tags.where(tag_label: label, theater_id: theater_id).order(:id).first_or_initialize
       tag.tag_value = value.to_s
       tag.save!
-      lgl_tag_scope(label, theater_id).where.not(id: tag.id).delete_all
+      lgl_tag_scope(label).where.not(id: tag.id).delete_all
     end
     address_tags.reset
   end
 
   def delete_lgl_tags!(label)
-    theater_id = lgl_theater_id!
-    with_lock { lgl_tag_scope(label, theater_id).delete_all }
+    lgl_theater_id!
+    with_lock { lgl_tag_scope(label).delete_all }
     address_tags.reset
   end
 
-  def lgl_tag_scope(label, theater_id)
-    AddressTag.where(address_id: id, tag_label: label, theater_id: theater_id)
+  def lgl_tag_scope(label)
+    AddressTag.lgl(label).where(address_id: id)
   end
 
   def lgl_theater_id!
-    Theater.default_theater&.id || raise(ActiveRecord::RecordNotFound, 'LGL tags need a default theater')
+    AddressTag.lgl_theater_id!
   end
 end

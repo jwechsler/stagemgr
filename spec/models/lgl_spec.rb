@@ -58,6 +58,16 @@ RSpec.describe Lgl do
       expect(described_class.writable_address_ids).to eq(Set[7, 8])
     end
 
+    it 'gives the same writable set from parsed settings as from the raw string' do
+      parsed = Lgl::Settings.from({ 'littlegreenlight' => { 'writable_address_ids' => ' 5, 12' } }, env: {})
+      described_class.read_only!(except_address_ids: parsed.writable_address_ids)
+      from_settings = described_class.writable_address_ids
+      described_class.read_only!(except_address_ids: ' 5, 12')
+
+      expect(from_settings).to eq(Set[5, 12])
+      expect(described_class.writable_address_ids).to eq(from_settings)
+    end
+
     it 'never allows writes while disabled, even for an allowlisted address' do
       described_class.read_only!(except_address_ids: '5')
       described_class.disable
