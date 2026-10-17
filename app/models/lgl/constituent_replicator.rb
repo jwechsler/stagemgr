@@ -166,9 +166,9 @@ module Lgl
     # The re-check guards an inline rake run overlapping the poll. No early
     # return inside the transaction block: Rails 6.1 deprecates it.
     def create
-      theater_id = Theater.default_theater&.id || raise(ActiveRecord::RecordNotFound, 'LGL tags need a default theater')
+      theater_id = AddressTag.lgl_theater_id!
       Address.transaction do
-        if tagged?(theater_id)
+        if tagged?
           Result.new(:already_tagged, nil)
         else
           save_new(self.class.build_address(@constituent), theater_id)
@@ -188,8 +188,8 @@ module Lgl
       Result.new(:created, address)
     end
 
-    def tagged?(theater_id)
-      AddressTag.exists?(tag_label: AddressTag::LGL_ID, tag_value: @lgl_id, theater_id: theater_id)
+    def tagged?
+      AddressTag.lgl(AddressTag::LGL_ID).exists?(tag_value: @lgl_id)
     end
   end
 end

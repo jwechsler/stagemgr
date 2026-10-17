@@ -69,13 +69,20 @@ module Lgl
     end
     private_class_method :pick, :value_in, :blank_value?
 
+    # A frozen Set of positive address ids from a comma-separated String, an
+    # Array or an already-parsed Set. Anything that is not all digits is dropped.
+    def self.parse_ids(value)
+      list = value.is_a?(Array) || value.is_a?(Set) ? value : value.to_s.split(',')
+      list.map { |id| id.to_s.strip }.grep(ID_PATTERN).map(&:to_i).select(&:positive?).to_set.freeze
+    end
+
     def initialize(sync:, writable:, web_url:, donor_tier_report_url:)
       raw_sync, @sync_source = sync
       ids_value, @writable_address_ids_source = writable
       report_url, @donor_tier_report_url_source = donor_tier_report_url
       @sync_value = raw_sync.to_s.strip.downcase.presence
       @sync_mode = SYNC_MODES.find { |mode| mode.to_s == @sync_value } || :disabled
-      @writable_address_ids = ids_value.nil? ? nil : parse_ids(ids_value)
+      @writable_address_ids = ids_value.nil? ? nil : self.class.parse_ids(ids_value)
       @web_url = web_url.to_s.strip.chomp('/').presence
       @donor_tier_report_url = report_url.to_s.strip.presence
       freeze
@@ -97,13 +104,6 @@ module Lgl
 
     def donor_levels_enabled?
       !donor_tier_report_url.nil?
-    end
-
-    private
-
-    def parse_ids(value)
-      list = value.is_a?(Array) ? value : value.to_s.split(',')
-      list.map { |id| id.to_s.strip }.grep(ID_PATTERN).map(&:to_i).select(&:positive?).to_set.freeze
     end
   end
 end

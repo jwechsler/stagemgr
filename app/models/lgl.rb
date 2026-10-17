@@ -44,7 +44,7 @@ module Lgl
       configure(api_key)
       if settings.read_only_mode? || environment == 'development'
         log_development_downgrade unless settings.read_only_mode?
-        read_only!(except_address_ids: settings.writable_address_ids.to_a)
+        read_only!(except_address_ids: settings.writable_address_ids)
       else
         read_write!
       end
@@ -87,11 +87,11 @@ module Lgl
       nil
     end
 
-    # +except_address_ids+: comma-separated string or array of Stagemgr
-    # address ids that may still be written to LGL.
+    # +except_address_ids+: comma-separated string, array or Set of Stagemgr
+    # address ids that may still be written to LGL (see Lgl::Settings.parse_ids).
     def read_only!(except_address_ids: nil)
       @read_only = true
-      @writable_address_ids = parse_ids(except_address_ids)
+      @writable_address_ids = Lgl::Settings.parse_ids(except_address_ids)
       self
     end
 
@@ -136,11 +136,6 @@ module Lgl
 
     def log_development_downgrade
       Rails.logger.info("[LGL] sync 'enabled' downgraded to readonly in development")
-    end
-
-    def parse_ids(value)
-      list = value.is_a?(Array) ? value : value.to_s.split(',')
-      list.map { |id| id.to_s.strip }.reject(&:empty?).map(&:to_i).select(&:positive?).to_set
     end
   end
 end

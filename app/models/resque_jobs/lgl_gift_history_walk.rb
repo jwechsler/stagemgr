@@ -49,10 +49,7 @@ class LglGiftHistoryWalk
 
   # Live (non-placeholder) addresses with a default-theater LGL ID tag.
   def self.linked_addresses
-    theater_id = Theater.default_theater&.id
-    return Address.none if theater_id.nil?
-
-    address_ids = AddressTag.where(tag_label: AddressTag::LGL_ID, theater_id: theater_id).select(:address_id)
+    address_ids = AddressTag.lgl(AddressTag::LGL_ID).select(:address_id)
     Address.where(id: address_ids, placeholder: false)
   end
 
