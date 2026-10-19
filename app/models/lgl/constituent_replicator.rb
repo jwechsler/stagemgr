@@ -78,9 +78,14 @@ module Lgl
       [:several_matches, nil, named.presence || found]
     end
 
+    # How every several-matches review for constituent +lgl_id+ begins.
+    def self.several_matches_prefix(lgl_id)
+      "LGL constituent #{lgl_id} #{SEVERAL_MATCHES_REASON}"
+    end
+
     # The LGL Review reason for +flagged+ (match_by_email's third element).
     def self.several_matches_reason(constituent, flagged)
-      prefix = "LGL constituent #{constituent['id']} #{SEVERAL_MATCHES_REASON}"
+      prefix = several_matches_prefix(constituent['id'])
       first_name = constituent['first_name'].to_s.strip
       if flagged.all? { |address| Lgl::NameMatch.same_first_name?(first_name, address.first_name) }
         "#{prefix} named #{full_name(constituent)} by email: merge them in Stagemgr, then Re-sync"
@@ -157,7 +162,7 @@ module Lgl
     # Drops a several-matches review naming this constituent from every
     # candidate; any other review still needs a person.
     def clear_stale_reviews
-      stale = "LGL constituent #{@lgl_id} #{SEVERAL_MATCHES_REASON}"
+      stale = self.class.several_matches_prefix(@lgl_id)
       self.class.candidates(@constituent).each do |address|
         address.clear_lgl_review! if address.lgl_review_reason.to_s.start_with?(stale)
       end
