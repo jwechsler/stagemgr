@@ -61,20 +61,42 @@ RSpec.describe Admin::LglSyncController, type: :controller do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('Little Green Light sync', 'LGL Review (1)', 'Linked customers')
-      expect(response.body).to include(%(<a href="#{admin_address_path(flagged)}">Pat Reviewme</a>))
-      expect(response.body).to include('2 LGL constituents share this email')
+      expect(response.body).to include(%(<a href="#{admin_address_path(flagged)}">Pat Reviewme (##{flagged.id})</a>))
+      expect(response.body).to include('2 LGL constituents share this email', 'Customer / email', 'Actions')
+      expect(response.body).not_to include(admin_lgl_sync_merge_path)
     end
 
-    it 'links a customer matching several others to the customer list filtered by their last name' do
-      flagged = FactoryBot.create(:address, full_name: 'Pat Reviewme')
-      flagged.lgl_review!("LGL constituent 1234 #{Lgl::ConstituentReplicator::SEVERAL_MATCHES_REASON}")
+    it 'shows customers matching one constituent as one row linked by their email, with a Merge button' do
+      reason = "#{Lgl::ConstituentReplicator.several_matches_prefix(971_217)} named Derek Phillips by email"
+      first = FactoryBot.create(:address, full_name: 'Derek Phillips', email: 'derek@example.com')
+      second = FactoryBot.create(:address, full_name: 'Derek Phillip', email: 'derek@example.com')
+      [first, second].each { |address| address.lgl_review!(reason) }
 
       get :index
 
-      expect(response.body).to include(
-        %(<a title="Customers named Reviewme" href="#{admin_addresses_path(search: 'Reviewme')}">Pat Reviewme</a>)
+      email_link = %(href="#{admin_addresses_path(search: 'derek@example.com')}")
+      expect(response.body).to include('LGL Review (1)', email_link)
+      expect(response.body.scan(reason).size).to eq(1)
+      expect(response.body).not_to include(%(href="#{admin_address_path(first)}"))
+      expect(response.body).to include(admin_lgl_sync_merge_path(constituent_id: 971_217), 'value="Merge"')
+      confirm = ERB::Util.html_escape(
+        "Merge Derek Phillips (##{first.id}) and Derek Phillip (##{second.id}) into ##{first.id}?"
       )
-      expect(response.body).not_to include(%(href="#{admin_address_path(flagged)}"))
+      expect(response.body).to include(%(data-confirm="#{confirm}"))
+    end
+
+    it 'shows a pair linked to one constituent as one row linking both customers, without a Merge button' do
+      jane = FactoryBot.create(:address, full_name: 'Jane Doe')
+      other = FactoryBot.create(:address, full_name: 'Jane D')
+      jane.lgl_review!("LGL constituent 5512 is also linked to ##{other.id}")
+      other.lgl_review!("LGL constituent 5512 is also linked to ##{jane.id}")
+
+      get :index
+
+      expect(response.body).to include('LGL Review (1)', "LGL constituent 5512 is also linked to ##{other.id}")
+      expect(response.body).not_to include("LGL constituent 5512 is also linked to ##{jane.id}")
+      expect(response.body).to include(%(href="#{admin_address_path(jane)}"), %(href="#{admin_address_path(other)}"))
+      expect(response.body).not_to include(admin_lgl_sync_merge_path)
     end
 
     it 'says the poll has not started yet and the sweep never ran when neither has run' do
@@ -325,6 +347,101 @@ RSpec.describe Admin::LglSyncController, type: :controller do
     end
   end
 
+  describe 'POST #merge' do
+    let(:reason) { "#{Lgl::ConstituentReplicator.several_matches_prefix(971_217)} by email and last name" }
+
+    def flagged(name, reason_text = reason)
+      FactoryBot.create(:address, full_name: name, email: 'derek@example.com').tap do |address|
+        address.lgl_review!(reason_text)
+      end
+    end
+
+    before { allow(Lgl).to receive(:enabled?).and_return(true) }
+
+    it 'merges only the flagged customers into the lowest id and queues the keeper to re-link' do
+      keeper = flagged('Derek Phillips')
+      unflagged = FactoryBot.create(:address, full_name: 'Dee Phillips', email: 'derek@example.com')
+      others = [flagged('Derek Phillip'), flagged('D Phillips')]
+      other_conflict = flagged('Derek P', "#{Lgl::ConstituentReplicator.several_matches_prefix(5)} by email")
+
+      post :merge, params: { constituent_id: '971217' }
+
+      expect(others.map { |a| Address.exists?(a.id) }).to eq([false, false])
+      expect(Address.exists?(unflagged.id)).to be(true)
+      expect(Address.exists?(other_conflict.id)).to be(true)
+      expect(keeper.reload.lgl_review_reason).to be_nil
+      expect(Resque).to have_received(:enqueue).with(LglSyncAddressJob, keeper.id, LglSyncAddressJob::LINK_TRIGGER)
+      expect(response).to redirect_to(admin_lgl_sync_path)
+      expect(flash[:notice]).to eq("Merged 3 customers into ##{keeper.id}; re-linking to LGL constituent 971217")
+    end
+
+    it 'merges without queuing a re-link when LGL is not configured' do
+      allow(Lgl).to receive(:enabled?).and_return(false)
+      keeper = flagged('Derek Phillips')
+      flagged('Derek Phillip')
+
+      post :merge, params: { constituent_id: '971217' }
+
+      expect(Resque).not_to have_received(:enqueue)
+      expect(flash[:notice]).to eq("Merged 2 customers into ##{keeper.id}")
+    end
+
+    it 'still reports the merge, and says to Re-sync, when the re-link cannot be queued' do
+      keeper = flagged('Derek Phillips')
+      other = flagged('Derek Phillip')
+      allow(Resque).to receive(:enqueue).and_raise(Redis::CannotConnectError, 'Connection refused')
+      allow(Rails.logger).to receive(:error)
+
+      post :merge, params: { constituent_id: '971217' }
+
+      expect(Address.exists?(other.id)).to be(false)
+      expect(Rails.logger).to have_received(:error).with(/re-link of ##{keeper.id}: .*Connection refused/)
+      expect(response).to redirect_to(admin_lgl_sync_path)
+      expect(flash[:alert]).to be_nil
+      expect(flash[:notice]).to eq(
+        "Merged 2 customers into ##{keeper.id}, but re-linking to LGL constituent 971217 could not be queued: " \
+        "use Re-sync on the customer's page"
+      )
+    end
+
+    it 'alerts without merging when the conflict is already resolved' do
+      remaining = flagged('Derek Phillips')
+      FactoryBot.create(:address, email: 'derek@example.com')
+
+      post :merge, params: { constituent_id: '971217' }
+
+      expect(Address.exists?(remaining.id)).to be(true)
+      expect(Resque).not_to have_received(:enqueue)
+      expect(response).to redirect_to(admin_lgl_sync_path)
+      expect(flash[:alert]).to eq('LGL constituent 971217 has no customers left to merge')
+    end
+
+    it 'logs the error and shows a friendly alert when a merge fails' do
+      flagged('Derek Phillips')
+      flagged('Derek Phillip')
+      allow(Address).to receive(:merge_into_lowest!).and_raise(ActiveRecord::RecordNotDestroyed, 'finalized orders')
+      allow(Rails.logger).to receive(:error)
+
+      post :merge, params: { constituent_id: '971217' }
+
+      expect(Rails.logger).to have_received(:error).with(/constituent 971217 failed: .*finalized orders/)
+      expect(Resque).not_to have_received(:enqueue)
+      expect(flash[:alert]).to eq('Could not merge those customers. The details are in the server log.')
+    end
+
+    it 'refuses a box office user without merging' do
+      first = flagged('Derek Phillips')
+      second = flagged('Derek Phillip')
+      allow(controller).to receive(:current_user).and_return(FactoryBot.create(:user, is_box_office_user: true))
+
+      post :merge, params: { constituent_id: '971217' }
+
+      expect([first, second].map { |a| Address.exists?(a.id) }).to eq([true, true])
+      expect(Resque).not_to have_received(:enqueue)
+      expect(response).to redirect_to(root_path)
+    end
+  end
+
   describe 'run-now buttons' do
     { poll: LglPollConstituents, sweep: LglSweepConstituents, backfill: LglBackfillLinks,
       gift_history: LglGiftHistoryWalk }.each do |action, job|
@@ -393,7 +510,7 @@ RSpec.describe Admin::LglSyncController, type: :controller do
       expect(flash[:alert]).to eq('You are not authorized to access this page.')
     end
 
-    %i[poll sweep backfill donor_levels gift_history].each do |action|
+    %i[poll sweep backfill donor_levels gift_history merge].each do |action|
       it "is refused #{action} without queuing" do
         post action
 

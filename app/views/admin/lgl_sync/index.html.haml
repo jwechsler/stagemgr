@@ -77,24 +77,22 @@
     - if @enabled
       %fieldset.fieldset
         %legend LGL Review (#{number_with_delimiter(@review_count)})
-        - if @review_tags.empty?
+        - if @review_rows.empty?
           %p No customers need review.
         - else
-          - if @review_count > @review_tags.size
-            %p Showing the oldest #{@review_tags.size} of #{number_with_delimiter(@review_count)}.
+          - if @review_count > @review_rows.size
+            %p Showing the oldest #{@review_rows.size} of #{number_with_delimiter(@review_count)}.
           %table
             %thead
               %tr
-                %th Customer
+                %th Customer / email
                 %th Reason
                 %th Flagged
+                %th Actions
             %tbody
-              - @review_tags.each do |tag|
+              - @review_rows.each do |row|
                 %tr
-                  %td
-                    - if tag.address
-                      = lgl_review_customer_link(tag)
-                    - else
-                      = "##{tag.address_id}"
-                  %td= tag.tag_value
-                  %td= tag.created_at&.to_formatted_s(:short_date_and_time)
+                  %td= lgl_review_identity(row)
+                  %td= row.reason
+                  %td= row.flagged_at&.to_formatted_s(:short_date_and_time)
+                  %td= lgl_review_merge_button(row)

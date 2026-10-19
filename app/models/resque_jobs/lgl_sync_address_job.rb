@@ -171,7 +171,7 @@ class LglSyncAddressJob
   # review included. Only the review naming this constituent is cleared; any
   # other reason still needs a person.
   def clear_resolved_review(constituent)
-    resolved = "LGL constituent #{constituent['id']} #{Lgl::ConstituentReplicator::SEVERAL_MATCHES_REASON}"
+    resolved = Lgl::ConstituentReplicator.several_matches_prefix(constituent['id'])
     @address.clear_lgl_review! if @address.lgl_review_reason.to_s.include?(resolved)
   end
 

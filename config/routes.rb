@@ -384,6 +384,7 @@ Rails.application.routes.draw do
     post 'lgl_sync/donor_levels', to: 'lgl_sync#donor_levels', as: :lgl_sync_donor_levels
     post 'lgl_sync/gift_history', to: 'lgl_sync#gift_history', as: :lgl_sync_gift_history
     post 'lgl_sync/campaign', to: 'lgl_sync#campaign', as: :lgl_sync_campaign
+    post 'lgl_sync/merge', to: 'lgl_sync#merge', as: :lgl_sync_merge
   end
 
   namespace :current_user do

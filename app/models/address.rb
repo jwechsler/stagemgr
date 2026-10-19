@@ -266,6 +266,20 @@ end
     end
   end
 
+  # Staff merge of the customers +ids+ (the Customers page's Merge Selected and
+  # the LGL Sync page's Merge): the lowest id is kept and each other address is
+  # merged into it in turn, clearing any LGL Review. Each merge_and_purge is its
+  # own transaction, so a failure part way keeps the merges already done.
+  # Returns the keeper.
+  def self.merge_into_lowest!(ids)
+    sorted = ids.sort_by(&:to_i)
+    keeper = Address.find(sorted.first)
+    sorted.drop(1).each do |id|
+      keeper.merge_and_purge(Address.find(id), clear_lgl_review: true)
+    end
+    keeper
+  end
+
   def self.purge_matched_duplicates
     Address.transaction do
       candidates = Address.where("not exists (select id from orders where orders.address_id = addresses.id)")
