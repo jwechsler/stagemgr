@@ -21,6 +21,15 @@ module LglLinkable
   # resque-scheduler's MULTI), so a burst may queue several runs; each reads
   # current state, so the later ones push nothing.
   LGL_EDIT_DEBOUNCE = 2.minutes
+  # LGL Review reasons naming a second constituent for this address: "Also LGL
+  # constituent N" (Lgl::Reconciler) and "Also LGL constituent N: merge the two
+  # in LGL" (Address#merge_and_purge). Build them with
+  # LglLinkable.also_constituent_reason so they always match the pattern.
+  # Resolved once N is gone from LGL while the address's LGL ID still exists:
+  # staff merged the two and LGL kept the one tagged here.
+  ALSO_CONSTITUENT_PREFIX = 'Also LGL constituent'
+  ALSO_CONSTITUENT_PATTERN = /\A#{ALSO_CONSTITUENT_PREFIX} (\d+)\b/
+  MERGE_IN_LGL_SUFFIX = ': merge the two in LGL'
 
   # Set (never persisted) by Lgl::ContactPull while it saves values copied from
   # LGL, so enqueue_lgl_contact_sync does not push them straight back.
@@ -42,8 +51,22 @@ module LglLinkable
     delete_lgl_tags!(AddressTag::LGL_ID)
   end
 
+  def self.also_constituent_reason(lgl_id, merge_in_lgl: false)
+    "#{ALSO_CONSTITUENT_PREFIX} #{lgl_id}#{MERGE_IN_LGL_SUFFIX if merge_in_lgl}"
+  end
+
+  # The constituent id an "Also LGL constituent N" reason names, else nil.
+  def self.also_constituent_id(reason)
+    reason.to_s[ALSO_CONSTITUENT_PATTERN, 1]
+  end
+
   def lgl_review_reason
     lgl_tag_value(AddressTag::LGL_REVIEW)
+  end
+
+  # The second constituent this address's LGL Review names, or nil.
+  def lgl_review_other_constituent_id
+    LglLinkable.also_constituent_id(lgl_review_reason)
   end
 
   def lgl_review!(reason)

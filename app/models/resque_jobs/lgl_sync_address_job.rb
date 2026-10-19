@@ -35,7 +35,10 @@ require 'resque-retry'
 #      LGL ID. Otherwise point its external id at
 #      this address (and push contact fields on EDIT_TRIGGER). A "matches
 #      several customers" review naming this constituent is cleared: the tag
-#      already answers which customer it is.
+#      already answers which customer it is. An "Also LGL constituent N"
+#      review is cleared when N is gone (404): staff merged the two in LGL and
+#      it kept this one. That costs one more find, only when such a review
+#      exists.
 #   2. A constituent already carrying this address's id -> adopt it.
 #   3. Email -> Lgl::ConstituentResolver decides adopt / review / merge / create.
 #      Merge: the email is on a constituent linked to a same-name twin, so LGL
@@ -160,6 +163,7 @@ class LglSyncAddressJob
     pulled = @pull_contact ? Lgl::ContactPull.new(@address, constituent).apply! : []
     action = pushed?(constituent) ? :updated : :unchanged
     clear_resolved_review(constituent)
+    clear_merged_review(constituent)
     refresh_gift_history if @pull_contact
     Outcome.new(action, constituent['id'], pulled.any? ? "tagged; pulled #{pulled.join(', ')}" : 'tagged')
   end
@@ -173,6 +177,16 @@ class LglSyncAddressJob
   def clear_resolved_review(constituent)
     resolved = Lgl::ConstituentReplicator.several_matches_prefix(constituent['id'])
     @address.clear_lgl_review! if @address.lgl_review_reason.to_s.include?(resolved)
+  end
+
+  # "Also LGL constituent N" asks staff to merge N with the tagged constituent
+  # in LGL. Once N is a confirmed 404 and the tagged one still exists, LGL kept
+  # the one tagged here, so nothing is left to do.
+  def clear_merged_review(constituent)
+    other_id = @address.lgl_review_other_constituent_id
+    return if other_id.nil? || other_id == constituent['id'].to_s
+
+    @address.clear_lgl_review! if @client.find(other_id).nil?
   end
 
   def sync_by_external_id

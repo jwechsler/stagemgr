@@ -257,7 +257,7 @@ end
       # merges keep it for a person to see. LGL tags only exist under a default
       # theater, and clear_lgl_review! raises without one.
       clear_lgl_review! if clear_lgl_review && Theater.default_theater
-      lgl_review!("Also LGL constituent #{lost_lgl_id}: merge the two in LGL") if lost_lgl_id
+      lgl_review!(LglLinkable.also_constituent_reason(lost_lgl_id, merge_in_lgl: true)) if lost_lgl_id
       from_address.reload
       # update_from re-parented every tag the keeper lacked; whatever remains
       # on from_address duplicates a tag already on the keeper.
