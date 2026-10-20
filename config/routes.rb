@@ -158,12 +158,13 @@ Rails.application.routes.draw do
 
     resources :flex_pass_orders
 
+    resource :address_merge, only: %i[new create]
+
     resources :addresses do
       member do
         post :lgl_sync
       end
       collection do
-        post :merge_selected, format: :json
         get :autocomplete_address
         get :autocomplete_tag
         get :autocomplete_address_tag_tag_label

@@ -78,9 +78,14 @@ module Lgl
       [:several_matches, nil, named.presence || found]
     end
 
+    # How every several-matches review for constituent +lgl_id+ begins.
+    def self.several_matches_prefix(lgl_id)
+      "LGL constituent #{lgl_id} #{SEVERAL_MATCHES_REASON}"
+    end
+
     # The LGL Review reason for +flagged+ (match_by_email's third element).
     def self.several_matches_reason(constituent, flagged)
-      prefix = "LGL constituent #{constituent['id']} #{SEVERAL_MATCHES_REASON}"
+      prefix = several_matches_prefix(constituent['id'])
       first_name = constituent['first_name'].to_s.strip
       if flagged.all? { |address| Lgl::NameMatch.same_first_name?(first_name, address.first_name) }
         "#{prefix} named #{full_name(constituent)} by email: merge them in Stagemgr, then Re-sync"
@@ -155,20 +160,21 @@ module Lgl
     end
 
     # Drops a several-matches review naming this constituent from every
-    # candidate; any other review still needs a person.
+    # address carrying one, including those that no longer match its emails
+    # (Lgl::ReviewList.several_matches_addresses finds them by reason, not by
+    # email); any other review still needs a person.
     def clear_stale_reviews
-      stale = "LGL constituent #{@lgl_id} #{SEVERAL_MATCHES_REASON}"
-      self.class.candidates(@constituent).each do |address|
-        address.clear_lgl_review! if address.lgl_review_reason.to_s.start_with?(stale)
-      end
+      Lgl::ReviewList.several_matches_addresses(@lgl_id).each(&:clear_lgl_review!)
     end
 
     # The re-check guards an inline rake run overlapping the poll. No early
-    # return inside the transaction block: Rails 6.1 deprecates it.
+    # return inside the transaction block: Rails 6.1 deprecates it. Matching
+    # no customer still clears this constituent's old several-matches reviews.
     def create
-      theater_id = Theater.default_theater&.id || raise(ActiveRecord::RecordNotFound, 'LGL tags need a default theater')
+      clear_stale_reviews
+      theater_id = AddressTag.lgl_theater_id!
       Address.transaction do
-        if tagged?(theater_id)
+        if tagged?
           Result.new(:already_tagged, nil)
         else
           save_new(self.class.build_address(@constituent), theater_id)
@@ -188,8 +194,8 @@ module Lgl
       Result.new(:created, address)
     end
 
-    def tagged?(theater_id)
-      AddressTag.exists?(tag_label: AddressTag::LGL_ID, tag_value: @lgl_id, theater_id: theater_id)
+    def tagged?
+      AddressTag.lgl(AddressTag::LGL_ID).exists?(tag_value: @lgl_id)
     end
   end
 end

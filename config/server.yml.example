@@ -116,8 +116,9 @@ all:
     newsletter_group: "Newsletter"
     coupon_group: "Flash Offers"
   # Little Green Light (donor CRM) sync. The API key is a secret: set
-  # LGL_API_KEY (or the lgl.api_key credential), never here. A non-blank ENV
-  # value overrides the matching key below; a blank one is ignored.
+  # LGL_API_KEY (or the littlegreenlight.api_key credential), never here. A
+  # non-blank ENV value overrides the matching key below; a blank one is
+  # ignored.
   littlegreenlight:
     # enabled | readonly | disabled (all need the API key to do anything).
     #   enabled:  reads from and writes to LGL. In development it is treated

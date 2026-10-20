@@ -21,6 +21,15 @@ module LglLinkable
   # resque-scheduler's MULTI), so a burst may queue several runs; each reads
   # current state, so the later ones push nothing.
   LGL_EDIT_DEBOUNCE = 2.minutes
+  # LGL Review reasons naming a second constituent for this address: "Also LGL
+  # constituent N" (Lgl::Reconciler) and "Also LGL constituent N: merge the two
+  # in LGL" (Address#merge_and_purge). Build them with
+  # LglLinkable.also_constituent_reason so they always match the pattern.
+  # Resolved once N is gone from LGL while the address's LGL ID still exists:
+  # staff merged the two and LGL kept the one tagged here.
+  ALSO_CONSTITUENT_PREFIX = 'Also LGL constituent'
+  ALSO_CONSTITUENT_PATTERN = /\A#{ALSO_CONSTITUENT_PREFIX} (\d+)\b/
+  MERGE_IN_LGL_SUFFIX = ': merge the two in LGL'
 
   # Set (never persisted) by Lgl::ContactPull while it saves values copied from
   # LGL, so enqueue_lgl_contact_sync does not push them straight back.
@@ -42,8 +51,22 @@ module LglLinkable
     delete_lgl_tags!(AddressTag::LGL_ID)
   end
 
+  def self.also_constituent_reason(lgl_id, merge_in_lgl: false)
+    "#{ALSO_CONSTITUENT_PREFIX} #{lgl_id}#{MERGE_IN_LGL_SUFFIX if merge_in_lgl}"
+  end
+
+  # The constituent id an "Also LGL constituent N" reason names, else nil.
+  def self.also_constituent_id(reason)
+    reason.to_s[ALSO_CONSTITUENT_PATTERN, 1]
+  end
+
   def lgl_review_reason
     lgl_tag_value(AddressTag::LGL_REVIEW)
+  end
+
+  # The second constituent this address's LGL Review names, or nil.
+  def lgl_review_other_constituent_id
+    LglLinkable.also_constituent_id(lgl_review_reason)
   end
 
   def lgl_review!(reason)
@@ -100,10 +123,7 @@ module LglLinkable
   def lgl_tag_value(label)
     return nil if new_record?
 
-    theater_id = Theater.default_theater&.id
-    return nil if theater_id.nil?
-
-    AddressTag.where(address_id: id, tag_label: label, theater_id: theater_id).order(:id).pick(:tag_value).presence
+    lgl_tag_scope(label).order(:id).pick(:tag_value).presence
   end
 
   def write_lgl_tag!(label, value)
@@ -112,22 +132,22 @@ module LglLinkable
       tag = address_tags.where(tag_label: label, theater_id: theater_id).order(:id).first_or_initialize
       tag.tag_value = value.to_s
       tag.save!
-      lgl_tag_scope(label, theater_id).where.not(id: tag.id).delete_all
+      lgl_tag_scope(label).where.not(id: tag.id).delete_all
     end
     address_tags.reset
   end
 
   def delete_lgl_tags!(label)
-    theater_id = lgl_theater_id!
-    with_lock { lgl_tag_scope(label, theater_id).delete_all }
+    lgl_theater_id!
+    with_lock { lgl_tag_scope(label).delete_all }
     address_tags.reset
   end
 
-  def lgl_tag_scope(label, theater_id)
-    AddressTag.where(address_id: id, tag_label: label, theater_id: theater_id)
+  def lgl_tag_scope(label)
+    AddressTag.lgl(label).where(address_id: id)
   end
 
   def lgl_theater_id!
-    Theater.default_theater&.id || raise(ActiveRecord::RecordNotFound, 'LGL tags need a default theater')
+    AddressTag.lgl_theater_id!
   end
 end

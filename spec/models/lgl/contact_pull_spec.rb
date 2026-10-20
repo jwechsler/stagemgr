@@ -126,12 +126,17 @@ RSpec.describe Lgl::ContactPull do
     expect(address.lgl_pull_in_progress).to be(false)
   end
 
-  it 'logs the pulled groups with the previous values' do
+  it 'logs the pulled groups and changed columns, never their values' do
     allow(Rails.logger).to receive(:info)
     phone['number'] = '312-555-0199'
+    street['street'] = '9 Elm St'
+    constituent['first_name'] = 'Janet'
     pull.apply!
     expect(Rails.logger).to have_received(:info)
-      .with(a_string_including("address ##{address.id}: pulled phone from constituent 979629", '773-555-0100'))
+      .with("[LGL] address ##{address.id}: pulled name, street, phone from constituent 979629 " \
+            '(changed columns: full_name, line1, phone)')
+    expect(Rails.logger).not_to have_received(:info)
+      .with(a_string_matching(/Jane|Smith|Main St|Elm St|Chicago|60601|555/))
   end
 
   context 'when the constituent does not name this address' do

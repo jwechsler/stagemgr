@@ -246,6 +246,32 @@ RSpec.describe Lgl::ConstituentReplicator do
       expect(spouse.lgl_review_reason).to be_nil
     end
 
+    it "clears this constituent's review from a customer whose email no longer matches" do
+      moved = person('Holliday', 'old@example.com', first: 'Robert')
+      current = person('Holliday', 'holliday@example.com', first: 'Robert')
+      [moved, current].each { |a| a.lgl_review!('LGL constituent 920011 matches several customers by email and last name') }
+
+      result = described_class.new(lgl(920_011, first: 'Robert', last: 'Holliday',
+                                                emails: [email('holliday@example.com')])).apply!
+
+      expect([result.outcome, result.address]).to eq([:linked, current])
+      expect([moved.reload, current.reload].map(&:lgl_review_reason)).to all(be_nil)
+    end
+
+    it "clears this constituent's review when it now matches no customer and a new one is created" do
+      dropped = person('Holliday', 'old@example.com', first: 'Robert')
+      dropped.lgl_review!('LGL constituent 920012 matches several customers by email and last name')
+      other = person('Holliday', 'old@example.com', first: 'Ann')
+      other.lgl_review!('LGL constituent 920013 matches several customers by email and last name')
+
+      result = described_class.new(lgl(920_012, first: 'Robert', last: 'Holliday',
+                                                emails: [email('robert.new@example.com')])).apply!
+
+      expect(result.outcome).to eq(:created)
+      expect(dropped.reload.lgl_review_reason).to be_nil
+      expect(other.reload.lgl_review_reason).to eq('LGL constituent 920013 matches several customers by email and last name')
+    end
+
     it 'creates nothing when another run tagged an address with the constituent first' do
       person('Elsewhere', 'elsewhere@example.com').set_lgl_id!(920_004)
 

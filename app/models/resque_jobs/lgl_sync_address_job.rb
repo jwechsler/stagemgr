@@ -19,9 +19,12 @@ require 'resque-retry'
 #
 # On an edit, street and phone go through LGL's per-entry endpoints: only the
 # constituent's preferred entry is edited in place (or a preferred Home entry
-# added when it has none), so its other entries are never touched. LGL's
-# current preferred values are logged before the first write so a bad edit can
-# be undone by hand.
+# added when it has none), so its other entries are never touched. Before the
+# first write the job logs which constituent fields and groups it is about to
+# change and how (the preferred street or phone entry's LGL id when edited in
+# place, or "add"). Values are never logged: patron names, streets and phones
+# do not belong in the info log, so it is a record of what changed, not an
+# undo trail.
 #
 # The ONLY code that writes an address's LGL link. Idempotent: everything is
 # read at run time, so duplicate or stale enqueues are harmless.
@@ -32,7 +35,10 @@ require 'resque-retry'
 #      LGL ID. Otherwise point its external id at
 #      this address (and push contact fields on EDIT_TRIGGER). A "matches
 #      several customers" review naming this constituent is cleared: the tag
-#      already answers which customer it is.
+#      already answers which customer it is. An "Also LGL constituent N"
+#      review is cleared when N is gone (404): staff merged the two in LGL and
+#      it kept this one. That costs one more find, only when such a review
+#      exists.
 #   2. A constituent already carrying this address's id -> adopt it.
 #   3. Email -> Lgl::ConstituentResolver decides adopt / review / merge / create.
 #      Merge: the email is on a constituent linked to a same-name twin, so LGL
@@ -157,6 +163,7 @@ class LglSyncAddressJob
     pulled = @pull_contact ? Lgl::ContactPull.new(@address, constituent).apply! : []
     action = pushed?(constituent) ? :updated : :unchanged
     clear_resolved_review(constituent)
+    clear_merged_review(constituent)
     refresh_gift_history if @pull_contact
     Outcome.new(action, constituent['id'], pulled.any? ? "tagged; pulled #{pulled.join(', ')}" : 'tagged')
   end
@@ -168,8 +175,18 @@ class LglSyncAddressJob
   # review included. Only the review naming this constituent is cleared; any
   # other reason still needs a person.
   def clear_resolved_review(constituent)
-    resolved = "LGL constituent #{constituent['id']} #{Lgl::ConstituentReplicator::SEVERAL_MATCHES_REASON}"
+    resolved = Lgl::ConstituentReplicator.several_matches_prefix(constituent['id'])
     @address.clear_lgl_review! if @address.lgl_review_reason.to_s.include?(resolved)
+  end
+
+  # "Also LGL constituent N" asks staff to merge N with the tagged constituent
+  # in LGL. Once N is a confirmed 404 and the tagged one still exists, LGL kept
+  # the one tagged here, so nothing is left to do.
+  def clear_merged_review(constituent)
+    other_id = @address.lgl_review_other_constituent_id
+    return if other_id.nil? || other_id == constituent['id'].to_s
+
+    @address.clear_lgl_review! if @client.find(other_id).nil?
   end
 
   def sync_by_external_id
@@ -177,7 +194,8 @@ class LglSyncAddressJob
     return nil if found.empty?
     return adopt(found.first, 'external id matches') if found.one?
 
-    review("#{found.size} LGL constituents carry external id #{@address.id}")
+    ids = Lgl::ReviewList.constituent_id_list(found.pluck('id'))
+    review("LGL constituents #{ids} carry external id #{@address.id}")
   end
 
   def sync_by_email
@@ -274,21 +292,26 @@ class LglSyncAddressJob
     phone = changes&.phone
     return false unless payload || street || phone
 
-    log_before_edit(constituent, changes) if changes
+    log_before_edit(constituent, payload, street, phone) if changes
     written(@client.update(constituent['id'], payload, for_address_id: @address.id)) if payload
     apply_street(constituent['id'], street) if street
     apply_phone(constituent['id'], phone) if phone
     true
   end
 
-  def log_before_edit(constituent, changes)
+  # Group names and LGL entry ids only, never values (see class comment).
+  def log_before_edit(constituent, payload, street, phone)
+    parts = []
+    parts << "fields #{payload.keys.join(', ')}" if payload
+    { street: street, phone: phone }.each do |group, operation|
+      parts << "#{group} (#{edit_target(operation)})" if operation
+    end
     Rails.logger.info("[LGL] address ##{@address.id}: before edit, constituent #{constituent['id']} " \
-                      "preferred street=#{lgl_value(changes.preferred_street)} " \
-                      "phone=#{lgl_value(changes.preferred_phone)}")
+                      "changing #{parts.join('; ')}")
   end
 
-  def lgl_value(entry)
-    entry.nil? ? 'none' : entry.to_json
+  def edit_target(operation)
+    operation.action == :update ? "preferred entry #{operation.id}" : 'add preferred entry'
   end
 
   def apply_street(constituent_id, operation)

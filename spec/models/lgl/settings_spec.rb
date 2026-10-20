@@ -129,6 +129,20 @@ RSpec.describe Lgl::Settings do
     end
   end
 
+  describe '.parse_ids' do
+    it 'parses a spaced String, an Array and a Set to the same frozen Set, dropping junk' do
+      expected = Set[5, 12]
+      results = [' 5, 12 ,, abc, -3, 0', [5, '12', 'abc', -3, 0, nil], Set[5, 12]].map { |v| described_class.parse_ids(v) }
+
+      expect(results).to all(eq(expected))
+      expect(results).to all(be_frozen)
+    end
+
+    it 'gives an empty Set for nil' do
+      expect(described_class.parse_ids(nil)).to eq(Set.new)
+    end
+  end
+
   describe 'donor_tier_report_url' do
     let(:url) { 'https://house.littlegreenlight.com/reports/abc' }
 

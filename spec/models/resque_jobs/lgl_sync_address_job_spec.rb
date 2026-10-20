@@ -148,7 +148,7 @@ RSpec.describe LglSyncAddressJob do
         expect(client).not_to have_received(:update_street_address)
       end
 
-      it "logs LGL's preferred street and phone before the first write" do
+      it 'logs the groups it is about to change before the first write, never their values' do
         address.update!(phone: '773-555-0100')
         lgl = constituent(900_050)
         lgl['street_addresses'].first['street'] = '8 Old Rd'
@@ -158,11 +158,24 @@ RSpec.describe LglSyncAddressJob do
 
         expect(Rails.logger).to have_received(:info)
           .with("[LGL] address ##{address.id}: before edit, constituent 900050 " \
-                "preferred street=#{lgl['street_addresses'].first.to_json} phone=none").ordered
+                'changing street (preferred entry 2); phone (add preferred entry)').ordered
         expect(client).to have_received(:update_street_address).ordered
+        expect(Rails.logger).not_to have_received(:info)
+          .with(a_string_matching(/Jane|Smith|Main St|Old Rd|Chicago|60601|555/))
         expect(client).to have_received(:add_phone_number)
           .with(900_050, { number: '773-555-0100', phone_number_type_id: 1, is_preferred: true },
                 for_address_id: address.id)
+      end
+
+      it 'names the constituent fields it is about to change, never their values' do
+        allow(client).to receive(:find).and_return(constituent(900_050).merge('first_name' => 'Janie'))
+
+        described_class.perform(address.id, described_class::EDIT_TRIGGER)
+
+        expect(Rails.logger).to have_received(:info)
+          .with(a_string_including("address ##{address.id}: before edit, constituent 900050 changing fields ",
+                                   'first_name'))
+        expect(Rails.logger).not_to have_received(:info).with(a_string_matching(/Jane|Smith/))
       end
 
       it 'writes and logs nothing when LGL already matches' do
@@ -261,9 +274,61 @@ RSpec.describe LglSyncAddressJob do
       end
 
       it 'keeps an Also LGL constituent review' do
+        allow(client).to receive(:find).with('1234').and_return(constituent(1234))
         address.lgl_review!('Also LGL constituent 1234')
         described_class.perform(address.id, described_class::LINK_TRIGGER)
         expect(address.lgl_review_reason).to eq('Also LGL constituent 1234')
+      end
+    end
+
+    context 'with an Also LGL constituent review left for staff to merge in LGL' do
+      before { allow(client).to receive(:find).with('900050').and_return(constituent(900_050)) }
+
+      ['Also LGL constituent 900099', 'Also LGL constituent 900099: merge the two in LGL'].each do |reason|
+        it "clears #{reason.inspect} once LGL confirms the other constituent is a 404" do
+          allow(client).to receive(:find).with('900099').and_return(nil)
+          address.lgl_review!(reason)
+
+          expect(described_class.perform(address.id, described_class::LINK_TRIGGER).action).to eq(:unchanged)
+
+          expect(address.lgl_review_reason).to be_nil
+          expect(address.lgl_id).to eq('900050')
+          expect(client).to have_received(:find).with('900099').once
+        end
+      end
+
+      it 'keeps the review while the other constituent still exists' do
+        allow(client).to receive(:find).with('900099').and_return(constituent(900_099))
+        address.lgl_review!('Also LGL constituent 900099: merge the two in LGL')
+
+        described_class.perform(address.id, described_class::LINK_TRIGGER)
+
+        expect(address.lgl_review_reason).to eq('Also LGL constituent 900099: merge the two in LGL')
+        expect(address.lgl_id).to eq('900050')
+      end
+
+      it 'makes no extra lookup when the review names the tagged constituent itself' do
+        address.lgl_review!('Also LGL constituent 900050')
+
+        described_class.perform(address.id, described_class::LINK_TRIGGER)
+
+        expect(client).to have_received(:find).once
+        expect(address.lgl_review_reason).to eq('Also LGL constituent 900050')
+      end
+
+      it 'makes no extra lookup without an Also LGL constituent review' do
+        address.lgl_review!('LGL constituent 900099 is also linked to #5678')
+
+        described_class.perform(address.id, described_class::LINK_TRIGGER)
+
+        expect(client).to have_received(:find).once.with('900050')
+        expect(address.lgl_review_reason).to eq('LGL constituent 900099 is also linked to #5678')
+      end
+
+      it 'makes no extra lookup when there is no review at all' do
+        described_class.perform(address.id, described_class::LINK_TRIGGER)
+
+        expect(client).to have_received(:find).once.with('900050')
       end
     end
 
@@ -498,7 +563,19 @@ RSpec.describe LglSyncAddressJob do
 
     described_class.perform(address.id)
 
-    expect(address.lgl_review_reason).to eq('2 LGL constituents share this email')
+    expect(address.lgl_review_reason).to eq('LGL constituents 900001 and 900002 share this email')
+    expect(address.lgl_id).to be_nil
+  end
+
+  it 'flags the address for review naming every constituent that carries its id as external id' do
+    allow(client).to receive(:search_by_external_id).and_return([constituent(900_012), constituent(900_003),
+                                                                 constituent(900_011)])
+    expect(client).not_to receive(:create)
+
+    described_class.perform(address.id)
+
+    expect(address.lgl_review_reason)
+      .to eq("LGL constituents 900003, 900011 and 900012 carry external id #{address.id}")
     expect(address.lgl_id).to be_nil
   end
 

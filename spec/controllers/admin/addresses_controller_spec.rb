@@ -17,6 +17,14 @@ RSpec.describe Admin::AddressesController, type: :controller do
       expect(table_tag).to match(/data-search=['"]Reviewme['"]/)
     end
 
+    it 'points Merge Selected at the Merge customers page and caps the selection' do
+      get :index
+
+      table_tag = response.body[/<table[^>]*\bid=['"]address-listing['"][^>]*>/]
+      expect(table_tag).to match(/data-merge-url=['"]#{Regexp.escape(new_admin_address_merge_path)}['"]/)
+      expect(table_tag).to match(/data-merge-max=['"]#{Address::ManualMerge::MAX_RECORDS}['"]/)
+    end
+
     it 'puts no search term on the table without one' do
       get :index
 
@@ -166,22 +174,6 @@ RSpec.describe Admin::AddressesController, type: :controller do
     end
   end
 
-  describe '#merge_selected' do
-    it 'removes the LGL Review tag from the customer that remains' do
-      FactoryBot.create(:theater, theater_class: Theater::DEFAULT) unless Theater.default_theater
-      keeper = FactoryBot.create(:address)
-      duplicate = FactoryBot.create(:address)
-      keeper.lgl_review!('Several LGL matches')
-      duplicate.lgl_review!('No LGL match')
-
-      post :merge_selected, params: { ids: [duplicate.id.to_s, keeper.id.to_s] }, format: :json
-
-      expect(response.parsed_body['result']).to be(true)
-      expect(Address.exists?(duplicate.id)).to be(false)
-      expect(keeper.reload.lgl_review_reason).to be_nil
-    end
-  end
-
   describe '#new' do
     it 'renders the customer form posting to the addresses path' do
       get :new
@@ -230,6 +222,16 @@ RSpec.describe Admin::AddressesController, type: :controller do
         expect(response).to redirect_to(root_path)
       end
 
+      it 'refuses a theater user without queuing' do
+        theater_user = FactoryBot.create(:user, theaters: [house])
+        allow(controller).to receive(:current_user).and_return(theater_user)
+
+        post :lgl_sync, params: { id: address.id }
+
+        expect(Resque).not_to have_received(:enqueue)
+        expect(response).to redirect_to(root_path)
+      end
+
       it 'links the LGL ID tag value to the configured account beside the sync button' do
         address.set_lgl_id!(4321)
         allow(Lgl).to receive(:constituent_url).with('4321')
@@ -254,12 +256,25 @@ RSpec.describe Admin::AddressesController, type: :controller do
       end
 
       it 'shows the review reason for an unlinked address' do
-        address.lgl_review!('2 LGL constituents share this email')
+        address.lgl_review!('LGL constituents 11 and 12 share this email')
 
         get :show, params: { id: address.id }
 
         review_row = response.body[%r{<tr class=['"]lgl-review['"]>.*?</tr>}m]
-        expect(review_row).to include('LGL Review', '2 LGL constituents share this email')
+        expect(review_row).to include('LGL Review', 'LGL constituents 11 and 12 share this email')
+      end
+
+      it 'links each constituent the review reason names, leaving the customer id as text' do
+        allow(Lgl).to receive(:constituent_url) { |id| "https://house.littlegreenlight.com/constituents/#{id}" }
+        address.lgl_review!('LGL constituent 5512 is also linked to #77')
+
+        get :show, params: { id: address.id }
+
+        review_row = response.body[%r{<tr class=['"]lgl-review['"]>.*?</tr>}m]
+        expect(review_row).to include(
+          'LGL constituent <a target="_blank" rel="noopener" ' \
+          'href="https://house.littlegreenlight.com/constituents/5512">5512</a> is also linked to #77'
+        )
       end
     end
 

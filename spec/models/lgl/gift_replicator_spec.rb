@@ -80,7 +80,7 @@ RSpec.describe Lgl::GiftReplicator do
 
     it 'skips an unlinked address awaiting LGL review' do
       order.address.clear_lgl_id!
-      order.address.lgl_review!('2 LGL constituents share this email')
+      order.address.lgl_review!('LGL constituents 11 and 12 share this email')
       expect_skipped('awaiting LGL review')
     end
 

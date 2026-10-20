@@ -119,6 +119,14 @@ To fulfill a donation order:
 2. Click **Fulfill**
 3. The status changes to **Fulfilled**
 
+## Little Green Light Gift
+
+When [LGL sync](../customers/lgl-sync.md) is on, administrators see a
+**Little Green Light: Gift #…** line at the top of the donation order page
+("not in LGL" until the gift is written), with a **Send to LGL** button that
+queues the gift again. See
+[Refunds and the Order Page](../customers/lgl-sync.md#refunds-and-the-order-page).
+
 ## Donation Receipts
 
 When a donation order is created, the system automatically sends a donation receipt email to the donor. This receipt includes:

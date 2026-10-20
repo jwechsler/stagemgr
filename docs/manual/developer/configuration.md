@@ -133,7 +133,7 @@ order.
 | `POSTMARK_API_TOKEN` | `email.delivery_method` is `postmark` |
 | `RESQUE_ADMIN_PASSWORD` | Always, in production -- see [the Resque dashboard](#the-resque-dashboard) |
 | `MY_EMMA_USERNAME`, `MY_EMMA_PASSWORD`, `MY_EMMA_ACCOUNT_ID` | Using MyEmma mailing lists. All three are required together; with any of them absent the integration disables itself |
-| `LGL_API_KEY` | Syncing customers with Little Green Light ([Little Green Light sync](#little-green-light-sync)). Optional: absent, the integration disables itself; it also needs `littlegreenlight.sync: enabled` |
+| `LGL_API_KEY` | Syncing customers with Little Green Light ([Little Green Light sync](#little-green-light-sync)). Optional: absent, the integration disables itself; it also needs `littlegreenlight.sync` set to `enabled` or `readonly` |
 | `LGL_USER`, `LGL_PASSWORD` | The LGL donor-tier report link (`littlegreenlight.donor_tier_report_url`) asks for a login. Optional: Basic auth is sent only when both LGL_USER and LGL_PASSWORD are set |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | ActiveStorage on S3 (uncomment the matching block in `config/storage.yml`). Blank means local disk |
 | `PAYPAL_LOGIN`, `PAYPAL_PASSWORD`, `PAYPAL_SIGNATURE`, `PAYPAL_PEM_FILE`, `PAYPAL_EXPRESS_LOGIN`, `PAYPAL_EXPRESS_PASSWORD` | Legacy PayPal gateways only |

@@ -64,11 +64,9 @@ module Lgl
     # The live, non-placeholder addresses tagged LGL ID = +lgl_id+ for the
     # default theater, lowest id first.
     def self.tagged_addresses(lgl_id)
-      theater_id = Theater.default_theater&.id
-      return [] if theater_id.nil? || lgl_id.to_s.empty?
+      return [] if lgl_id.to_s.empty?
 
-      address_ids = AddressTag.where(tag_label: AddressTag::LGL_ID, tag_value: lgl_id.to_s, theater_id: theater_id)
-                              .select(:address_id)
+      address_ids = AddressTag.lgl(AddressTag::LGL_ID).where(tag_value: lgl_id.to_s).select(:address_id)
       Address.where(id: address_ids, placeholder: false).order(:id).to_a
     end
 
@@ -119,7 +117,7 @@ module Lgl
     def tag_external(external, lgl_id)
       current = external.lgl_id
       if current.present? && current != lgl_id
-        external.lgl_review!("Also LGL constituent #{lgl_id}")
+        external.lgl_review!(LglLinkable.also_constituent_reason(lgl_id))
         return :review
       end
 
