@@ -56,7 +56,7 @@ RSpec.describe Lgl::ConstituentResolver do
 
   it 'flags several adoptable constituents for review' do
     decision = decide(constituent(7, ''), constituent(8, 'x'))
-    expect(decision).to have_attributes(action: :review, reason: '2 LGL constituents share this email')
+    expect(decision).to have_attributes(action: :review, reason: 'LGL constituents 7 and 8 share this email')
   end
 
   describe 'several adoptable constituents narrowed by first name' do
@@ -69,7 +69,7 @@ RSpec.describe Lgl::ConstituentResolver do
 
     it 'reviews when none shares the first name' do
       decision = decide(constituent(7, '', first_name: 'Joan'), constituent(8, '', first_name: 'John'))
-      expect(decision).to have_attributes(action: :review, reason: '2 LGL constituents share this email')
+      expect(decision).to have_attributes(action: :review, reason: 'LGL constituents 7 and 8 share this email')
     end
 
     it 'reviews when both share the first name' do

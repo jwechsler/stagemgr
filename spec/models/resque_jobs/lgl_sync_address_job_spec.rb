@@ -511,7 +511,19 @@ RSpec.describe LglSyncAddressJob do
 
     described_class.perform(address.id)
 
-    expect(address.lgl_review_reason).to eq('2 LGL constituents share this email')
+    expect(address.lgl_review_reason).to eq('LGL constituents 900001 and 900002 share this email')
+    expect(address.lgl_id).to be_nil
+  end
+
+  it 'flags the address for review naming every constituent that carries its id as external id' do
+    allow(client).to receive(:search_by_external_id).and_return([constituent(900_012), constituent(900_003),
+                                                                 constituent(900_011)])
+    expect(client).not_to receive(:create)
+
+    described_class.perform(address.id)
+
+    expect(address.lgl_review_reason)
+      .to eq("LGL constituents 900003, 900011 and 900012 carry external id #{address.id}")
     expect(address.lgl_id).to be_nil
   end
 
