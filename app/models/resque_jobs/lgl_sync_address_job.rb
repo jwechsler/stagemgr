@@ -180,7 +180,8 @@ class LglSyncAddressJob
     return nil if found.empty?
     return adopt(found.first, 'external id matches') if found.one?
 
-    review("#{found.size} LGL constituents carry external id #{@address.id}")
+    ids = Lgl::ReviewList.constituent_id_list(found.pluck('id'))
+    review("LGL constituents #{ids} carry external id #{@address.id}")
   end
 
   def sync_by_email

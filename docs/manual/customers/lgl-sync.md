@@ -135,10 +135,10 @@ id, `#5678` for a Stagemgr customer id):
 
 | Reason | Meaning |
 |---|---|
-| `2 LGL constituents share this email` | Several constituents with this customer's email and last name could be this customer, and their first names do not settle which one |
-| `LGL constituent 1234 matches several customers named Robert Holliday by email: merge them in Stagemgr, then Re-sync` | These customers are spellings of one person. On the Sync Status page this customer's name opens the customer list filtered by their last name: merge them with **Merge Selected** (see [Merging Duplicates](merging-duplicates.md)), then click **Re-sync with LGL** on the one that remains |
-| `LGL constituent 1234 matches several customers by email and last name` | A new LGL constituent could be any of these customers and none of them shares its first name, so a person must decide; Stagemgr linked none of them. On the Sync Status page this customer's name opens the customer list filtered by their last name, where the duplicates can be selected and merged with **Merge Selected** (see [Merging Duplicates](merging-duplicates.md)); then click **Re-sync with LGL** on the customer that remains. Merging them on the Customers page removes the tag from the customer that remains; automatic duplicate consolidation does not |
-| `2 LGL constituents carry external id 5678` | Several constituents in LGL name this customer as their External constituent ID |
+| `LGL constituents 1234 and 5678 share this email` | Several constituents with this customer's email and last name could be this customer, and their first names do not settle which one. The reason lists each of them |
+| `LGL constituent 1234 matches several customers named Robert Holliday by email: merge them in Stagemgr, then Re-sync` | These customers share the constituent's first name: they are spellings of one person. Click **Merge** on their row of the LGL Review list on the [Sync Status page](#the-sync-status-page), choose the values to keep and merge; the customer that remains is then re-linked to the constituent |
+| `LGL constituent 1234 matches several customers by email and last name` | A new LGL constituent could be any of these customers and they do not all share its first name, often a couple or household whose records each carry one of the constituent's emails; Stagemgr linked none of them. Open the constituent in LGL from the LGL Review list to see who it is. If the customers are one person, click **Merge** on their row; when their first names differ the Merge customers page warns about it. If they are different people, do not merge them: set the constituent's External constituent ID in LGL to the right customer's Stagemgr id, then click **Re-sync with LGL** on that customer's page |
+| `LGL constituents 1234 and 5678 carry external id 5678` | Several constituents in LGL name this customer as their External constituent ID. The reason lists each of them |
 | `Also LGL constituent 1234` | LGL says this customer is constituent 1234, but the customer is already linked to a different one |
 | `Also LGL constituent 1234: merge the two in LGL` | Two Stagemgr customers linked to different constituents were merged in Stagemgr |
 | `LGL constituent 1234 is also linked to #5678` | LGL merged two constituents whose Stagemgr customers do not look like the same person |
@@ -148,14 +148,16 @@ id, `#5678` for a Stagemgr customer id):
 | `LGL constituent 1234 no longer exists and no LGL constituent matches; use Re-sync with LGL to create a new one` | The customer's LGL record was deleted or merged away and nothing else in LGL matches. Click **Re-sync with LGL** to create a new LGL record |
 
 The customer page highlights the `LGL Review` tag in yellow in its tag list,
-with the reason as the tag's value.
+with the reason as the tag's value. When the LGL web address is configured,
+each LGL constituent number in the reason links to that constituent in LGL
+(customer numbers such as `#5678` and external ids are not links).
 
 **To clear it:** fix the records in LGL (merge the duplicate constituents, or
 correct the External constituent ID), then click **Re-sync with LGL** on the
 customer page. A successful link removes the tag. Merging the customer with
-its duplicate on the Customers page (**Merge Selected**, or merging from the
-customer's page; see [Merging Duplicates](merging-duplicates.md)) also removes
-it; automatic duplicate consolidation does not. If the reason no longer
+its duplicate on the Merge customers page (from **Merge Selected** on the
+Customers page or **Merge** on the LGL Review list; see
+[Merging Duplicates](merging-duplicates.md)) also removes it; automatic duplicate consolidation does not. If the reason no longer
 applies and nothing needs fixing, delete the `LGL Review` tag as you would any
 [patron tag](patron-tags.md).
 
@@ -300,11 +302,36 @@ The page shows:
 - **Donations in LGL**: how many donations have been written as gifts (see
   [Donations Become LGL Gifts](#donations-become-lgl-gifts)).
 - **Last gift replicated**: when a gift was last written ("never" if none has).
-- Every customer with an `LGL Review` tag, oldest first, with the reason and a
-  link to the customer page. When the reason is that several customers match,
-  the link goes to the customer list filtered by the customer's last name
-  instead, so the duplicates can be merged. The list shows the oldest 100; the heading gives
-  the full count.
+- The **LGL Review** list: every customer with an `LGL Review` tag, oldest
+  first, one row per conflict (customers flagged for the same constituent
+  share a row). The list shows the oldest 100; the heading gives the full
+  count. Its columns:
+    - **Customers (matched on email)**: each flagged customer on its own line,
+      linked to their page, followed by their email. Each email is one of the
+      constituent's emails in LGL, so the customers on one row may show
+      different emails.
+    - **Constituent**: "LGL constituent 1234", the number linking to the
+      constituent in LGL when the LGL web address is configured. A row whose
+      reason names several constituents lists each of them.
+    - **Reason**: a short label where one applies (hover over it for the full
+      reason), otherwise the full reason with each constituent number linked
+      as in the Constituent column. **Same first name, 2 emails** means
+      the customers' first names are all one name (middle initials and blank
+      first names aside); **Different first names (Glen, Beth), 2 emails**
+      names the first names that differ, often a household. The count is how
+      many distinct emails the customers have; **Linked to two
+      customers** means LGL merged two constituents whose customers do not
+      look like the same person (see [The LGL Review Tag](#the-lgl-review-tag)).
+    - **Actions**: a **Merge** button on every row where several customers
+      match one constituent, whatever the reason's wording. It opens the
+      Merge customers page for those customers (see
+      [Merging Duplicates](merging-duplicates.md#the-merge-customers-page)),
+      which also shows the constituent's number and, when the LGL web address
+      is configured, a **View in LGL** link. When the customers' first names
+      differ, the page names them and warns that they may be a household, so
+      check the constituent in LGL before merging. After the merge the
+      customer that remains is re-linked to the constituent and you return to
+      this page.
 
 Four buttons queue the same jobs that run on their own:
 

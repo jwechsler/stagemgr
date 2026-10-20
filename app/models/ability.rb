@@ -133,7 +133,7 @@ class Ability
     can :analyze_passes, Analysis # the Pass Sales tab (membership analysis)
     can :manage, MembershipOffer
     can :manage, Festival
-    can %i[merge_selected lgl_sync], Address
+    can %i[merge lgl_sync], Address # merge: Admin > Merge customers
     can :manage, :lgl_sync # Admin > Little Green Light sync status page and run-now buttons
     can :destroy, SeatMap
     can :destroy, Production

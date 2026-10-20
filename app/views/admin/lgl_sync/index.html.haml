@@ -85,7 +85,8 @@
           %table
             %thead
               %tr
-                %th Customer / email
+                %th Customers (matched on email)
+                %th Constituent
                 %th Reason
                 %th Flagged
                 %th Actions
@@ -93,6 +94,7 @@
               - @review_rows.each do |row|
                 %tr
                   %td= lgl_review_identity(row)
-                  %td= row.reason
+                  %td= lgl_review_constituent(row)
+                  %td{ title: (row.reason if row.summary) }= row.summary || lgl_review_reason_html(row.reason)
                   %td= row.flagged_at&.to_formatted_s(:short_date_and_time)
                   %td= lgl_review_merge_button(row)
