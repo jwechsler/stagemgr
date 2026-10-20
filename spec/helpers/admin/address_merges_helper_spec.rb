@@ -121,11 +121,37 @@ RSpec.describe Admin::AddressMergesHelper, type: :helper do
     end
 
     describe '#address_merge_cell' do
-      it 'shows an excluded customer\'s differing value without a radio' do
+      def radio(html)
+        Nokogiri::HTML.fragment(html).at_css('input[type=radio]')
+      end
+
+      it "shows a disabled, unchecked radio with no data attributes for an excluded customer's differing value" do
         excluding = merge(excluded: [second.id])
 
-        expect(helper.address_merge_cell(excluding, :name, second)).to eq('Bea Second')
-        expect(helper.address_merge_cell(excluding, :name, third)).to include('type="radio"', %(value="#{third.id}"))
+        excluded_radio = radio(helper.address_merge_cell(excluding, :name, second))
+        expect(excluded_radio).to be_present
+        expect(excluded_radio['value']).to eq(second.id.to_s)
+        expect(excluded_radio['disabled']).to eq('disabled')
+        expect(excluded_radio['checked']).to be_nil
+        expect(excluded_radio.attributes.keys.grep(/\Adata-/)).to be_empty
+        expect(helper.address_merge_cell(excluding, :name, second)).to include('Bea Second')
+        expect(radio(helper.address_merge_cell(excluding, :name, third))['value']).to eq(third.id.to_s)
+      end
+
+      it 'keeps radios on the merged columns, the default checked, for a field that differs only through the excluded customer' do
+        third.update!(full_name: 'Ann First')
+        excluding = merge(excluded: [second.id])
+
+        expect(excluding.differs?(:name)).to be(false)
+        first_radio = radio(helper.address_merge_cell(excluding, :name, first))
+        third_radio = radio(helper.address_merge_cell(excluding, :name, third))
+        expect(first_radio['checked']).to be_nil
+        expect(first_radio['disabled']).to be_nil
+        expect(third_radio['checked']).to eq('checked')
+        expect(third_radio['data-customer']).to eq(third.id.to_s)
+        expect(radio(helper.address_merge_cell(excluding, :name, second))['disabled']).to eq('disabled')
+        expect(helper.address_merge_row_data(excluding, :name)).to eq(merge_field: :name)
+        expect(helper.address_merge_source(excluding, :name)).to eq(third.id)
       end
     end
 

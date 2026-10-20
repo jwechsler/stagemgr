@@ -14,11 +14,13 @@ class Address
   # partial newest address wins whole rather than column by column.
   #
   # +excluded+ names submitted ids to leave out: they stay on the merge page
-  # (addresses, values_for) but never count as a difference, never become a
-  # default or a choice, and perform! does not touch them.
+  # (addresses, values_for, differs_among_submitted?) but never count as a
+  # difference for differs?, never become a default or a choice, and perform!
+  # does not touch them.
   #
-  # Before perform!, the read helpers (values_for, differs?, default_for,
-  # choice_for) describe the records for the merge page.
+  # Before perform!, the read helpers (values_for, differs?,
+  # differs_among_submitted?, default_for, choice_for) describe the records
+  # for the merge page.
   class ManualMerge
     class Error < ArgumentError; end
 
@@ -83,7 +85,12 @@ class Address
 
     # True when at least two merged records have present values that differ.
     def differs?(field)
-      merged_values_for(field).values.compact.map { |value| normalize(field.to_sym, value) }.uniq.size > 1
+      distinct_values?(field, merged_values_for(field))
+    end
+
+    # differs? over every submitted record, excluded ones included: the merge page's radio layout.
+    def differs_among_submitted?(field)
+      distinct_values?(field, values_for(field))
     end
 
     # The newest merged record with a value, or nil when none has one.
@@ -148,6 +155,10 @@ class Address
         raise Error, "Customer ##{id} for #{field} is not one of the customers being merged" unless merged_ids.include?(id)
         raise Error, "Customer ##{id} has no #{field} to keep" if values_for(field)[id].nil?
       end
+    end
+
+    def distinct_values?(field, values)
+      values.values.compact.map { |value| normalize(field.to_sym, value) }.uniq.size > 1
     end
 
     def merged_values_for(field)

@@ -310,6 +310,17 @@ RSpec.describe Address::ManualMerge do
       expect(merge.choice_for(:email)).to eq(older.id)
     end
 
+    it 'counts an excluded value as a difference among the submitted records only' do
+      older = address(full_name: 'Pat Older')
+      newer = address(full_name: 'Pat Older')
+      excluded = address(full_name: 'Someone Else')
+
+      merge = described_class.new(ids: [older.id, newer.id, excluded.id], excluded: [excluded.id])
+
+      expect(merge.differs_among_submitted?(:name)).to be(true)
+      expect(merge.differs?(:name)).to be(false)
+    end
+
     it 'rejects a choice naming an excluded customer' do
       records = [address, address, address]
 

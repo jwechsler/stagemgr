@@ -98,7 +98,7 @@ RSpec.describe Admin::AddressMergesController, type: :controller do
     context 'with a third customer' do
       let!(:third) { address(full_name: 'Gail Kosalko', email: 'g@example.com', phone: '555-0003') }
 
-      it 'greys an excluded customer, offers to include it and gives it no radio' do
+      it 'greys an excluded customer, offers to include it and gives it a disabled radio' do
         get :new, params: { ids: [older.id, newer.id, third.id], excluded: [newer.id] }
 
         expect(response).to have_http_status(:ok)
@@ -110,8 +110,13 @@ RSpec.describe Admin::AddressMergesController, type: :controller do
         expect(excluded_th.first.to_html).to include(include_link)
         expect(merged_ths.map { |th| th.text.strip }).to eq(%w[Exclude Exclude])
         expect(response.body.scan("<th class='excluded'>").size).to eq(2)
-        expect(radios(:name).size).to eq(2)
-        expect(radios(:name)).to all(satisfy { |radio| radio.exclude?(%(value="#{newer.id}")) })
+        expect(radios(:name).size).to eq(3)
+        excluded_radio, merged_radios = radios(:name).partition { |radio| radio.include?(%(value="#{newer.id}")) }
+        expect(excluded_radio.size).to eq(1)
+        expect(excluded_radio.first).to include('disabled')
+        expect(excluded_radio.first).not_to include('checked', 'data-')
+        expect(merged_radios.map { |radio| radio[/value="(\d+)"/, 1].to_i }).to contain_exactly(older.id, third.id)
+        expect(merged_radios).to all(satisfy { |radio| radio.exclude?('disabled') })
         expect(response.body).to match(/<input[^>]*type="hidden"[^>]*name="excluded\[\]"[^>]*value="#{newer.id}"/)
         expect(response.body.scan('name="excluded[]"').size).to eq(1)
         expect(response.body).to include("Keeps ##{older.id} and deletes ##{third.id}.", "Leaves ##{newer.id} alone.")
