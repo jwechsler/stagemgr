@@ -79,6 +79,17 @@ RSpec.describe Admin::AddressMergesController, type: :controller do
       expect(response.body).to include('1 membership moves to', 'Active member', 'Donor', 'Orders')
     end
 
+    it 'shows a Last order row with each customer\'s newest order date or a dash' do
+      FactoryBot.create(:donation_order, address: older, theater: house)
+                .update_column(:created_at, Time.zone.local(2026, 10, 20, 12))
+
+      get :new, params: { ids: [newer.id, older.id] }
+
+      row = response.body[%r{<th>Last order</th>.*?</tr>}m]
+      expect(row).to be_present
+      expect(row.scan(%r{<td>(.*?)</td>}m).flatten).to contain_exactly('October 20, 2026', '—')
+    end
+
     it 'redirects back with the error for one customer' do
       request.env['HTTP_REFERER'] = admin_addresses_url(search: 'Kosalko')
 

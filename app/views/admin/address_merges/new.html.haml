@@ -52,6 +52,10 @@
             %th Orders
             - merge.addresses.each do |address|
               %td= address.orders.count
+          %tr
+            %th Last order
+            - merge.addresses.each do |address|
+              %td= address_merge_last_order(address)
       %p#merge-summary= address_merge_summary(merge, constituent_id: @constituent_id)
       .button-group
         = link_to 'Cancel', @cancel_path, class: 'button secondary'

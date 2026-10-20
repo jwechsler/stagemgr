@@ -102,6 +102,12 @@ module Admin
       labels.empty? ? '—' : safe_join(labels, ' ')
     end
 
+    # The date of the customer's newest order (any status), or a dash.
+    def address_merge_last_order(address)
+      last_ordered_at = address.orders.maximum(:created_at)
+      last_ordered_at ? last_ordered_at.to_date.to_formatted_s(:long) : '—'
+    end
+
     private
 
     # "2 orders and 1 membership move to #1.", or nil when nothing moves.
