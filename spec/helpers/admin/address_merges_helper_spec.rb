@@ -25,4 +25,123 @@ RSpec.describe Admin::AddressMergesHelper, type: :helper do
       expect(helper.address_merge_last_order(address)).to eq('October 20, 2026')
     end
   end
+
+  describe 'excluded customers' do
+    let!(:first) { FactoryBot.create(:address, full_name: 'Ann First', email: 'a@example.com') }
+    let!(:second) { FactoryBot.create(:address, full_name: 'Bea Second', email: 'b@example.com') }
+    let!(:third) { FactoryBot.create(:address, full_name: 'Cy Third', email: 'c@example.com') }
+    let(:ids) { [first.id, second.id, third.id] }
+
+    def merge(ids: self.ids, excluded: [])
+      Address::ManualMerge.new(ids: ids, excluded: excluded)
+    end
+
+    def link_href(html, label)
+      Nokogiri::HTML.fragment(html).css('a').find { |a| a.text == label }&.[]('href')
+    end
+
+    describe '#address_merge_header' do
+      it 'marks an excluded customer as not merged with an Include link that drops it from excluded' do
+        html = helper.address_merge_header(merge(excluded: [third.id]), third, constituent_id: 900_002)
+
+        expect(html).to include("##{third.id} Cy Third</a> (excluded, not merged) ")
+        expect(html).not_to include('(master, kept)', '>Exclude</a>')
+        expect(link_href(html, 'Include')).to eq(new_admin_address_merge_path(ids: ids, constituent_id: 900_002))
+      end
+
+      it 'marks the master as kept with an Exclude link that adds it to excluded' do
+        html = helper.address_merge_header(merge, first, constituent_id: nil)
+
+        expect(html).to include("##{first.id} Ann First</a> (master, kept) ")
+        expect(link_href(html, 'Exclude')).to eq(new_admin_address_merge_path(ids: ids, excluded: [first.id]))
+      end
+
+      it 'gives a merged customer that is not the master only an Exclude link' do
+        html = helper.address_merge_header(merge, second, constituent_id: 900_002)
+
+        expect(html).not_to include('(master, kept)', '(excluded, not merged)')
+        expect(link_href(html, 'Exclude'))
+          .to eq(new_admin_address_merge_path(ids: ids, excluded: [second.id], constituent_id: 900_002))
+      end
+
+      it 'hides the Exclude links when only two customers are merged' do
+        two_merged = merge(excluded: [third.id])
+
+        expect(helper.address_merge_header(two_merged, first, constituent_id: nil))
+          .to eq(%(<a href="#{admin_address_path(first)}">##{first.id} Ann First</a> (master, kept)))
+        expect(helper.address_merge_header(two_merged, second, constituent_id: nil)).not_to include('Exclude')
+      end
+
+      it 'hides the Include link when four customers are already merged' do
+        extra = Array.new(2) { FactoryBot.create(:address) }
+        html = helper.address_merge_header(merge(ids: ids + extra.map(&:id), excluded: [third.id]), third,
+                                           constituent_id: nil)
+
+        expect(html).to include('(excluded, not merged)')
+        expect(html).not_to include('Include')
+      end
+    end
+
+    describe '#address_merge_column_attributes' do
+      it 'gives an excluded customer the excluded class and any other customer no attributes' do
+        excluding = merge(excluded: [second.id])
+
+        expect(helper.address_merge_column_attributes(excluding, second)).to eq(class: 'excluded')
+        expect(helper.address_merge_column_attributes(excluding, first)).to eq({})
+        expect(helper.address_merge_column_attributes(excluding, third)).to eq({})
+      end
+    end
+
+    describe '#address_merge_cell' do
+      it 'shows an excluded customer\'s differing value without a radio' do
+        excluding = merge(excluded: [second.id])
+
+        expect(helper.address_merge_cell(excluding, :name, second)).to eq('Bea Second')
+        expect(helper.address_merge_cell(excluding, :name, third)).to include('type="radio"', %(value="#{third.id}"))
+      end
+    end
+
+    describe '#address_merge_summary' do
+      it 'says one excluded customer is left alone, with no LGL sentence outside LGL Review' do
+        summary = helper.address_merge_summary(merge(excluded: [second.id]), constituent_id: nil)
+
+        expect(summary).to include("Keeps ##{first.id} and deletes ##{third.id}.", " Leaves ##{second.id} alone.")
+        expect(summary).not_to include('LGL')
+      end
+
+      it 'says the LGL Review of one excluded customer is cleared and it is re-synced' do
+        allow(Lgl).to receive(:enabled?).and_return(true)
+
+        summary = helper.address_merge_summary(merge(excluded: [second.id]), constituent_id: 900_002)
+
+        expect(summary).to include(" Leaves ##{second.id} alone.",
+                                   " Re-links LGL constituent 900002 to ##{first.id}; " \
+                                   "clears the LGL Review on ##{second.id} and re-syncs it.")
+      end
+
+      it 'names two excluded customers together and re-syncs them' do
+        allow(Lgl).to receive(:enabled?).and_return(true)
+        fourth = FactoryBot.create(:address, full_name: 'Di Fourth')
+
+        summary = helper.address_merge_summary(merge(ids: ids + [fourth.id], excluded: [second.id, fourth.id]),
+                                               constituent_id: 900_002)
+
+        expect(summary).to include("Keeps ##{first.id} and deletes ##{third.id}.",
+                                   " Leaves ##{second.id} and ##{fourth.id} alone.",
+                                   " Re-links LGL constituent 900002 to ##{first.id}; " \
+                                   "clears the LGL Review on ##{second.id} and ##{fourth.id} and re-syncs them.")
+      end
+
+      it 'leaves two excluded customers alone without an LGL sentence when LGL is not configured' do
+        allow(Lgl).to receive(:enabled?).and_return(false)
+        fourth = FactoryBot.create(:address, full_name: 'Di Fourth')
+
+        summary = helper.address_merge_summary(merge(ids: ids + [fourth.id], excluded: [second.id, fourth.id]),
+                                               constituent_id: 900_002)
+
+        expect(summary).to include(" Leaves ##{second.id} and ##{fourth.id} alone.")
+        expect(summary).not_to include('Re-links', 're-syncs')
+      end
+    end
+  end
 end
