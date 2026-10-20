@@ -1,9 +1,16 @@
+# tktprint, the ticket printing service. stagemgr only needs its URL; tktprint itself
+# decides whether jobs go to the real Boca or to its virtual printer (PDFs), see
+# tktprint's start-printer.sh. Username and password must match an entry in tktprint's
+# config/authorization.yml.
 development:
-  service:  "http://stagemgr:test@localhost:3001"
+  # tktprint's web container on the site_default Docker network (./bin/start-all.sh).
+  # Running stagemgr outside Docker: http://stagemgr:CHANGE_ME@localhost:3000
+  service: "http://stagemgr:CHANGE_ME@tktprint_web:3000"
 
 test:
-  service: ''
+  # Specs stub printing; nothing is sent
+  service: ""
 
 production:
-  service:  ""
-
+  # e.g. "https://stagemgr:CHANGE_ME@ticket.example.org"
+  service: ""
