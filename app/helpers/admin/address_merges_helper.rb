@@ -26,7 +26,7 @@ module Admin
         parts << ' (master, kept)'
       end
       toggle = address_merge_toggle_link(merge, address, constituent_id)
-      parts.push(' ', toggle) if toggle
+      parts.push(tag.br, toggle) if toggle
       safe_join(parts)
     end
 

@@ -44,7 +44,7 @@ RSpec.describe Admin::AddressMergesHelper, type: :helper do
       it 'marks an excluded customer as not merged with an Include link that drops it from excluded' do
         html = helper.address_merge_header(merge(excluded: [third.id]), third, constituent_id: 900_002)
 
-        expect(html).to include("##{third.id} Cy Third</a> (excluded, not merged) ")
+        expect(html).to include("##{third.id} Cy Third</a> (excluded, not merged)<br>")
         expect(html).not_to include('(master, kept)', '>Exclude</a>')
         expect(link_href(html, 'Include')).to eq(new_admin_address_merge_path(ids: ids, constituent_id: 900_002))
       end
@@ -52,7 +52,7 @@ RSpec.describe Admin::AddressMergesHelper, type: :helper do
       it 'marks the master as kept with an Exclude link that adds it to excluded' do
         html = helper.address_merge_header(merge, first, constituent_id: nil)
 
-        expect(html).to include("##{first.id} Ann First</a> (master, kept) ")
+        expect(html).to include("##{first.id} Ann First</a> (master, kept)<br>")
         expect(link_href(html, 'Exclude')).to eq(new_admin_address_merge_path(ids: ids, excluded: [first.id]))
       end
 
