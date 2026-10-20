@@ -160,17 +160,18 @@ module Lgl
     end
 
     # Drops a several-matches review naming this constituent from every
-    # candidate; any other review still needs a person.
+    # address carrying one, including those that no longer match its emails
+    # (Lgl::ReviewList.several_matches_addresses finds them by reason, not by
+    # email); any other review still needs a person.
     def clear_stale_reviews
-      stale = self.class.several_matches_prefix(@lgl_id)
-      self.class.candidates(@constituent).each do |address|
-        address.clear_lgl_review! if address.lgl_review_reason.to_s.start_with?(stale)
-      end
+      Lgl::ReviewList.several_matches_addresses(@lgl_id).each(&:clear_lgl_review!)
     end
 
     # The re-check guards an inline rake run overlapping the poll. No early
-    # return inside the transaction block: Rails 6.1 deprecates it.
+    # return inside the transaction block: Rails 6.1 deprecates it. Matching
+    # no customer still clears this constituent's old several-matches reviews.
     def create
+      clear_stale_reviews
       theater_id = AddressTag.lgl_theater_id!
       Address.transaction do
         if tagged?

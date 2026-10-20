@@ -122,14 +122,6 @@ class Admin::AddressesController < Admin::ApplicationController
     end
   end
 
-  def merge_selected
-    Address.merge_into_lowest!(params[:ids])
-    render json: { result: true }
-  rescue => e
-    Rails.logger.error("Merge failed: #{e.message}\n#{e.backtrace.join("\n")}")
-    render json: { result: false, error: e.message }, status: :unprocessable_entity
-  end
-
   # POST /admin/addresses/1/lgl_sync
   # Only queues the sync; never calls Little Green Light in the request.
   def lgl_sync

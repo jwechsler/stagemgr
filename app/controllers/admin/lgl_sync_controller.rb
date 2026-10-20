@@ -27,7 +27,6 @@ class Admin::LglSyncController < Admin::ApplicationController
   DONOR_LEVELS_NOT_CONFIGURED = 'The LGL donor-tier report is not configured'
   CAMPAIGN_INACTIVE = 'That LGL campaign is not active'
   CAMPAIGN_ERRORS = [Lgl::Error, SocketError, Timeout::Error, Errno::ECONNREFUSED].freeze
-  MERGE_FAILED = 'Could not merge those customers. The details are in the server log.'
 
   before_action :authorize_lgl_sync
 
@@ -87,56 +86,7 @@ class Admin::LglSyncController < Admin::ApplicationController
     redirect_to(admin_lgl_sync_path, notice: "LGL gift campaign set to #{chosen['name']}")
   end
 
-  # Merges the customers flagged as matching LGL constituent +constituent_id+
-  # by email. The set is read again here, never taken from the page, and
-  # merged as on the Customers page (lowest id kept); the keeper is then
-  # queued to adopt the constituent by email.
-  def merge
-    lgl_id = params.require(:constituent_id).to_i
-    count, keeper = merge_flagged(lgl_id)
-    return redirect_to(admin_lgl_sync_path, alert: MERGE_FAILED) if count.nil?
-    return redirect_to(admin_lgl_sync_path, alert: "LGL constituent #{lgl_id} has no customers left to merge") if keeper.nil?
-
-    relinked = Lgl.enabled? ? queue_relink(keeper) : nil
-    redirect_to(admin_lgl_sync_path, notice: merged_notice(count, keeper, lgl_id, relinked))
-  end
-
   private
-
-  # [number of flagged customers, keeper]; the keeper is nil when fewer than
-  # two remain, and both are nil when the lookup or a merge raised (logged).
-  def merge_flagged(lgl_id)
-    addresses = Lgl::ReviewList.several_matches_addresses(lgl_id)
-    return [addresses.size, nil] if addresses.size < 2
-
-    [addresses.size, Address.merge_into_lowest!(addresses.map(&:id))]
-  rescue StandardError => e
-    Rails.logger.error("[LGL] merge for constituent #{lgl_id} failed: #{e.class}: #{e.message}\n" \
-                       "#{Array(e.backtrace).join("\n")}")
-    [nil, nil]
-  end
-
-  # Queues the keeper to adopt the constituent by email; false (logged) when
-  # the job could not be queued.
-  def queue_relink(keeper)
-    Resque.enqueue(LglSyncAddressJob, keeper.id, LglSyncAddressJob::LINK_TRIGGER)
-    true
-  rescue StandardError => e
-    Rails.logger.error("[LGL] could not queue the re-link of ##{keeper.id}: #{e.class}: #{e.message}")
-    false
-  end
-
-  # +relinked+ is nil when LGL is not configured, so no re-link was tried.
-  def merged_notice(count, keeper, lgl_id, relinked)
-    notice = "Merged #{count} customers into ##{keeper.id}"
-    case relinked
-    when true then "#{notice}; re-linking to LGL constituent #{lgl_id}"
-    when false
-      "#{notice}, but re-linking to LGL constituent #{lgl_id} could not be queued: " \
-      "use Re-sync on the customer's page"
-    else notice
-    end
-  end
 
   def authorize_lgl_sync
     authorize! :manage, :lgl_sync

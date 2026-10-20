@@ -257,27 +257,13 @@ end
       # merges keep it for a person to see. LGL tags only exist under a default
       # theater, and clear_lgl_review! raises without one.
       clear_lgl_review! if clear_lgl_review && Theater.default_theater
-      lgl_review!("Also LGL constituent #{lost_lgl_id}: merge the two in LGL") if lost_lgl_id
+      lgl_review!(LglLinkable.also_constituent_reason(lost_lgl_id, merge_in_lgl: true)) if lost_lgl_id
       from_address.reload
       # update_from re-parented every tag the keeper lacked; whatever remains
       # on from_address duplicates a tag already on the keeper.
       from_address.address_tags.destroy_all
       from_address.destroy!
     end
-  end
-
-  # Staff merge of the customers +ids+ (the Customers page's Merge Selected and
-  # the LGL Sync page's Merge): the lowest id is kept and each other address is
-  # merged into it in turn, clearing any LGL Review. Each merge_and_purge is its
-  # own transaction, so a failure part way keeps the merges already done.
-  # Returns the keeper.
-  def self.merge_into_lowest!(ids)
-    sorted = ids.sort_by(&:to_i)
-    keeper = Address.find(sorted.first)
-    sorted.drop(1).each do |id|
-      keeper.merge_and_purge(Address.find(id), clear_lgl_review: true)
-    end
-    keeper
   end
 
   def self.purge_matched_duplicates
@@ -456,6 +442,17 @@ end
 
   def most_recent_donation_tier
     donor_tier_for_current_fiscal_year.presence || donor_tier_for_last_fiscal_year
+  end
+
+  # Earns the heart icon on box office receipts: has an LGL tier for the current
+  # or last fiscal year that the install has not excluded (littlegreenlight:
+  # donor_flag_excluded_tiers). Uses only the tier list, so it works whatever
+  # the LGL sync mode is.
+  def flagged_donor?
+    excluded_tiers = Lgl.settings.donor_flag_excluded_tiers
+    [donor_tier_for_current_fiscal_year, donor_tier_for_last_fiscal_year].any? do |tier|
+      tier.present? && excluded_tiers.exclude?(tier)
+    end
   end
 
   def to_s

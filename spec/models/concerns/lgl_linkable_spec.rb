@@ -65,6 +65,44 @@ RSpec.describe LglLinkable do
     expect(address.lgl_review_reason).to be_nil
   end
 
+  describe 'Also LGL constituent reviews' do
+    it 'builds both wordings' do
+      expect(described_class.also_constituent_reason(1234)).to eq('Also LGL constituent 1234')
+      expect(described_class.also_constituent_reason(1234, merge_in_lgl: true))
+        .to eq('Also LGL constituent 1234: merge the two in LGL')
+    end
+
+    it 'parses the constituent id from both wordings' do
+      expect(described_class.also_constituent_id('Also LGL constituent 1234')).to eq('1234')
+      expect(described_class.also_constituent_id('Also LGL constituent 1234: merge the two in LGL')).to eq('1234')
+    end
+
+    it 'round-trips the id through the built reason' do
+      reason = described_class.also_constituent_reason(987_654, merge_in_lgl: true)
+      expect(described_class.also_constituent_id(reason)).to eq('987654')
+    end
+
+    it 'returns nil for any other reason, a blank or nil' do
+      ['LGL constituent 1234 matches several customers by email and last name',
+       'LGL constituent 1234 is also linked to #5678',
+       'also LGL constituent 1234',
+       'Also LGL constituent',
+       'Also LGL constituent abc',
+       'Also LGL constituent 12a',
+       '', nil].each do |reason|
+        expect(described_class.also_constituent_id(reason)).to be_nil, "expected nil for #{reason.inspect}"
+      end
+    end
+
+    it 'reads the other constituent id from the address review' do
+      expect(address.lgl_review_other_constituent_id).to be_nil
+      address.lgl_review!('Also LGL constituent 4321: merge the two in LGL')
+      expect(address.lgl_review_other_constituent_id).to eq('4321')
+      address.lgl_review!('two constituents')
+      expect(address.lgl_review_other_constituent_id).to be_nil
+    end
+  end
+
   describe 'LGL Lapsed' do
     it 'writes, reads and clears the lapsed tag on the default theater' do
       address.set_lgl_lapsed!('LYBUNT')

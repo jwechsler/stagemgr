@@ -158,12 +158,13 @@ Rails.application.routes.draw do
 
     resources :flex_pass_orders
 
+    resource :address_merge, only: %i[new create]
+
     resources :addresses do
       member do
         post :lgl_sync
       end
       collection do
-        post :merge_selected, format: :json
         get :autocomplete_address
         get :autocomplete_tag
         get :autocomplete_address_tag_tag_label
@@ -384,7 +385,6 @@ Rails.application.routes.draw do
     post 'lgl_sync/donor_levels', to: 'lgl_sync#donor_levels', as: :lgl_sync_donor_levels
     post 'lgl_sync/gift_history', to: 'lgl_sync#gift_history', as: :lgl_sync_gift_history
     post 'lgl_sync/campaign', to: 'lgl_sync#campaign', as: :lgl_sync_campaign
-    post 'lgl_sync/merge', to: 'lgl_sync#merge', as: :lgl_sync_merge
   end
 
   namespace :current_user do

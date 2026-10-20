@@ -47,7 +47,8 @@ module Lgl
         return decision(:adopt, constituent: named.first, reason: 'matched by email, last name and first name')
       end
 
-      decision(:review, reason: "#{candidates.size} LGL constituents share this email")
+      ids = Lgl::ReviewList.constituent_id_list(candidates.pluck('id'))
+      decision(:review, reason: "LGL constituents #{ids} share this email")
     end
 
     # No unlinked match. A constituent linked to another live address with the
