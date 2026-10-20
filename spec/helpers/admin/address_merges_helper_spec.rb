@@ -40,6 +40,14 @@ RSpec.describe Admin::AddressMergesHelper, type: :helper do
       Nokogiri::HTML.fragment(html).css('a').find { |a| a.text == label }&.[]('href')
     end
 
+    # The text of the disabled toggle button: a span, no href, aria-disabled.
+    def disabled_button(html)
+      span = Nokogiri::HTML.fragment(html).at_css('span.button.disabled')
+      return unless span && span['href'].nil? && span['aria-disabled'] == 'true' && span['title'].nil?
+
+      span.text
+    end
+
     describe '#address_merge_header' do
       it 'marks an excluded customer as not merged with an Include link that drops it from excluded' do
         html = helper.address_merge_header(merge(excluded: [third.id]), third, constituent_id: 900_002)
@@ -64,21 +72,25 @@ RSpec.describe Admin::AddressMergesHelper, type: :helper do
           .to eq(new_admin_address_merge_path(ids: ids, excluded: [second.id], constituent_id: 900_002))
       end
 
-      it 'hides the Exclude links when only two customers are merged' do
+      it 'disables the Exclude buttons when only two customers are merged' do
         two_merged = merge(excluded: [third.id])
 
-        expect(helper.address_merge_header(two_merged, first, constituent_id: nil))
-          .to eq(%(<a href="#{admin_address_path(first)}">##{first.id} Ann First</a> (master, kept)))
-        expect(helper.address_merge_header(two_merged, second, constituent_id: nil)).not_to include('Exclude')
+        [first, second].each do |address|
+          html = helper.address_merge_header(two_merged, address, constituent_id: nil)
+
+          expect(disabled_button(html)).to eq('Exclude')
+          expect(link_href(html, 'Exclude')).to be_nil
+        end
       end
 
-      it 'hides the Include link when four customers are already merged' do
+      it 'disables the Include button when four customers are already merged' do
         extra = Array.new(2) { FactoryBot.create(:address) }
         html = helper.address_merge_header(merge(ids: ids + extra.map(&:id), excluded: [third.id]), third,
                                            constituent_id: nil)
 
         expect(html).to include('(excluded, not merged)')
-        expect(html).not_to include('Include')
+        expect(disabled_button(html)).to eq('Include')
+        expect(link_href(html, 'Include')).to be_nil
       end
     end
 

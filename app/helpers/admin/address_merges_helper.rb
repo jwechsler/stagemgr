@@ -16,7 +16,7 @@ module Admin
 
     # "#id Full Name" linking to the customer, the master's marked as kept and
     # an excluded customer's as not merged, with a link to exclude or include
-    # it. Exclude links are hidden when only MIN_RECORDS customers are merged.
+    # it. Exclude buttons are disabled when only MIN_RECORDS customers are merged.
     def address_merge_header(merge, address, constituent_id: nil)
       title = link_to("##{address.id} #{address.full_name}".strip, admin_address_path(address))
       parts = [title]
@@ -25,8 +25,7 @@ module Admin
       elsif address.id == merge.master.id
         parts << ' (master, kept)'
       end
-      toggle = address_merge_toggle_link(merge, address, constituent_id)
-      parts.push(tag.br, toggle) if toggle
+      parts.push(tag.br, address_merge_toggle_link(merge, address, constituent_id))
       safe_join(parts)
     end
 
@@ -128,20 +127,21 @@ module Admin
 
     private
 
-    # Exclude for a merged customer (unless only MIN_RECORDS are merged),
-    # Include for an excluded one (unless MAX_RECORDS are already merged).
+    # Exclude for a merged customer, Include for an excluded one. The button
+    # is disabled (a span, so the heading keeps its layout) when Exclude would
+    # leave fewer than MIN_RECORDS merged or Include more than MAX_RECORDS.
     def address_merge_toggle_link(merge, address, constituent_id)
       if merge.excluded?(address)
-        return if merge.merged_ids.size >= Address::ManualMerge::MAX_RECORDS
-
         label = 'Include'
         excluded = merge.excluded_ids - [address.id]
+        disabled = merge.merged_ids.size >= Address::ManualMerge::MAX_RECORDS
       else
-        return if merge.merged_ids.size <= Address::ManualMerge::MIN_RECORDS
-
         label = 'Exclude'
         excluded = merge.excluded_ids + [address.id]
+        disabled = merge.merged_ids.size <= Address::ManualMerge::MIN_RECORDS
       end
+      return tag.span(label, class: 'button tiny secondary disabled', 'aria-disabled': true) if disabled
+
       path = new_admin_address_merge_path(ids: merge.ids, excluded: excluded, constituent_id: constituent_id)
       link_to(label, path, class: 'button tiny secondary')
     end

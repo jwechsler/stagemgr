@@ -117,9 +117,12 @@ RSpec.describe Admin::AddressMergesController, type: :controller do
       end
     end
 
-    it 'shows no Exclude link when only two customers are merged' do
+    it 'shows a disabled Exclude button on each column when only two customers are merged' do
       get :new, params: { ids: [older.id, newer.id] }
 
+      buttons = Nokogiri::HTML(response.body).css('th span.button')
+      expect(buttons.map(&:text)).to eq(%w[Exclude Exclude])
+      expect(buttons).to all(satisfy { |b| b['class'].include?('disabled') && b['href'].nil? })
       expect(response.body).not_to include('>Exclude</a>', '>Include</a>')
     end
 
