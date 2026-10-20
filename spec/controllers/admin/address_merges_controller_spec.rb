@@ -104,7 +104,7 @@ RSpec.describe Admin::AddressMergesController, type: :controller do
         expect(response).to have_http_status(:ok)
         include_path = new_admin_address_merge_path(ids: [older.id, newer.id, third.id])
         include_link = %(href="#{ERB::Util.html_escape(include_path)}">Include</a>)
-        expect(response.body).to match(%r{<th class='excluded'><a [^>]*>##{newer.id} Beth Kosalko</a> \(excluded, not merged\)</th>})
+        expect(response.body).to match(%r{<th class='excluded'><a [^>]*>##{newer.id} Beth Kosalko</a></th>})
         excluded_th, merged_ths = button_row.partition { |th| th['class'] == 'excluded' }
         expect(excluded_th.size).to eq(1)
         expect(excluded_th.first.to_html).to include(include_link)

@@ -56,10 +56,10 @@ constituent**, followed by **Active member**, **Donor**, **Orders** and
   the record you choose, so no part of another record's address is mixed in.
 
 Each column heading has an **Exclude** link. An excluded customer is shown
-greyed out with "(excluded, not merged)": it is not merged and keeps its own
-record, and its values cannot be chosen. **Include** brings it back into the
-merge. At least two customers must remain, so the Exclude buttons are disabled
-when only two are left. Excluding the master makes the next-lowest ID the master.
+greyed out: it is not merged and keeps its own record, and its values cannot
+be chosen. **Include** brings it back into the merge. At least two customers
+must remain, so the Exclude buttons are disabled when only two are left.
+Excluding the master makes the next-lowest ID the master.
 
 When the customers have different first names, a warning names them: they may
 be a household rather than one person. If one of them is a different person,

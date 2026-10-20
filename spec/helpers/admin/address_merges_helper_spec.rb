@@ -49,11 +49,10 @@ RSpec.describe Admin::AddressMergesHelper, type: :helper do
     end
 
     describe '#address_merge_header' do
-      it 'marks an excluded customer as not merged, with no button' do
+      it 'gives an excluded customer only the linked name' do
         html = helper.address_merge_header(merge(excluded: [third.id]), third)
 
-        expect(html).to end_with("##{third.id} Cy Third</a> (excluded, not merged)")
-        expect(html).not_to include('(master, kept)', '<br>', 'button')
+        expect(html).to eq(%(<a href="#{admin_address_path(third)}">##{third.id} Cy Third</a>))
       end
 
       it 'marks the master as kept, with no button' do

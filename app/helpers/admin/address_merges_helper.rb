@@ -14,14 +14,14 @@ module Admin
       name: 'name', address: 'street address', email: 'email', phone: 'phone', lgl_id: 'LGL constituent'
     }.freeze
 
-    # "#id Full Name" linking to the customer, the master's marked as kept and
-    # an excluded customer's as not merged. The Exclude/Include button is in a
-    # row of its own (address_merge_toggle_button) so the buttons line up.
+    # "#id Full Name" linking to the customer, the master's marked as kept. An
+    # excluded customer's is just the linked name: its greyed column and
+    # Include button already say it is not merged, and a suffix would change
+    # the heading row's height. The Exclude/Include button is in a row of its
+    # own (address_merge_toggle_button) so the buttons line up.
     def address_merge_header(merge, address)
       title = link_to("##{address.id} #{address.full_name}".strip, admin_address_path(address))
-      if merge.excluded?(address)
-        safe_join([title, ' (excluded, not merged)'])
-      elsif address.id == merge.master.id
+      if address.id == merge.master.id && !merge.excluded?(address)
         safe_join([title, ' (master, kept)'])
       else
         title
