@@ -14,10 +14,10 @@
     - if lgl_url
       .cell.shrink.text-right
         = link_to 'View in LGL', lgl_url, target: '_blank', rel: 'noopener'
-  - unless Lgl::ReviewList.same_person?(merge.addresses)
+  - unless Lgl::ReviewList.same_person?(merge.merged_addresses)
     .small-12.cell
       %p.callout.warning
-        These customers have different first names (#{lgl_review_first_names(merge.addresses)}):
+        These customers have different first names (#{lgl_review_first_names(merge.merged_addresses)}):
         they may be a household, not one person.
         - if @constituent_id
           Check the constituent in LGL before merging.
@@ -26,6 +26,7 @@
     = form_tag admin_address_merge_path, method: :post, id: 'address-merge-form' do
       - merge.ids.each do |id|
         = hidden_field_tag 'ids[]', id, id: nil
+        = hidden_field_tag 'excluded[]', id, id: nil if merge.excluded?(id)
       - if @constituent_id
         = hidden_field_tag :constituent_id, @constituent_id
       %table.address-merge
@@ -33,68 +34,33 @@
           %tr
             %th
             - merge.addresses.each do |address|
-              %th= address_merge_header(merge, address)
+              %th{ address_merge_column_attributes(merge, address) }
+                = address_merge_header(merge, address, constituent_id: @constituent_id)
         %tbody
           - Address::ManualMerge::FIELDS.each do |field|
             %tr{ data: address_merge_row_data(merge, field) }
               %th= Admin::AddressMergesHelper::FIELD_LABELS.fetch(field)
               - merge.addresses.each do |address|
-                %td= address_merge_cell(merge, field, address)
+                %td{ address_merge_column_attributes(merge, address) }= address_merge_cell(merge, field, address)
           %tr
             %th Active member
             - merge.addresses.each do |address|
-              %td= address_merge_member(address)
+              %td{ address_merge_column_attributes(merge, address) }= address_merge_member(address)
           %tr
             %th Donor
             - merge.addresses.each do |address|
-              %td= address_merge_donor(address)
+              %td{ address_merge_column_attributes(merge, address) }= address_merge_donor(address)
           %tr
             %th Orders
             - merge.addresses.each do |address|
-              %td= address.orders.count
+              %td{ address_merge_column_attributes(merge, address) }= address.orders.count
           %tr
             %th Last order
             - merge.addresses.each do |address|
-              %td= address_merge_last_order(address)
+              %td{ address_merge_column_attributes(merge, address) }= address_merge_last_order(address)
       %p#merge-summary= address_merge_summary(merge, constituent_id: @constituent_id)
       .button-group
         = link_to 'Cancel', @cancel_path, class: 'button secondary'
         = submit_tag "Merge into ##{merge.master.id}", class: 'button alert'
 
-= content_for :js do
-  :javascript
-    'use strict';
-
-    // Rebuilds the "comes from" sentence of #merge-summary as
-    // Admin::AddressMergesHelper#address_merge_sources_sentence does.
-    (function() {
-      var form = document.getElementById('address-merge-form');
-      var target = document.getElementById('merge-summary-sources');
-      var master = String(target.dataset.master);
-
-      function listOf(labels) {
-        if (labels.length <= 2) { return labels.join(' and '); }
-        return labels.slice(0, -1).join(', ') + ' and ' + labels[labels.length - 1];
-      }
-
-      function update() {
-        var groups = {};
-        var order = [];
-        form.querySelectorAll('tr[data-merge-field]').forEach(function(row) {
-          var source = row.querySelector('input[type=radio]:checked') || row;
-          var customer = source.dataset.customer;
-          if (!customer || customer === master) { return; }
-          if (!groups[customer]) { groups[customer] = []; order.push(customer); }
-          groups[customer].push(source.dataset.label);
-        });
-        var text = order.map(function(customer) {
-          var labels = groups[customer];
-          return listOf(labels) + (labels.length === 1 ? ' comes' : ' come') + ' from #' + customer;
-        }).join('; ');
-        target.textContent = text ? ' ' + text.charAt(0).toUpperCase() + text.slice(1) + '.' : '';
-      }
-
-      form.addEventListener('change', function(event) {
-        if (event.target.type === 'radio') { update(); }
-      });
-    })();
+= render 'summary_script'

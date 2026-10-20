@@ -1,0 +1,37 @@
+= content_for :js do
+  :javascript
+    'use strict';
+
+    // Rebuilds the "comes from" sentence of #merge-summary as
+    // Admin::AddressMergesHelper#address_merge_sources_sentence does.
+    (function() {
+      var form = document.getElementById('address-merge-form');
+      var target = document.getElementById('merge-summary-sources');
+      var master = String(target.dataset.master);
+
+      function listOf(labels) {
+        if (labels.length <= 2) { return labels.join(' and '); }
+        return labels.slice(0, -1).join(', ') + ' and ' + labels[labels.length - 1];
+      }
+
+      function update() {
+        var groups = {};
+        var order = [];
+        form.querySelectorAll('tr[data-merge-field]').forEach(function(row) {
+          var source = row.querySelector('input[type=radio]:checked') || row;
+          var customer = source.dataset.customer;
+          if (!customer || customer === master) { return; }
+          if (!groups[customer]) { groups[customer] = []; order.push(customer); }
+          groups[customer].push(source.dataset.label);
+        });
+        var text = order.map(function(customer) {
+          var labels = groups[customer];
+          return listOf(labels) + (labels.length === 1 ? ' comes' : ' come') + ' from #' + customer;
+        }).join('; ');
+        target.textContent = text ? ' ' + text.charAt(0).toUpperCase() + text.slice(1) + '.' : '';
+      }
+
+      form.addEventListener('change', function(event) {
+        if (event.target.type === 'radio') { update(); }
+      });
+    })();
