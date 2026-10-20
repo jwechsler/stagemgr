@@ -49,25 +49,44 @@ RSpec.describe Admin::AddressMergesHelper, type: :helper do
     end
 
     describe '#address_merge_header' do
-      it 'marks an excluded customer as not merged with an Include link that drops it from excluded' do
-        html = helper.address_merge_header(merge(excluded: [third.id]), third, constituent_id: 900_002)
+      it 'marks an excluded customer as not merged, with no button' do
+        html = helper.address_merge_header(merge(excluded: [third.id]), third)
 
-        expect(html).to include("##{third.id} Cy Third</a> (excluded, not merged)<br>")
-        expect(html).not_to include('(master, kept)', '>Exclude</a>')
+        expect(html).to end_with("##{third.id} Cy Third</a> (excluded, not merged)")
+        expect(html).not_to include('(master, kept)', '<br>', 'button')
+      end
+
+      it 'marks the master as kept, with no button' do
+        html = helper.address_merge_header(merge, first)
+
+        expect(html).to end_with("##{first.id} Ann First</a> (master, kept)")
+        expect(html).not_to include('<br>', 'button')
+      end
+
+      it 'gives a merged customer that is not the master only the linked name' do
+        html = helper.address_merge_header(merge, second)
+
+        expect(html).to eq(%(<a href="#{admin_address_path(second)}">##{second.id} Bea Second</a>))
+      end
+    end
+
+    describe '#address_merge_toggle_button' do
+      it 'gives an excluded customer an Include link that drops it from excluded' do
+        html = helper.address_merge_toggle_button(merge(excluded: [third.id]), third, constituent_id: 900_002)
+
+        expect(html).not_to include('>Exclude</a>')
         expect(link_href(html, 'Include')).to eq(new_admin_address_merge_path(ids: ids, constituent_id: 900_002))
       end
 
-      it 'marks the master as kept with an Exclude link that adds it to excluded' do
-        html = helper.address_merge_header(merge, first, constituent_id: nil)
+      it 'gives the master an Exclude link that adds it to excluded' do
+        html = helper.address_merge_toggle_button(merge, first)
 
-        expect(html).to include("##{first.id} Ann First</a> (master, kept)<br>")
         expect(link_href(html, 'Exclude')).to eq(new_admin_address_merge_path(ids: ids, excluded: [first.id]))
       end
 
-      it 'gives a merged customer that is not the master only an Exclude link' do
-        html = helper.address_merge_header(merge, second, constituent_id: 900_002)
+      it 'gives a merged customer that is not the master an Exclude link carrying the constituent' do
+        html = helper.address_merge_toggle_button(merge, second, constituent_id: 900_002)
 
-        expect(html).not_to include('(master, kept)', '(excluded, not merged)')
         expect(link_href(html, 'Exclude'))
           .to eq(new_admin_address_merge_path(ids: ids, excluded: [second.id], constituent_id: 900_002))
       end
@@ -76,7 +95,7 @@ RSpec.describe Admin::AddressMergesHelper, type: :helper do
         two_merged = merge(excluded: [third.id])
 
         [first, second].each do |address|
-          html = helper.address_merge_header(two_merged, address, constituent_id: nil)
+          html = helper.address_merge_toggle_button(two_merged, address)
 
           expect(disabled_button(html)).to eq('Exclude')
           expect(link_href(html, 'Exclude')).to be_nil
@@ -85,10 +104,8 @@ RSpec.describe Admin::AddressMergesHelper, type: :helper do
 
       it 'disables the Include button when four customers are already merged' do
         extra = Array.new(2) { FactoryBot.create(:address) }
-        html = helper.address_merge_header(merge(ids: ids + extra.map(&:id), excluded: [third.id]), third,
-                                           constituent_id: nil)
+        html = helper.address_merge_toggle_button(merge(ids: ids + extra.map(&:id), excluded: [third.id]), third)
 
-        expect(html).to include('(excluded, not merged)')
         expect(disabled_button(html)).to eq('Include')
         expect(link_href(html, 'Include')).to be_nil
       end

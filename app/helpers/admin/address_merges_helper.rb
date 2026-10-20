@@ -15,18 +15,36 @@ module Admin
     }.freeze
 
     # "#id Full Name" linking to the customer, the master's marked as kept and
-    # an excluded customer's as not merged, with a link to exclude or include
-    # it. Exclude buttons are disabled when only MIN_RECORDS customers are merged.
-    def address_merge_header(merge, address, constituent_id: nil)
+    # an excluded customer's as not merged. The Exclude/Include button is in a
+    # row of its own (address_merge_toggle_button) so the buttons line up.
+    def address_merge_header(merge, address)
       title = link_to("##{address.id} #{address.full_name}".strip, admin_address_path(address))
-      parts = [title]
       if merge.excluded?(address)
-        parts << ' (excluded, not merged)'
+        safe_join([title, ' (excluded, not merged)'])
       elsif address.id == merge.master.id
-        parts << ' (master, kept)'
+        safe_join([title, ' (master, kept)'])
+      else
+        title
       end
-      parts.push(tag.br, address_merge_toggle_link(merge, address, constituent_id))
-      safe_join(parts)
+    end
+
+    # Exclude for a merged customer, Include for an excluded one. The button
+    # is disabled (a span, so the row keeps its layout) when Exclude would
+    # leave fewer than MIN_RECORDS merged or Include more than MAX_RECORDS.
+    def address_merge_toggle_button(merge, address, constituent_id: nil)
+      if merge.excluded?(address)
+        label = 'Include'
+        excluded = merge.excluded_ids - [address.id]
+        disabled = merge.merged_ids.size >= Address::ManualMerge::MAX_RECORDS
+      else
+        label = 'Exclude'
+        excluded = merge.excluded_ids + [address.id]
+        disabled = merge.merged_ids.size <= Address::ManualMerge::MIN_RECORDS
+      end
+      return tag.span(label, class: 'button tiny secondary disabled', 'aria-disabled': true) if disabled
+
+      path = new_admin_address_merge_path(ids: merge.ids, excluded: excluded, constituent_id: constituent_id)
+      link_to(label, path, class: 'button tiny secondary')
     end
 
     # HTML attributes for an +address+ column's th/td: the excluded class for a
@@ -126,25 +144,6 @@ module Admin
     end
 
     private
-
-    # Exclude for a merged customer, Include for an excluded one. The button
-    # is disabled (a span, so the heading keeps its layout) when Exclude would
-    # leave fewer than MIN_RECORDS merged or Include more than MAX_RECORDS.
-    def address_merge_toggle_link(merge, address, constituent_id)
-      if merge.excluded?(address)
-        label = 'Include'
-        excluded = merge.excluded_ids - [address.id]
-        disabled = merge.merged_ids.size >= Address::ManualMerge::MAX_RECORDS
-      else
-        label = 'Exclude'
-        excluded = merge.excluded_ids + [address.id]
-        disabled = merge.merged_ids.size <= Address::ManualMerge::MIN_RECORDS
-      end
-      return tag.span(label, class: 'button tiny secondary disabled', 'aria-disabled': true) if disabled
-
-      path = new_admin_address_merge_path(ids: merge.ids, excluded: excluded, constituent_id: constituent_id)
-      link_to(label, path, class: 'button tiny secondary')
-    end
 
     # " Re-links LGL constituent 1234 to #1." plus, when customers are
     # excluded, that their LGL Review is cleared and they are re-synced.

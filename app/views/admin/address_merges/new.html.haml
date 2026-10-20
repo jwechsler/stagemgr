@@ -34,8 +34,12 @@
           %tr
             %th
             - merge.addresses.each do |address|
+              %th{ address_merge_column_attributes(merge, address) }= address_merge_header(merge, address)
+          %tr
+            %th
+            - merge.addresses.each do |address|
               %th{ address_merge_column_attributes(merge, address) }
-                = address_merge_header(merge, address, constituent_id: @constituent_id)
+                = address_merge_toggle_button(merge, address, constituent_id: @constituent_id)
         %tbody
           - Address::ManualMerge::FIELDS.each do |field|
             %tr{ data: address_merge_row_data(merge, field) }

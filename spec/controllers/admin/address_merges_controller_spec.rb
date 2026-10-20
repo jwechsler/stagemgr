@@ -17,6 +17,11 @@ RSpec.describe Admin::AddressMergesController, type: :controller do
     FactoryBot.create(:address, **attributes)
   end
 
+  # The th of the second thead row, one per customer, holding its Exclude/Include button.
+  def button_row
+    Nokogiri::HTML(response.body).css('table.address-merge thead tr')[1].css('th').drop(1)
+  end
+
   def radios(field)
     response.body.scan(/<input[^>]*type="radio"[^>]*name="choices\[#{field}\]"[^>]*>/)
   end
@@ -99,9 +104,12 @@ RSpec.describe Admin::AddressMergesController, type: :controller do
         expect(response).to have_http_status(:ok)
         include_path = new_admin_address_merge_path(ids: [older.id, newer.id, third.id])
         include_link = %(href="#{ERB::Util.html_escape(include_path)}">Include</a>)
-        expect(response.body).to match(%r{<th class='excluded'>\s*<a [^>]*>##{newer.id} Beth Kosalko</a> \(excluded, not merged\)<br><a })
-        expect(response.body).to include("(excluded, not merged)<br><a class=\"button tiny secondary\" #{include_link}")
-        expect(response.body.scan("<th class='excluded'>").size).to eq(1)
+        expect(response.body).to match(%r{<th class='excluded'><a [^>]*>##{newer.id} Beth Kosalko</a> \(excluded, not merged\)</th>})
+        excluded_th, merged_ths = button_row.partition { |th| th['class'] == 'excluded' }
+        expect(excluded_th.size).to eq(1)
+        expect(excluded_th.first.to_html).to include(include_link)
+        expect(merged_ths.map { |th| th.text.strip }).to eq(%w[Exclude Exclude])
+        expect(response.body.scan("<th class='excluded'>").size).to eq(2)
         expect(radios(:name).size).to eq(2)
         expect(radios(:name)).to all(satisfy { |radio| radio.exclude?(%(value="#{newer.id}")) })
         expect(response.body).to match(/<input[^>]*type="hidden"[^>]*name="excluded\[\]"[^>]*value="#{newer.id}"/)
@@ -120,7 +128,8 @@ RSpec.describe Admin::AddressMergesController, type: :controller do
     it 'shows a disabled Exclude button on each column when only two customers are merged' do
       get :new, params: { ids: [older.id, newer.id] }
 
-      buttons = Nokogiri::HTML(response.body).css('th span.button')
+      expect(button_row.size).to eq(2)
+      buttons = button_row.map { |th| th.at_css('span.button') }
       expect(buttons.map(&:text)).to eq(%w[Exclude Exclude])
       expect(buttons).to all(satisfy { |b| b['class'].include?('disabled') && b['href'].nil? })
       expect(response.body).not_to include('>Exclude</a>', '>Include</a>')
