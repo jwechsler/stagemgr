@@ -117,7 +117,7 @@ module Lgl
     def tag_external(external, lgl_id)
       current = external.lgl_id
       if current.present? && current != lgl_id
-        external.lgl_review!("Also LGL constituent #{lgl_id}")
+        external.lgl_review!(LglLinkable.also_constituent_reason(lgl_id))
         return :review
       end
 

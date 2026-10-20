@@ -100,7 +100,7 @@ LglPollConstituents:
 
 LglSweepConstituents:
   cron: "10 3 * * *"
-  description: "Nightly: drop LGL ID tags whose LGL constituent was deleted or merged away, and re-sync those addresses"
+  description: "Nightly: re-sync addresses whose LGL constituent was deleted or merged away, and clear LGL Review tags for merges staff finished in LGL"
   queue: maintenance
 
 LglDonorLevelsFetch:
