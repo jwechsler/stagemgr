@@ -44,8 +44,8 @@ linking to their page. The first column is the **master**: the original record
 (lowest ID), which is kept. Every other record is merged into it and deleted.
 
 The rows are **Name**, **Street address**, **Email**, **Phone** and **LGL
-constituent**, followed by **Active member**, **Donor** and **Orders** for
-reference.
+constituent**, followed by **Active member**, **Donor**, **Orders** and
+**Last order** for reference.
 
 - Where the customers' values differ, each value has a radio button. Choose
   the one the master should end up with. Each starts on the newest record
