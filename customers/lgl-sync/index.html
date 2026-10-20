@@ -1,0 +1,4725 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="User manual for Stagemgr ticketing platform">
+      
+      
+      
+        <link rel="canonical" href="https://stagemgr.theaterwit.org/customers/lgl-sync/">
+      
+      
+        <link rel="prev" href="../patron-history/">
+      
+      
+        <link rel="next" href="../../house-management/daily-operations/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Little Green Light Sync - Stagemgr User Manual</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#little-green-light-sync" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Stagemgr User Manual" class="md-header__button md-logo" aria-label="Stagemgr User Manual" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Stagemgr User Manual
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Little Green Light Sync
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Stagemgr User Manual" class="md-nav__button md-logo" aria-label="Stagemgr User Manual" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Stagemgr User Manual
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/user-roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Roles & Permissions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/formatted-text/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formatted Text Fields
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setup & Configuration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Setup & Configuration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup/theaters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theaters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup/venues/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Venues
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup/seat-maps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Seat Maps
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup/seat-map-editor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Seat Map Editor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup/payment-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payment Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup/system-options/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Options
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup/users/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Users
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup/email-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Email Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Productions
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Productions
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/finding-productions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Finding Productions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/creating-a-production/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Creating a Production
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/production-settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Production Settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/general-vs-reserved/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    General vs Reserved Seating
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/ticket-classes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ticket Classes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/default-ticket-classes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Default Ticket Classes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/resourced-ticket-classes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resourced Ticket Classes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/performances/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Performances
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/dynamic-pricing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dynamic Pricing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/duplicating-performances/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Duplicating Performances
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../productions/season-seating/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Season Seating
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Festivals
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Festivals
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../festivals/festivals-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Festivals Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../festivals/public-display/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public Display
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../festivals/passes-and-membership-caps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Festival Passes & Membership Caps
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../festivals/festival-reporting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Festival Reporting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Offers & Pricing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Offers & Pricing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../offers/special-offers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Special Offers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../offers/duplicating-special-offers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Duplicating Special Offers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../offers/flex-pass-offers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flex Pass Offers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../offers/membership-offers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Membership Offers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../offers/special-features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Performance Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../offers/service-items/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Service Items
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ticketing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Ticketing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/order-lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Order Lifecycle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/creating-ticket-order-ga/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ticket Order: General Admission
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/creating-ticket-order-rs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ticket Order: Reserved Seating
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/seat-selection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Seat Selection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/payment-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Payment Processing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/hold-orders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hold Orders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/exchanges/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exchanges
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/add-to-order/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add to Order
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/refunds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Refunds
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/refund-to-donation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Refund to Donation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/split-orders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Split Orders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/order-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Order Search
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/donation-orders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Donation Orders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/flex-pass-orders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flex Pass Orders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/membership-orders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Membership Orders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ticketing/managing-memberships/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Managing Memberships
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Customers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../managing-patrons/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Managing Patrons
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../patron-tags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Patron Tags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../merging-duplicates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Merging Duplicates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../patron-history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Patron History
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Little Green Light Sync
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Little Green Light Sync
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-lgl-id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The LGL ID
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-stagemgr-writes-to-lgl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When Stagemgr Writes to LGL
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-lgl-changes-reach-stagemgr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When LGL Changes Reach Stagemgr
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#new-lgl-constituents-become-customers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        New LGL Constituents Become Customers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-lgl-merges-reach-stagemgr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How LGL Merges Reach Stagemgr
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-lgl-review-tag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The LGL Review Tag
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lapsed-donors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lapsed Donors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#donations-become-lgl-gifts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Donations Become LGL Gifts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Donations Become LGL Gifts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#which-donations-and-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which Donations, and When
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-the-gift-contains" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the Gift Contains
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refunds-and-the-order-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refunds and the Order Page
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-sync-status-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Sync Status Page
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Sync Status Page">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#donor-tiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Donor Tiers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    House Management
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    House Management
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/daily-operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Daily Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/house-counts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    House Counts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/calendar-heatmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Calendar Heatmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/fulfilling-orders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fulfilling Orders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/printing-tickets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Printing Tickets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/house-management-report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    House Management Report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/resource-pull-sheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resource Pull Sheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/email-attendees/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Email Attendees
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../house-management/hud-display/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HUD Display
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/analysis-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analysis Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/rate-of-sales/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rate of Sales
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/ticket-revenue/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ticket Revenue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/audience/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audience
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/advance-sales/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advance Sales
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/memberships/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Membership Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reports
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reports
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/reports-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reports Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/production-sales/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Production Sales
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/royalty-report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Royalty Report
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/production-attendees/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Production Attendees
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/weekly-box-office/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Weekly Box Office
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/daily-receipts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Daily Receipts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/donation-reports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Donation Reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/flex-pass-reports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flex Pass Reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/membership-reports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Membership Reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/customer-data-mining/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customer Data Mining
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reports/trg-exports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TRG Exports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Imports
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Imports
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../imports/imports-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Import Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../imports/trg-arts-import/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TRG Arts Import
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../imports/mailing-cards-import/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mailing Cards Import
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../imports/external-contacts-import/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    External Contacts Import
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../imports/bulk-orders-import/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bulk Orders Import
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../imports/flex-pass-orders-import/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flex Pass Orders Import
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../imports/donor-levels-import/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Donor Levels Import
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_13" >
+        
+          
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/email-templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Email Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/dynamic-pricing-advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dynamic Pricing Strategies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/capacity-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capacity Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/background-jobs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Background Jobs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_14" >
+        
+          
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developer
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/credentials/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Credentials & Secrets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/theming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Site Theming
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/releases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches & Releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/membership-card-spec/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Membership Card Spec
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_15" >
+        
+          
+          <label class="md-nav__link" for="__nav_15" id="__nav_15_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_15_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_15">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/permissions-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Permissions Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="little-green-light-sync">Little Green Light Sync<a class="headerlink" href="#little-green-light-sync" title="Permanent link">&para;</a></h1>
+<div class="admonition info">
+<p class="admonition-title">Role: Administrators</p>
+<p>Anyone can see a customer's LGL ID. The <strong>Re-sync with LGL</strong> button and the
+sync status page are for administrators.</p>
+</div>
+<p>When Little Green Light (LGL) sync is configured, Stagemgr keeps each customer
+linked to the matching constituent in the default theater's LGL account, so a
+donor is one person in both systems.</p>
+<hr />
+<h2 id="the-lgl-id">The LGL ID<a class="headerlink" href="#the-lgl-id" title="Permanent link">&para;</a></h2>
+<p>A linked customer carries an <code>LGL ID</code> tag for the default theater: the
+constituent's id in LGL. The customer page shows it in the tag list, linked to
+the constituent's page in LGL when the account's web address is configured,
+with the <strong>Re-sync with LGL</strong> button beside it. A customer without the tag has
+not yet been matched to a constituent.</p>
+<p>In the other direction, each linked constituent's <strong>External constituent ID</strong>
+in LGL is the Stagemgr customer id.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Do not edit or delete the <code>LGL ID</code> tag by hand. Use the <strong>Re-sync with LGL</strong>
+button instead; Stagemgr finds the right constituent and fixes the tag.</p>
+</div>
+<hr />
+<h2 id="when-stagemgr-writes-to-lgl">When Stagemgr Writes to LGL<a class="headerlink" href="#when-stagemgr-writes-to-lgl" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Event</th>
+<th>What happens in LGL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A donation is processed</td>
+<td>About ten minutes later the donor is linked: an existing constituent with the customer's id, or with the same email and last name (narrowed by first name when several match), is adopted and its External constituent ID set; otherwise a new constituent is created</td>
+</tr>
+<tr>
+<td>An administrator clicks <strong>Re-sync with LGL</strong> beside a customer's LGL ID</td>
+<td>The same linking, run in the background straight away. This is the only way a customer whose LGL record was deleted or merged away gets a new one</td>
+</tr>
+<tr>
+<td>The name, street address or phone of a linked customer is edited</td>
+<td>About two minutes after the last edit, the new values replace the constituent's <strong>preferred</strong> street address and phone in LGL. Other addresses and phones are left alone; if there is no preferred one, a preferred Home entry is added</td>
+</tr>
+</tbody>
+</table>
+<p>Stagemgr never deletes anything in LGL.</p>
+<hr />
+<h2 id="when-lgl-changes-reach-stagemgr">When LGL Changes Reach Stagemgr<a class="headerlink" href="#when-lgl-changes-reach-stagemgr" title="Permanent link">&para;</a></h2>
+<p>When someone edits a linked customer's <strong>name</strong>, <strong>preferred street address</strong>
+or <strong>preferred phone</strong> in LGL, the change appears on the Stagemgr customer
+within about three hours. Clicking <strong>Re-sync with LGL</strong> brings it over straight
+away.</p>
+<ul>
+<li><strong>The newer change wins.</strong> If the customer was edited in Stagemgr more
+  recently than in LGL, Stagemgr keeps its own values and sends them to LGL
+  instead.</li>
+<li>Only the <strong>preferred</strong> street address and phone are copied. If the
+  constituent has no preferred one, the Stagemgr field is left as it is.</li>
+<li>Only customers whose LGL record carries their Stagemgr customer id as its
+  <strong>External constituent ID</strong> are updated this way.</li>
+</ul>
+<p><strong>Email is not kept in sync</strong>: when Stagemgr creates a customer from a new LGL
+constituent (below), it copies the constituent's preferred email once. After
+that the sync never changes an email in either system: email addresses in LGL
+are managed in LGL, and Stagemgr's are managed in Stagemgr.</p>
+<hr />
+<h2 id="new-lgl-constituents-become-customers">New LGL Constituents Become Customers<a class="headerlink" href="#new-lgl-constituents-become-customers" title="Permanent link">&para;</a></h2>
+<p>When a constituent is added in LGL without a Stagemgr link (its External
+constituent ID is empty or does not name a Stagemgr customer), Stagemgr picks
+it up within about three hours:</p>
+<p>Customers match the constituent when they have the same email address and
+last name and are not already linked to another constituent. When several
+match, only those with the constituent's first name count. Only the first word
+of the first name is compared, so middle initials ("Robert L.") and a couple's
+or spouse's record sharing the email do not confuse it.</p>
+<ul>
+<li>If exactly <strong>one</strong> customer matches (or several do and exactly one has the
+  constituent's first name), that customer is linked to it.</li>
+<li>If <strong>no</strong> customer matches, Stagemgr creates a new customer with LGL's name
+  and the constituent's preferred email, preferred street address and
+  preferred phone.</li>
+<li>If <strong>several</strong> customers have the constituent's first name, they are
+  spellings of one person: each of them gets an <code>LGL Review</code> tag asking for a
+  merge. Other customers sharing the email are left alone.</li>
+<li>If several customers match but <strong>none</strong> has the constituent's first name
+  (or the constituent has no first name), none is chosen: each gets an <code>LGL Review</code> tag
+  (see <a href="#the-lgl-review-tag">The LGL Review Tag</a>).</li>
+</ul>
+<p>A linked or newly created customer gets the <code>LGL ID</code> tag, and Stagemgr sets the
+constituent's <strong>External constituent ID</strong> in LGL to the customer number.</p>
+<p>Stagemgr leaves these constituents alone:</p>
+<ul>
+<li><strong>Organisations.</strong> Only individuals become customers.</li>
+<li>Constituents with <strong>neither an email nor a street address</strong>.</li>
+<li>Constituents with no name, or with an email address Stagemgr does not
+  accept. Correct the record in LGL; the change is picked up on the next poll.</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Existing constituents</p>
+<p>Constituents that were already in LGL before this sync was set up are
+brought over by a one-time backfill that the developer runs
+(<code>rake lgl:replicate</code>). It is not a button on the Sync Status page.</p>
+</div>
+<hr />
+<h2 id="how-lgl-merges-reach-stagemgr">How LGL Merges Reach Stagemgr<a class="headerlink" href="#how-lgl-merges-reach-stagemgr" title="Permanent link">&para;</a></h2>
+<p>Every night Stagemgr checks that every <code>LGL ID</code> still exists in LGL, so an LGL
+merge reaches Stagemgr by the next morning. (The three-hourly poll picks up
+other LGL changes, but a merge does not mark the constituent LGL kept as
+changed.) When two constituents have been merged in LGL and both were linked
+to Stagemgr customers, Stagemgr merges those two customers as well, provided they look like
+the same person (same name or same email). The newer customer is folded into
+the original one (lowest id), exactly as in
+<a href="../merging-duplicates/">Merging Duplicates</a>, and the constituent LGL kept is
+pointed at the original customer.</p>
+<p>The same rule applies when Stagemgr links a customer by email: if that email
+is on an LGL constituent already linked to another Stagemgr customer with the
+same name, LGL is treating them as one person, so Stagemgr folds the newer
+customer into the original and links the original.</p>
+<p>In the nightly check, a customer whose constituent was deleted or merged
+away is re-linked by customer id and email. If nothing in LGL matches, Stagemgr does <strong>not</strong> create a new LGL
+record on its own: the customer keeps the old <code>LGL ID</code> and gets an
+<code>LGL Review</code> tag. Click <strong>Re-sync with LGL</strong> on the customer page to create a
+new LGL record for them.</p>
+<hr />
+<h2 id="the-lgl-review-tag">The LGL Review Tag<a class="headerlink" href="#the-lgl-review-tag" title="Permanent link">&para;</a></h2>
+<p>When Stagemgr cannot decide safely, it does not guess. It adds an <code>LGL Review</code>
+tag to the customer whose value says why (<code>1234</code> stands for an LGL constituent
+id, <code>#5678</code> for a Stagemgr customer id):</p>
+<table>
+<thead>
+<tr>
+<th>Reason</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LGL constituents 1234 and 5678 share this email</code></td>
+<td>Several constituents with this customer's email and last name could be this customer, and their first names do not settle which one. The reason lists each of them</td>
+</tr>
+<tr>
+<td><code>LGL constituent 1234 matches several customers named Robert Holliday by email: merge them in Stagemgr, then Re-sync</code></td>
+<td>These customers share the constituent's first name: they are spellings of one person. Click <strong>Merge</strong> on their row of the LGL Review list on the <a href="#the-sync-status-page">Sync Status page</a>, choose the values to keep and merge; the customer that remains is then re-linked to the constituent</td>
+</tr>
+<tr>
+<td><code>LGL constituent 1234 matches several customers by email and last name</code></td>
+<td>A new LGL constituent could be any of these customers and they do not all share its first name, often a couple or household whose records each carry one of the constituent's emails; Stagemgr linked none of them. Open the constituent in LGL from the LGL Review list to see who it is. If the customers are one person, click <strong>Merge</strong> on their row; when their first names differ the Merge customers page warns about it. If they are different people, do not merge them: set the constituent's External constituent ID in LGL to the right customer's Stagemgr id, then click <strong>Re-sync with LGL</strong> on that customer's page</td>
+</tr>
+<tr>
+<td><code>LGL constituents 1234 and 5678 carry external id 5678</code></td>
+<td>Several constituents in LGL name this customer as their External constituent ID. The reason lists each of them</td>
+</tr>
+<tr>
+<td><code>Also LGL constituent 1234</code></td>
+<td>LGL says this customer is constituent 1234, but the customer is already linked to a different one</td>
+</tr>
+<tr>
+<td><code>Also LGL constituent 1234: merge the two in LGL</code></td>
+<td>Two Stagemgr customers linked to different constituents were merged in Stagemgr. Merge the two constituents in LGL: once LGL keeps the one this customer is linked to, the tag clears on its own by the next nightly check, or straight away with <strong>Re-sync with LGL</strong></td>
+</tr>
+<tr>
+<td><code>LGL constituent 1234 is also linked to #5678</code></td>
+<td>LGL merged two constituents whose Stagemgr customers do not look like the same person</td>
+</tr>
+<tr>
+<td><code>2 addresses are tagged LGL constituent 1234</code></td>
+<td>Several Stagemgr customers carry the same <code>LGL ID</code> and LGL does not say which one is right</td>
+</tr>
+<tr>
+<td><code>Same person as #5678 in LGL; merge skipped while an order is in progress</code></td>
+<td>LGL treats this customer and #5678 as one person, but one of them has an order mid-checkout or mid-exchange, so they were not merged</td>
+</tr>
+<tr>
+<td><code>Same person as #5678 in LGL but not a Stagemgr duplicate; merge skipped</code></td>
+<td>LGL treats the two as one person, but their names and emails differ in Stagemgr</td>
+</tr>
+<tr>
+<td><code>LGL constituent 1234 no longer exists and no LGL constituent matches; use Re-sync with LGL to create a new one</code></td>
+<td>The customer's LGL record was deleted or merged away and nothing else in LGL matches. Click <strong>Re-sync with LGL</strong> to create a new LGL record</td>
+</tr>
+</tbody>
+</table>
+<p>The customer page highlights the <code>LGL Review</code> tag in yellow in its tag list,
+with the reason as the tag's value. When the LGL web address is configured,
+each LGL constituent number in the reason links to that constituent in LGL
+(customer numbers such as <code>#5678</code> and external ids are not links).</p>
+<p><strong>To clear it:</strong> fix the records in LGL (merge the duplicate constituents, or
+correct the External constituent ID), then click <strong>Re-sync with LGL</strong> on the
+customer page. A successful link removes the tag. Merging the customer with
+its duplicate on the Merge customers page (from <strong>Merge Selected</strong> on the
+Customers page or <strong>Merge</strong> on the LGL Review list; see
+<a href="../merging-duplicates/">Merging Duplicates</a>) also removes it; automatic duplicate consolidation does not. If the reason no longer
+applies and nothing needs fixing, delete the <code>LGL Review</code> tag as you would any
+<a href="../patron-tags/">patron tag</a>.</p>
+<hr />
+<h2 id="lapsed-donors">Lapsed Donors<a class="headerlink" href="#lapsed-donors" title="Permanent link">&para;</a></h2>
+<p>Stagemgr reads each linked customer's gifts from LGL and marks lapsed donors
+with an <code>LGL Lapsed</code> tag in the customer's tag list:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LYBUNT</code></td>
+<td>"Last year but unfortunately not this": gave last fiscal year, but nothing yet this fiscal year</td>
+</tr>
+<tr>
+<td><code>SYBUNT</code></td>
+<td>"Some year but unfortunately not this": gave in an earlier fiscal year, but not last year or this year</td>
+</tr>
+</tbody>
+</table>
+<p>A customer who has given this fiscal year, or has never given, has no
+<code>LGL Lapsed</code> tag; the tag is removed when a lapsed donor gives again.</p>
+<p>Only money received counts: LGL gifts of type Gift, Installment, Matching, In
+Honor of and In Memory of, with an amount above zero. Pledges, in-kind gifts,
+soft credits and other income do not. The fiscal year starts on the 1st of the
+month the theater has configured (January unless set otherwise).</p>
+<p>The tags are refreshed:</p>
+<ul>
+<li>early every Sunday morning (2:00 AM), for every linked customer (this takes about an hour);</li>
+<li>when a customer is first linked to LGL;</li>
+<li>when an administrator clicks <strong>Re-sync with LGL</strong> on the customer page.</li>
+</ul>
+<p>So a gift entered in LGL shows on the tag after the next Sunday morning, or
+straight away after a <strong>Re-sync with LGL</strong>. Do not edit the <code>LGL Lapsed</code> tag
+by hand: the next refresh replaces it.</p>
+<hr />
+<h2 id="donations-become-lgl-gifts">Donations Become LGL Gifts<a class="headerlink" href="#donations-become-lgl-gifts" title="Permanent link">&para;</a></h2>
+<p>Stagemgr writes each qualifying donation to LGL as a gift on the donor's
+constituent record, so the development team does not re-key it.</p>
+<h3 id="which-donations-and-when">Which Donations, and When<a class="headerlink" href="#which-donations-and-when" title="Permanent link">&para;</a></h3>
+<p>A donation is written when its order reaches Processed and is credited to the
+<strong>default theater</strong>. That includes a donation added to a ticket order at
+checkout for any show in the building. A donation credited to another company
+is not written, and neither is a standalone donation with no theater.</p>
+<p>Only donations placed after gift replication went live are written: the moment
+the first gift campaign was chosen on the Sync Status page. Earlier donations
+stay as entered by hand.</p>
+<p>The gift is written about 13 minutes after the order is processed. Ten minutes
+after processing the customer's address is synced to LGL (see
+<a href="#when-stagemgr-writes-to-lgl">When Stagemgr Writes to LGL</a>); three minutes
+later the gift follows.</p>
+<ul>
+<li>If the customer is not yet linked to an LGL constituent, the gift job waits
+  and retries for about 8 hours.</li>
+<li>If the customer carries an <code>LGL Review</code> tag, the gift waits until a person
+  resolves the review. Once the customer is linked (for example after
+  <strong>Re-sync with LGL</strong>), any waiting gifts are written automatically.</li>
+</ul>
+<h3 id="what-the-gift-contains">What the Gift Contains<a class="headerlink" href="#what-the-gift-contains" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Type</td>
+<td>Gift</td>
+</tr>
+<tr>
+<td>Amount</td>
+<td>The donation amount; the received, deductible and deposited amounts all equal it</td>
+</tr>
+<tr>
+<td>Received date and deposit date</td>
+<td>The day the payment was taken</td>
+</tr>
+<tr>
+<td>Payment type</td>
+<td>Credit Card, Cash or Check</td>
+</tr>
+<tr>
+<td>Note</td>
+<td><code>Stagemgr donation order #&lt;order number&gt;</code></td>
+</tr>
+<tr>
+<td>External id</td>
+<td><code>stagemgr-&lt;order number&gt;</code>, which keeps the same donation from ever being written twice</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Campaign.</strong> Choose the campaign on the Sync Status page from LGL's active
+campaigns (the <strong>Gift campaign</strong> row, with a <strong>Change</strong> link). Until one is
+chosen no gifts are written. Changing it affects future gifts, and the appeals
+and events created after the change; existing appeals and events keep their
+campaign.</p>
+<p><strong>Appeal.</strong> Every gift goes on an appeal named <code>&lt;season&gt; Ticketing</code> (for
+example <code>2026 Ticketing</code>, type Ticketing) under the chosen campaign. Stagemgr
+creates the appeal in LGL when it does not exist, and adopts an existing one
+with that exact name.</p>
+<p><strong>Event.</strong> Each production is an LGL event with the production's name, dated
+from its first performance to its closing date, tied to the campaign and
+marked active. Stagemgr creates the event when none exists, adopts an existing
+event with the production's exact name, and fills in the campaign and dates on
+an event that lacks them. An event marked inactive in LGL is never reused or
+re-activated: Stagemgr creates a new event instead, so each year's run of a
+same-named show gets its own event. Staff can mark last year's event inactive
+in LGL before the show returns. The production is known for donations placed since gift replication
+began; for older donations Stagemgr matches the production name recorded on the
+donation. A donation with no matching production gets a gift with no event.</p>
+<h3 id="refunds-and-the-order-page">Refunds and the Order Page<a class="headerlink" href="#refunds-and-the-order-page" title="Permanent link">&para;</a></h3>
+<p>Refunding a donation in Stagemgr never deletes or zeroes the LGL gift. About a
+minute later the gift's note gains the line <code>Refunded in Stagemgr on &lt;date&gt;</code>.
+Adjust the gift in LGL by hand if needed.</p>
+<p>A donation order's page shows <strong>Little Green Light: Gift #<id></strong> (or "not in
+LGL") and a link to the constituent, with a <strong>Send to LGL</strong> button that queues
+the gift again. It is safe to press: an existing gift is never duplicated, and
+donations from before go-live are never sent.</p>
+<p>In a read-only environment nothing is written; the log lines say the write was
+skipped.</p>
+<hr />
+<h2 id="the-sync-status-page">The Sync Status Page<a class="headerlink" href="#the-sync-status-page" title="Permanent link">&para;</a></h2>
+<p><strong>Navigation:</strong> Options &gt; System Config &gt; LGL Sync</p>
+<p>The sync mode, the API key and the LGL web address are set in Stagemgr's
+configuration; see
+<a href="../../developer/configuration/#little-green-light-sync">Little Green Light sync</a>.</p>
+<p>The page shows:</p>
+<ul>
+<li>The <strong>Sync</strong> row: <strong>Enabled</strong>, <strong>Read-only</strong> or <strong>Disabled</strong>, and whether
+  this environment may write to LGL.<ul>
+<li><strong>Enabled</strong>: changes flow both ways as described on this page.</li>
+<li><strong>Read-only</strong>: used for testing. Stagemgr still reads from LGL, links
+  customers and creates new customers from LGL constituents, but writes
+  nothing to LGL, except for any customers the developer has listed for
+  acceptance testing. A development install set to enabled runs
+  read-only, and the page says so.</li>
+<li><strong>Disabled</strong>: no sync in either direction.</li>
+</ul>
+</li>
+<li>How far the three-hourly poll has read LGL's changes, and when the nightly sweep
+  last finished ("never" if it has not run). The first poll after LGL sync is
+  enabled starts from that moment: changes made in LGL before then are not
+  copied into Stagemgr. Until it runs, the page says "not yet".</li>
+<li>How many customers are linked.</li>
+<li><strong>Lapsed donors</strong>: how many customers carry an <code>LGL Lapsed</code> tag of each kind
+  (see <a href="#lapsed-donors">Lapsed Donors</a>), and when the weekly gift history
+  refresh last finished ("never" if it has not run).</li>
+<li><strong>Gift campaign</strong>: the campaign gifts go on (name and id, with a <strong>Change</strong>
+  link). When none is set the row shows the chooser and the note "Donations are
+  not sent to LGL until a campaign is chosen."</li>
+<li><strong>Donations in LGL</strong>: how many donations have been written as gifts (see
+  <a href="#donations-become-lgl-gifts">Donations Become LGL Gifts</a>).</li>
+<li><strong>Last gift replicated</strong>: when a gift was last written ("never" if none has).</li>
+<li>The <strong>LGL Review</strong> list: every customer with an <code>LGL Review</code> tag, oldest
+  first, one row per conflict (customers flagged for the same constituent
+  share a row). The list shows the oldest 100; the heading gives the full
+  count. Its columns:<ul>
+<li><strong>Customers (matched on email)</strong>: each flagged customer on its own line,
+  linked to their page, followed by their email. Each email is one of the
+  constituent's emails in LGL, so the customers on one row may show
+  different emails.</li>
+<li><strong>Constituent</strong>: "LGL constituent 1234", the number linking to the
+  constituent in LGL when the LGL web address is configured. A row whose
+  reason names several constituents lists each of them.</li>
+<li><strong>Reason</strong>: a short label where one applies (hover over it for the full
+  reason), otherwise the full reason with each constituent number linked
+  as in the Constituent column. <strong>Same first name, 2 emails</strong> means
+  the customers' first names are all one name (middle initials and blank
+  first names aside); <strong>Different first names (Glen, Beth), 2 emails</strong>
+  names the first names that differ, often a household. The count is how
+  many distinct emails the customers have; <strong>Linked to two
+  customers</strong> means LGL merged two constituents whose customers do not
+  look like the same person (see <a href="#the-lgl-review-tag">The LGL Review Tag</a>).</li>
+<li><strong>Actions</strong>: a <strong>Merge</strong> button on every row where several customers
+  match one constituent, whatever the reason's wording. It opens the
+  Merge customers page for those customers (see
+  <a href="../merging-duplicates/#the-merge-customers-page">Merging Duplicates</a>),
+  which also shows the constituent's number and, when the LGL web address
+  is configured, a <strong>View in LGL</strong> link. When the customers' first names
+  differ, the page names them and warns that they may be a household, so
+  check the constituent in LGL before merging. After the merge the
+  customer that remains is re-linked to the constituent and you return to
+  this page.</li>
+</ul>
+</li>
+</ul>
+<p>Four buttons queue the same jobs that run on their own:</p>
+<table>
+<thead>
+<tr>
+<th>Button</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Poll for changes</strong></td>
+<td>Reads recent LGL changes now instead of waiting for the next three-hourly run</td>
+</tr>
+<tr>
+<td><strong>Sweep all</strong></td>
+<td>Checks every <code>LGL ID</code> against LGL now, not just recent changes</td>
+</tr>
+<tr>
+<td><strong>Refresh gift history</strong></td>
+<td>Refreshes every linked customer's <code>LGL Lapsed</code> tag now instead of waiting for early Sunday morning. Asks for confirmation first: it reads each customer's gifts from LGL and takes about an hour</td>
+</tr>
+<tr>
+<td><strong>Backfill</strong></td>
+<td>Links every LGL constituent whose External constituent ID names a Stagemgr customer. Changes only Stagemgr's <code>LGL ID</code> and <code>LGL Review</code> tags, never LGL. Run once after sync is first set up; running it again is harmless</td>
+</tr>
+</tbody>
+</table>
+<p>The jobs run in the background; reload the page after a few minutes to see the
+results.</p>
+<h3 id="donor-tiers">Donor Tiers<a class="headerlink" href="#donor-tiers" title="Permanent link">&para;</a></h3>
+<p>Three more rows report the nightly
+<a href="../../imports/donor-levels-import/">donor levels import</a> from LGL. They appear
+whatever the sync mode:</p>
+<table>
+<thead>
+<tr>
+<th>Row</th>
+<th>Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Donor-tier report</strong></td>
+<td><strong>On</strong> when the LGL report link is configured, with the person the import results are emailed to; <strong>Off</strong> otherwise</td>
+</tr>
+<tr>
+<td><strong>Last report download</strong></td>
+<td>When Stagemgr last downloaded the report from LGL successfully</td>
+</tr>
+<tr>
+<td><strong>Last donor levels import</strong></td>
+<td>When a donor levels import last finished, whether from the nightly download or a manual upload on the Imports page</td>
+</tr>
+</tbody>
+</table>
+<p>When the report is on, a <strong>Fetch donor levels now</strong> button downloads the
+report and imports it straight away instead of waiting for the nightly run.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "search.highlight", "content.tabs.link", "toc.integrate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -2134,6 +2134,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../customers/lgl-sync/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Little Green Light Sync
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -3352,10 +3380,38 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#user-options" class="md-nav__link">
+  <a href="#the-nightly-import" class="md-nav__link">
     <span class="md-ellipsis">
       
-        User Options
+        The Nightly Import
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Nightly Import">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setting-it-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setting It Up
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uploading-by-hand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Uploading by Hand
       
     </span>
   </a>
@@ -3382,36 +3438,25 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="How It Works">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#result-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Result File
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Result File">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#three-tier-customer-matching" class="md-nav__link">
+  <a href="#completion-email" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Three-Tier Customer Matching
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#what-gets-updated" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What Gets Updated
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#processing-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Processing Rules
+        Completion Email
       
     </span>
   </a>
@@ -3428,17 +3473,6 @@
     <span class="md-ellipsis">
       
         Where Donor Tiers Appear
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#expected-outcome" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Expected Outcome
       
     </span>
   </a>
@@ -4162,33 +4196,62 @@
 <h1 id="donor-levels-import-lgl">Donor Levels Import (LGL)<a class="headerlink" href="#donor-levels-import-lgl" title="Permanent link">&para;</a></h1>
 <div class="admonition info">
 <p class="admonition-title">Required Role</p>
-<p><strong>Administrator</strong> or <strong>Box Office</strong> can run donor level imports.</p>
+<p><strong>Administrator</strong> or <strong>Box Office</strong> can run a donor levels import from the
+Imports page. The nightly import is set up in Stagemgr's configuration, by
+whoever maintains it.</p>
 </div>
 <p><strong>Navigation:</strong> Options &gt; Imports &gt; Donor Levels Import</p>
 <h2 id="purpose">Purpose<a class="headerlink" href="#purpose" title="Permanent link">&para;</a></h2>
-<p>This import updates existing customer records with <strong>donor tier information</strong> from Little Green Light (LGL) or other donor management systems. It sets current and previous fiscal year donation levels, which are then used in house management reports and donor recognition.</p>
-<p>Use this import to synchronize donor status from your fundraising platform into Stagemgr, so that box office and house management staff can see patron giving levels alongside ticketing data.</p>
-<h2 id="user-options">User Options<a class="headerlink" href="#user-options" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Option</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>File Upload</strong></td>
-<td>Yes</td>
-<td>CSV file containing donor tier data from an LGL export</td>
-</tr>
-</tbody>
-</table>
+<p>This import sets each customer's <strong>donor tiers</strong> (the current and previous
+fiscal year) from the giving levels Little Green Light (LGL) calculates. Box
+office and house management staff then see a patron's giving level alongside
+their ticketing record, on the customer page and in the House Management
+report.</p>
+<p>The import runs in two ways, with the same file and the same rules:</p>
+<ol>
+<li><strong>Automatically every night</strong>, from a saved report in LGL.</li>
+<li><strong>By hand</strong>, by uploading the report on <strong>Options &gt; Imports</strong>.</li>
+</ol>
+<hr />
+<h2 id="the-nightly-import">The Nightly Import<a class="headerlink" href="#the-nightly-import" title="Permanent link">&para;</a></h2>
+<p>Each night at 5:30 AM Stagemgr downloads the saved report from LGL and imports
+it. It runs whenever the report link is configured, whether or not
+<a href="../../customers/lgl-sync/">LGL sync</a> is turned on.</p>
+<h3 id="setting-it-up">Setting It Up<a class="headerlink" href="#setting-it-up" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Build the report in LGL.</strong> Create a constituent export that includes the
+   columns <code>External constituent ID</code>, <code>LGL Constituent ID</code>,
+   <code>TG Tier Last Fiscal</code> and <code>TG Tier This Fiscal</code>. Other columns, such as <code>First Name</code>, <code>Last Name</code>,
+   <code>Pref. Email</code> and <code>Address 1</code> / <code>Address 2</code> / <code>Address 3</code>, may be included;
+   Stagemgr ignores them and carries them through to the result file
+   untouched. Make the report cover <strong>every</strong> constituent with a giving
+   level (see <a href="#how-it-works">How It Works</a>).</li>
+<li><strong>Create a permanent link</strong> for the saved report in LGL.</li>
+<li><strong>Give the link to whoever maintains Stagemgr's configuration</strong>, who
+   stores it as <code>littlegreenlight.donor_tier_report_url</code>; see
+   <a href="../../developer/configuration/#little-green-light-sync">Little Green Light sync</a>.
+   If opening the link asks for an LGL login, they also store an LGL web user
+   name and password as <code>LGL_USER</code> and <code>LGL_PASSWORD</code>.</li>
+</ol>
+<p>The results are emailed to the Stagemgr user whose email is the
+supervisor-notifications address. The
+<a href="../../customers/lgl-sync/#donor-tiers">LGL Sync status page</a> shows whether the
+report is on, who receives the results, and when the report was last
+downloaded and imported. Its <strong>Fetch donor levels now</strong> button runs the
+download and import straight away.</p>
 <div class="admonition note">
-<p class="admonition-title">No Theater or Production Selection</p>
-<p>Unlike other imports, the donor levels import does not require a theater or production selection. It operates solely on customer record matching.</p>
+<p class="admonition-title">When the download fails</p>
+<p>If Stagemgr cannot download the report (a wrong link, a rejected login, or
+a file without the three required columns), nothing is imported and every
+customer keeps their current tiers. The <strong>Last report download</strong> time on
+the LGL Sync page stops advancing; tell your administrator.</p>
 </div>
+<hr />
+<h2 id="uploading-by-hand">Uploading by Hand<a class="headerlink" href="#uploading-by-hand" title="Permanent link">&para;</a></h2>
+<p>On <strong>Options &gt; Imports</strong>, choose <strong>Donor Levels Import</strong> and upload the CSV
+exported from the same LGL report. There is no theater or production to
+select. The upload follows exactly the same rules as the nightly import,
+including clearing the tiers of customers who are not in the file.</p>
 <h2 id="required-csv-headers">Required CSV Headers<a class="headerlink" href="#required-csv-headers" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -4200,100 +4263,139 @@
 <tbody>
 <tr>
 <td><code>External constituent ID</code></td>
-<td>Stagemgr customer ID for direct matching (optional)</td>
-</tr>
-<tr>
-<td><code>Pref. Email</code></td>
-<td>Customer's preferred email address for matching (optional)</td>
-</tr>
-<tr>
-<td><code>First Name</code></td>
-<td>Customer's first name for record matching</td>
-</tr>
-<tr>
-<td><code>Last Name</code></td>
-<td>Customer's last name for record matching</td>
+<td>The Stagemgr customer number. LGL sync keeps this set on every linked constituent</td>
 </tr>
 <tr>
 <td><code>TG Tier Last Fiscal</code></td>
-<td>Donor tier level from previous fiscal year</td>
+<td>Donor tier for the previous fiscal year</td>
 </tr>
 <tr>
 <td><code>TG Tier This Fiscal</code></td>
-<td>Donor tier level for current fiscal year</td>
+<td>Donor tier for the current fiscal year</td>
 </tr>
 </tbody>
 </table>
-<div class="admonition warning">
-<p class="admonition-title">Headers Include Spaces and Periods</p>
-<p>Note that these header names contain spaces and periods (e.g., <code>Pref. Email</code>, <code>First Name</code>). They must match exactly as shown above. This format corresponds to the standard LGL export.</p>
-</div>
+<p>An optional <code>LGL Constituent ID</code> column (the constituent's LGL id) lets a row
+whose <code>External constituent ID</code> is blank or matches no customer be matched
+through the customer's LGL ID tag; see <a href="#how-it-works">How It Works</a>.</p>
+<p>Header names are matched regardless of capitals, but the spaces must be
+there. If any of the three required headers is missing, the import stops before changing
+anything; the Imports page shows <code>Donor levels import failed: missing column</code>
+and the column's name.</p>
+<hr />
 <h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
-<h3 id="three-tier-customer-matching">Three-Tier Customer Matching<a class="headerlink" href="#three-tier-customer-matching" title="Permanent link">&para;</a></h3>
-<p>The import uses a cascading approach to find the correct customer record:</p>
-<table>
-<thead>
-<tr>
-<th>Priority</th>
-<th>Method</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>1st</strong></td>
-<td>Direct ID match</td>
-<td>Uses <code>External constituent ID</code> as a Stagemgr address ID for exact lookup</td>
-</tr>
-<tr>
-<td><strong>2nd</strong></td>
-<td>Email match</td>
-<td>Searches for a customer with a matching <code>Pref. Email</code> address</td>
-</tr>
-<tr>
-<td><strong>3rd</strong></td>
-<td>Name + email match</td>
-<td>Uses first name, last name, and email together for duplicate detection</td>
-</tr>
-</tbody>
-</table>
-<p>If none of these methods finds a match, a <strong>new customer record is created</strong> from the available data.</p>
-<h3 id="what-gets-updated">What Gets Updated<a class="headerlink" href="#what-gets-updated" title="Permanent link">&para;</a></h3>
-<p>For each matched or created customer record, the import sets:</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Source Column</th>
-<th>Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Previous fiscal year donor tier</td>
-<td><code>TG Tier Last Fiscal</code></td>
-<td>Historical donor recognition</td>
-</tr>
-<tr>
-<td>Current fiscal year donor tier</td>
-<td><code>TG Tier This Fiscal</code></td>
-<td>Active donor recognition</td>
-</tr>
-<tr>
-<td>Donor tier updated timestamp</td>
-<td>(automatic)</td>
-<td>Tracks when donor info was last refreshed</td>
-</tr>
-</tbody>
-</table>
-<h3 id="processing-rules">Processing Rules<a class="headerlink" href="#processing-rules" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Only records that have donor tier information in <strong>at least one fiscal year</strong> are processed. Rows where both tier fields are empty are skipped.</li>
-<li>Duplicate customer records found during processing are <strong>automatically merged</strong>.</li>
-<li>The <code>donor_tier_updated_on</code> timestamp is set automatically, allowing you to determine when donor information was last refreshed.</li>
+<li><strong>Matching is by customer number, then by LGL id.</strong> A row's
+  <code>External constituent ID</code> must be a Stagemgr customer number. When it is
+  blank or matches no customer, the row's <code>LGL Constituent ID</code> is matched
+  against the customers' LGL ID tags. A customer number whose LGL id is on no
+  customer is an error; an <code>External constituent ID</code> that is not a number is
+  an error and the LGL id is not tried. Names and emails in the file are never
+  used to find a customer.</li>
+<li><strong>The import only sets tiers.</strong> It never creates, merges or renames
+  customers, and never changes any other field.</li>
+<li><strong>Blank tier cells clear the tier.</strong> A matched row with an empty
+  <code>TG Tier This Fiscal</code> leaves that customer with no current-year tier.</li>
+<li><strong>The file is the complete list of current donors.</strong> After the whole file
+  has loaded, every customer who has a tier but is not in the file has both
+  tiers cleared.</li>
 </ul>
+<div class="admonition warning">
+<p class="admonition-title">Upload complete files only</p>
+<p>Because customers missing from the file lose their tiers, uploading a
+partial file (one fund, one campaign, a filtered list) clears everyone
+else. If that happens, run the import again with the complete report; the
+tiers come back.</p>
+</div>
+<hr />
+<h2 id="result-file">Result File<a class="headerlink" href="#result-file" title="Permanent link">&para;</a></h2>
+<p>When some rows could not be applied, Stagemgr writes a result file
+(<code>donor_import_results_&lt;your-file-name&gt;.csv</code>) listing only the rows that have
+an entry in the <code>Error</code> column, with the file's own columns plus <code>Error</code>. When
+no row has an error, there is no result file. See
+<a href="../imports-overview/#result-file">Result File</a> for the naming rules.</p>
+<table>
+<thead>
+<tr>
+<th>Row</th>
+<th><code>Error</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>External constituent ID</code> is not a number</td>
+<td><code>External constituent ID is not a number</code></td>
+</tr>
+<tr>
+<td>No customer has that number, and no customer carries the row's LGL ID tag</td>
+<td><code>No customer with this External constituent ID</code></td>
+</tr>
+<tr>
+<td>Blank or unmatched customer number, and several customers carry the row's LGL ID tag</td>
+<td><code>LGL Constituent ID is on customers 123, 456: merge them</code></td>
+</tr>
+<tr>
+<td>The customer could not be saved</td>
+<td>The reason it failed</td>
+</tr>
+</tbody>
+</table>
+<p>Matched rows (including those matched by LGL id) and rows with a blank
+<code>External constituent ID</code> whose LGL id is on no customer (organisations, and
+constituents not yet in Stagemgr) are counted but not listed. Organisations
+never become Stagemgr customers, so they are always counted this way.</p>
+<h3 id="completion-email">Completion Email<a class="headerlink" href="#completion-email" title="Permanent link">&para;</a></h3>
+<p>Every time the import finishes, Stagemgr emails the person who uploaded the
+file (for the nightly import, the supervisor-notifications user) with the
+file name and its counts: constituents in the file, customer records updated
+and update errors, then unchanged rows, rows without an
+<code>External constituent ID</code>, rows matched by <code>LGL Constituent ID</code>, and customers
+cleared because they were not in the
+file. When there is a result file it is attached; otherwise the email says no
+rows had errors.</p>
+<p>The Imports page shows a summary line for each run, for example:</p>
+<div class="highlight"><pre><span></span><code>Donor levels: 1250 rows; updated 40, unchanged 1150, cleared 3, matched by LGL ID 12, no id 43, errors 2; cleared 6 absent customers
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Count</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>updated</td>
+<td>Matched customers whose tiers changed</td>
+</tr>
+<tr>
+<td>unchanged</td>
+<td>Matched customers whose tiers were already correct</td>
+</tr>
+<tr>
+<td>cleared</td>
+<td>Matched customers whose row had both tiers blank</td>
+</tr>
+<tr>
+<td>matched by LGL ID</td>
+<td>Rows whose <code>External constituent ID</code> is blank or matches no customer, matched through a customer's LGL ID tag (also counted as updated, unchanged or cleared)</td>
+</tr>
+<tr>
+<td>no id</td>
+<td>Rows with a blank <code>External constituent ID</code> that no LGL ID tag resolved</td>
+</tr>
+<tr>
+<td>errors</td>
+<td>Rows with an entry in the Error column: a number that matches no customer and whose LGL id is on no customer, an id that is not a number, an LGL id on several customers, or a row that could not be saved</td>
+</tr>
+<tr>
+<td>absent customers</td>
+<td>Customers with a tier who were not in the file and had both tiers cleared</td>
+</tr>
+</tbody>
+</table>
+<hr />
 <h2 id="where-donor-tiers-appear">Where Donor Tiers Appear<a class="headerlink" href="#where-donor-tiers-appear" title="Permanent link">&para;</a></h2>
-<p>Once imported, donor tier information is used throughout Stagemgr:</p>
 <table>
 <thead>
 <tr>
@@ -4303,55 +4405,55 @@
 </thead>
 <tbody>
 <tr>
-<td><strong>House Management Reports</strong></td>
-<td>Donor level appears alongside patron name in seating charts and check-in lists</td>
+<td><strong>Customer page</strong></td>
+<td>Two labels above the tag list: the previous fiscal year's tier in yellow and the current fiscal year's in green, each shown only when that tier is set</td>
 </tr>
 <tr>
-<td><strong>Customer Record</strong></td>
-<td>Donor tier is visible on the customer detail page</td>
-</tr>
-<tr>
-<td><strong>Reports</strong></td>
-<td>Donor tiers can be included in attendee and customer exports</td>
-</tr>
-<tr>
-<td><strong>Marketing</strong></td>
-<td>Donor status can inform targeted communications and special offers</td>
+<td><strong><a href="../../house-management/house-management-report/">House Management Report</a></strong></td>
+<td>The donor level appears beside the patron's name, and donors are listed even when nothing else would include them</td>
 </tr>
 </tbody>
 </table>
-<h2 id="expected-outcome">Expected Outcome<a class="headerlink" href="#expected-outcome" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Customer records are updated with current donor tier information</li>
-<li>The <code>donor_tier_updated_on</code> timestamp records when the update occurred</li>
-<li>Duplicate customer records are consolidated during processing</li>
-<li>A result file (<code>donor_import_results_&lt;your-file-name&gt;.csv</code>) listing every row, with an <code>Error</code> column populated for any that failed, is emailed to you when one or more rows could not be processed. See <a href="../imports-overview/#result-file">Result File</a> for the full naming rules and retry workflow.</li>
-</ul>
+<hr />
 <h2 id="example-csv">Example CSV<a class="headerlink" href="#example-csv" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>External constituent ID,Pref. Email,First Name,Last Name,TG Tier Last Fiscal,TG Tier This Fiscal
-4523,jane@example.com,Jane,Smith,Gold,Platinum
-,mchen@example.com,Michael,Chen,,Silver
-,,Sarah,Johnson,Bronze,Bronze
+<div class="highlight"><pre><span></span><code>External constituent ID,LGL Constituent ID,First Name,Last Name,Pref. Email,TG Tier Last Fiscal,TG Tier This Fiscal
+4523,900101,Jane,Smith,jane@example.com,Gold,Platinum
+7810,900102,Michael,Chen,mchen@example.com,,Silver
+3302,900103,Sarah,Johnson,sarah@example.com,,
+,900104,Ana,Lopez,ana@example.com,Silver,Gold
+,900105,,Example Foundation,grants@example.org,Gold,Gold
 </code></pre></div>
 <p>In this example:</p>
 <ul>
-<li>Jane Smith is matched by her Stagemgr ID (4523), then her tier is updated from Gold to Platinum</li>
-<li>Michael Chen is matched by email, with no previous tier and a new Silver tier</li>
-<li>Sarah Johnson is matched by name, with Bronze tier in both years</li>
+<li>Customer 4523 (Jane Smith) gets Gold last year and Platinum this year.</li>
+<li>Customer 7810 (Michael Chen) has no tier last year and Silver this year.</li>
+<li>Customer 3302 (Sarah Johnson) has both tiers cleared.</li>
+<li>Ana Lopez has no customer number in LGL; the customer tagged LGL ID 900104
+  gets Silver last year and Gold this year.</li>
+<li>Example Foundation is an organisation with no customer number, and no
+  customer carries its LGL id. It is counted as a row without an id, is not listed in the result file, and
+  changes nothing.</li>
+<li>Every other customer who has a tier has both tiers cleared, because they
+  are not in the file.</li>
 </ul>
+<hr />
 <h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
 <ol>
 <li>
-<p><strong>Run periodically.</strong> Import donor levels at the start of each fiscal year and after major fundraising campaigns to keep Stagemgr in sync with LGL.</p>
+<p><strong>Keep the LGL report complete.</strong> It must list every constituent who has a
+   giving level. Do not add filters that leave donors out, or those donors
+   lose their tiers in Stagemgr the next night.</p>
 </li>
 <li>
-<p><strong>Include the Stagemgr ID when possible.</strong> The <code>External constituent ID</code> provides the most reliable match. If your LGL export includes the Stagemgr customer ID, always populate this field.</p>
+<p><strong>Check the LGL Sync page.</strong> The <strong>Last report download</strong> and
+   <strong>Last donor levels import</strong> rows show whether the nightly import is
+   running. If the dates stop advancing, tell your administrator.</p>
 </li>
 <li>
-<p><strong>Verify after import.</strong> Spot-check a few patron records in Stagemgr to confirm their donor tiers updated correctly, especially for patrons matched by name rather than ID.</p>
-</li>
-<li>
-<p><strong>Check the timestamp.</strong> The <code>donor_tier_updated_on</code> field on customer records lets you quickly see whether a patron's donor data is current or stale.</p>
+<p><strong>Read the completion email.</strong> It arrives after every import. When it
+   reports update errors, open the attached result file. A row with no
+   matching customer usually means the constituent's
+   <code>External constituent ID</code> in LGL is wrong; correct it in LGL.</p>
 </li>
 </ol>
 

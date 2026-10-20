@@ -2134,6 +2134,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../customers/lgl-sync/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Little Green Light Sync
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2411,6 +2439,17 @@
     <span class="md-ellipsis">
       
         What Gets Printed
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#receipt-icons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Receipt Icons
       
     </span>
   </a>
@@ -4226,6 +4265,32 @@
 <p class="admonition-title">Warning</p>
 <p>Orders in Hold status are not included in batch printing because payment has not been completed. If a held order needs tickets printed, it must first be converted to a paid order.</p>
 </div>
+<hr />
+<h2 id="receipt-icons">Receipt Icons<a class="headerlink" href="#receipt-icons" title="Permanent link">&para;</a></h2>
+<p>Up to three small icons print on the receipt, just right of the RECEIPT banner, so staff can spot a patron who needs special attention when handing over tickets. They appear on the receipt only, never on the patron's tickets.</p>
+<table>
+<thead>
+<tr>
+<th>Icon</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Star</td>
+<td>The customer is marked <strong>VIP</strong></td>
+</tr>
+<tr>
+<td>Heart</td>
+<td>The customer has a donor tier for the current or last fiscal year, from LGL. Tiers your administrator excludes (usually the lowest) don't earn the heart; see <code>littlegreenlight: donor_flag_excluded_tiers</code> in <a href="../../developer/configuration/">Configuration</a></td>
+</tr>
+<tr>
+<td>Check mark</td>
+<td>The order has <strong>notes</strong>. Read them before handing over the tickets</td>
+</tr>
+</tbody>
+</table>
+<p>Icons print in the order shown. A reprint uses the customer's and order's details at the time of the reprint, so an icon can appear or disappear after the first print.</p>
 <hr />
 <h2 id="fulfill-then-print-workflow">Fulfill-Then-Print Workflow<a class="headerlink" href="#fulfill-then-print-workflow" title="Permanent link">&para;</a></h2>
 <p>A common workflow combines batch printing with batch fulfillment:</p>

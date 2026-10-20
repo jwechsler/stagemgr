@@ -2134,6 +2134,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../customers/lgl-sync/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Little Green Light Sync
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -4174,6 +4202,10 @@
 <td>Percentage Booked</td>
 <td>The proportion of capacity that is sold or held, shown as a percentage</td>
 </tr>
+<tr>
+<td>Expected</td>
+<td>For upcoming performances, the paid count expected at curtain if the performance sells the way this house usually does. It already includes the tickets sold so far; held tickets and comps are not part of it. See <a href="../../analysis/advance-sales/#expected-sales-on-house-counts">Advance Sales</a>.</td>
+</tr>
 </tbody>
 </table>
 <div class="admonition tip">
@@ -4323,6 +4355,10 @@
 <tr>
 <td>HouseCount records</td>
 <td>Every 5 minutes (CalculateHouseCountsJob)</td>
+</tr>
+<tr>
+<td>Expected projection</td>
+<td>Nightly at 4:40 AM (ProjectHouseCountsJob), plus whenever a house count is recalculated</td>
 </tr>
 <tr>
 <td>HUD display files</td>

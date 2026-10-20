@@ -2134,6 +2134,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../customers/lgl-sync/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Little Green Light Sync
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -3743,32 +3771,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#docker-compose" class="md-nav__link">
+  <a href="#little-green-light-sync" class="md-nav__link">
     <span class="md-ellipsis">
       
-        docker compose
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#first-run-and-ci" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        First-run and CI
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#reports-run-from-cron" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Reports run from cron
+        Little Green Light sync
       
     </span>
   </a>
@@ -3777,133 +3783,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configserveryml" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        config/server.yml
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="config/server.yml">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#identity-and-mount-point" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Identity and mount point
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#sales-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Sales rules
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#reports-and-storage" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Reports and storage
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#theater-facts-about-the-house" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        theater: -- facts about the house
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#my_emma" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        my_emma:
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#email" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        email:
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#payment_processing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        payment_processing:
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#the-resque-dashboard" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The Resque dashboard
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#the-test-environment-reads-the-example-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The test environment reads the example file
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#keys-that-are-gone" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Keys that are gone
-      
-    </span>
-  </a>
   
 </li>
       
@@ -4617,6 +4496,14 @@ order.</p>
 <td>Using MyEmma mailing lists. All three are required together; with any of them absent the integration disables itself</td>
 </tr>
 <tr>
+<td><code>LGL_API_KEY</code></td>
+<td>Syncing customers with Little Green Light (<a href="#little-green-light-sync">Little Green Light sync</a>). Optional: absent, the integration disables itself; it also needs <code>littlegreenlight.sync</code> set to <code>enabled</code> or <code>readonly</code></td>
+</tr>
+<tr>
+<td><code>LGL_USER</code>, <code>LGL_PASSWORD</code></td>
+<td>The LGL donor-tier report link (<code>littlegreenlight.donor_tier_report_url</code>) asks for a login. Optional: Basic auth is sent only when both LGL_USER and LGL_PASSWORD are set</td>
+</tr>
+<tr>
 <td><code>AWS_ACCESS_KEY_ID</code>, <code>AWS_SECRET_ACCESS_KEY</code></td>
 <td>ActiveStorage on S3 (uncomment the matching block in <code>config/storage.yml</code>). Blank means local disk</td>
 </tr>
@@ -4632,6 +4519,183 @@ order.</p>
 credentials: reads work, writes are logged and skipped, whatever account the
 credentials point at.</p>
 </div>
+<h3 id="little-green-light-sync">Little Green Light sync<a class="headerlink" href="#little-green-light-sync" title="Permanent link">&para;</a></h3>
+<p>Stagemgr links each customer to a constituent in the default theater's LGL
+account; see <a href="../../customers/lgl-sync/">Little Green Light Sync</a> for what it
+does. Sync runs only when <code>littlegreenlight.sync</code> is <code>enabled</code> or <code>readonly</code>
+<strong>and</strong> <code>LGL_API_KEY</code> (or the <code>littlegreenlight.api_key</code> credential) is set.
+Otherwise every LGL trigger, job and page button is a no-op, and the LGL Sync
+admin page says why. The nightly donor-tier report download is the one
+exception: it needs only <code>donor_tier_report_url</code> (below), not the API key or
+the sync mode.</p>
+<p>From LGL the integration reads constituents (by id, external id and email, and
+the list of every constituent id), the constituents changed since the last
+poll, and each linked constituent's gifts, which set the <code>LGL Lapsed</code> tag
+(<code>LYBUNT</code> / <code>SYBUNT</code>) by fiscal year. The fiscal year starts on
+<code>theater.fiscal_year_start_month</code> (see
+<a href="../theming/#the-theater-block">the <code>theater:</code> block</a>; January when unset).</p>
+<p>The API key is a secret (<a href="#secrets">above</a>); the rest lives in the
+<code>littlegreenlight:</code> section of <code>config/server.yml</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">all</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">littlegreenlight</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">sync</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">readonly</span><span class="w">              </span><span class="c1"># enabled | readonly | disabled</span>
+<span class="w">    </span><span class="nt">writable_address_ids</span><span class="p">:</span><span class="w">       </span><span class="c1"># optional, readonly only: 12, 34  or a YAML list</span>
+<span class="w">    </span><span class="nt">web_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://youraccount.littlegreenlight.com</span>
+<span class="w">    </span><span class="nt">donor_tier_report_url</span><span class="p">:</span><span class="w">      </span><span class="c1"># optional: permanent link of the LGL donor-tier saved report</span>
+<span class="w">    </span><span class="nt">donor_flag_excluded_tiers</span><span class="p">:</span><span class="w">  </span><span class="c1"># optional: [&quot;Up to $99.99&quot;]  tiers that earn no receipt heart</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>ENV override</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sync</code></td>
+<td><code>LGL_SYNC</code></td>
+<td>The sync mode, one of the three below. Case and surrounding spaces are ignored; any other word, or none, means <code>disabled</code></td>
+</tr>
+<tr>
+<td><code>writable_address_ids</code></td>
+<td><code>LGL_WRITABLE_ADDRESS_IDS</code></td>
+<td>Comma-separated (or YAML list) Stagemgr address ids that may still be written to LGL in <code>readonly</code> mode, for acceptance testing. Ignored in <code>enabled</code> mode</td>
+</tr>
+<tr>
+<td><code>web_url</code></td>
+<td>--</td>
+<td>Base URL of the LGL account, used to link an LGL ID to the constituent page. Blank shows the id as plain text</td>
+</tr>
+<tr>
+<td><code>donor_tier_report_url</code></td>
+<td><code>LGL_DONOR_TIER_REPORT_URL</code></td>
+<td>Permanent link of the LGL saved report (CSV with <code>External constituent ID</code>, <code>TG Tier Last Fiscal</code>, <code>TG Tier This Fiscal</code>) that <code>LglDonorLevelsFetch</code> downloads nightly and imports as donor levels. Blank turns the nightly import off. Independent of <code>sync</code> and <code>LGL_API_KEY</code>; the import's owner and result-email recipient is the user whose email is <code>email.addresses.supervisor_notifications</code></td>
+</tr>
+<tr>
+<td><code>donor_flag_excluded_tiers</code></td>
+<td>--</td>
+<td>Donor tier labels that do <strong>not</strong> earn the heart icon on box office receipts, copied exactly as this install's LGL names them, e.g. <code>["Up to $99.99"]</code>. A YAML list or a single label. Any other tier for the current or last fiscal year earns the heart; unset means every tier does. Independent of <code>sync</code> and <code>LGL_API_KEY</code></td>
+</tr>
+</tbody>
+</table>
+<p>A non-blank environment variable overrides the <code>server.yml</code> value; a blank one
+counts as absent, the same rule as <a href="#secrets">AppSecrets</a>.</p>
+<table>
+<thead>
+<tr>
+<th><code>sync</code></th>
+<th>Reads from LGL, local tags and linking</th>
+<th>Writes to LGL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>disabled</code> (or missing, or any other word)</td>
+<td>Off</td>
+<td>Off</td>
+</tr>
+<tr>
+<td><code>readonly</code></td>
+<td>On</td>
+<td>Skipped and logged as <code>[LGL] read-only: skipped ...</code>, except for addresses in <code>writable_address_ids</code>. Stagemgr merges driven by LGL go to LGL Review unless both addresses are writable</td>
+</tr>
+<tr>
+<td><code>enabled</code></td>
+<td>On</td>
+<td>On, for every address</td>
+</tr>
+</tbody>
+</table>
+<p>In development <code>enabled</code> is treated as <code>readonly</code> (with the allowlist), and
+boot logs <code>[LGL] sync 'enabled' downgraded to readonly in development</code>, so a
+copied config never writes to the live account from a developer's machine.
+The test environment never syncs. The rules live in <code>Lgl.configure_from</code>,
+called from each environment's <code>after_initialize</code>.</p>
+<p>The LGL jobs run on the <code>maintenance</code> Resque queue (<code>LglDonorImport</code> runs on
+<code>import</code>). In production <code>script/resque-worker</code> serves that queue from worker</p>
+<h1 id="3-only-defaultmaintenance-so-one-process-makes-every-lgl-request-in-turn-every-other-environment-runs-a">3 only (<code>default,maintenance</code>), so one process makes every LGL request in turn; every other environment runs a<a class="headerlink" href="#3-only-defaultmaintenance-so-one-process-makes-every-lgl-request-in-turn-every-other-environment-runs-a" title="Permanent link">&para;</a></h1>
+<p>single worker on <code>QUEUE=*</code>. <code>config/schedule.yml</code> (and its <code>.example</code>) schedules four of them:</p>
+<table>
+<thead>
+<tr>
+<th>Job</th>
+<th>Schedule</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LglPollConstituents</code></td>
+<td>every 3 hours</td>
+<td>Reads constituents changed since the last poll and reconciles LGL merges</td>
+</tr>
+<tr>
+<td><code>LglSweepConstituents</code></td>
+<td>nightly at 03:10</td>
+<td>Drops <code>LGL ID</code> tags whose constituent no longer exists and re-syncs those customers</td>
+</tr>
+<tr>
+<td><code>LglDonorLevelsFetch</code></td>
+<td>nightly at 05:30</td>
+<td>Downloads the donor-tier saved report and queues <code>LglDonorImport</code>. Runs only when <code>donor_tier_report_url</code> is set, whatever <code>sync</code> is</td>
+</tr>
+<tr>
+<td><code>LglGiftHistoryWalk</code></td>
+<td>Sundays at 02:00</td>
+<td>Reads every linked customer's gifts from LGL (one request each, about 1.1 seconds apart to stay under LGL's 300 requests per 5 minutes, so roughly an hour) and refreshes their <code>LGL Lapsed</code> tag. Only reads LGL. Gives up after 25 consecutive LGL errors. Linking a customer and <strong>Re-sync with LGL</strong> refresh that one customer straight away</td>
+</tr>
+</tbody>
+</table>
+<p>After the first deploy with a key, run the backfill <strong>once</strong> to link every
+constituent whose External constituent ID already names a customer. It only
+writes local tags, never LGL:</p>
+<div class="highlight"><pre><span></span><code>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rake<span class="w"> </span>lgl:backfill<span class="w">       </span><span class="c1"># queue it on the maintenance queue</span>
+bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rake<span class="w"> </span>lgl:backfill_now<span class="w">   </span><span class="c1"># or run it inline and print the counts</span>
+</code></pre></div>
+<h4 id="writing-stagemgr-ids-into-lgl">Writing Stagemgr ids into LGL<a class="headerlink" href="#writing-stagemgr-ids-into-lgl" title="Permanent link">&para;</a></h4>
+<p>Constituents whose External constituent ID is blank, their own LGL id, or a
+customer that no longer exists can be linked by email, once, by a developer.
+A constituent is linked only when exactly one customer has one of its emails,
+the same last name (ignoring case) and no other LGL ID; constituents with
+several matches, none, or no email are only counted. Run the dry run first: it
+reads LGL, prints the counts by kind and outcome, and writes nothing. Then run
+the real one, which queues one sync per match on the <code>maintenance</code> queue:</p>
+<div class="highlight"><pre><span></span><code>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rake<span class="w"> </span>lgl:link_by_email_dry_run<span class="w">   </span><span class="c1"># counts only</span>
+bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rake<span class="w"> </span>lgl:link_by_email<span class="w">           </span><span class="c1"># queue the links</span>
+</code></pre></div>
+<p>It only sets External Constituent IDs in LGL (and the customer's <code>LGL ID</code>
+tag). It never copies a name, street, phone or email in either direction:
+each linked customer is marked as changed after the write, so the next poll
+does not treat LGL as the newer copy.</p>
+<h4 id="bringing-existing-constituents-over">Bringing existing constituents over<a class="headerlink" href="#bringing-existing-constituents-over" title="Permanent link">&para;</a></h4>
+<p><code>lgl:replicate</code> makes every constituent with such an External constituent ID
+a customer: it links it by email, creates a new customer, or leaves it in LGL
+Review, as the poll does for new constituents. Run the dry run first; it prints
+one line per constituent and writes nothing. Optional LGL ids limit either run
+to those constituents and run it inline; without ids the real run is queued on
+the <code>maintenance</code> queue:</p>
+<div class="highlight"><pre><span></span><code>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rake<span class="w"> </span><span class="s2">&quot;lgl:replicate_dry_run[123,456]&quot;</span><span class="w">   </span><span class="c1"># what it would do</span>
+bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rake<span class="w"> </span>lgl:replicate<span class="w">                      </span><span class="c1"># queue the run</span>
+</code></pre></div>
+<p>With sync <code>enabled</code> it queues one sync per linked or created customer, three
+seconds apart to stay under LGL's rate limit. With sync <code>readonly</code> the
+customers are still created and linked locally, but no syncs are queued,
+except an immediate one for each address in <code>writable_address_ids</code>: nothing
+else could be written to LGL. The counts include how many were skipped, as
+<code>sync_skipped_readonly</code>.</p>
+<p>The first <code>LglPollConstituents</code> run after sync is enabled reads nothing: it
+records the current time as its watermark and logs <code>[LGL] poll: first run;
+starting from &lt;time&gt;</code>. Only LGL changes made after that moment are copied into
+Stagemgr; earlier ones are not. A disabled install never starts the clock.</p>
+<p><code>setup:doctor</code> reports one LGL line naming the mode. <code>LGL sync is disabled
+(littlegreenlight.sync)</code> and <code>LGL sync is readonly — writes skipped for ...</code>
+(listing any writable ids, and saying when <code>enabled</code> was downgraded in
+development) are both OK. It warns when <code>sync</code> is a word other than <code>enabled</code>,
+<code>readonly</code> or <code>disabled</code>, and when sync is on but <code>LGL_API_KEY</code> is missing;
+in <code>enabled</code> mode it makes one read to confirm the key and warns if LGL
+rejects it.</p>
 <h3 id="docker-compose"><code>docker compose</code><a class="headerlink" href="#docker-compose" title="Permanent link">&para;</a></h3>
 <table>
 <thead>

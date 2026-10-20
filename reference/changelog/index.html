@@ -2132,6 +2132,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../customers/lgl-sync/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Little Green Light Sync
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -4010,6 +4038,127 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#merge-customers-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Merge Customers Page
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lgl-review-shows-what-matched" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LGL Review Shows What Matched
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#receipt-icons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Receipt Icons
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#little-green-light-sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Little Green Light Sync
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#donor-tiers-from-lgl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Donor Tiers From LGL
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#expected-sales-on-house-counts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expected Sales on House Counts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#theater-users-see-a-narrower-customer-record" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Theater Users See a Narrower Customer Record
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advance-sales-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advance Sales Analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#analysis-tabs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Tabs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#donation-appeals-per-theater" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Donation Appeals Per Theater
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#donations-on-pass-paid-orders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Donations on Pass-Paid Orders
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#refunds-made-in-stripe" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4408,6 +4557,115 @@
 <p>Recent feature additions and significant changes to Stagemgr, listed from newest to oldest.</p>
 </div>
 <h2 id="october-2026">October 2026<a class="headerlink" href="#october-2026" title="Permanent link">&para;</a></h2>
+<h3 id="merge-customers-page">Merge Customers Page<a class="headerlink" href="#merge-customers-page" title="Permanent link">&para;</a></h3>
+<p><strong>Available to:</strong> Administrator</p>
+<p><strong>Merge Selected</strong> on the Customers page and <strong>Merge</strong> on the LGL Review list both open a Merge
+customers page showing the chosen records side by side. The original record (lowest customer
+number) is always kept; the page chooses which values it ends up with.</p>
+<p><strong>Key behaviors:</strong></p>
+<ul>
+<li>Name, street address, email, phone and LGL constituent each offer a choice only where the records differ, defaulting to the newest record that has a value. The street address moves as one unit.</li>
+<li>A live sentence states what the merge will do; VIP and Not a ticket buyer carry over when set on any record.</li>
+<li>Records with different first names get a warning, since they may be a household rather than a duplicate.</li>
+</ul>
+<p>See <a href="../../customers/merging-duplicates/">Merging Duplicate Patrons</a>.</p>
+<h3 id="lgl-review-shows-what-matched">LGL Review Shows What Matched<a class="headerlink" href="#lgl-review-shows-what-matched" title="Permanent link">&para;</a></h3>
+<p><strong>Available to:</strong> Administrator</p>
+<p>Each row of the LGL Review list on the Sync Status page names every customer it matched, the
+email it matched on, the LGL constituent and a short reason. Constituent numbers in the list and
+in the <code>LGL Review</code> tag link to LGL when the LGL web address is configured.</p>
+<p><strong>Key behaviors:</strong></p>
+<ul>
+<li>Reviews naming several constituents list each of them.</li>
+<li>An <code>Also LGL constituent N: merge the two in LGL</code> review clears itself once the two are merged in LGL and LGL kept the constituent this customer is linked to, at the nightly check or on <strong>Re-sync with LGL</strong>.</li>
+</ul>
+<p>See <a href="../../customers/lgl-sync/#the-lgl-review-tag">The LGL Review Tag</a>.</p>
+<h3 id="receipt-icons">Receipt Icons<a class="headerlink" href="#receipt-icons" title="Permanent link">&para;</a></h3>
+<p><strong>Available to:</strong> Administrator, Box Office</p>
+<p>Up to three icons print to the right of the RECEIPT banner on box office receipts, never on
+tickets: a star for a VIP customer, a heart for a customer with an LGL donor tier this fiscal
+year or last (excluded tiers set in configuration), and a check mark when the order has notes.
+Reprints reflect the details at the time of the reprint.</p>
+<p>See <a href="../../house-management/printing-tickets/#receipt-icons">Receipt Icons</a>.</p>
+<h3 id="little-green-light-sync">Little Green Light Sync<a class="headerlink" href="#little-green-light-sync" title="Permanent link">&para;</a></h3>
+<p><strong>Available to:</strong> Administrator (Sync Status page); the tags are visible to anyone who can see the customer</p>
+<p>Stagemgr and Little Green Light (LGL) keep each other's records linked. A customer who donates is matched to, or created as, an LGL constituent and carries an <code>LGL ID</code> tag; LGL holds the Stagemgr customer number as its External constituent ID. Each system owns what it collects, and Stagemgr never deletes anything in LGL.</p>
+<p><strong>Key behaviors:</strong></p>
+<ul>
+<li>A processed donation becomes an LGL gift about ten minutes later, with the amount, date, payment type and a note naming the order; the same donation is never written twice. Only the default theater's donations are sent. A refund adds a note to the gift and flags the order.</li>
+<li>Name, street and phone edits on a linked customer update the constituent's preferred address and phone a couple of minutes after the last edit; edits made in LGL reach Stagemgr on the next three-hourly poll.</li>
+<li>New LGL constituents become Stagemgr customers; merges in either system are mirrored when the records look like the same person.</li>
+<li>When the sync cannot decide, the customer gets an <code>LGL Review</code> tag with a one-line reason. <strong>Options &gt; System Config &gt; LGL Sync</strong> lists them, with buttons to poll, sweep, backfill or refresh now.</li>
+<li>Every linked customer carries an <code>LGL Lapsed</code> tag (<code>LYBUNT</code> or <code>SYBUNT</code>) refreshed from their LGL gift history early Sunday morning.</li>
+<li>Sync runs in one of three modes set in configuration: enabled, read-only or disabled.</li>
+</ul>
+<p>See <a href="../../customers/lgl-sync/">Little Green Light Sync</a>.</p>
+<h3 id="donor-tiers-from-lgl">Donor Tiers From LGL<a class="headerlink" href="#donor-tiers-from-lgl" title="Permanent link">&para;</a></h3>
+<p><strong>Available to:</strong> Administrator, Box Office</p>
+<p>Each customer's donor tiers for this fiscal year and last now come from a saved LGL report that
+Stagemgr downloads and imports itself every night at 5:30 AM. The manual upload on the Imports
+page remains for one-off runs.</p>
+<p><strong>Key behaviors:</strong></p>
+<ul>
+<li>The nightly import runs whenever the report link is configured, whether or not LGL sync is on.</li>
+<li>Rows that match no customer are listed in a result file emailed to the configured recipient, with the reason for each.</li>
+<li>Tiers appear on the customer page and in the House Management report; the donation order page shows the linked LGL gift with a <strong>Send to LGL</strong> button.</li>
+</ul>
+<p>See <a href="../../imports/donor-levels-import/">Donor Levels Import</a>.</p>
+<h3 id="expected-sales-on-house-counts">Expected Sales on House Counts<a class="headerlink" href="#expected-sales-on-house-counts" title="Permanent link">&para;</a></h3>
+<p><strong>Available to:</strong> Administrator, Box Office, House Management</p>
+<p>The <strong>Pace</strong> projection on the production page is now the <strong>Expected</strong> column on Upcoming House
+Counts and a line on the HUD: the paid count expected at curtain if the performance sells the
+way this house usually does.</p>
+<p><strong>Key behaviors:</strong></p>
+<ul>
+<li>Recalculated nightly at 4:40 AM and whenever a house count is recalculated.</li>
+<li>Already includes tickets sold so far; held tickets and comps are not part of it.</li>
+<li>Shows nothing when there is too little history for that theater and lead time.</li>
+</ul>
+<p>See <a href="../../analysis/advance-sales/#expected-sales-on-house-counts">Advance Sales</a> and
+<a href="../../house-management/house-counts/">House Counts</a>.</p>
+<h3 id="theater-users-see-a-narrower-customer-record">Theater Users See a Narrower Customer Record<a class="headerlink" href="#theater-users-see-a-narrower-customer-record" title="Permanent link">&para;</a></h3>
+<p><strong>Available to:</strong> Theater User (what changes); Administrator and Box Office views are unchanged</p>
+<p><strong>Key behaviors:</strong></p>
+<ul>
+<li>In the Notes column an active member shows as <strong>Member [Offer Name]</strong> instead of the member code.</li>
+<li>The customer page has no Active Memberships box and no donor-tier labels.</li>
+<li>Productions Attended lists only productions at the user's own theaters.</li>
+</ul>
+<p>See <a href="../../customers/managing-patrons/#what-theater-users-see">Managing Patrons</a>.</p>
+<h3 id="advance-sales-analysis">Advance Sales Analysis<a class="headerlink" href="#advance-sales-analysis" title="Permanent link">&para;</a></h3>
+<p><strong>Available to:</strong> Administrator, Box Office, Theater User (own theaters)</p>
+<p>Admin &gt; Analysis has an <strong>Advance Sales</strong> tab showing how far ahead of a performance tickets are
+bought: the share of final sales already in hand at each lead time, sales by window, and a
+week-by-week breakdown per production with extension weeks flagged.</p>
+<p><strong>Key behaviors:</strong></p>
+<ul>
+<li>Compare by season, by theater or by production; seasons still playing are marked <em>in progress</em> and drawn dashed.</li>
+<li>Only Active performances count. Tickets bought with a company or festival pass are drawn separately from single tickets; an exchanged ticket keeps its original purchase date.</li>
+<li>Productions whose sales are recorded externally are left out by default; a tick box on the production page marks them, and a checkbox on the analysis includes them.</li>
+</ul>
+<p>See <a href="../../analysis/advance-sales/">Advance Sales</a>.</p>
+<h3 id="analysis-tabs">Analysis Tabs<a class="headerlink" href="#analysis-tabs" title="Permanent link">&para;</a></h3>
+<p><strong>Available to:</strong> Administrator, Box Office, Theater User</p>
+<p>Rate of Sales, Ticket Revenue, Audience, Advance Sales and Pass Sales are tabs across the top of
+Analysis. Selections sit above the results and can be changed and re-run without leaving the
+page; each run has its own address for bookmarking. A theater user attached to one theater sees
+no theater picker.</p>
+<p>See <a href="../../analysis/analysis-overview/">Analysis Overview</a>.</p>
+<h3 id="donation-appeals-per-theater">Donation Appeals Per Theater<a class="headerlink" href="#donation-appeals-per-theater" title="Permanent link">&para;</a></h3>
+<p><strong>Available to:</strong> Administrator</p>
+<p>Each theater's <strong>Default appeal</strong> is the donation wording shown on its own orders; the default
+theater's <strong>Secondary appeal</strong> appears alongside a visiting company's on their orders (not on
+co-productions). Both accept the same formatting as production messages, with <code>{{theater}}</code> and
+<code>{{company}}</code> placeholders. Left blank, the wording is unchanged.</p>
+<p>See <a href="../../setup/theaters/#default-appeal">Theaters</a>.</p>
+<h3 id="donations-on-pass-paid-orders">Donations on Pass-Paid Orders<a class="headerlink" href="#donations-on-pass-paid-orders" title="Permanent link">&para;</a></h3>
+<p><strong>Available to:</strong> Administrator, Box Office, public order pages</p>
+<p>A donation added to an order paid with a membership or flex pass is charged to a card. The card
+fields stay visible when a pass is chosen and a donation entered, and the order does not go
+through without one.</p>
+<p>See <a href="../../ticketing/donation-orders/">Donation Orders</a>.</p>
 <h3 id="refunds-made-in-stripe">Refunds Made in Stripe<a class="headerlink" href="#refunds-made-in-stripe" title="Permanent link">&para;</a></h3>
 <p><strong>Available to:</strong> Administrator, Box Office</p>
 <p>A refund issued in the Stripe dashboard is now recorded on its order automatically, dated the day

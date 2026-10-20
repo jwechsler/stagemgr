@@ -1000,6 +1000,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Form Fields: House Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sales-recorded-externally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sales recorded externally
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2600,6 +2617,34 @@
     
   
     Patron History
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../customers/lgl-sync/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Little Green Light Sync
   
 
     
@@ -4622,8 +4667,26 @@
 <td><strong>Allow Late Seating</strong></td>
 <td>Check to permit seating after the performance has started</td>
 </tr>
+<tr>
+<td><strong>Sales recorded externally</strong></td>
+<td>Check when this production's tickets are sold by an outside box office and keyed into Stagemgr afterwards. See <a href="#sales-recorded-externally">below</a>.</td>
+</tr>
 </tbody>
 </table>
+<h3 id="sales-recorded-externally">Sales recorded externally<a class="headerlink" href="#sales-recorded-externally" title="Permanent link">&para;</a></h3>
+<p>Some productions sell through another venue's box office and have their tickets keyed
+into Stagemgr afterwards. For such a production the order date is the date of data entry,
+not the date the patron bought, so its lead times and sales curve are meaningless.
+Ticking this box keeps the production out of the
+<a href="../../analysis/advance-sales/">Advance Sales</a> analysis by default (a checkbox on that form
+lets you include it deliberately), leaves it out of the sales history behind the
+<a href="../../analysis/advance-sales/#expected-sales-on-house-counts"><strong>Expected</strong></a> column, shows
+no expected final count for it on house counts, and removes it from the
+<a href="../../analysis/rate-of-sales/">Rate of Sales</a> analysis altogether. Everything else about
+the production is unaffected.</p>
+<p><img alt="Sales recorded externally on the production form" src="../../assets/images/screenshots/production-external-sales-field.png" /></p>
+<p>Flagged productions show an <strong>External sales</strong> label on the production page's Settings tab.</p>
+<p><img alt="External sales label on the production page" src="../../assets/images/screenshots/production-external-sales-label.png" /></p>
 <h2 id="form-fields-promotional">Form Fields: Promotional<a class="headerlink" href="#form-fields-promotional" title="Permanent link">&para;</a></h2>
 <h3 id="promo-image">Promo Image<a class="headerlink" href="#promo-image" title="Permanent link">&para;</a></h3>
 <p>Upload a promotional image for the production. Recommended size: <strong>250x375 pixels</strong>. This image appears on the website calendar, production listing, and in some email templates.</p>

@@ -2167,6 +2167,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#the-merge-customers-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Merge Customers Page
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#original-and-newer-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Original and Newer Records
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#merge-rules" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2178,10 +2200,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-happens-during-a-merge" class="md-nav__link">
+  <a href="#merging-more-than-two-records" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What Happens During a Merge
+        Merging More Than Two Records
       
     </span>
   </a>
@@ -2256,6 +2278,34 @@
     
   
     Patron History
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lgl-sync/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Little Green Light Sync
   
 
     
@@ -4125,7 +4175,7 @@
 <p class="admonition-title">Role: Administrators Only</p>
 <p>Merging duplicate patron records is a permanent, irreversible operation restricted to administrators. Use caution and verify selections before confirming a merge.</p>
 </div>
-<p><strong>Navigation:</strong> Admin &gt; Addresses &gt; Merge Selected</p>
+<p><strong>Navigation:</strong> Admin &gt; Addresses &gt; Merge Selected, or <strong>Merge</strong> on the LGL Review list of the <a href="../lgl-sync/#the-sync-status-page">LGL Sync Status page</a></p>
 <hr />
 <h2 id="when-duplicates-arise">When Duplicates Arise<a class="headerlink" href="#when-duplicates-arise" title="Permanent link">&para;</a></h2>
 <p>Duplicate patron records are created when:</p>
@@ -4147,78 +4197,144 @@
 <li>Navigate to <strong>Admin &gt; Addresses</strong>.</li>
 <li>Search for the patron whose duplicates you want to consolidate.</li>
 <li>Identify all duplicate records in the search results.</li>
-<li>Select the checkbox next to each duplicate record.</li>
-<li>Click <strong>Merge Selected</strong>.</li>
-<li>Confirm the merge operation.</li>
+<li>Click each duplicate record's row to select it. <strong>Merge Selected</strong> is
+   available when two to four rows are selected.</li>
+<li>Click <strong>Merge Selected</strong>. The Merge customers page opens.</li>
+<li>Choose the values to keep, check the summary, and click <strong>Merge into #id</strong>.</li>
 </ol>
 <hr />
+<h2 id="the-merge-customers-page">The Merge Customers Page<a class="headerlink" href="#the-merge-customers-page" title="Permanent link">&para;</a></h2>
+<p>The page shows the selected customers side by side, one column per customer
+in order of customer ID. Each column heading is the customer's ID and name,
+linking to their page. The first column is the <strong>master</strong>: the original record
+(lowest ID), which is kept. Every other record is merged into it and deleted.</p>
+<p>The rows are <strong>Name</strong>, <strong>Street address</strong>, <strong>Email</strong>, <strong>Phone</strong> and <strong>LGL
+constituent</strong>, followed by <strong>Active member</strong>, <strong>Donor</strong> and <strong>Orders</strong> for
+reference.</p>
+<ul>
+<li>Where the customers' values differ, each value has a radio button. Choose
+  the one the master should end up with. Each starts on the newest record
+  that has a value.</li>
+<li>Where they do not differ (the same value, or only one record has one), the
+  values are shown as plain text and there is nothing to choose.</li>
+<li>The street address is one value: street, city, state and ZIP all come from
+  the record you choose, so no part of another record's address is mixed in.</li>
+</ul>
+<p>When the customers have different first names, a warning names them: they may
+be a household rather than one person.</p>
+<p>Below the table, a summary says which record is kept and which are deleted,
+which values come from records other than the master, and how many orders and
+memberships move to the master. It updates as you change the choices. When
+you came from the LGL Review list it also says the master will be re-linked to
+the LGL constituent, and the page shows the constituent's number with a
+<strong>View in LGL</strong> link when the LGL web address is configured.</p>
+<p>Click <strong>Merge into #id</strong> to merge, or <strong>Cancel</strong> to go back without changing
+anything. After a merge from the Customers page you land on the master's
+page; after a merge from the LGL Review list you return to the LGL Sync
+Status page.</p>
+<hr />
+<h2 id="original-and-newer-records">Original and Newer Records<a class="headerlink" href="#original-and-newer-records" title="Permanent link">&para;</a></h2>
+<p>A merge always keeps the <strong>original</strong> record, the one with the <strong>lowest ID</strong>
+(the one created first), and folds each <strong>newer</strong> record into it. The newer
+records are then deleted.</p>
+<p>The original record is kept because it usually carries the most history:
+past orders, memberships and attendance. Folding the newer records in moves
+only their smaller amount of activity, such as a recent order, onto the
+patron's established record.</p>
+<hr />
 <h2 id="merge-rules">Merge Rules<a class="headerlink" href="#merge-rules" title="Permanent link">&para;</a></h2>
-<p>The merge follows a specific set of rules to determine which record survives and how data is consolidated:</p>
 <table>
 <thead>
 <tr>
-<th>Rule</th>
-<th>Detail</th>
+<th>What</th>
+<th>Result</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Surviving record</td>
-<td>The record with the <strong>lowest ID</strong> (oldest record) is kept</td>
+<td>Which record is kept</td>
+<td>The original record (lowest ID). Newer records are deleted after the merge</td>
 </tr>
 <tr>
-<td>Contact information</td>
-<td>The surviving record's name, address, email, and phone are preserved</td>
+<td>Name, street address, email, phone</td>
+<td>The values chosen on the Merge customers page. Each defaults to the newest record that has a value, so a blank never wins by default</td>
 </tr>
 <tr>
-<td>Orders</td>
-<td>All orders from merged records are reassigned to the surviving record</td>
+<td>LGL ID</td>
+<td>The one chosen on the page. Any other LGL constituent the records were linked to is noted in an <code>LGL Review</code> tag on the original record, asking for the constituents to be merged in LGL</td>
 </tr>
 <tr>
-<td>Tags</td>
-<td>All patron tags from merged records are transferred to the surviving record</td>
+<td>Tags for different theaters</td>
+<td>Kept side by side. Two tags with the same label, such as <code>External ID</code>, both end up on the original record when each belongs to a different theater</td>
 </tr>
 <tr>
-<td>Memberships</td>
-<td>All membership records are reassigned to the surviving record</td>
+<td>Tags with the same label for the same theater</td>
+<td>The newer record's value replaces the original's. Only one tag remains</td>
 </tr>
 <tr>
-<td>Flex passes</td>
-<td>All flex pass records are reassigned to the surviving record</td>
+<td>Tags only on the newer record</td>
+<td>Moved to the original record</td>
 </tr>
 <tr>
-<td>Donations</td>
-<td>All donation history is consolidated under the surviving record</td>
+<td><code>LGL Review</code> tags</td>
+<td>Merging on the Merge customers page removes them from the original record: merging is how the review is resolved. The only one that stays is the flag the merge itself raises when the records were linked to different LGL constituents. Automatic duplicate consolidation does not remove them; the newer record's <code>LGL Review</code> tag replaces the original's like any other tag</td>
+</tr>
+<tr>
+<td>VIP and placeholder flags</td>
+<td>Set on the original if either record had them</td>
+</tr>
+<tr>
+<td>Donor levels</td>
+<td>The newer record's donor level, when it has one</td>
+</tr>
+<tr>
+<td>Photo</td>
+<td>Copied from the newer record only if the original has none</td>
+</tr>
+<tr>
+<td>Orders, including gifts the patron received</td>
+<td>Moved to the original record</td>
+</tr>
+<tr>
+<td>Memberships and flex passes</td>
+<td>Moved to the original record</td>
+</tr>
+<tr>
+<td>Payments, pledges and donation history</td>
+<td>Moved to the original record</td>
+</tr>
+<tr>
+<td>Productions attended</td>
+<td>Combined on the original record</td>
 </tr>
 </tbody>
 </table>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>The merge operation is <strong>permanent and cannot be undone</strong>. The non-surviving duplicate records are removed from the system after their associated data is transferred. Always double-check that you have selected the correct records before confirming.</p>
+<p>The merge operation is <strong>permanent and cannot be undone</strong>. The newer records are removed from the system after their data is moved. Always double-check that you have selected the correct records before confirming.</p>
 </div>
 <hr />
-<h2 id="what-happens-during-a-merge">What Happens During a Merge<a class="headerlink" href="#what-happens-during-a-merge" title="Permanent link">&para;</a></h2>
-<p>When you merge two or more patron records, Stagemgr performs the following steps:</p>
-<ol>
-<li><strong>Identifies the survivor</strong>: The record with the lowest database ID becomes the surviving record.</li>
-<li><strong>Transfers orders</strong>: Every order linked to the duplicate records is re-associated with the surviving record.</li>
-<li><strong>Transfers tags</strong>: All patron tags from duplicates are moved to the surviving record. If both records have the same tag label for the same theater, both tag entries are preserved.</li>
-<li><strong>Transfers memberships and flex passes</strong>: Membership and flex pass records are reassigned to the surviving record.</li>
-<li><strong>Removes duplicates</strong>: The now-empty duplicate records are deleted from the system.</li>
-</ol>
+<h2 id="merging-more-than-two-records">Merging More Than Two Records<a class="headerlink" href="#merging-more-than-two-records" title="Permanent link">&para;</a></h2>
+<p>You can merge up to four records at once. Stagemgr keeps the one with the
+lowest ID and folds the others into it, from the next-lowest ID to the
+highest. Name, street address, email, phone and LGL ID come from the records
+you chose on the page; for the other details in the table above, the newest
+record's values win wherever it has them.</p>
+<p>The whole merge succeeds or fails as one. If any part fails, no record is
+changed and the page shows the error.</p>
 <hr />
 <h2 id="before-you-merge">Before You Merge<a class="headerlink" href="#before-you-merge" title="Permanent link">&para;</a></h2>
 <p>Review the following checklist before performing a merge:</p>
 <ul>
 <li>[ ] Verify that the records truly belong to the same person.</li>
-<li>[ ] Note which record has the lowest ID -- this will be the surviving record.</li>
-<li>[ ] Check that the surviving record has the most accurate contact information (name, email, address). If not, update it before merging.</li>
-<li>[ ] Review tags on all records to understand what metadata will be consolidated.</li>
+<li>[ ] Check the chosen name, street address, email, phone and LGL constituent on the Merge customers page.</li>
+<li>[ ] Read the summary below the table: which record is kept, which are deleted and what moves.</li>
+<li>[ ] Review tags on all records. A tag on the newer record replaces the original's tag with the same label for the same theater, and any <code>LGL Review</code> tag is removed by the merge.</li>
 <li>[ ] Confirm you have administrator access.</li>
 </ul>
 <hr />
 <h2 id="handling-contact-information-conflicts">Handling Contact Information Conflicts<a class="headerlink" href="#handling-contact-information-conflicts" title="Permanent link">&para;</a></h2>
-<p>Because the surviving record (lowest ID) retains its own contact information, you should update it before merging if a newer duplicate has more accurate details. For example:</p>
+<p>Choose the better value on the Merge customers page. For example:</p>
 <table>
 <thead>
 <tr>
@@ -4228,23 +4344,22 @@
 </thead>
 <tbody>
 <tr>
-<td>Surviving record has outdated address</td>
-<td>Edit the surviving record's address before merging</td>
+<td>The newer record has an outdated address and the original's is correct</td>
+<td>Choose the original's street address</td>
 </tr>
 <tr>
-<td>Duplicate has a valid email but survivor does not</td>
-<td>Copy the email to the surviving record first</td>
+<td>The patron's preferred email is on the original record</td>
+<td>Choose the original's email</td>
 </tr>
 <tr>
-<td>Name spelling differs between records</td>
-<td>Correct the surviving record's name before merging</td>
+<td>The name is spelled correctly only on the original record</td>
+<td>Choose the original's name</td>
 </tr>
 </tbody>
 </table>
-<div class="admonition tip">
-<p class="admonition-title">Tip</p>
-<p>Open both patron records in separate browser tabs to compare their information side by side before initiating the merge.</p>
-</div>
+<p>Details the page does not offer, such as tags, flags and donor levels, follow
+the <a href="#merge-rules">Merge Rules</a>. Correct them on the newer record before
+merging, or on the original afterwards.</p>
 <hr />
 <h2 id="common-merge-scenarios">Common Merge Scenarios<a class="headerlink" href="#common-merge-scenarios" title="Permanent link">&para;</a></h2>
 <table>
@@ -4257,11 +4372,11 @@
 <tbody>
 <tr>
 <td>Same person, different email addresses</td>
-<td>Merge and keep the preferred email on the surviving record</td>
+<td>Choose the preferred email on the Merge customers page</td>
 </tr>
 <tr>
 <td>"Bob" vs. "Robert" with same last name and email</td>
-<td>Safe to merge</td>
+<td>Safe to merge. Choose the spelling to keep</td>
 </tr>
 <tr>
 <td>Same name but different addresses</td>
@@ -4269,11 +4384,11 @@
 </tr>
 <tr>
 <td>Placeholder record alongside a real patron record</td>
-<td>Merge the placeholder into the real record</td>
+<td>The merged record keeps the placeholder flag if either record had it. Clear the flag on the patron's record after merging</td>
 </tr>
 <tr>
 <td>More than two duplicates</td>
-<td>Select all duplicates at once for a single merge operation</td>
+<td>Select up to four at once and choose each value on the page</td>
 </tr>
 </tbody>
 </table>
@@ -4281,8 +4396,7 @@
 <h2 id="restrictions">Restrictions<a class="headerlink" href="#restrictions" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Only users with <strong>administrator</strong> privileges can perform merges.</li>
-<li>Records associated with finalized orders can be merged (orders transfer to the survivor), but individual records with finalized orders cannot be deleted outside of the merge process.</li>
-<li>The merge operation processes all selected records in a single transaction.</li>
+<li>Records associated with finalized orders can be merged (their orders move to the original record), but individual records with finalized orders cannot be deleted outside of the merge process.</li>
 </ul>
 
 

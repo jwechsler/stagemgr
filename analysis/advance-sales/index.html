@@ -2134,6 +2134,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../customers/lgl-sync/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Little Green Light Sync
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2787,10 +2815,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pace-on-the-performance-list" class="md-nav__link">
+  <a href="#expected-sales-on-house-counts" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Pace on the performance list
+        Expected sales on house counts
       
     </span>
   </a>
@@ -4169,8 +4197,9 @@ bought for:</p>
 <li>What does a run look like week by week, and how did performances added after opening
   sell compared with the original run?</li>
 </ul>
-<p>A related <strong>Pace</strong> column on each production's performance list uses the same history to
-project where an upcoming performance is heading. See <a href="#pace-on-the-performance-list">Pace</a>.</p>
+<p>A related <strong>Expected</strong> column on upcoming house counts uses the same history to project
+where an upcoming performance is heading. See
+<a href="#expected-sales-on-house-counts">Expected sales on house counts</a>.</p>
 <h2 id="running-the-analysis">Running the analysis<a class="headerlink" href="#running-the-analysis" title="Permanent link">&para;</a></h2>
 <p><img alt="Advance Sales form" src="../../assets/images/screenshots/advance-sales-form-empty.png" /></p>
 <table>
@@ -4198,8 +4227,8 @@ project where an upcoming performance is heading. See <a href="#pace-on-the-perf
 <td><strong>Both</strong> draws a single-ticket line and a pass line per group; <strong>Single tickets</strong> or <strong>Passes</strong> draws one line per group. See <a href="#what-counts">What counts</a>.</td>
 </tr>
 <tr>
-<td><strong>Include theaters with sales recorded externally</strong></td>
-<td>Shown only when such a theater is in your list. Off by default. See <a href="#sales-recorded-externally">Sales recorded externally</a>.</td>
+<td><strong>Include productions with sales recorded externally</strong></td>
+<td>Shown only when you can see such a production. Off by default. See <a href="#sales-recorded-externally">Sales recorded externally</a>.</td>
 </tr>
 </tbody>
 </table>
@@ -4328,19 +4357,39 @@ extension sold relative to the original run.</p>
   passes and memberships themselves are not ticket sales and are never counted.</li>
 </ul>
 <h3 id="sales-recorded-externally">Sales recorded externally<a class="headerlink" href="#sales-recorded-externally" title="Permanent link">&para;</a></h3>
-<p>Some companies sell through their own box office and have their tickets keyed into
-Stagemgr afterwards. For those theaters the order date is the data-entry date, not the
+<p>Some productions sell through another venue's box office and have their tickets keyed
+into Stagemgr afterwards. For those the order date is the data-entry date, not the
 purchase date, so their lead times are meaningless and would distort any comparison. Tick
-<strong>Sales recorded externally</strong> on the <a href="../../setup/theaters/#sales-recorded-externally">theater form</a>
-to keep such a theater out of Advance Sales by default. The theater's own production pages
-still show it, and the form offers a checkbox to include it in a run deliberately.</p>
-<h2 id="pace-on-the-performance-list">Pace on the performance list<a class="headerlink" href="#pace-on-the-performance-list" title="Permanent link">&para;</a></h2>
-<p><img alt="Pace column" src="../../assets/images/screenshots/production-pace-column.png" /></p>
-<p>On a production's admin page, the performance list has a <strong>Pace</strong> column for upcoming
-performances. It projects where each performance is heading from the theater's own
-history: if this house typically has 60% of a performance's final sales in hand a week
-out, and a performance a week away has sold 30 tickets, the projection is about 50
-tickets. The cell reads <strong>~50 (48% of capacity)</strong>; hover over it for the basis.</p>
+<strong>Sales recorded externally</strong> on the
+<a href="../../productions/creating-a-production/#sales-recorded-externally">production form</a>
+to keep such a production out of Advance Sales by default. The form offers a checkbox to
+include them in a run deliberately.</p>
+<p><img alt="Include productions with sales recorded externally" src="../../assets/images/screenshots/advance-sales-include-external.png" /></p>
+<p>Included productions carry an <strong>external sales</strong> label in the week-by-week list, so a run
+that mixes the two kinds says which is which.</p>
+<p><img alt="External sales label in the week-by-week list" src="../../assets/images/screenshots/advance-sales-external-sales-label.png" /></p>
+<h2 id="expected-sales-on-house-counts">Expected sales on house counts<a class="headerlink" href="#expected-sales-on-house-counts" title="Permanent link">&para;</a></h2>
+<p><img alt="Expected on Upcoming House Counts" src="../../assets/images/screenshots/house-counts-expected-column.png" /></p>
+<p><strong>Expected</strong> is the paid count the performance is expected to have at curtain if it sells
+the way this house usually does. It already includes the tickets sold so far; held tickets
+and comps are not part of it.</p>
+<p>For example, MUD1019 is six days out with 19 paid tickets. At this theater, performances
+six days out have typically sold about two thirds of their final count, so 19 ÷ 0.66 gives
+~29 expected at curtain, about ten more between now and show time.</p>
+<p>On the day of the show, Expected is worked out from the tickets bought before that day and
+the share this house typically has in hand by show-day morning, so it keeps anticipating
+walk-ups and does not fall overnight. The hover text then reads, for example, "Sold 19
+before today; this house typically has 79% in hand by show day".</p>
+<p>You see it in two places:</p>
+<ul>
+<li><strong>Upcoming House Counts</strong> on your account page (the page you land on after signing in,
+  shown to theater users and administrators). The last column, <strong>Expected</strong>, reads
+  <strong>~29</strong>. Hover over it for the basis, for example "Sold 19 as of Oct 13; this house
+  typically has 66% in hand 6 days out".</li>
+<li>The HUD file <code>house_counts.txt</code>, as a right-aligned <strong>Expected</strong> column (<code>~29</code>). It is
+  blank when there is nothing to project, it is too early, or Sold has already passed it. See
+  <a href="../../house-management/hud-display/">HUD Display</a>.</li>
+</ul>
 <table>
 <thead>
 <tr>
@@ -4350,8 +4399,8 @@ tickets. The cell reads <strong>~50 (48% of capacity)</strong>; hover over it fo
 </thead>
 <tbody>
 <tr>
-<td><strong>~N (P% of capacity)</strong></td>
-<td>Projected final count and its share of the production's capacity.</td>
+<td><strong>~N</strong></td>
+<td>Paid tickets expected at curtain, including those already sold.</td>
 </tr>
 <tr>
 <td><strong>Too early</strong></td>
@@ -4359,17 +4408,30 @@ tickets. The cell reads <strong>~50 (48% of capacity)</strong>; hover over it fo
 </tr>
 <tr>
 <td><strong>--</strong></td>
-<td>The performance has played, is inactive, or there is not enough history to project from.</td>
+<td>The performance has played, is inactive, the production's sales are recorded externally, or there is not enough history to project from.</td>
+</tr>
+<tr>
+<td><strong>--</strong> (with hover text)</td>
+<td>The <strong>Sold</strong> column has already passed the expected count; the hover text says so.</td>
 </tr>
 </tbody>
 </table>
-<p>The history is the theater's earlier seasons. A theater with fewer than 1,000 tickets of
-history uses the building-wide curve instead; the hover text says so. The Pace column is
-not affected by in-progress seasons, because it only ever looks at seasons before the
-production's own.</p>
+<p>The history is the theater's earlier seasons, leaving out any production whose sales are
+recorded externally; such a production is never projected either. A theater with fewer
+than 1,000 tickets of history uses the building-wide curve instead, and the hover text
+ends with "(building-wide curve)". Expected is not affected by in-progress seasons, because it
+only ever looks at seasons before the production's own.</p>
+<p>The "Sold" figure Expected projects from counts paid, seat-holding tickets, leaving out
+complimentary ones, each dated by its original purchase. It can therefore be a little
+under the row's <strong>Sold</strong> column, which includes comps.</p>
+<p>The projection is stored on each performance's house count. It is refreshed whenever that
+performance's house count is recalculated (on every sale, hold or cancellation, and in the
+5-minute sweep) and by a nightly pass at 4:40 AM (<code>ProjectHouseCountsJob</code>) that
+re-projects every upcoming performance, so a performance with no new sales still moves
+along the curve as its date approaches.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Pace is a projection from typical behaviour, not a forecast of this show. A strong
+<p>Expected is a projection from typical behaviour, not a forecast of this show. A strong
 review, a snowstorm, or a late press push will move a performance off its house's
 usual curve.</p>
 </div>

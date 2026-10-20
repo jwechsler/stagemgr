@@ -2134,6 +2134,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../customers/lgl-sync/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Little Green Light Sync
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -4169,12 +4197,12 @@
 <h3 id="house_countstxt">house_counts.txt<a class="headerlink" href="#house_countstxt" title="Permanent link">&para;</a></h3>
 <p>Real-time seat inventory for upcoming performances (next 14 days).</p>
 <div class="highlight"><pre><span></span><code>HOUSE COUNTS
-+------------+------+------+-----------+-----------+
-| Code       | Sold | Held | Remaining | Max Price |
-+------------+------+------+-----------+-----------+
-| ALLY0327   |   54 |   33 |        13 |     24.00 |
-| NOON0327   |   25 |   18 |        61 |     60.00 |
-+------------+------+------+-----------+-----------+
++------------+------+------+-----------+-----------+----------+
+| Code       | Sold | Held | Remaining | Max Price | Expected |
++------------+------+------+-----------+-----------+----------+
+| ALLY0327   |   54 |   33 |        13 |     24.00 |      ~71 |
+| NOON0327   |   25 |   18 |        61 |     60.00 |          |
++------------+------+------+-----------+-----------+----------+
 Generated Fri Mar 27 13:26:57 CDT 2026
 </code></pre></div>
 <table>
@@ -4204,6 +4232,10 @@ Generated Fri Mar 27 13:26:57 CDT 2026
 <tr>
 <td>Max Price</td>
 <td>Highest web-visible ticket price currently on sale</td>
+</tr>
+<tr>
+<td>Expected</td>
+<td>Paid tickets expected at curtain if the show sells the way this house usually does; includes tickets already sold. Blank when it is too early to project, the production's sales are recorded externally, or once Sold has passed it. See <a href="../../analysis/advance-sales/#expected-sales-on-house-counts">Advance Sales</a>.</td>
 </tr>
 </tbody>
 </table>
@@ -4246,6 +4278,11 @@ Generated Fri Mar 27 13:26:57 CDT 2026
 <td>house_counts.txt</td>
 <td>Every 10 minutes</td>
 <td>HouseCount records (recalculated every 5 min)</td>
+</tr>
+<tr>
+<td>Expected in house_counts.txt</td>
+<td>Nightly at 4:40 AM, plus whenever a house count is recalculated</td>
+<td>ProjectHouseCountsJob / HouseCount recalculation</td>
 </tr>
 <tr>
 <td>todays_counts.txt</td>
