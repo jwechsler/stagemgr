@@ -5,6 +5,48 @@
 
 ## October 2026
 
+### Merge Customers Page
+
+**Available to:** Administrator
+
+**Merge Selected** on the Customers page and **Merge** on the LGL Review list both open a Merge
+customers page showing the chosen records side by side. The original record (lowest customer
+number) is always kept; the page chooses which values it ends up with.
+
+**Key behaviors:**
+
+- Name, street address, email, phone and LGL constituent each offer a choice only where the records differ, defaulting to the newest record that has a value. The street address moves as one unit.
+- A live sentence states what the merge will do; VIP and Not a ticket buyer carry over when set on any record.
+- Records with different first names get a warning, since they may be a household rather than a duplicate.
+
+See [Merging Duplicate Patrons](../customers/merging-duplicates.md).
+
+### LGL Review Shows What Matched
+
+**Available to:** Administrator
+
+Each row of the LGL Review list on the Sync Status page names every customer it matched, the
+email it matched on, the LGL constituent and a short reason. Constituent numbers in the list and
+in the `LGL Review` tag link to LGL when the LGL web address is configured.
+
+**Key behaviors:**
+
+- Reviews naming several constituents list each of them.
+- An `Also LGL constituent N: merge the two in LGL` review clears itself once the two are merged in LGL and LGL kept the constituent this customer is linked to, at the nightly check or on **Re-sync with LGL**.
+
+See [The LGL Review Tag](../customers/lgl-sync.md#the-lgl-review-tag).
+
+### Receipt Icons
+
+**Available to:** Administrator, Box Office
+
+Up to three icons print to the right of the RECEIPT banner on box office receipts, never on
+tickets: a star for a VIP customer, a heart for a customer with an LGL donor tier this fiscal
+year or last (excluded tiers set in configuration), and a check mark when the order has notes.
+Reprints reflect the details at the time of the reprint.
+
+See [Receipt Icons](../house-management/printing-tickets.md#receipt-icons).
+
 ### Little Green Light Sync
 
 **Available to:** Administrator (Sync Status page); the tags are visible to anyone who can see the customer
