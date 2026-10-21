@@ -48,7 +48,7 @@ module TktprintPrintable
     # non-Latin-1 token makes Namae fail to parse and the ticket would
     # otherwise print with a blank name.
     printable_name = PrinterTextSanitizer.sanitize(hold_under.presence || address.full_name)
-    cleaned_name, f_name, l_name = Address.parse_name(printable_name)
+    cleaned_name, f_name, _, l_name = Address.parse_name(printable_name)
     if cleaned_name == address.full_name
       use_last_name = address.last_name
       use_first_name = address.first_name

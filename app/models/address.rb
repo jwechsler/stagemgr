@@ -50,15 +50,21 @@ class Address < ApplicationRecord
   NAME_NOISE_CHARS = (0xFE00..0xFE0F).map { |cp| [cp].pack('U') }.join.freeze
   NAME_NOISE_RE = /[\p{So}\p{Sk}\p{Cf}#{NAME_NOISE_CHARS}]/
 
+  # A single letter, optionally followed by a period: "M" or "M.".
+  MIDDLE_INITIAL_RE = /\A[[:alpha:]]\.?\z/
+  COUPLE_RE = /\s(and|&)\s/i
+
+  # Returns [full_name, first, middle, last]. middle is only ever a trailing
+  # initial split off the given name; see split_middle_initial.
   def self.parse_name(full_name)
     if full_name.blank?
-      ["", "", ""]
+      ["", "", "", ""]
     else
       parseable = full_name.gsub(NAME_NOISE_RE, ' ').squish
-      return ["", "", ""] if parseable.blank?
+      return ["", "", "", ""] if parseable.blank?
 
       names = Namae.parse(parseable)
-      if names.any?
+      if names.any? && !lowercase_misparse?(names.first)
         primary_name = names.first
         secondary_name = names.length > 1 ? names.second : nil
 
@@ -75,25 +81,51 @@ class Address < ApplicationRecord
           l_name = f_name
           f_name = ""
         end
-        [full_name, f_name, l_name]
+        [full_name, *split_middle_initial(f_name), l_name]
       else
         # Namae also chokes on parenthesized nicknames ("Kathleen (Kate)
-        # Early") and surnames that collide with its title vocabulary
-        # ("Paula Cantor", "Brian Pastor", "Bruce Elder"). Fall back to a
+        # Early"), surnames that collide with its title vocabulary
+        # ("Paula Cantor", "Brian Pastor", "Bruce Elder") and all-lowercase
+        # names ("jonathan b sands", see lowercase_misparse?). Fall back to a
         # naive last-token split rather than leaving the name blank.
         tokens = parseable.split
         if tokens.length == 1
-          [full_name, "", tokens.first]
+          [full_name, "", "", tokens.first]
         else
-          [full_name, tokens[0..-2].join(" "), tokens.last]
+          [full_name, *split_middle_initial(tokens[0..-2].join(" ")), tokens.last]
         end
       end
     end
   end
 
+  # Namae reads lowercase words before the surname as a particle ("van",
+  # "de"), so "jonathan b sands" comes back with no given name and
+  # particle "jonathan b". Titled names ("Dr. Smith") also lack a given name
+  # but have no particle, so they keep the Namae result.
+  def self.lowercase_misparse?(name)
+    name.given.blank? && name.particle.present?
+  end
+  private_class_method :lowercase_misparse?
+
+  # Splits a trailing middle initial off a given name: "Alicia M" ->
+  # ["Alicia", "M"]. Everything else stays whole in first: "Mary Ann",
+  # couples ("John and Joyce", "John & Joyce") and initials-only given
+  # names ("J. R. R."). Returns [first, middle].
+  def self.split_middle_initial(given)
+    tokens = given.to_s.split
+    return [given.to_s, ""] if tokens.length < 2 || given.match?(COUPLE_RE)
+    return [given.to_s, ""] if tokens.all? { |t| t.match?(MIDDLE_INITIAL_RE) }
+    return [given.to_s, ""] unless tokens.last.match?(MIDDLE_INITIAL_RE)
+
+    [tokens[0..-2].join(" "), tokens.last]
+  end
+  private_class_method :split_middle_initial
+
+  # [first, last] for billing names (Stripe, recurring profiles): a middle
+  # initial stays attached to first, as it was before middle_name was derived.
   def parse_full_name
-    _, f_name, l_name = Address.parse_name(full_name)
-    [f_name, l_name]
+    _, f_name, m_name, l_name = Address.parse_name(full_name)
+    [[f_name, m_name].compact_blank.join(" "), l_name]
   end
 
   def set_full_name(full_name, first_name = nil, middle_name = nil, last_name = nil)
@@ -106,8 +138,24 @@ class Address < ApplicationRecord
     end
   end
 
+  # First, middle and last name as the next save should store them. The parse
+  # only recovers a trailing middle initial, so a stored middle_name is
+  # knowledge from an import or LGL that the parse cannot rebuild: the parse
+  # may add a middle name or split the stored one out of first_name, but it
+  # never blanks it. Last name always comes from the parse.
+  def derived_names
+    _, first, middle, last = Address.parse_name(full_name)
+    stored_middle = middle_name.to_s.strip
+    if middle.blank? && stored_middle.present?
+      suffix = " #{stored_middle}"
+      first = first[0...-suffix.length].squish if first.downcase.end_with?(suffix.downcase)
+      middle = stored_middle
+    end
+    { first_name: first, middle_name: middle.to_s, last_name: last }
+  end
+
   def regularize!
-    self.first_name, self.last_name = parse_full_name
+    assign_attributes(derived_names)
 
     email.strip! unless email.nil?
     line1.strip! unless line1.nil?
@@ -149,11 +197,17 @@ class Address < ApplicationRecord
       }
     )
     if matches.blank?
-      matches = Address.where(
-        "first_name = :first_name and last_name = :last_name and (email = :email #{' or email is null or email = \'\'' unless (email.blank? && street_number.blank?)}) and id <> :id", {
-          :first_name => first_name, :last_name => last_name, :id => comparison_id, :email => (email.blank? ? '' : email.strip)
+      # First names compare by first word only (NameMatch): middle initials
+      # and couple suffixes vary between records of the same person. A blank
+      # first name has no first word, so it keeps exact equality (and nil,
+      # like SQL's `= NULL`, matches nothing).
+      same_last_name = Address.where(
+        "last_name = :last_name and (email = :email #{' or email is null or email = \'\'' unless (email.blank? && street_number.blank?)}) and id <> :id", {
+          :last_name => last_name, :id => comparison_id, :email => (email.blank? ? '' : email.strip)
         }
       )
+      matches = NameMatch.narrow(first_name, same_last_name, &:first_name) ||
+                (first_name.nil? ? [] : same_last_name.where(first_name: first_name))
       if matches.blank?
         matches = Address.where("id <> :id AND street_number = :street_number AND street = :street AND city = :city and search_name = :search_name #{'and (email = \'\' or email is null)' if email.present?}",
                                 { :id => comparison_id, :street_number => street_number, :street => street,
@@ -187,6 +241,7 @@ end
   def update_from(newer)
     self.email = newer.email if newer.email.present?
     self.first_name = newer.first_name if newer.first_name.present?
+    self.middle_name = newer.middle_name if newer.middle_name.present?
     self.last_name = newer.last_name if newer.last_name.present?
     self.full_name = newer.full_name if newer.full_name.present?
     self.line1 = newer.line1 if newer.line1.present?

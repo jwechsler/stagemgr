@@ -39,5 +39,15 @@ RSpec.describe Address do
       expect(original.donor_tier_for_last_fiscal_year).to eq('Bronze')
       expect(original.donor_tier_for_current_fiscal_year).to eq('Gold')
     end
+
+    it "takes the newer record's middle name only when present" do
+      original = FactoryBot.build(:address, first_name: 'Alicia', middle_name: 'M')
+
+      original.update_from(FactoryBot.build(:address, first_name: 'Alice', middle_name: ''))
+      expect([original.first_name, original.middle_name]).to eq(%w[Alice M])
+
+      original.update_from(FactoryBot.build(:address, first_name: 'Alice', middle_name: 'Q.'))
+      expect(original.middle_name).to eq('Q.')
+    end
   end
 end

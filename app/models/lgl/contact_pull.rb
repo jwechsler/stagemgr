@@ -5,8 +5,9 @@ module Lgl
   # address: the pull-side twin of Lgl::ContactChanges. Three field groups,
   # each applied on its own:
   #
-  #   :name   -> LGL first_name + last_name become full_name (regularize!
-  #              derives first/last); skipped when LGL has neither
+  #   :name   -> LGL first_name + middle_name + last_name become full_name
+  #              (regularize! derives first/middle/last); skipped when LGL
+  #              has neither first nor last
   #   :street -> the PREFERRED street entry: street (line1, and line2 after the
   #              first newline), city, state, postal_code -> zipcode
   #   :phone  -> the PREFERRED phone entry's number
@@ -79,13 +80,20 @@ module Lgl
 
     def name_attributes
       first = @constituent['first_name'].to_s.strip
+      middle = @constituent['middle_name'].to_s.strip
       last = @constituent['last_name'].to_s.strip
       return nil if first.empty? && last.empty?
       return nil unless newer?(@constituent['updated_at'])
       return nil if ContactChanges.same_text?(first, @address.first_name) &&
+                    ContactChanges.same_text?(middle, @address.middle_name) &&
                     ContactChanges.same_text?(last, @address.last_name)
 
-      { 'full_name' => [first, last].reject(&:empty?).join(' ') }
+      # A middle name that is not an initial ("Ann") parses back into first,
+      # so the columns never match; the assembled name still does.
+      full_name = [first, middle, last].reject(&:empty?).join(' ')
+      return nil if ContactChanges.same_text?(full_name, @address.full_name)
+
+      { 'full_name' => full_name }
     end
 
     def street_attributes
