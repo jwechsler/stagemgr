@@ -50,12 +50,18 @@ class Address < ApplicationRecord
   NAME_NOISE_CHARS = (0xFE00..0xFE0F).map { |cp| [cp].pack('U') }.join.freeze
   NAME_NOISE_RE = /[\p{So}\p{Sk}\p{Cf}#{NAME_NOISE_CHARS}]/
 
+  # A single letter, optionally followed by a period: "M" or "M.".
+  MIDDLE_INITIAL_RE = /\A[[:alpha:]]\.?\z/
+  COUPLE_RE = /\s(and|&)\s/i
+
+  # Returns [full_name, first, middle, last]. middle is only ever a trailing
+  # initial split off the given name; see split_middle_initial.
   def self.parse_name(full_name)
     if full_name.blank?
-      ["", "", ""]
+      ["", "", "", ""]
     else
       parseable = full_name.gsub(NAME_NOISE_RE, ' ').squish
-      return ["", "", ""] if parseable.blank?
+      return ["", "", "", ""] if parseable.blank?
 
       names = Namae.parse(parseable)
       if names.any?
@@ -75,7 +81,7 @@ class Address < ApplicationRecord
           l_name = f_name
           f_name = ""
         end
-        [full_name, f_name, l_name]
+        [full_name, *split_middle_initial(f_name), l_name]
       else
         # Namae also chokes on parenthesized nicknames ("Kathleen (Kate)
         # Early") and surnames that collide with its title vocabulary
@@ -83,17 +89,33 @@ class Address < ApplicationRecord
         # naive last-token split rather than leaving the name blank.
         tokens = parseable.split
         if tokens.length == 1
-          [full_name, "", tokens.first]
+          [full_name, "", "", tokens.first]
         else
-          [full_name, tokens[0..-2].join(" "), tokens.last]
+          [full_name, *split_middle_initial(tokens[0..-2].join(" ")), tokens.last]
         end
       end
     end
   end
 
+  # Splits a trailing middle initial off a given name: "Alicia M" ->
+  # ["Alicia", "M"]. Everything else stays whole in first: "Mary Ann",
+  # couples ("John and Joyce", "John & Joyce") and initials-only given
+  # names ("J. R. R."). Returns [first, middle].
+  def self.split_middle_initial(given)
+    tokens = given.to_s.split
+    return [given.to_s, ""] if tokens.length < 2 || given.match?(COUPLE_RE)
+    return [given.to_s, ""] if tokens.all? { |t| t.match?(MIDDLE_INITIAL_RE) }
+    return [given.to_s, ""] unless tokens.last.match?(MIDDLE_INITIAL_RE)
+
+    [tokens[0..-2].join(" "), tokens.last]
+  end
+  private_class_method :split_middle_initial
+
+  # [first, last] for billing names (Stripe, recurring profiles): a middle
+  # initial stays attached to first, as it was before middle_name was derived.
   def parse_full_name
-    _, f_name, l_name = Address.parse_name(full_name)
-    [f_name, l_name]
+    _, f_name, m_name, l_name = Address.parse_name(full_name)
+    [[f_name, m_name].compact_blank.join(" "), l_name]
   end
 
   def set_full_name(full_name, first_name = nil, middle_name = nil, last_name = nil)
@@ -107,7 +129,7 @@ class Address < ApplicationRecord
   end
 
   def regularize!
-    self.first_name, self.last_name = parse_full_name
+    _, self.first_name, self.middle_name, self.last_name = Address.parse_name(full_name)
 
     email.strip! unless email.nil?
     line1.strip! unless line1.nil?
@@ -193,6 +215,7 @@ end
   def update_from(newer)
     self.email = newer.email if newer.email.present?
     self.first_name = newer.first_name if newer.first_name.present?
+    self.middle_name = newer.middle_name if newer.middle_name.present?
     self.last_name = newer.last_name if newer.last_name.present?
     self.full_name = newer.full_name if newer.full_name.present?
     self.line1 = newer.line1 if newer.line1.present?

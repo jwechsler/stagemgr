@@ -54,31 +54,43 @@ module Lgl
     private
 
     def base_fields
-      first, last = names
-      { first_name: first, last_name: last, external_constituent_id: @address.id.to_s }
+      first, middle, last = names
+      { first_name: first, middle_name: middle, last_name: last, external_constituent_id: @address.id.to_s }
     end
 
+    # Stored first and middle travel together; only when the stored first is
+    # blank do both come from parsing full_name, so a stored first is never
+    # paired with a parsed middle.
     def names
-      _full, parsed_first, parsed_last = Address.parse_name(@address.full_name)
-      first = @address.first_name.presence || parsed_first.presence || NAME_PLACEHOLDER
+      _full, parsed_first, parsed_middle, parsed_last = Address.parse_name(@address.full_name)
+      first, middle = if @address.first_name.present?
+                        [@address.first_name, @address.middle_name]
+                      else
+                        [parsed_first, parsed_middle]
+                      end
       last = @address.last_name.presence || parsed_last.presence || NAME_PLACEHOLDER
-      [first.to_s.strip, last.to_s.strip]
+      [first.presence || NAME_PLACEHOLDER, middle, last].map { |name| name.to_s.strip }
     end
 
     # A blank Stagemgr name never overwrites the name LGL already has.
     def update_names(constituent)
-      first, last = names
-      first = constituent['first_name'] if first == NAME_PLACEHOLDER && constituent['first_name'].present?
+      first, middle, last = names
+      if first == NAME_PLACEHOLDER && constituent['first_name'].present?
+        first = constituent['first_name']
+        middle = constituent['middle_name'].to_s.strip
+      end
       last = constituent['last_name'] if last == NAME_PLACEHOLDER && constituent['last_name'].present?
-      { first_name: first, last_name: last }
+      { first_name: first, middle_name: middle, last_name: last }
     end
 
     def lgl_names(constituent)
-      { first_name: constituent['first_name'].to_s.strip, last_name: constituent['last_name'].to_s.strip }
+      { first_name: constituent['first_name'].to_s.strip, middle_name: constituent['middle_name'].to_s.strip,
+        last_name: constituent['last_name'].to_s.strip }
     end
 
     def names_or_external_id_differ?(payload, constituent)
       payload[:first_name] != constituent['first_name'].to_s.strip ||
+        payload[:middle_name] != constituent['middle_name'].to_s.strip ||
         payload[:last_name] != constituent['last_name'].to_s.strip ||
         payload[:external_constituent_id] != constituent['external_constituent_id'].to_s.strip
     end

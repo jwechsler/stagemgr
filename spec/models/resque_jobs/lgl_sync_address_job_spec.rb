@@ -102,7 +102,7 @@ RSpec.describe LglSyncAddressJob do
       described_class.perform(address.id, 'donation')
 
       expect(client).to have_received(:update)
-        .with(900_050, { first_name: 'Janie', last_name: 'Smith', external_constituent_id: address.id.to_s,
+        .with(900_050, { first_name: 'Janie', middle_name: '', last_name: 'Smith', external_constituent_id: address.id.to_s,
                          email_addresses: lgl['email_addresses'] }, for_address_id: address.id)
     end
 
@@ -456,7 +456,7 @@ RSpec.describe LglSyncAddressJob do
 
         expect(client).to have_received(:update).once
         expect(client).to have_received(:update)
-          .with(900_050, { first_name: 'Janie', last_name: 'Smith', external_constituent_id: address.id.to_s,
+          .with(900_050, { first_name: 'Janie', middle_name: '', last_name: 'Smith', external_constituent_id: address.id.to_s,
                            email_addresses: lgl['email_addresses'] }, for_address_id: address.id)
       end
 

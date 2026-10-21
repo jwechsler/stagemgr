@@ -134,7 +134,7 @@ class Admin::AddressesController < Admin::ApplicationController
   end
 
   def autocomplete_address
-    _, first_name, last_name = Address.parse_name(params[:term])
+    _, first_name, _, last_name = Address.parse_name(params[:term])
     last_name = first_name if last_name.blank?
     first_name = "" if first_name.nil?
     # val = params[:q].gsub(Address::SEARCHABLE_REGEXP,'').upcase
