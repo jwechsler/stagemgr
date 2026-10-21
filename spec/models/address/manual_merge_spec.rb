@@ -261,4 +261,109 @@ RSpec.describe Address::ManualMerge do
       expect(described_class::COLUMNS[:address]).to eq(%i[line1 line2 city state zipcode])
     end
   end
+
+  describe 'excluded records' do
+    it 'merges the rest into the unchanged master and leaves an excluded highest id untouched' do
+      older = address(full_name: 'Pat Older')
+      middle = address(full_name: 'Pat Middle')
+      excluded_order = FactoryBot.create(:ticket_order, :for_a_single_ticket, :paid_with_cash)
+      excluded = excluded_order.address
+      excluded.update!(full_name: 'Pat Excluded')
+      excluded.lgl_review!('Several LGL matches')
+
+      master = described_class.new(ids: [older.id, middle.id, excluded.id], excluded: [excluded.id]).perform!.reload
+
+      expect(master.id).to eq(older.id)
+      expect(master.full_name).to eq('Pat Middle')
+      expect(Address.exists?(middle.id)).to be(false)
+      expect(excluded.reload.full_name).to eq('Pat Excluded')
+      expect(excluded_order.reload.address_id).to eq(excluded.id)
+      expect(review_tags(excluded).count).to eq(1)
+    end
+
+    it 'makes the next-lowest merged id the master when the lowest is excluded' do
+      lowest = address
+      middle = address
+      highest = address
+
+      merge = described_class.new(ids: [lowest.id, middle.id, highest.id], excluded: [lowest.id])
+
+      expect(merge.master).to eq(middle)
+      expect(merge.merged_ids).to eq([middle.id, highest.id])
+      expect(merge.perform!.id).to eq(middle.id)
+      expect(Address.exists?(highest.id)).to be(false)
+      expect(Address.exists?(lowest.id)).to be(true)
+    end
+
+    it 'never counts an excluded value as a difference or makes it the default, even when newest' do
+      older = address(full_name: 'Pat Older', email: 'pat@example.com')
+      newer = address(full_name: 'Pat Older', email: nil)
+      newest = address(full_name: 'Someone Else', email: 'else@example.com')
+
+      merge = described_class.new(ids: [older.id, newer.id, newest.id], excluded: [newest.id])
+
+      expect(merge.values_for(:name)).to include(newest.id => 'Someone Else')
+      expect(merge.differs?(:name)).to be(false)
+      expect(merge.differs?(:email)).to be(false)
+      expect(merge.default_for(:name)).to eq(newer.id)
+      expect(merge.default_for(:email)).to eq(older.id)
+      expect(merge.choice_for(:email)).to eq(older.id)
+    end
+
+    it 'counts an excluded value as a difference among the submitted records only' do
+      older = address(full_name: 'Pat Older')
+      newer = address(full_name: 'Pat Older')
+      excluded = address(full_name: 'Someone Else')
+
+      merge = described_class.new(ids: [older.id, newer.id, excluded.id], excluded: [excluded.id])
+
+      expect(merge.differs_among_submitted?(:name)).to be(true)
+      expect(merge.differs?(:name)).to be(false)
+    end
+
+    it 'rejects a choice naming an excluded customer' do
+      records = [address, address, address]
+
+      expect { described_class.new(ids: records.map(&:id), excluded: [records[2].id], choices: { name: records[2].id }) }
+        .to raise_error(described_class::Error, /##{records[2].id} for name is not one of the customers being merged/)
+    end
+
+    it 'rejects an excluded id that was not submitted' do
+      older = address
+      newer = address
+      outsider = address
+
+      expect { described_class.new(ids: [older.id, newer.id], excluded: [outsider.id]) }
+        .to raise_error(described_class::Error, "Customer ##{outsider.id} is not one of the customers submitted")
+    end
+
+    it 'applies the 2 to 4 count to the merged records' do
+      records = [address, address, address]
+
+      expect { described_class.new(ids: records.map(&:id), excluded: records.drop(1).map(&:id)) }
+        .to raise_error(described_class::Error, /2 to 4 customers to merge \(got 1\)/)
+    end
+
+    it 'accepts string excluded ids as a form posts them' do
+      records = [address, address, address]
+
+      merge = described_class.new(ids: records.map { |r| r.id.to_s }, excluded: [records[0].id.to_s])
+
+      expect(merge.excluded_ids).to eq([records[0].id])
+      expect(merge.master).to eq(records[1])
+    end
+
+    it 'lists excluded and merged addresses in id order and answers excluded? for an Address or an id' do
+      records = [address, address, address, address]
+      merge = described_class.new(ids: records.map(&:id).reverse, excluded: [records[3].id, records[1].id])
+
+      expect(merge.ids).to eq(records.map(&:id))
+      expect(merge.excluded_addresses).to eq([records[1], records[3]])
+      expect(merge.merged_addresses).to eq([records[0], records[2]])
+      expect(merge.excluded?(records[1])).to be(true)
+      expect(merge.excluded?(records[3].id)).to be(true)
+      expect(merge.excluded?(records[0])).to be(false)
+      expect(merge.excluded?(records[2].id)).to be(false)
+    end
+  end
 end

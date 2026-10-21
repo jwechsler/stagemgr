@@ -13,8 +13,14 @@ class Address
   # merges do. Address is one unit (line1 to zipcode from one record), so a
   # partial newest address wins whole rather than column by column.
   #
-  # Before perform!, the read helpers (values_for, differs?, default_for,
-  # choice_for) describe the records for the merge page.
+  # +excluded+ names submitted ids to leave out: they stay on the merge page
+  # (addresses, values_for, differs_among_submitted?) but never count as a
+  # difference for differs?, never become a default or a choice, and perform!
+  # does not touch them.
+  #
+  # Before perform!, the read helpers (values_for, differs?,
+  # differs_among_submitted?, default_for, choice_for) describe the records
+  # for the merge page.
   class ManualMerge
     class Error < ArgumentError; end
 
@@ -32,11 +38,12 @@ class Address
     # The fields perform! assigns as columns; lgl_id is an AddressTag.
     COLUMN_FIELDS = %i[name address email phone].freeze
 
-    attr_reader :ids, :choices
+    attr_reader :ids, :excluded_ids, :choices
 
-    def initialize(ids:, choices: {})
-      @ids = Array(ids).map { |id| Integer(id, exception: false) || raise(Error, "Not a customer id: #{id.inspect}") }
-                       .uniq.sort
+    def initialize(ids:, choices: {}, excluded: [])
+      @ids = parse_ids(ids)
+      @excluded_ids = parse_ids(excluded)
+      validate_excluded!
       validate_count!
       @choices = normalize_choices(choices || {})
       validate_ids!
@@ -47,25 +54,48 @@ class Address
       @addresses ||= Address.where(id: ids).order(:id).to_a
     end
 
-    def master
-      addresses.first
+    def merged_ids
+      ids - excluded_ids
     end
 
-    # { address_id => display value, or nil when the record has none }.
+    def merged_addresses
+      addresses.reject { |address| excluded?(address) }
+    end
+
+    def excluded_addresses
+      addresses.select { |address| excluded?(address) }
+    end
+
+    def excluded?(address_or_id)
+      id = address_or_id.is_a?(Address) ? address_or_id.id : address_or_id
+      excluded_ids.include?(id)
+    end
+
+    def master
+      merged_addresses.first
+    end
+
+    # { address_id => display value, or nil when the record has none }, for
+    # every submitted record, excluded ones included.
     def values_for(field)
       check_field!(field)
       @values ||= {}
       @values[field.to_sym] ||= addresses.to_h { |address| [address.id, display_value(address, field.to_sym)] }
     end
 
-    # True when at least two records have present values that differ.
+    # True when at least two merged records have present values that differ.
     def differs?(field)
-      values_for(field).values.compact.map { |value| normalize(field.to_sym, value) }.uniq.size > 1
+      distinct_values?(field, merged_values_for(field))
     end
 
-    # The newest record with a value, or nil when none has one.
+    # differs? over every submitted record, excluded ones included: the merge page's radio layout.
+    def differs_among_submitted?(field)
+      distinct_values?(field, values_for(field))
+    end
+
+    # The newest merged record with a value, or nil when none has one.
     def default_for(field)
-      values_for(field).select { |_id, value| value }.keys.max
+      merged_values_for(field).select { |_id, value| value }.keys.max
     end
 
     def choice_for(field)
@@ -73,14 +103,14 @@ class Address
       choices.fetch(field.to_sym) { default_for(field) }
     end
 
-    # Merges every other record into the master and gives it the chosen values.
+    # Merges every other merged record into the master and gives it the chosen values.
     # One transaction: merge_and_purge's own transactions and the LGL tag locks
     # join it, so a failure anywhere leaves every record as it was.
     def perform!
       chosen = snapshot_chosen_values
-      lgl_ids = addresses.filter_map { |address| values_for(:lgl_id)[address.id] }.uniq
+      lgl_ids = merged_addresses.filter_map { |address| values_for(:lgl_id)[address.id] }.uniq
       Address.transaction do
-        addresses.drop(1).each { |source| master.merge_and_purge(source, clear_lgl_review: true) }
+        merged_addresses.drop(1).each { |source| master.merge_and_purge(source, clear_lgl_review: true) }
         master.assign_attributes(chosen)
         master.save!
         apply_lgl_id!(choice_for(:lgl_id), lgl_ids)
@@ -90,10 +120,20 @@ class Address
 
     private
 
-    def validate_count!
-      return if ids.size.between?(MIN_RECORDS, MAX_RECORDS)
+    def parse_ids(raw)
+      Array(raw).map { |id| Integer(id, exception: false) || raise(Error, "Not a customer id: #{id.inspect}") }
+                .uniq.sort
+    end
 
-      raise Error, "Choose #{MIN_RECORDS} to #{MAX_RECORDS} customers to merge (got #{ids.size})"
+    def validate_excluded!
+      stray = excluded_ids - ids
+      raise Error, "Customer ##{stray.first} is not one of the customers submitted" if stray.any?
+    end
+
+    def validate_count!
+      return if merged_ids.size.between?(MIN_RECORDS, MAX_RECORDS)
+
+      raise Error, "Choose #{MIN_RECORDS} to #{MAX_RECORDS} customers to merge (got #{merged_ids.size})"
     end
 
     def validate_ids!
@@ -112,9 +152,17 @@ class Address
 
     def validate_choices!
       choices.each do |field, id|
-        raise Error, "Customer ##{id} for #{field} is not one of the customers being merged" unless ids.include?(id)
+        raise Error, "Customer ##{id} for #{field} is not one of the customers being merged" unless merged_ids.include?(id)
         raise Error, "Customer ##{id} has no #{field} to keep" if values_for(field)[id].nil?
       end
+    end
+
+    def distinct_values?(field, values)
+      values.values.compact.map { |value| normalize(field.to_sym, value) }.uniq.size > 1
+    end
+
+    def merged_values_for(field)
+      values_for(field).slice(*merged_ids)
     end
 
     def check_field!(field)
@@ -127,7 +175,7 @@ class Address
     # regularize! re-derives first and last name from it on save.
     def snapshot_chosen_values
       COLUMN_FIELDS.each_with_object({}) do |field, attributes|
-        source = addresses.find { |address| address.id == choice_for(field) }
+        source = merged_addresses.find { |address| address.id == choice_for(field) }
         next if source.nil?
 
         COLUMNS.fetch(field).each { |column| attributes[column] = source.public_send(column) }
