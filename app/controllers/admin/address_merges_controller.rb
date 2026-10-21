@@ -5,6 +5,8 @@
 # kept record (the lowest id) ends up with. Reached from Merge Selected on the
 # Customers page and from Merge on an LGL Review row, which also passes the
 # row's constituent_id so the kept customer is re-linked to it afterwards.
+# Staff may exclude submitted customers: they are left out of the merge, and
+# after an LGL Review merge each has its LGL Review cleared and a Re-sync queued.
 class Admin::AddressMergesController < Admin::ApplicationController
   MERGE_FAILED = 'Merge failed. See server log.'
 
@@ -12,7 +14,7 @@ class Admin::AddressMergesController < Admin::ApplicationController
   before_action :assign_constituent_id
 
   def new
-    @merge = Address::ManualMerge.new(ids: merge_ids)
+    @merge = Address::ManualMerge.new(ids: merge_ids, excluded: excluded_ids)
     @cancel_path = default_back_path
   rescue Address::ManualMerge::Error => e
     redirect_to(back_path, alert: e.message)
@@ -21,9 +23,9 @@ class Admin::AddressMergesController < Admin::ApplicationController
   # perform! is one transaction, so after any failure every customer is as it
   # was and the page can be shown again.
   def create
-    merge = Address::ManualMerge.new(ids: merge_ids, choices: merge_choices)
+    merge = Address::ManualMerge.new(ids: merge_ids, choices: merge_choices, excluded: excluded_ids)
     master = merge.perform!
-    redirect_after_merge(master, merge.ids.size)
+    redirect_after_merge(merge, master)
   rescue Address::ManualMerge::Error => e
     redirect_to(retry_path, alert: e.message)
   rescue StandardError => e
@@ -48,14 +50,19 @@ class Admin::AddressMergesController < Admin::ApplicationController
     params.permit(ids: [])[:ids]
   end
 
+  def excluded_ids
+    params.permit(excluded: [])[:excluded] || []
+  end
+
   def merge_choices
     params.permit(choices: Address::ManualMerge::FIELDS)[:choices].to_h
   end
 
-  def redirect_after_merge(master, count)
+  def redirect_after_merge(merge, master)
+    count = merge.merged_ids.size
     if @constituent_id && Lgl.enabled?
       notice = merged_notice(count, master, @constituent_id, queue_relink(master))
-      redirect_to(admin_lgl_sync_path, notice: notice)
+      redirect_to(admin_lgl_sync_path, notice: notice + resync_clause(*resync_excluded(merge)))
     else
       redirect_to(admin_address_path(master), notice: "Merged #{count} customers into ##{master.id}")
     end
@@ -71,6 +78,36 @@ class Admin::AddressMergesController < Admin::ApplicationController
     false
   end
 
+  # Clears each excluded customer's LGL Review and queues a Re-sync, as the
+  # customer page's Re-sync button does. [ids queued, ids that failed (logged)].
+  def resync_excluded(merge)
+    queued, failed = merge.excluded_addresses.partition { |address| resync(address) }
+    [queued.map(&:id), failed.map(&:id)]
+  end
+
+  # LGL tags only exist under a default theater; clear_lgl_review! raises without one.
+  def resync(address)
+    address.clear_lgl_review! if Theater.default_theater
+    Resque.enqueue(LglSyncAddressJob, address.id, LglSyncAddressJob::MANUAL_TRIGGER)
+    true
+  rescue StandardError => e
+    Rails.logger.error("[LGL] could not re-sync excluded ##{address.id}: #{e.class}: #{e.message}")
+    false
+  end
+
+  # "; re-syncing #2, #3", or "" when nothing is excluded.
+  def resync_clause(queued_ids, failed_ids)
+    clause = +''
+    clause << "; re-syncing #{id_list(queued_ids)}" if queued_ids.any?
+    return clause if failed_ids.empty?
+
+    "#{clause}; re-syncing #{id_list(failed_ids)} could not be queued: use Re-sync on the customer's page"
+  end
+
+  def id_list(ids)
+    ids.map { |id| "##{id}" }.join(', ')
+  end
+
   def merged_notice(count, master, lgl_id, relinked)
     notice = "Merged #{count} customers into ##{master.id}"
     return "#{notice}; re-linking to LGL constituent #{lgl_id}" if relinked
@@ -80,7 +117,7 @@ class Admin::AddressMergesController < Admin::ApplicationController
   end
 
   def retry_path
-    new_admin_address_merge_path(ids: merge_ids, constituent_id: @constituent_id)
+    new_admin_address_merge_path(ids: merge_ids, excluded: excluded_ids, constituent_id: @constituent_id)
   end
 
   # The page that linked here, unless it is on another host or is this page

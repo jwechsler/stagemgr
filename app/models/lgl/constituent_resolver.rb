@@ -6,7 +6,7 @@ module Lgl
   # HTTP, no writes.
   #
   # Constituents with a junk external id and this address's last name are the
-  # candidates. Several are narrowed by first name (Lgl::NameMatch: first word
+  # candidates. Several are narrowed by first name (NameMatch: first word
   # only, since LGL keeps one first name for a couple); exactly one left is
   # adopted, otherwise a person reviews.
   #
@@ -42,7 +42,7 @@ module Lgl
     private
 
     def decide_among(candidates)
-      named = Lgl::NameMatch.narrow(@address.first_name, candidates) { |c| c['first_name'] }
+      named = NameMatch.narrow(@address.first_name, candidates) { |c| c['first_name'] }
       if named&.one?
         return decision(:adopt, constituent: named.first, reason: 'matched by email, last name and first name')
       end

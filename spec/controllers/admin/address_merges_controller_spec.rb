@@ -17,6 +17,11 @@ RSpec.describe Admin::AddressMergesController, type: :controller do
     FactoryBot.create(:address, **attributes)
   end
 
+  # The th of the second thead row, one per customer, holding its Exclude/Include button.
+  def button_row
+    Nokogiri::HTML(response.body).css('table.address-merge thead tr')[1].css('th').drop(1)
+  end
+
   def radios(field)
     response.body.scan(/<input[^>]*type="radio"[^>]*name="choices\[#{field}\]"[^>]*>/)
   end
@@ -77,6 +82,62 @@ RSpec.describe Admin::AddressMergesController, type: :controller do
 
       expect(response.body).not_to include('callout warning')
       expect(response.body).to include('1 membership moves to', 'Active member', 'Donor', 'Orders')
+    end
+
+    it 'shows a Last order row with each customer\'s newest order date or a dash' do
+      FactoryBot.create(:donation_order, address: older, theater: house)
+                .update_column(:created_at, Time.zone.local(2026, 10, 20, 12))
+
+      get :new, params: { ids: [newer.id, older.id] }
+
+      row = response.body[%r{<th>Last order</th>.*?</tr>}m]
+      expect(row).to be_present
+      expect(row.scan(%r{<td>(.*?)</td>}m).flatten).to contain_exactly('October 20, 2026', '—')
+    end
+
+    context 'with a third customer' do
+      let!(:third) { address(full_name: 'Gail Kosalko', email: 'g@example.com', phone: '555-0003') }
+
+      it 'greys an excluded customer, offers to include it and gives it a disabled radio' do
+        get :new, params: { ids: [older.id, newer.id, third.id], excluded: [newer.id] }
+
+        expect(response).to have_http_status(:ok)
+        include_path = new_admin_address_merge_path(ids: [older.id, newer.id, third.id])
+        include_link = %(href="#{ERB::Util.html_escape(include_path)}">Include</a>)
+        expect(response.body).to match(%r{<th class='excluded'><a [^>]*>##{newer.id} Beth Kosalko</a></th>})
+        excluded_th, merged_ths = button_row.partition { |th| th['class'] == 'excluded' }
+        expect(excluded_th.size).to eq(1)
+        expect(excluded_th.first.to_html).to include(include_link)
+        expect(merged_ths.map { |th| th.text.strip }).to eq(%w[Exclude Exclude])
+        expect(response.body.scan("<th class='excluded'>").size).to eq(2)
+        expect(radios(:name).size).to eq(3)
+        excluded_radio, merged_radios = radios(:name).partition { |radio| radio.include?(%(value="#{newer.id}")) }
+        expect(excluded_radio.size).to eq(1)
+        expect(excluded_radio.first).to include('disabled')
+        expect(excluded_radio.first).not_to include('checked', 'data-')
+        expect(merged_radios.map { |radio| radio[/value="(\d+)"/, 1].to_i }).to contain_exactly(older.id, third.id)
+        expect(merged_radios).to all(satisfy { |radio| radio.exclude?('disabled') })
+        expect(response.body).to match(/<input[^>]*type="hidden"[^>]*name="excluded\[\]"[^>]*value="#{newer.id}"/)
+        expect(response.body.scan('name="excluded[]"').size).to eq(1)
+        expect(response.body).to include("Keeps ##{older.id} and deletes ##{third.id}.", "Leaves ##{newer.id} alone.")
+      end
+
+      it 'shows an Exclude link on each column when three customers are merged' do
+        get :new, params: { ids: [older.id, newer.id, third.id] }
+
+        expect(response.body.scan(%r{>Exclude</a>}).size).to eq(3)
+        expect(response.body).not_to include('>Include</a>', "class='excluded'", 'alone.')
+      end
+    end
+
+    it 'shows a disabled Exclude button on each column when only two customers are merged' do
+      get :new, params: { ids: [older.id, newer.id] }
+
+      expect(button_row.size).to eq(2)
+      buttons = button_row.map { |th| th.at_css('span.button') }
+      expect(buttons.map(&:text)).to eq(%w[Exclude Exclude])
+      expect(buttons).to all(satisfy { |b| b['class'].include?('disabled') && b['href'].nil? })
+      expect(response.body).not_to include('>Exclude</a>', '>Include</a>')
     end
 
     it 'redirects back with the error for one customer' do
@@ -173,6 +234,70 @@ RSpec.describe Admin::AddressMergesController, type: :controller do
       expect(Address.exists?(newer.id)).to be(true)
       expect(response).to redirect_to(new_admin_address_merge_path(ids: [older.id.to_s, newer.id.to_s]))
       expect(flash[:alert]).to eq('Customer #999999999 for name is not one of the customers being merged')
+    end
+
+    context 'with a third customer excluded' do
+      let!(:excluded) { address(full_name: 'Pat Other', email: 'pat@other.example.com') }
+      let(:ids) { [older.id, newer.id, excluded.id] }
+      let(:lgl_merged_notice) do
+        "Merged 2 customers into ##{older.id}; re-linking to LGL constituent 900002"
+      end
+
+      before { excluded.lgl_review!('No LGL match') }
+
+      it 'merges the others, clears the excluded LGL Review and re-syncs it after the re-link' do
+        allow(Lgl).to receive(:enabled?).and_return(true)
+
+        post :create, params: { ids: ids, excluded: [excluded.id], constituent_id: '900002' }
+
+        expect(Address.exists?(newer.id)).to be(false)
+        expect(Address.exists?(excluded.id)).to be(true)
+        expect(excluded.reload.lgl_review_reason).to be_nil
+        expect(Resque).to have_received(:enqueue).with(LglSyncAddressJob, older.id, LglSyncAddressJob::LINK_TRIGGER).ordered
+        expect(Resque).to have_received(:enqueue)
+          .with(LglSyncAddressJob, excluded.id, LglSyncAddressJob::MANUAL_TRIGGER).ordered
+        expect(Resque).to have_received(:enqueue).twice
+        expect(response).to redirect_to(admin_lgl_sync_path)
+        expect(flash[:notice]).to eq("#{lgl_merged_notice}; re-syncing ##{excluded.id}")
+      end
+
+      it 'still reports the merge, and says to Re-sync, when the excluded re-sync cannot be queued' do
+        allow(Lgl).to receive(:enabled?).and_return(true)
+        allow(Resque).to receive(:enqueue) do |_job, id, _trigger|
+          raise Redis::CannotConnectError, 'Connection refused' if id == excluded.id
+        end
+        allow(Rails.logger).to receive(:error)
+
+        post :create, params: { ids: ids, excluded: [excluded.id], constituent_id: '900002' }
+
+        expect(Address.exists?(newer.id)).to be(false)
+        expect(Address.exists?(excluded.id)).to be(true)
+        expect(Resque).to have_received(:enqueue).with(LglSyncAddressJob, older.id, LglSyncAddressJob::LINK_TRIGGER)
+        expect(Rails.logger).to have_received(:error).with(/re-sync excluded ##{excluded.id}: .*Connection refused/)
+        expect(response).to redirect_to(admin_lgl_sync_path)
+        expect(flash[:notice]).to eq(
+          "#{lgl_merged_notice}; re-syncing ##{excluded.id} could not be queued: use Re-sync on the customer's page"
+        )
+      end
+
+      it 'leaves the excluded customer untouched and goes to the kept customer without an LGL Review' do
+        post :create, params: { ids: ids, excluded: [excluded.id] }
+
+        expect(Address.exists?(newer.id)).to be(false)
+        expect(excluded.reload.lgl_review_reason).to eq('No LGL match')
+        expect(excluded.email).to eq('pat@other.example.com')
+        expect(Resque).not_to have_received(:enqueue)
+        expect(response).to redirect_to(admin_address_path(older))
+        expect(flash[:notice]).to eq("Merged 2 customers into ##{older.id}")
+      end
+
+      it 'returns to the page, still excluding, for a choice naming the excluded customer' do
+        post :create, params: { ids: ids, excluded: [excluded.id], choices: { name: excluded.id.to_s } }
+
+        expect(Address.exists?(newer.id)).to be(true)
+        expect(response).to redirect_to(new_admin_address_merge_path(ids: ids.map(&:to_s), excluded: [excluded.id.to_s]))
+        expect(flash[:alert]).to eq("Customer ##{excluded.id} for name is not one of the customers being merged")
+      end
     end
 
     it 'logs a failed merge, changes nothing and returns to the page' do

@@ -102,6 +102,31 @@ RSpec.describe Lgl::ContactPull do
     expect([address.full_name, address.first_name, address.last_name]).to eq(['Janet Smith', 'Janet', 'Smith'])
   end
 
+  it 'pulls a middle initial into full_name so regularize! keeps it' do
+    constituent['middle_name'] = 'Q'
+    expect(pull.apply!).to eq([:name])
+    address.reload
+    expect([address.full_name, address.first_name, address.middle_name, address.last_name])
+      .to eq(['Jane Q Smith', 'Jane', 'Q', 'Smith'])
+  end
+
+  it 'is a no-op when first, middle and last already match' do
+    address.update!(full_name: 'Jane Q Smith')
+    address.update_column(:updated_at, stamp)
+    constituent['middle_name'] = 'Q'
+    expect(pull.apply!).to eq([])
+    expect(address.reload.updated_at).to eq(stamp)
+  end
+
+  it 'is a no-op when a non-initial middle name already appears in full_name' do
+    address.update!(full_name: 'Jane Ann Smith')
+    address.update_column(:updated_at, stamp)
+    expect([address.first_name, address.middle_name]).to eq(['Jane Ann', ''])
+    constituent['middle_name'] = 'Ann'
+    expect(pull.apply!).to eq([])
+    expect(address.reload.updated_at).to eq(stamp)
+  end
+
   it 'leaves the name alone when the constituent is older' do
     constituent.merge!('first_name' => 'Janet', 'updated_at' => older)
     expect(pull.apply!).to eq([])

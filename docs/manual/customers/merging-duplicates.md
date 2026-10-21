@@ -44,8 +44,8 @@ linking to their page. The first column is the **master**: the original record
 (lowest ID), which is kept. Every other record is merged into it and deleted.
 
 The rows are **Name**, **Street address**, **Email**, **Phone** and **LGL
-constituent**, followed by **Active member**, **Donor** and **Orders** for
-reference.
+constituent**, followed by **Active member**, **Donor**, **Orders** and
+**Last order** for reference.
 
 - Where the customers' values differ, each value has a radio button. Choose
   the one the master should end up with. Each starts on the newest record
@@ -55,8 +55,15 @@ reference.
 - The street address is one value: street, city, state and ZIP all come from
   the record you choose, so no part of another record's address is mixed in.
 
+Each column heading has an **Exclude** link. An excluded customer is shown
+greyed out: it is not merged and keeps its own record, and its values cannot
+be chosen. **Include** brings it back into the merge. At least two customers
+must remain, so the Exclude buttons are disabled when only two are left.
+Excluding the master makes the next-lowest ID the master.
+
 When the customers have different first names, a warning names them: they may
-be a household rather than one person.
+be a household rather than one person. If one of them is a different person,
+exclude that record and merge the rest.
 
 Below the table, a summary says which record is kept and which are deleted,
 which values come from records other than the master, and how many orders and

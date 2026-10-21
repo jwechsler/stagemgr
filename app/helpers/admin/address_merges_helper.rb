@@ -3,9 +3,10 @@
 module Admin
   # The Merge customers page (admin/address_merges/new): one column per
   # customer of an Address::ManualMerge, a radio per value only where the
-  # customers' values differ, and a summary of what the merge will do. The
-  # page's script rebuilds the "comes from" sentence the same way
-  # address_merge_sources_sentence does when a radio changes.
+  # submitted customers' values differ (disabled for an excluded one), and a
+  # summary of what the merge will do. The page's script rebuilds the "comes
+  # from" sentence the same way address_merge_sources_sentence does when a
+  # radio changes.
   module AddressMergesHelper
     FIELD_LABELS = {
       name: 'Name', address: 'Street address', email: 'Email', phone: 'Phone', lgl_id: 'LGL constituent'
@@ -14,46 +15,83 @@ module Admin
       name: 'name', address: 'street address', email: 'email', phone: 'phone', lgl_id: 'LGL constituent'
     }.freeze
 
-    # "#id Full Name" linking to the customer, the master's marked as kept.
+    # "#id Full Name" linking to the customer, the master's marked as kept. An
+    # excluded customer's is just the linked name: its greyed column and
+    # Include button already say it is not merged, and a suffix would change
+    # the heading row's height. The Exclude/Include button is in a row of its
+    # own (address_merge_toggle_button) so the buttons line up.
     def address_merge_header(merge, address)
       title = link_to("##{address.id} #{address.full_name}".strip, admin_address_path(address))
-      address.id == merge.master.id ? safe_join([title, ' (master, kept)']) : title
+      if address.id == merge.master.id && !merge.excluded?(address)
+        safe_join([title, ' (master, kept)'])
+      else
+        title
+      end
     end
 
-    # +address+'s value for +field+: blank when it has none, a radio (checked
-    # for the current choice) before it when the customers' values differ.
-    # An LGL constituent link stays outside the radio's label, so following
-    # it does not change the choice.
+    # Exclude for a merged customer, Include for an excluded one. The button
+    # is disabled (a span, so the row keeps its layout) when Exclude would
+    # leave fewer than MIN_RECORDS merged or Include more than MAX_RECORDS.
+    def address_merge_toggle_button(merge, address, constituent_id: nil)
+      if merge.excluded?(address)
+        label = 'Include'
+        excluded = merge.excluded_ids - [address.id]
+        disabled = merge.merged_ids.size >= Address::ManualMerge::MAX_RECORDS
+      else
+        label = 'Exclude'
+        excluded = merge.excluded_ids + [address.id]
+        disabled = merge.merged_ids.size <= Address::ManualMerge::MIN_RECORDS
+      end
+      return tag.span(label, class: 'button tiny secondary disabled', 'aria-disabled': true) if disabled
+
+      path = new_admin_address_merge_path(ids: merge.ids, excluded: excluded, constituent_id: constituent_id)
+      link_to(label, path, class: 'button tiny secondary')
+    end
+
+    # HTML attributes for an +address+ column's th/td: the excluded class for a
+    # customer left out of the merge (an empty hash, so no blank class, otherwise).
+    def address_merge_column_attributes(merge, address)
+      merge.excluded?(address) ? { class: 'excluded' } : {}
+    end
+
+    # +address+'s value for +field+: blank when it has none, a radio before it
+    # when any submitted customers' values differ, so excluding or including a
+    # customer never changes which cells have radios. A merged customer's radio
+    # is checked for the current choice; an excluded one's is disabled,
+    # unchecked and carries no data, so the page's script never reads it. An
+    # LGL constituent link stays outside the radio's label, so following it
+    # does not change the choice.
     def address_merge_cell(merge, field, address)
       value = merge.values_for(field)[address.id]
       return if value.nil?
 
       linked = field == :lgl_id
       shown = linked ? lgl_constituent_id_link(value) : value
-      return shown unless merge.differs?(field)
+      return shown unless merge.differs_among_submitted?(field)
 
       dom_id = "choices_#{field}_#{address.id}"
-      radio = radio_button_tag("choices[#{field}]", address.id, merge.choice_for(field) == address.id,
-                               id: dom_id, data: { label: SUMMARY_LABELS.fetch(field), customer: address.id })
+      radio = address_merge_radio(merge, field, address, dom_id)
       return safe_join([label_tag(dom_id, radio, 'aria-label': "LGL constituent #{value}"), ' ', shown]) if linked
 
       label_tag(dom_id, safe_join([radio, ' ', shown]))
     end
 
-    # Data for a field's row. A row without radios carries the label and the
-    # customer its value comes from for the page's script.
+    # Data for a field's row. A row with radios (any submitted customers'
+    # values differ) leaves the script to read the checked one; a row without
+    # carries the label and the customer its value comes from.
     def address_merge_row_data(merge, field)
       data = { merge_field: field }
-      return data if merge.differs?(field)
+      return data if merge.differs_among_submitted?(field)
 
       data.merge(label: SUMMARY_LABELS.fetch(field), customer: address_merge_source(merge, field))
     end
 
-    # The customer whose value the master ends up with: the choice when values
-    # differ; otherwise the master itself when it has the (same) value, or
-    # the record that has one. nil when no customer has a value.
+    # The customer whose value the master ends up with: the choice when the
+    # row has radios (so it matches the checked one); otherwise the master
+    # itself when it has the (same) value, or the record that has one. nil
+    # when no customer has a value.
     def address_merge_source(merge, field)
-      return merge.choice_for(field) if merge.differs?(field)
+      return merge.choice_for(field) if merge.differs_among_submitted?(field)
 
       merge.values_for(field)[merge.master.id] ? merge.master.id : merge.choice_for(field)
     end
@@ -75,13 +113,15 @@ module Admin
     # The #merge-summary paragraph's content for the current choices.
     def address_merge_summary(merge, constituent_id:)
       master = merge.master
-      others = merge.addresses.drop(1)
+      others = merge.merged_addresses.drop(1)
       sources = address_merge_sources_sentence(merge)
       parts = ["Keeps ##{master.id} and deletes #{others.map { |a| "##{a.id}" }.join(', ')}.",
                tag.span(sources.empty? ? '' : " #{sources}", id: 'merge-summary-sources', data: { master: master.id })]
       moves = address_merge_moves(others, master)
       parts << " #{moves}" if moves
-      parts << " Re-links LGL constituent #{constituent_id} to ##{master.id}." if constituent_id && Lgl.enabled?
+      excluded = merge.excluded_ids
+      parts << " Leaves #{address_merge_id_sentence(excluded)} alone." if excluded.any?
+      parts << address_merge_lgl_sentence(master, excluded, constituent_id) if constituent_id && Lgl.enabled?
       safe_join(parts)
     end
 
@@ -102,7 +142,36 @@ module Admin
       labels.empty? ? '—' : safe_join(labels, ' ')
     end
 
+    # The date of the customer's newest order (any status), or a dash.
+    def address_merge_last_order(address)
+      last_ordered_at = address.orders.maximum(:created_at)
+      last_ordered_at ? last_ordered_at.to_date.to_formatted_s(:long) : '—'
+    end
+
     private
+
+    def address_merge_radio(merge, field, address, dom_id)
+      name = "choices[#{field}]"
+      return radio_button_tag(name, address.id, false, id: dom_id, disabled: true) if merge.excluded?(address)
+
+      radio_button_tag(name, address.id, merge.choice_for(field) == address.id,
+                       id: dom_id, data: { label: SUMMARY_LABELS.fetch(field), customer: address.id })
+    end
+
+    # " Re-links LGL constituent 1234 to #1." plus, when customers are
+    # excluded, that their LGL Review is cleared and they are re-synced.
+    def address_merge_lgl_sentence(master, excluded, constituent_id)
+      sentence = " Re-links LGL constituent #{constituent_id} to ##{master.id}"
+      return "#{sentence}." if excluded.empty?
+
+      "#{sentence}; clears the LGL Review on #{address_merge_id_sentence(excluded)} " \
+        "and re-syncs #{excluded.one? ? 'it' : 'them'}."
+    end
+
+    # "#1", "#1 and #2", "#1, #2 and #3".
+    def address_merge_id_sentence(ids)
+      ids.map { |id| "##{id}" }.to_sentence(two_words_connector: ' and ', last_word_connector: ' and ')
+    end
 
     # "2 orders and 1 membership move to #1.", or nil when nothing moves.
     def address_merge_moves(others, master)

@@ -84,6 +84,7 @@ class Admin::AddressesController < Admin::ApplicationController
       begin
         match.merge_and_purge(@address, clear_lgl_review: true)
         @address = match
+        queue_lgl_merge_sync(match) if Lgl.enabled?
         notice = "Updated data merged with existing audience member"
       rescue StandardError => e
         Rails.logger.warn("Admin address merge failed for ##{@address.id} -> ##{match.id}: #{e.message}")
@@ -97,7 +98,7 @@ class Admin::AddressesController < Admin::ApplicationController
 
         format.html do
           flash.keep
-          redirect_to(:admin_address, :success => notice)
+          redirect_to(admin_address_path(@address), :success => notice)
         end
         format.xml  { head :ok }
       else
@@ -134,7 +135,7 @@ class Admin::AddressesController < Admin::ApplicationController
   end
 
   def autocomplete_address
-    _, first_name, last_name = Address.parse_name(params[:term])
+    _, first_name, _, last_name = Address.parse_name(params[:term])
     last_name = first_name if last_name.blank?
     first_name = "" if first_name.nil?
     # val = params[:q].gsub(Address::SEARCHABLE_REGEXP,'').upcase
@@ -200,6 +201,14 @@ class Admin::AddressesController < Admin::ApplicationController
   end
 
   private
+
+  # LGL still names the purged id until a sync runs, and the keeper's edit hook
+  # does not fire when its synced columns did not change.
+  def queue_lgl_merge_sync(keeper)
+    Resque.enqueue(LglSyncAddressJob, keeper.id, LglSyncAddressJob::MERGE_TRIGGER)
+  rescue StandardError => e
+    Rails.logger.error("[LGL] could not queue the merge sync of ##{keeper.id}: #{e.class}: #{e.message}")
+  end
 
   def address_params
     params.require(:address).permit(:full_name, :line1, :line2, :city, :state, :zipcode, :email, :phone, :street_number, :address_tags_attributes, :_destroy, :vip, :placeholder, :photo,

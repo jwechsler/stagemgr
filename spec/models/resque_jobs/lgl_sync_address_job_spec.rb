@@ -102,7 +102,7 @@ RSpec.describe LglSyncAddressJob do
       described_class.perform(address.id, 'donation')
 
       expect(client).to have_received(:update)
-        .with(900_050, { first_name: 'Janie', last_name: 'Smith', external_constituent_id: address.id.to_s,
+        .with(900_050, { first_name: 'Janie', middle_name: '', last_name: 'Smith', external_constituent_id: address.id.to_s,
                          email_addresses: lgl['email_addresses'] }, for_address_id: address.id)
     end
 
@@ -456,7 +456,7 @@ RSpec.describe LglSyncAddressJob do
 
         expect(client).to have_received(:update).once
         expect(client).to have_received(:update)
-          .with(900_050, { first_name: 'Janie', last_name: 'Smith', external_constituent_id: address.id.to_s,
+          .with(900_050, { first_name: 'Janie', middle_name: '', last_name: 'Smith', external_constituent_id: address.id.to_s,
                            email_addresses: lgl['email_addresses'] }, for_address_id: address.id)
       end
 
@@ -529,7 +529,7 @@ RSpec.describe LglSyncAddressJob do
       expect(outcome.to_a).to eq([:merged, 900_090, "same person as address ##{twin.id} per LGL constituent 900090"])
       expect(Address.exists?(address.id)).to be(false)
       expect(Address.exists?(twin.id)).to be(true)
-      expect(Resque).to have_received(:enqueue).with(described_class, twin.id, 'merge')
+      expect(Resque).to have_received(:enqueue).with(described_class, twin.id, described_class::MERGE_TRIGGER)
     end
 
     it 'flags the address for review when LGL is read-only for the pair' do
@@ -634,7 +634,7 @@ RSpec.describe LglSyncAddressJob do
       keeper = Address.find(dead.id)
       expect(keeper.lgl_id).to eq('979629')
       expect(keeper.lgl_review_reason).to be_nil
-      expect(Resque).to have_received(:enqueue).with(described_class, dead.id, 'merge')
+      expect(Resque).to have_received(:enqueue).with(described_class, dead.id, described_class::MERGE_TRIGGER)
     end
 
     it 'keeps the dead tag when the merge is skipped' do

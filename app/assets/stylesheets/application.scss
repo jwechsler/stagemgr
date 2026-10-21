@@ -157,6 +157,20 @@ tr.lgl-review td {
   background: scale-color($warning-color, $lightness: 80%);
 }
 
+// Merge customers page: a customer excluded from the merge is greyed out.
+table.address-merge .excluded {
+  color: #8a8a8a;
+}
+
+// Merge customers page: the Exclude/Include button row is not a header band.
+table.address-merge thead tr:nth-child(2) {
+  background: $white;
+
+  th {
+    font-weight: normal;
+  }
+}
+
 // Customer page: "Re-sync with LGL" sits inline beside the LGL ID tag value.
 form.lgl-resync {
   display: inline-block;

@@ -421,7 +421,7 @@ class Admin::ReportsController < Admin::ApplicationController
 
     orders = orders.sort_by do |o|
       [o.performance.performance_code,
-       (o.hold_under.blank? ? o.address.last_name : Address.parse_name(o.hold_under)[2]).downcase]
+       (o.hold_under.blank? ? o.address.last_name : Address.parse_name(o.hold_under).last).downcase]
     end
     report = []
     headers = %i[reserved_under performance_code tickets order_id profile member_id first_time
@@ -449,10 +449,8 @@ class Admin::ReportsController < Admin::ApplicationController
       if o.hold_under.blank?
         ticket_name = o.address.last_name.to_s + (o.address.last_name.blank? || o.address.first_name.blank? ? '' : ', ') + (o.address.first_name.blank? ? '' : o.address.first_name.first)
       else
-        # parse_name returns [full_name, first, last] — the old 4-element
-        # destructure left l_name permanently nil, dropping the last name
-        # from the report for hold-under orders.
-        _, f_name, l_name = Address.parse_name(o.hold_under)
+        # parse_name returns [full_name, first, middle, last].
+        _, f_name, _, l_name = Address.parse_name(o.hold_under)
         ticket_name = l_name.to_s + (l_name.blank? || f_name.blank? ? '' : ', ') + (f_name.blank? ? '' : f_name.first)
       end
 
