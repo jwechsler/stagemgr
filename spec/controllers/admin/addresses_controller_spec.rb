@@ -166,6 +166,31 @@ RSpec.describe Admin::AddressesController, type: :controller do
       expect(response).to redirect_to(admin_address_path(keeper))
     end
 
+    context 'when the edit merges into an existing record' do
+      let!(:keeper) { FactoryBot.create(:address, full_name: 'Merged Patron', email: 'merged@example.com') }
+      let!(:edited) { FactoryBot.create(:address, full_name: 'Merged Patron-typo', email: 'merged@example.com') }
+
+      before { allow(Resque).to receive(:enqueue) }
+
+      it 'queues an LGL sync for the kept record after a merge' do
+        allow(Lgl).to receive(:enabled?).and_return(true)
+
+        put :update, params: { id: edited.id, address: { full_name: 'Merged Patron' } }
+
+        expect(Resque).to have_received(:enqueue)
+          .with(LglSyncAddressJob, keeper.id, LglSyncAddressJob::MERGE_TRIGGER)
+      end
+
+      it 'queues no LGL sync when LGL is disabled' do
+        allow(Lgl).to receive(:enabled?).and_return(false)
+
+        put :update, params: { id: edited.id, address: { full_name: 'Merged Patron' } }
+
+        expect(Resque).not_to have_received(:enqueue)
+          .with(LglSyncAddressJob, keeper.id, LglSyncAddressJob::MERGE_TRIGGER)
+      end
+    end
+
     it 'updates normally when no duplicate exists' do
       address = FactoryBot.create(:address, full_name: 'Solo Patron', email: 'solo@example.com')
 

@@ -104,6 +104,10 @@ class LglSyncAddressJob
   # email-matched constituent; never creates.
   LINK_TRIGGER = 'link'
 
+  # Trigger reason after two Stagemgr addresses were merged: re-points LGL at
+  # the keeper; never pushes contact fields.
+  MERGE_TRIGGER = 'merge'
+
   Outcome = Struct.new(:action, :constituent_id, :reason)
 
   # One lock per address whatever triggered it: the reason is only for the log.
@@ -216,7 +220,7 @@ class LglSyncAddressJob
     result, keeper = merge_without_dead_link(other)
     case result
     when :merged
-      Resque.enqueue(self.class, keeper.id, 'merge')
+      Resque.enqueue(self.class, keeper.id, MERGE_TRIGGER)
       Outcome.new(:merged, decision.constituent['id'], decision.reason)
     when :in_flight
       review("Same person as ##{other.id} in LGL; merge skipped while an order is in progress")
