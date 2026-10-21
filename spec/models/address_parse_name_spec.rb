@@ -44,6 +44,20 @@ RSpec.describe Address, type: :model do
         expect(described_class.parse_name('Bruce Elder')).to eq(['Bruce Elder', 'Bruce', '', 'Elder'])
       end
 
+      it 'splits an all-lowercase name that Namae reads as a particle' do
+        expect(described_class.parse_name('jonathan b sands')).to eq(['jonathan b sands', 'jonathan', 'b', 'sands'])
+        expect(described_class.parse_name('carol a kemp')).to eq(['carol a kemp', 'carol', 'a', 'kemp'])
+        expect(described_class.parse_name('lynn a. cohen')).to eq(['lynn a. cohen', 'lynn', 'a.', 'cohen'])
+      end
+
+      it 'keeps a single lowercase token as the last name' do
+        expect(described_class.parse_name('madonna')).to eq(['madonna', '', '', 'madonna'])
+      end
+
+      it 'keeps a titled surname-only name as the last name alone' do
+        expect(described_class.parse_name('Dr. Smith')).to eq(['Dr. Smith', '', '', 'Smith'])
+      end
+
       it 'splits an organization name on its last token' do
         expect(described_class.parse_name('Presbyterian Home - Westminster Place'))
           .to eq(['Presbyterian Home - Westminster Place', 'Presbyterian Home - Westminster', '', 'Place'])

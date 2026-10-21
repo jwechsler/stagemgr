@@ -64,7 +64,7 @@ class Address < ApplicationRecord
       return ["", "", "", ""] if parseable.blank?
 
       names = Namae.parse(parseable)
-      if names.any?
+      if names.any? && !lowercase_misparse?(names.first)
         primary_name = names.first
         secondary_name = names.length > 1 ? names.second : nil
 
@@ -84,8 +84,9 @@ class Address < ApplicationRecord
         [full_name, *split_middle_initial(f_name), l_name]
       else
         # Namae also chokes on parenthesized nicknames ("Kathleen (Kate)
-        # Early") and surnames that collide with its title vocabulary
-        # ("Paula Cantor", "Brian Pastor", "Bruce Elder"). Fall back to a
+        # Early"), surnames that collide with its title vocabulary
+        # ("Paula Cantor", "Brian Pastor", "Bruce Elder") and all-lowercase
+        # names ("jonathan b sands", see lowercase_misparse?). Fall back to a
         # naive last-token split rather than leaving the name blank.
         tokens = parseable.split
         if tokens.length == 1
@@ -96,6 +97,15 @@ class Address < ApplicationRecord
       end
     end
   end
+
+  # Namae reads lowercase words before the surname as a particle ("van",
+  # "de"), so "jonathan b sands" comes back with no given name and
+  # particle "jonathan b". Titled names ("Dr. Smith") also lack a given name
+  # but have no particle, so they keep the Namae result.
+  def self.lowercase_misparse?(name)
+    name.given.blank? && name.particle.present?
+  end
+  private_class_method :lowercase_misparse?
 
   # Splits a trailing middle initial off a given name: "Alicia M" ->
   # ["Alicia", "M"]. Everything else stays whole in first: "Mary Ann",
