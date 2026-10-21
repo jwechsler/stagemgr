@@ -34,16 +34,28 @@ RSpec.describe Addresses::NameReparser do
     expect(address.reload.last_first_name).to eq('SENIOR-SAYWELLALICIAM')
   end
 
-  it 'blanks a legacy middle_name that full_name does not contain' do
-    address = legacy_address('Jane Doe', first_name: 'Jane', middle_name: 'Quincy',
-                                         last_first_name: 'DOEJANEQUINCY')
+  it 'keeps a legacy middle_name and splits it out of first_name' do
+    address = legacy_address('Peter Marston Smith', first_name: 'Peter Marston', middle_name: 'Marston',
+                                                    last_first_name: 'SMITHPETERMARSTONMARSTON')
 
     described_class.new.call
 
     address.reload
-    expect(address.middle_name).to be_blank
-    expect(address.first_name).to eq('Jane')
-    expect(address.last_first_name).to eq('DOEJANE')
+    expect(address.first_name).to eq('Peter')
+    expect(address.middle_name).to eq('Marston')
+    expect(address.last_name).to eq('Smith')
+    expect(address.last_first_name).to eq('SMITHPETERMARSTON')
+  end
+
+  it 'leaves a legacy middle_name the name no longer contains' do
+    address = legacy_address('Jeremy Smith', first_name: 'Jeremy', middle_name: 'M',
+                                             last_first_name: 'SMITHJEREMYM')
+    before = address.attributes
+
+    summary = described_class.new.call
+
+    expect(address.reload.attributes).to eq(before)
+    expect(summary).to have_attributes(changed: 0, unchanged: 1)
   end
 
   it 'leaves an already-correct row untouched' do

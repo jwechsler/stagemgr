@@ -4,7 +4,7 @@ require_relative 'addresses/name_reparser'
 
 namespace :addresses do
   desc 'Re-derive first/middle/last name and last_first_name from full_name ' \
-       '(splits trailing middle initials out of first_name; DRY_RUN=1 to preview)'
+       '(splits middle names out of first_name, keeps stored middle names; DRY_RUN=1 to preview)'
   task reparse_names: :environment do
     # LEGACY backfill: see Addresses::NameReparser. Idempotent -- a row
     # already in the parsed shape is counted as unchanged and not written.

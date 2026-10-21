@@ -128,8 +128,24 @@ class Address < ApplicationRecord
     end
   end
 
+  # First, middle and last name as the next save should store them. The parse
+  # only recovers a trailing middle initial, so a stored middle_name is
+  # knowledge from an import or LGL that the parse cannot rebuild: the parse
+  # may add a middle name or split the stored one out of first_name, but it
+  # never blanks it. Last name always comes from the parse.
+  def derived_names
+    _, first, middle, last = Address.parse_name(full_name)
+    stored_middle = middle_name.to_s.strip
+    if middle.blank? && stored_middle.present?
+      suffix = " #{stored_middle}"
+      first = first[0...-suffix.length].squish if first.downcase.end_with?(suffix.downcase)
+      middle = stored_middle
+    end
+    { first_name: first, middle_name: middle.to_s, last_name: last }
+  end
+
   def regularize!
-    _, self.first_name, self.middle_name, self.last_name = Address.parse_name(full_name)
+    assign_attributes(derived_names)
 
     email.strip! unless email.nil?
     line1.strip! unless line1.nil?

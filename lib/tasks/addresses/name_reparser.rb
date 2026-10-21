@@ -5,7 +5,9 @@ module Addresses
   # last name -- and the last_first_name search key built from them -- from
   # full_name, which is canonical. Rows saved before Address.parse_name split
   # a trailing middle initial still hold it inside first_name ("Alicia M"),
-  # and older rows carry a middle_name the parse no longer produces.
+  # and imported rows can hold a stored middle name folded into first_name
+  # ("Peter Marston" / "Marston"). Address#derived_names is the rule: a stored
+  # middle_name is kept (and split out of first_name), never blanked.
   #
   # Writes with update_columns on purpose: a save would run regularize! and the
   # LglLinkable after_commit, enqueueing an LGL edit sync for every linked
@@ -16,6 +18,8 @@ module Addresses
 
     Summary = Struct.new(:scanned, :changed, :unchanged, :samples, keyword_init: true)
 
+    # Rows whose first_name may hold a middle name, or that carry a stored
+    # middle_name that may still be folded into first_name.
     def self.candidates
       Address.where("first_name LIKE '% %' OR (middle_name IS NOT NULL AND middle_name <> '')")
     end
@@ -47,9 +51,8 @@ module Addresses
     # actually differ. nil and "" count as equal so a blank middle_name is
     # not rewritten for nothing.
     def reparsed_changes(address)
-      _, first, middle, last = Address.parse_name(address.full_name)
       probe = address.dup
-      probe.assign_attributes(first_name: first, middle_name: middle, last_name: last)
+      probe.assign_attributes(probe.derived_names)
       # Same derivation as the before_save callback, so the key cannot drift.
       probe.send(:set_search_name)
       NAME_COLUMNS.each_with_object({}) do |column, changes|
