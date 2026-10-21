@@ -163,6 +163,7 @@ RSpec.describe Admin::AddressesController, type: :controller do
       # record with all of its orders, leaving a permanent duplicate.
       expect(order.reload.address_id).to eq(keeper.id)
       expect(Address.exists?(edited.id)).to be(false)
+      expect(response).to redirect_to(admin_address_path(keeper))
     end
 
     it 'updates normally when no duplicate exists' do
@@ -171,6 +172,7 @@ RSpec.describe Admin::AddressesController, type: :controller do
       put :update, params: { id: address.id, address: { full_name: 'Solo Patron Jr' } }
 
       expect(address.reload.full_name).to eq('Solo Patron Jr')
+      expect(response).to redirect_to(admin_address_path(address))
     end
   end
 

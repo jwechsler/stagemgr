@@ -97,7 +97,7 @@ class Admin::AddressesController < Admin::ApplicationController
 
         format.html do
           flash.keep
-          redirect_to(:admin_address, :success => notice)
+          redirect_to(admin_address_path(@address), :success => notice)
         end
         format.xml  { head :ok }
       else
