@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Lgl::NameMatch do
+RSpec.describe NameMatch do
   describe '.first_name_key' do
     it 'keeps the first word, downcased, without trailing punctuation' do
       expect(described_class.first_name_key('Alden L.')).to eq('alden')

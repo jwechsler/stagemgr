@@ -11,7 +11,7 @@ module Lgl
   #   neither a first nor a last name  -> :no_name
   #   one address matches by email and last name (match_by_email), or
   #   several do and exactly one of them shares the constituent's first name
-  #   (Lgl::NameMatch: first word only, so couples' and spouses' records and
+  #   (NameMatch: first word only, so couples' and spouses' records and
   #   middle initials do not confuse it)
   #                                    -> tag it LGL ID, clear its review: :linked
   #   several share the first name     -> review only those, "matches several
@@ -64,7 +64,7 @@ module Lgl
     # [outcome, the single matching address or nil, the addresses to flag for
     # review (empty unless :several_matches)]; outcome is :one_match,
     # :several_matches, :no_match or :no_email. Several email + last name
-    # matches are narrowed by first name (Lgl::NameMatch).
+    # matches are narrowed by first name (NameMatch).
     def self.match_by_email(constituent)
       return [:no_email, nil, []] if emails(constituent).empty?
 
@@ -72,7 +72,7 @@ module Lgl
       return [:no_match, nil, []] if found.empty?
       return [:one_match, found.first, []] if found.one?
 
-      named = Lgl::NameMatch.narrow(constituent['first_name'], found, &:first_name)
+      named = NameMatch.narrow(constituent['first_name'], found, &:first_name)
       return [:one_match, named.first, []] if named&.one?
 
       [:several_matches, nil, named.presence || found]
@@ -87,7 +87,7 @@ module Lgl
     def self.several_matches_reason(constituent, flagged)
       prefix = several_matches_prefix(constituent['id'])
       first_name = constituent['first_name'].to_s.strip
-      if flagged.all? { |address| Lgl::NameMatch.same_first_name?(first_name, address.first_name) }
+      if flagged.all? { |address| NameMatch.same_first_name?(first_name, address.first_name) }
         "#{prefix} named #{full_name(constituent)} by email: merge them in Stagemgr, then Re-sync"
       else
         "#{prefix} by email and last name"

@@ -149,11 +149,17 @@ class Address < ApplicationRecord
       }
     )
     if matches.blank?
-      matches = Address.where(
-        "first_name = :first_name and last_name = :last_name and (email = :email #{' or email is null or email = \'\'' unless (email.blank? && street_number.blank?)}) and id <> :id", {
-          :first_name => first_name, :last_name => last_name, :id => comparison_id, :email => (email.blank? ? '' : email.strip)
+      # First names compare by first word only (NameMatch): middle initials
+      # and couple suffixes vary between records of the same person. A blank
+      # first name has no first word, so it keeps exact equality (and nil,
+      # like SQL's `= NULL`, matches nothing).
+      same_last_name = Address.where(
+        "last_name = :last_name and (email = :email #{' or email is null or email = \'\'' unless (email.blank? && street_number.blank?)}) and id <> :id", {
+          :last_name => last_name, :id => comparison_id, :email => (email.blank? ? '' : email.strip)
         }
       )
+      matches = NameMatch.narrow(first_name, same_last_name, &:first_name) ||
+                (first_name.nil? ? [] : same_last_name.where(first_name: first_name))
       if matches.blank?
         matches = Address.where("id <> :id AND street_number = :street_number AND street = :street AND city = :city and search_name = :search_name #{'and (email = \'\' or email is null)' if email.present?}",
                                 { :id => comparison_id, :street_number => street_number, :street => street,

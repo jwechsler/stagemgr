@@ -15,7 +15,7 @@ module Lgl
   # and +rows+ is the first +limit+ of them.
   #
   # A several-matches row is +same_person?+ when its customers' first names
-  # (as Lgl::NameMatch keys them; blank names ignored) are all one name,
+  # (as NameMatch keys them; blank names ignored) are all one name,
   # whatever the reason's wording: spellings of one person. Different first
   # names are often a household whose records each carry one of the
   # constituent's emails, so the page warns before merging them. +summary+ is
@@ -80,18 +80,18 @@ module Lgl
       first_name_keys(addresses).size <= 1
     end
 
-    # The distinct Lgl::NameMatch first-name keys of +addresses+, blanks skipped.
+    # The distinct NameMatch first-name keys of +addresses+, blanks skipped.
     def self.first_name_keys(addresses)
-      addresses.filter_map { |address| Lgl::NameMatch.first_name_key(address.first_name) }.uniq
+      addresses.filter_map { |address| NameMatch.first_name_key(address.first_name) }.uniq
     end
 
-    # The distinct first names of +addresses+, one per Lgl::NameMatch key: the
+    # The distinct first names of +addresses+, one per NameMatch key: the
     # first word as first typed, trailing punctuation dropped ("Alden L." and
     # "alden" give ["Alden"]); blank names are skipped.
     def self.first_names(addresses)
       addresses.each_with_object({}) do |address, names|
         word = address.first_name.to_s.strip.split(/\s+/).first.to_s.sub(/[[:punct:]]+\z/, '')
-        key = Lgl::NameMatch.first_name_key(word)
+        key = NameMatch.first_name_key(word)
         names[key] ||= word if key
       end.values
     end
