@@ -63,8 +63,9 @@ module Admin::AdvanceSalesHelper
     number_with_delimiter(count)
   end
 
-  # Expected cell for the Upcoming House Counts table: the paid count expected
-  # at curtain, read from the pace snapshot on a HouseCount (refreshed on every
+  # Expected cell for the Upcoming House Counts table: the seats expected filled
+  # at curtain (paid projection plus comps already issued, the same basis as
+  # Sold), read from the pace snapshot on a HouseCount (refreshed on every
   # recalculation and nightly). A dash with no snapshot or nothing projectable,
   # "Too early" when the share in hand is too small to project, a titled dash
   # once Sold has passed the projection, else the expected share of the house
@@ -83,7 +84,7 @@ module Admin::AdvanceSalesHelper
     return content_tag(:span, TOO_EARLY_LABEL, title: title) if house_count.pace_too_early?
     if house_count.expected_met?
       return content_tag(:span, EMPTY_CELL,
-                         title: "Sold has already passed the expected ~ #{number_with_delimiter(house_count.capped_projected_seats)}")
+                         title: "Sold has already passed the expected ~ #{number_with_delimiter(house_count.capped_expected_seats)}")
     end
 
     pct = house_count.expected_pct
@@ -107,17 +108,24 @@ module Admin::AdvanceSalesHelper
     house_count.projection_capped? ? "#{title}; #{house_count_demand_note(house_count)}" : title
   end
 
-  # The cell shows only "~ 67%", so the seat count lives in the title.
+  # The cell shows only "~ 67%", so the seat count lives in the title, with
+  # the paid projection and comps split out when there are comps.
   def house_count_expected_note(house_count)
     expected = house_count.expected_seats
     return nil if expected.nil? || house_count.total_seats.to_i.zero?
 
-    "expected ~ #{number_with_delimiter(expected)} of #{number_with_delimiter(house_count.total_seats)} seats"
+    note = "expected ~ #{number_with_delimiter(expected)} of #{number_with_delimiter(house_count.total_seats)} seats"
+    comps = house_count.comp_seats.to_i
+    return note if comps.zero?
+
+    "#{note} (#{number_with_delimiter(house_count.projected_seats)} paid + " \
+      "#{number_with_delimiter(comps)} #{'comp'.pluralize(comps)})"
   end
 
-  # The cell has room for "~ 94%" only, so the uncapped demand lives in the title.
+  # The cell has room for "~ 94%" only, so the uncapped demand (paid
+  # projection plus comps issued) lives in the title.
   def house_count_demand_note(house_count)
-    "demand ~ #{number_with_delimiter(house_count.projected_seats)} exceeds the " \
+    "demand ~ #{number_with_delimiter(house_count.expected_demand)} exceeds the " \
       "#{number_with_delimiter(house_count.sellable_seats)} sellable seats"
   end
 end

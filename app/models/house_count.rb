@@ -9,6 +9,7 @@ class HouseCount < Metric
     self.total_seats = performance.production.capacity
     self.sold_seats = calculate_sold_seats
     self.held_seats = calculate_held_seats
+    self.comp_seats = calculate_comp_seats
     # available = capacity minus every seat currently occupied (sold + on hold +
     # in-progress + exchanging + releasing). performance.seats_occupied is the
     # preferred alias of the original #seats_held and returns the same figure.
@@ -81,32 +82,43 @@ class HouseCount < Metric
     total_seats.nil? ? nil : total_seats - held_seats.to_i
   end
 
-  # projected_seats keeps the raw demand AdvanceSalesPace computed, which can
-  # run past the house on a hot show; nobody can be expected beyond the
-  # sellable seats, so everything shown to staff reads this capped figure.
-  def capped_projected_seats
+  # Expected on the house counts is about seats filled, not revenue. The
+  # projection AdvanceSalesPace writes to projected_seats is paid-only (comps
+  # are left out of the advance-sales curve on purpose), but Sold counts comps,
+  # so Expected adds the comps already issued to share Sold's basis. This is
+  # the raw demand, which can run past the house on a hot show. Nil without a
+  # projection.
+  def expected_demand
     return nil if projected_seats.nil?
 
-    projection_capped? ? sellable_seats : projected_seats
+    projected_seats + comp_seats.to_i
+  end
+
+  # Nobody can be expected beyond the sellable seats, so everything shown to
+  # staff reads this capped figure rather than the raw demand.
+  def capped_expected_seats
+    return nil if expected_demand.nil?
+
+    projection_capped? ? sellable_seats : expected_demand
   end
 
   def projection_capped?
-    projected_seats.present? && sellable_seats.present? && projected_seats > sellable_seats
+    expected_demand.present? && sellable_seats.present? && expected_demand > sellable_seats
   end
 
-  # Sold has gone past the projection (strictly greater), or a capped
+  # Sold has gone past the expected demand (strictly greater), or a capped
   # projection has been reached: with every sellable seat sold there is
   # nothing left to anticipate, and sold cannot pass them.
   def expected_met?
-    return false if projected_seats.nil?
+    return false if expected_demand.nil?
 
     sold = sold_seats.to_i
-    projection_capped? ? sold >= capped_projected_seats : sold > projected_seats
+    projection_capped? ? sold >= sellable_seats : sold > expected_demand
   end
 
-  # The Sold column has already passed the projection, nothing more to anticipate.
+  # The Sold column has already passed the expectation, nothing more to anticipate.
   def expected_seats
-    expected_met? ? nil : capped_projected_seats
+    expected_met? ? nil : capped_expected_seats
   end
 
   # Expected as a whole percentage of production capacity (total_seats, not
@@ -147,6 +159,16 @@ class HouseCount < Metric
   def calculate_sold_seats
     performance.orders.includes(:ticket_line_items).select(&:sold?).sum do |order|
       order.ticket_line_items.joins(:ticket_class).where(ticket_classes: { holds_seats: true }).sum(:ticket_count)
+    end
+  end
+
+  # The comps among the sold seats: seat-holding complimentary classes on sold
+  # orders, the same orders calculate_sold_seats counts. Sold already includes
+  # them; this sub-count only feeds Expected (see #expected_demand).
+  def calculate_comp_seats
+    performance.orders.includes(:ticket_line_items).select(&:sold?).sum do |order|
+      order.ticket_line_items.joins(:ticket_class)
+           .where(ticket_classes: { holds_seats: true, complimentary: true }).sum(:ticket_count)
     end
   end
 

@@ -244,6 +244,52 @@ RSpec.describe HouseCount, type: :model do
       end
     end
 
+    describe '#calculate_comp_seats' do
+      it 'counts seat-holding complimentary tickets on sold orders, which Sold also includes' do
+        production = FactoryBot.create(:production, capacity: 50)
+        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
+        comp = FactoryBot.create(:ticket_class, production: production, complimentary: true, holds_seats: true,
+                                                ticket_price: 0, class_code: 'HCCOMP', class_name: 'Comp')
+        FactoryBot.create(:ticket_class_allocation, performance: performance, ticket_class: comp)
+
+        order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_credit_card,
+                                  performance: performance)
+        order.ticket_line_items.create!(ticket_class: comp, ticket_count: 3)
+        hold = FactoryBot.create(:ticket_order, :for_a_single_ticket, status: Order::HOLD, performance: performance)
+        hold.ticket_line_items.create!(ticket_class: comp, ticket_count: 1)
+
+        house_count = HouseCount.new(performance: performance)
+        allow(AdvanceSalesPace).to receive(:for_performance).and_return(nil)
+        house_count.calculate
+
+        expect(house_count.comp_seats).to eq(3)
+        expect(house_count.sold_seats).to eq(5)
+      end
+
+      it 'adds the comps to the paid projection in Expected' do
+        production = FactoryBot.create(:production, capacity: 50)
+        performance = FactoryBot.create(:general_admission, production: production,
+                                                            performance_date: Date.current + 7.days)
+        comp = FactoryBot.create(:ticket_class, production: production, complimentary: true, holds_seats: true,
+                                                ticket_price: 0, class_code: 'HCCOMP', class_name: 'Comp')
+        FactoryBot.create(:ticket_class_allocation, performance: performance, ticket_class: comp)
+        order = FactoryBot.create(:ticket_order, :for_a_single_ticket, :paid_with_credit_card,
+                                  performance: performance)
+        order.ticket_line_items.create!(ticket_class: comp, ticket_count: 4)
+        reading = AdvanceSalesPace::Reading.new(performance_id: performance.id, days_out: 7, sold: 1,
+                                                typical_share: 0.5, projected_final: 20, capacity: 50,
+                                                projected_pct_of_capacity: nil, source: :theater)
+        allow(AdvanceSalesPace).to receive(:for_performance).with(performance).and_return(reading)
+
+        house_count = HouseCount.new(performance: performance)
+        house_count.calculate
+
+        expect(house_count.projected_seats).to eq(20)
+        expect(house_count.comp_seats).to eq(4)
+        expect(house_count.expected_seats).to eq(24)
+      end
+    end
+
     describe '.export_columns' do
       it 'includes held_seats and max_ticket_price' do
         expect(HouseCount.export_columns).to include('held_seats', 'max_ticket_price')
@@ -313,7 +359,7 @@ RSpec.describe HouseCount, type: :model do
 
         expect(house_count.sellable_seats).to eq(98)
         expect(house_count).to be_projection_capped
-        expect(house_count.capped_projected_seats).to eq(98)
+        expect(house_count.capped_expected_seats).to eq(98)
         expect(house_count.projected_seats).to eq(124)
         expect(house_count.expected_seats).to eq(98)
       end
@@ -322,7 +368,7 @@ RSpec.describe HouseCount, type: :model do
         house_count.assign_attributes(total_seats: 100, held_seats: 4, sold_seats: 0, projected_seats: 100)
 
         expect(house_count).to be_projection_capped
-        expect(house_count.capped_projected_seats).to eq(96)
+        expect(house_count.capped_expected_seats).to eq(96)
       end
 
       it 'is met once sold reaches the sellable seats of a capped projection' do
@@ -344,7 +390,7 @@ RSpec.describe HouseCount, type: :model do
 
         expect(house_count.sellable_seats).to eq(100)
         expect(house_count).not_to be_projection_capped
-        expect(house_count.capped_projected_seats).to eq(100)
+        expect(house_count.capped_expected_seats).to eq(100)
       end
 
       it 'gives the expected seats as a whole percentage of the house' do
@@ -370,11 +416,45 @@ RSpec.describe HouseCount, type: :model do
         expect(house_count.expected_pct).to be_nil
       end
 
+      it 'adds the comps already issued to the paid projection' do
+        house_count.assign_attributes(total_seats: 104, sold_seats: 30, projected_seats: 80, comp_seats: 4)
+
+        expect(house_count.expected_demand).to eq(84)
+        expect(house_count).not_to be_projection_capped
+        expect(house_count.expected_seats).to eq(84)
+        expect(house_count.expected_pct).to eq(81)
+      end
+
+      it 'treats no comp seats as none' do
+        house_count.assign_attributes(projected_seats: 40, comp_seats: nil)
+
+        expect(house_count.expected_demand).to eq(40)
+      end
+
+      it 'is met only once sold passes the paid projection plus comps' do
+        house_count.assign_attributes(sold_seats: 44, projected_seats: 40, comp_seats: 4)
+        expect(house_count).not_to be_expected_met
+
+        house_count.sold_seats = 45
+        expect(house_count).to be_expected_met
+        expect(house_count.expected_seats).to be_nil
+      end
+
+      it 'caps when the paid projection fits but the comps push it past the sellable seats' do
+        house_count.assign_attributes(total_seats: 104, held_seats: 6, sold_seats: 71, projected_seats: 94,
+                                      comp_seats: 34)
+
+        expect(house_count).to be_projection_capped
+        expect(house_count.expected_demand).to eq(128)
+        expect(house_count.capped_expected_seats).to eq(98)
+        expect(house_count.expected_seats).to eq(98)
+      end
+
       it 'has no capped projection without a projection' do
         house_count.assign_attributes(projected_seats: nil)
 
         expect(house_count).not_to be_projection_capped
-        expect(house_count.capped_projected_seats).to be_nil
+        expect(house_count.capped_expected_seats).to be_nil
       end
     end
 

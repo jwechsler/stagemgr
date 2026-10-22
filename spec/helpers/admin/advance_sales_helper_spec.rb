@@ -200,6 +200,33 @@ RSpec.describe Admin::AdvanceSalesHelper, type: :helper do
       expect(html).to have_css('span[title="Sold has already passed the expected ~ 98"]', exact_text: '—')
     end
 
+    it 'adds comps already issued to Expected and splits them out in the title' do
+      html = helper.house_count_pace_cell(house_count(total_seats: 104, projected_seats: 80, comp_seats: 4))
+
+      expect(html).to have_css(
+        'span[title="Sold 20 as of Oct 6; this house typically has 50% in hand 7 days out; ' \
+        'expected ~ 84 of 104 seats (80 paid + 4 comps)"]',
+        exact_text: "~\u00A081%"
+      )
+    end
+
+    it 'names the combined demand when comps push it past the sellable seats' do
+      html = helper.house_count_pace_cell(house_count(total_seats: 104, held_seats: 6, sold_seats: 71, pace_sold: 71,
+                                                      projected_seats: 124, comp_seats: 4))
+
+      expect(html).to have_css(
+        'span[title="Sold 71 as of Oct 6; this house typically has 50% in hand 7 days out; ' \
+        'expected ~ 98 of 104 seats (124 paid + 4 comps); demand ~ 128 exceeds the 98 sellable seats"]',
+        exact_text: "~\u00A094%"
+      )
+    end
+
+    it 'names the paid projection plus comps once sold has passed them' do
+      html = helper.house_count_pace_cell(house_count(sold_seats: 45, projected_seats: 40, comp_seats: 4))
+
+      expect(html).to have_css('span[title="Sold has already passed the expected ~ 44"]', exact_text: '—')
+    end
+
     it 'still shows the expected share when sold equals the expected count' do
       html = helper.house_count_pace_cell(house_count(sold_seats: 40))
 

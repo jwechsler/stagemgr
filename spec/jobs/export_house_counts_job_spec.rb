@@ -69,6 +69,15 @@ RSpec.describe ExportHouseCountsJob, type: :job do
       .to match(/\|\s*~ 94% \|\s*$/)
   end
 
+  it 'adds the comps already issued to Expected' do
+    performance1.house_count.update_columns(total_seats: 104, sold_seats: 30, projected_seats: 80, comp_seats: 4)
+
+    ExportHouseCountsJob.perform(file_path)
+
+    expect(File.read(file_path).lines.find { |l| l.include?(performance1.performance_code) })
+      .to match(/\|\s*~ 81% \|\s*$/)
+  end
+
   it 'leaves Expected blank once sold has passed the projection' do
     performance1.house_count.update_columns(sold_seats: 4, projected_seats: 3)
 
