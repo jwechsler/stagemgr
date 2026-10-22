@@ -7,14 +7,8 @@
 : "${REPORT_EMAIL:?set REPORT_EMAIL in the cron environment (e.g. boxoffice@yourtheater.org)}"
 export EMAIL="$REPORT_EMAIL"
 
-export PATH=$PATH:/usr/local/mysql/bin
+export PATH="$PATH:/usr/local/mysql/bin:/usr/local/bin"
 
-test -r /sw/bin/init.sh && . /sw/bin/init.sh
-
-SCRIPT=`readlink -f $0`
-# Absolute path this script is in, thus /home/user/bin
-SCRIPTPATH=`dirname $SCRIPT`
+SCRIPTPATH="$(cd "$(dirname "$0")" && pwd)"
 
 cat $SCRIPTPATH/sql/unfulfilled_flexpass.sql | mysql --vertical -u stagemgr_prod stagemgr | mailx -E -s "[${REPORT_SUBJECT_TAG:-StageMgr}] Unfulfilled Flexpasses" "$EMAIL"
-
-

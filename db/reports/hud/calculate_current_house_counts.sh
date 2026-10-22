@@ -1,4 +1,6 @@
-PATH=$PATH:/usr/local/bin
+#!/bin/bash
+
+export PATH="$PATH:/usr/local/mysql/bin:/usr/local/bin"
 
 echo "HOUSE COUNTS" > /tmp/house_counts.tmp.txt
 
@@ -23,6 +25,6 @@ and year(perf.performance_date)*100 + week(perf.performance_date,5) < year(addda
 and perf.performance_date >= curdate()
 and perf.id = tix.id 
 group by prod.id, perf.performance_code
-order by perf.performance_date, perf.performance_time, performance_code" | /usr/local/bin/mysql --table=true -u stagemgr_prod -piaj4tic5cir stagemgr >> /tmp/house_counts.tmp.txt
+order by perf.performance_date, perf.performance_time, performance_code" | mysql --defaults-extra-file="${MY_CNF:-$HOME/.my.cnf}" --table=true -u stagemgr_prod stagemgr >> /tmp/house_counts.tmp.txt
 echo "Generated at `date`" >> /tmp/house_counts.tmp.txt
 mv /tmp/house_counts.tmp.txt /tmp/house_counts.txt

@@ -172,7 +172,7 @@ Tell anyone else with a clone (and any running Claude session or agent worktree)
 `bin/deploy` runs `git pull --ff-only`, which fails on rewritten history. Before the **next** deploy, on the production box:
 
 ```sh
-cd ~/stagemgr
+cd /var/www/stagemgr
 git status                        # must be clean apart from ignored config; stop and investigate if not
 git fetch origin
 git reset --hard origin/master

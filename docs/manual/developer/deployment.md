@@ -223,7 +223,10 @@ A checklist for the first deploy of a Stagemgr carrying site themes, the
 ## Reports from cron
 
 `db/reports/mail_*.sh` build a text report with `mysql` and mail it with `mutt`
-or `mailx`. They read:
+or `mailx`. The scripts locate their SQL relative to their own directory, so a
+cron entry only needs the absolute path to the script, e.g.
+`0 7 * * 1 /var/www/stagemgr/db/reports/mail_previous_week_box_office.sh boxoffice@example.org`.
+They read:
 
 | Variable | Default | Purpose |
 |---|---|---|
