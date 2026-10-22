@@ -552,6 +552,7 @@ class Order < ApplicationRecord
   # the next in the sequence.
 
   def transition_to!(new_status)
+    snapshot_before_transition
     Order.transaction do
       old_status = status
       send :"transition_#{status.underscore}_to_#{new_status.underscore}!"
@@ -567,9 +568,12 @@ class Order < ApplicationRecord
       Rails.logger.debug e.backtrace.join("\n")
       self.status = old_status
       self.id = nil if status.eql?(Order::NEW)
+      restore_snapshot_after_failed_transition
       raise e
     end
     self
+  ensure
+    discard_transition_snapshot
   end
 
   def status_display
@@ -690,6 +694,15 @@ class Order < ApplicationRecord
   end
 
   protected
+
+  # transition_to! hooks for in-memory state a failed transition must put
+  # back (status and id it restores itself). No-ops here; TicketOrder
+  # restores its line items.
+  def snapshot_before_transition; end
+
+  def restore_snapshot_after_failed_transition; end
+
+  def discard_transition_snapshot; end
 
   def balanced_transaction?
     li_total = total_due

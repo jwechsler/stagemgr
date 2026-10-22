@@ -6,6 +6,8 @@ class AddressTag < ApplicationRecord
   LGL_REVIEW = 'LGL Review'
   # LYBUNT or SYBUNT from the address's LGL gift history (see Lgl::GiftHistory).
   LGL_LAPSED = 'LGL Lapsed'
+  # System-written bookkeeping, not patron notes: the house report never prints them.
+  HOUSE_REPORT_IGNORED_LABELS = [EXTERNAL_ID, LGL_ID, LGL_REVIEW, LGL_LAPSED].freeze
 
   # Every LGL tag belongs to the default theater (see LglLinkable). With no
   # default theater there are no LGL tags, so the scope is empty.

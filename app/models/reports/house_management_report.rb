@@ -23,7 +23,7 @@ class HouseManagementReport < Report
       []
     else
       address.address_tags.select do |tag|
-        next false if tag.tag_label == AddressTag::EXTERNAL_ID
+        next false if AddressTag::HOUSE_REPORT_IGNORED_LABELS.include?(tag.tag_label)
 
         tag.theater_id.blank? || tag.theater.producing?
       end

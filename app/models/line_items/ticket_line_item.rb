@@ -66,9 +66,29 @@ class TicketLineItem < LineItem
   end
 
   def check_price_override
-    return unless !generated_from_split? && (price_override.eql?(0) || !ticket_class.ticket_type.eql?('Donation'))
+    self.price_override = nil unless keeps_price_override?
+  end
 
-    self.price_override = nil
+  # The one rule for which price overrides survive a save (check_price_override)
+  # and are written onto the seat a class swap hands over
+  # (TicketOrder#reclass_seat_for), so seat and line item agree and the admin
+  # form, which posts each seat's override, round-trips it. Kept: a split
+  # share, a non-zero donation, and a pass redemption's price (the lesser of
+  # the regular and the pass class price, which the pass payment covers).
+  # Any other class is sold at its class price.
+  def keeps_price_override?
+    return true if generated_from_split?
+    return false if price_override.nil?
+    return !price_override.zero? if ticket_class&.ticket_type == TicketClass::DONATION
+
+    pass_redemption?
+  end
+
+  # In the class the order's pass offer redeems into. Keyed on the offer, not
+  # TicketClass#software_managed, which many pass classes are not.
+  def pass_redemption?
+    offer = ticket_order&.redeeming_pass_offer
+    !offer.nil? && ticket_class&.class_code == offer.use_ticket_class_code
   end
 
   delegate :complimentary?, to: :ticket_class

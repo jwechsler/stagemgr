@@ -14,7 +14,7 @@ class FlexPassPaymentType < PassPaymentType
 
     pass_ticket_class = order.production_ticket_class_from_offer(flex_pass.flex_pass_offer)
     total_amount = order.ticket_line_items.inject(0) do |total_amount, li|
-      total_amount + (PassPaymentType.applicable_price(li.ticket_class, pass_ticket_class) * li.ticket_count)
+      total_amount + (PassPaymentType.applicable_price(li, pass_ticket_class) * li.ticket_count)
     end
     FlexPassPayment.new(
       number_of_tickets: order.number_of_tickets,
