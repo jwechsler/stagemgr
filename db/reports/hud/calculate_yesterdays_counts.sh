@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PATH=$PATH:/usr/local/bin
+export PATH="$PATH:/usr/local/mysql/bin:/usr/local/bin"
 
 echo "
 select date_format(orders.created_at, '%Y-%m-%d') sold_on, LEFT(prod.name,24) name,
@@ -31,5 +31,4 @@ where
   orders.status in ('Fulfilled','Processed','Unclaimed') and
   date_format(convert_tz(orders.created_at,'UTC','SYSTEM'),'%Y-%m-%d') = curdate() - interval 1 day
 group by prod.id, date_format(convert_tz(orders.created_at,'UTC','SYSTEM'), '%Y-%m-%d')
-order by prod.name, perf.performance_date desc;" | /usr/local/bin/mysql --defaults-extra-file="${MY_CNF:-$HOME/.my.cnf}" --table=true -u stagemgr_prod stagemgr > /tmp/yesterdays_counts$1.txt
-
+order by prod.name, perf.performance_date desc;" | mysql --defaults-extra-file="${MY_CNF:-$HOME/.my.cnf}" --table=true -u stagemgr_prod stagemgr > /tmp/yesterdays_counts$1.txt
