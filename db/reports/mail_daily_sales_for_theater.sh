@@ -7,17 +7,11 @@
 : "${REPORT_EMAIL:?set REPORT_EMAIL in the cron environment (e.g. boxoffice@yourtheater.org)}"
 export EMAIL="$REPORT_EMAIL"
 
-export PATH=$PATH:/usr/local/mysql/bin
+export PATH="$PATH:/usr/local/mysql/bin:/usr/local/bin"
 
-test -r /sw/bin/init.sh && . /sw/bin/init.sh
+SCRIPTPATH="$(cd "$(dirname "$0")" && pwd)"
 
-export dotlock_program=/sw/bin/mutt_dotlock
-
-SCRIPT=`readlink -f $0`
-# Absolute path this script is in, thus /home/user/bin
-SCRIPTPATH=`dirname $SCRIPT`
-
-d=`date -v -1d +"%a, %b %d"`
+if date -v -1d >/dev/null 2>&1; then d=$(date -v -1d +"%a, %b %d"); else d=$(date -d yesterday +"%a, %b %d"); fi
 
 echo "
 Ticket Sales on $d
@@ -66,5 +60,3 @@ touch /tmp/daily_sales_count_for_theater$1.txt /tmp/daily_sales_revenue_for_thea
 mutt -s "[${REPORT_SUBJECT_TAG:-StageMgr}] Ticket report ($d)" -a /tmp/daily_sales_count_for_theater$1.txt -a /tmp/daily_sales_revenue_for_theater$1.txt -a /tmp/total_sales_count_for_theater$1.txt -a /tmp/total_sales_revenue_for_theater$1.txt -a /tmp/total_special_offers_by_sale_date$1.txt "$2" < /tmp/daily_sales$1.txt
 
 rm /tmp/daily_sales_count_for_theater$1.txt /tmp/daily_sales_revenue_for_theater$1.txt /tmp/total_sales_count_for_theater$1.txt /tmp/total_sales_revenue_for_theater$1.txt /tmp/total_special_offers_by_sale_date$1.txt
-
-

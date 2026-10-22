@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PATH=$PATH:/usr/local/mysql/bin
+export PATH="$PATH:/usr/local/mysql/bin:/usr/local/bin"
 
 echo "select date_format(sold_on, '%Y-%m-%d') sold_on, prod.name, 
        count(*) orders, sum(num_sold) num_sold, format(sum(amt_paid),2) Amount
@@ -26,4 +26,3 @@ prod.id = perf.production_id and
 date_format(convert_tz(sold_on,'UTC','SYSTEM'),'%Y-%m-%d') = curdate()
 group by prod.id, date_format(sold_on, '%Y-%m-%d')
 order by prod.name, perf.performance_date desc;" | mysql --table=true -u stagemgr_prod stagemgr
-

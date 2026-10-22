@@ -1,7 +1,7 @@
 # Deployment
 
-The reference production deployment is **bare metal**: a flat git checkout at
-`~/stagemgr`, served by Phusion Passenger, with the Resque worker and scheduler
+The reference production deployment is **bare metal**: a flat git checkout on
+the production box, served by Phusion Passenger, with the Resque worker and scheduler
 started as ordinary background processes. This page documents that path first,
 because it is the one in daily use, and then what a container-based production
 would need.
@@ -13,7 +13,7 @@ would need.
 | Web | Passenger, restarted by `touch tmp/restart.txt` |
 | Static files | The web server serves `public/` directly -- `config.public_file_server.enabled` is off unless `RAILS_SERVE_STATIC_FILES` is set, and `config.assets.compile` is `false`, so assets must be precompiled at deploy time |
 | Background jobs | `script/resque-worker start` -- three workers in production, split by queue |
-| Recurring jobs | `script/scheduler start` (`config/schedule.yml`) |
+| Recurring jobs | `script/scheduler start`. The scheduler reads `config/schedule.yml` once at start, so after editing it run `script/scheduler restart` |
 | Configuration | `config/server.yml` on the box (gitignored) |
 | Secrets | Encrypted credentials plus `config/master.key` on disk |
 | Reports | `db/reports/*.sh` from cron |
@@ -21,7 +21,7 @@ would need.
 ## `bin/deploy`
 
 ```sh
-ssh yourbox 'stagemgr/bin/deploy'
+ssh yourbox 'RAILS_ENV=production stagemgr/bin/deploy'
 ```
 
 `master` only moves when a release branch is merged or a hotfix lands
@@ -51,10 +51,11 @@ The `curl` only proves the app boots. For a deploy that changes Rails, Ruby or
 the asset build, also walk the manual checklist kept in the repository at
 `docs/runbooks/upgrade-smoke-checklist.md`, which isn't part of this manual.
 
-Two knobs: `SMOKE_URL` (defaults to Theater Wit's login page) and
-`FORCE_DEPLOY=1`, which lifts the guard that refuses to run anywhere but
-`$HOME/stagemgr` -- the development tree must never receive production rake
-tasks.
+One knob: `SMOKE_URL` (defaults to Theater Wit's login page). The script
+refuses to run unless `RAILS_ENV=production` is already set in its
+environment, so a development checkout can never receive production rake
+tasks. Export it in the deploy user's profile, or pass it on the command line
+as above, since a non-interactive `ssh` may not source the profile.
 
 !!! tip "The doctor is the deploy gate"
     `bin/deploy` runs `rake setup:doctor` after migrating and before
@@ -222,7 +223,10 @@ A checklist for the first deploy of a Stagemgr carrying site themes, the
 ## Reports from cron
 
 `db/reports/mail_*.sh` build a text report with `mysql` and mail it with `mutt`
-or `mailx`. They read:
+or `mailx`. The scripts locate their SQL relative to their own directory, so a
+cron entry only needs the absolute path to the script, e.g.
+`0 7 * * 1 /var/www/stagemgr/db/reports/mail_previous_week_box_office.sh boxoffice@example.org`.
+They read:
 
 | Variable | Default | Purpose |
 |---|---|---|

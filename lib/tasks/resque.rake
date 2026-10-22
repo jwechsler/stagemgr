@@ -24,13 +24,12 @@ namespace :resque do
     # Set Redis connection for Resque
     Resque.redis = redis_namespace
 
-    # If you want to be able to dynamically change the schedule,
-    # uncomment this line.  A dynamic schedule can be updated via the
-    # Resque::Scheduler.set_schedule (and remove_schedule) methods.
-    # When dynamic is set to true, the scheduler process looks for
-    # schedule changes and applies them on the fly.
-    # Note: This feature is only available in >=2.0.0.
-    # Resque::Scheduler.dynamic = true
+    # Dynamic schedule mode must stay off; see the comment above
+    # Resque.schedule= in config/initializers/resque.rb for why. If runtime
+    # schedule edits (Resque.set_schedule / remove_schedule) are ever wanted,
+    # first guard the initializer's Resque.schedule= load so only the
+    # scheduler process runs it, or every Rails boot will restart every
+    # `every:` interval.
 
     # The schedule doesn't need to be stored in a YAML, it just needs to
     # be a hash.  YAML is usually the easiest.
