@@ -1,6 +1,6 @@
 #!/bin/bash
-# Deploy stagemgr on the production box (bare-metal Passenger, flat git
-# checkout at ~/stagemgr).
+# Deploy stagemgr on the production box (bare-metal Passenger, from a flat
+# git checkout wherever it lives).
 #
 # Runs the manual deploy sequence in a fixed order so no step can be
 # forgotten:
@@ -12,21 +12,23 @@
 # deploy here instead of surfacing to the first customer.
 #
 # Usage, from the dev machine:
-#   ssh theaterwit.org 'stagemgr/bin/deploy'
+#   ssh theaterwit.org 'RAILS_ENV=production stagemgr/bin/deploy'
+# (non-interactive ssh may not source the deploy user's profile, so pass
+# RAILS_ENV on the command line).
 
 set -euo pipefail
+
+# Refuse to run unless the caller already set RAILS_ENV=production -- a
+# development checkout must never receive production rake tasks.
+if [[ "${RAILS_ENV:-}" != "production" ]]; then
+  echo "Refusing to deploy: RAILS_ENV is '${RAILS_ENV:-unset}', not 'production'. Export RAILS_ENV=production on the production box (e.g. in the deploy user's profile) before running bin/deploy." >&2
+  exit 1
+fi
+export RAILS_ENV
 
 APP_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SMOKE_URL="${SMOKE_URL:-https://www.theaterwit.org/tickets/login}"
 LOG_FILE="$APP_ROOT/log/deploys.log"
-export RAILS_ENV=production
-
-# Refuse to run outside the production checkout — the dev tree lives at
-# ~/dev/wit/stagemgr and must never receive production rake tasks.
-if [[ "$APP_ROOT" != "$HOME/stagemgr" && "${FORCE_DEPLOY:-0}" != "1" ]]; then
-  echo "Refusing to deploy: $APP_ROOT is not $HOME/stagemgr (set FORCE_DEPLOY=1 to override)" >&2
-  exit 1
-fi
 
 cd "$APP_ROOT"
 started_at=$(date +%s)
