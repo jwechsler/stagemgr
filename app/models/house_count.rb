@@ -73,14 +73,32 @@ class HouseCount < Metric
     pace_share.present? && projected_seats.nil?
   end
 
-  # Sold has gone past the projection (strictly greater).
+  # projected_seats keeps the raw demand AdvanceSalesPace computed, which can
+  # run past the house on a hot show; nobody can be expected beyond the seats
+  # there are, so everything shown to staff reads this capped figure instead.
+  def capped_projected_seats
+    return nil if projected_seats.nil?
+
+    total_seats.nil? ? projected_seats : [projected_seats, total_seats].min
+  end
+
+  def projection_capped?
+    projected_seats.present? && total_seats.present? && projected_seats > total_seats
+  end
+
+  # Sold has gone past the projection (strictly greater), or a capped
+  # projection has been reached: with a full house there is nothing left to
+  # anticipate, and sold cannot pass the seats in the house.
   def expected_met?
-    projected_seats.present? && sold_seats.to_i > projected_seats
+    return false if projected_seats.nil?
+
+    sold = sold_seats.to_i
+    projection_capped? ? sold >= capped_projected_seats : sold > projected_seats
   end
 
   # The Sold column has already passed the projection, nothing more to anticipate.
   def expected_seats
-    expected_met? ? nil : projected_seats
+    expected_met? ? nil : capped_projected_seats
   end
 
   def pace_days_out

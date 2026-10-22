@@ -307,6 +307,36 @@ RSpec.describe HouseCount, type: :model do
         expect(house_count).not_to be_expected_met
         expect(house_count.expected_seats).to be_nil
       end
+
+      it 'caps the expected seats at the house when demand runs past it' do
+        house_count.assign_attributes(total_seats: 104, sold_seats: 71, projected_seats: 124)
+
+        expect(house_count).to be_projection_capped
+        expect(house_count.capped_projected_seats).to eq(104)
+        expect(house_count.projected_seats).to eq(124)
+        expect(house_count.expected_seats).to eq(104)
+      end
+
+      it 'is met once sold reaches a capped projection' do
+        house_count.assign_attributes(total_seats: 104, sold_seats: 104, projected_seats: 124)
+
+        expect(house_count).to be_expected_met
+        expect(house_count.expected_seats).to be_nil
+      end
+
+      it 'leaves a projection within the house uncapped' do
+        house_count.assign_attributes(total_seats: 100, projected_seats: 100)
+
+        expect(house_count).not_to be_projection_capped
+        expect(house_count.capped_projected_seats).to eq(100)
+      end
+
+      it 'has no capped projection without a projection' do
+        house_count.assign_attributes(projected_seats: nil)
+
+        expect(house_count).not_to be_projection_capped
+        expect(house_count.capped_projected_seats).to be_nil
+      end
     end
 
     it 'counts days out from the day the projection was computed' do

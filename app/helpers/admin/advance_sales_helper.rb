@@ -65,7 +65,7 @@ module Admin::AdvanceSalesHelper
   # at curtain, read from the pace snapshot on a HouseCount (refreshed on every
   # recalculation and nightly). A dash with no snapshot or nothing projectable,
   # "Too early" when the share in hand is too small to project, a titled dash
-  # once Sold has passed the projection, else "~84".
+  # once Sold has passed the projection, else "~84" (never more than the house).
   # The title explains the basis. A production whose sales are recorded
   # externally is never projected, so its dash carries a title saying why.
   def house_count_pace_cell(house_count)
@@ -78,10 +78,10 @@ module Admin::AdvanceSalesHelper
     return content_tag(:span, TOO_EARLY_LABEL, title: title) if house_count.pace_too_early?
     if house_count.expected_met?
       return content_tag(:span, EMPTY_CELL,
-                         title: "Sold has already passed the expected ~#{number_with_delimiter(house_count.projected_seats)}")
+                         title: "Sold has already passed the expected ~#{number_with_delimiter(house_count.capped_projected_seats)}")
     end
 
-    content_tag(:span, "~#{number_with_delimiter(house_count.projected_seats)}", title: title)
+    content_tag(:span, "~#{number_with_delimiter(house_count.capped_projected_seats)}", title: title)
   end
 
   private
@@ -95,6 +95,13 @@ module Admin::AdvanceSalesHelper
               "Sold #{house_count.pace_sold} as of #{house_count.pace_as_of.strftime('%b %-d')}; " \
                 "this house typically has #{share}% in hand #{house_count.pace_days_out} days out"
             end
-    house_count.pace_source == 'building' ? "#{title} (building-wide curve)" : title
+    title = "#{title} (building-wide curve)" if house_count.pace_source == 'building'
+    house_count.projection_capped? ? "#{title}; #{house_count_demand_note(house_count)}" : title
+  end
+
+  # The cell has room for "~104" only, so the uncapped demand lives in the title.
+  def house_count_demand_note(house_count)
+    "demand ~#{number_with_delimiter(house_count.projected_seats)} exceeds the " \
+      "#{number_with_delimiter(house_count.total_seats)} seats"
   end
 end

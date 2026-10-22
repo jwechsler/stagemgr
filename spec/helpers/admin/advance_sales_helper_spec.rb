@@ -166,6 +166,23 @@ RSpec.describe Admin::AdvanceSalesHelper, type: :helper do
       expect(html).to have_css('span[title="Sold has already passed the expected ~1,234"]', exact_text: '—')
     end
 
+    it 'shows the house size when demand exceeds it, with the demand in the title' do
+      html = helper.house_count_pace_cell(house_count(total_seats: 104, sold_seats: 71, pace_sold: 71,
+                                                      projected_seats: 124))
+
+      expect(html).to have_css(
+        'span[title="Sold 71 as of Oct 6; this house typically has 50% in hand 7 days out; ' \
+        'demand ~124 exceeds the 104 seats"]',
+        exact_text: '~104'
+      )
+    end
+
+    it 'shows the titled empty cell, naming the capped count, once sold reaches a capped projection' do
+      html = helper.house_count_pace_cell(house_count(total_seats: 104, sold_seats: 104, projected_seats: 124))
+
+      expect(html).to have_css('span[title="Sold has already passed the expected ~104"]', exact_text: '—')
+    end
+
     it 'still shows the expected count when sold equals it' do
       html = helper.house_count_pace_cell(house_count(sold_seats: 40))
 
