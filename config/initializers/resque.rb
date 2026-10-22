@@ -31,5 +31,13 @@ Resque.redis = redis_namespace
 class Stagemgr::Resque < Resque::Server
 end
 
-Resque::Scheduler.dynamic = true
+# Dynamic schedule mode stays off. Every Rails process runs this file
+# (Passenger instances, rails runner, console and the scheduler itself), and
+# Resque.schedule= flags every entry in the Redis set `schedules_changed`
+# whether dynamic is on or not. A dynamic scheduler would then unschedule and
+# reschedule every job on each boot, restarting every `every:` interval. The
+# gem also defaults `dynamic` from ENV['DYNAMIC_SCHEDULE'], so never export it.
+# The load itself stays so the Resque web UI lists the schedule and Queue now
+# works; the scheduler and workers load it again in resque:setup
+# (lib/tasks/resque.rake).
 Resque.schedule = YAML.load_file(Rails.root.join('config/schedule.yml').to_s)

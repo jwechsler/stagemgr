@@ -13,7 +13,7 @@ would need.
 | Web | Passenger, restarted by `touch tmp/restart.txt` |
 | Static files | The web server serves `public/` directly -- `config.public_file_server.enabled` is off unless `RAILS_SERVE_STATIC_FILES` is set, and `config.assets.compile` is `false`, so assets must be precompiled at deploy time |
 | Background jobs | `script/resque-worker start` -- three workers in production, split by queue |
-| Recurring jobs | `script/scheduler start` (`config/schedule.yml`) |
+| Recurring jobs | `script/scheduler start`. The scheduler reads `config/schedule.yml` once at start, so after editing it run `script/scheduler restart` |
 | Configuration | `config/server.yml` on the box (gitignored) |
 | Secrets | Encrypted credentials plus `config/master.key` on disk |
 | Reports | `db/reports/*.sh` from cron |
