@@ -834,6 +834,19 @@ end
     performance.production.ticket_classes.select { |tc| tc.class_code == offer.use_ticket_class_code }.first
   end
 
+  # The flex pass or membership offer this order is paid with, or nil when it
+  # is not paid with a pass. Falls back to the pass code the patron entered,
+  # since the pass payment is built only at checkout.
+  def redeeming_pass_offer
+    case payment_type
+    when FlexPassPaymentType
+      paid_with_flexpass&.flex_pass_offer
+    when MembershipPaymentType
+      membership = membership_payments.first&.membership || Membership.find_by_member_code(member_code)
+      membership&.membership_offer
+    end
+  end
+
   def create_default_service_fees(for_production = nil)
     if !for_production.nil?
       for_production.service_item_templates_new.each do |template|
@@ -993,10 +1006,6 @@ end
     unclaimed!
   end
 
-  def self.applicable_price(regular_ticket_class, offer_ticket_class)
-    [regular_ticket_class.ticket_price, offer_ticket_class.ticket_price].min
-  end
-
   def set_defaults
     ticket_line_items.each { |tli| tli.order = self if tli.order.nil? }
   end
@@ -1100,15 +1109,15 @@ end
 
   private
 
-  # After a swap, write the line item's class (and its donation price, the
-  # only class whose override survives TicketLineItem#check_price_override)
-  # onto the seat it took over. update_all: the seat row is not autosaved
+  # After a swap, write the line item's class (and its price override, when
+  # TicketLineItem#keeps_price_override? lets the line item keep one) onto
+  # the seat it took over. update_all: the seat row is not autosaved
   # with the order, and no seat callback applies to a class change. Any copy
   # of the seat already loaded on this order is updated to match.
   def reclass_seat_for(new_li)
     return if new_li.seat_assignment_id.nil?
 
-    price_override = new_li.ticket_class&.ticket_type == TicketClass::DONATION ? new_li.price_override : nil
+    price_override = new_li.keeps_price_override? ? new_li.price_override : nil
     attrs = { ticket_class_id: new_li.ticket_class_id, price_override: price_override }
     SeatAssignment.where(id: new_li.seat_assignment_id).update_all(attrs)
     loaded = [new_li.association(:seat_assignment).target, *(seats.loaded? ? seats.target : [])]
@@ -1119,22 +1128,55 @@ end
   end
 
   def set_ticket_classes_using_offer(offer)
-    new_ticket_class = production_ticket_class_from_offer(offer)
-    return if new_ticket_class.nil?
-      # Iterate a snapshot: replacing items mutates the association's target,
-      # and walking it live skips items and re-swaps the new ones.
-      ticket_line_items.to_a.each do |li|
-        new_line_item = TicketLineItem.new
-        new_line_item.ticket_class = new_ticket_class
-        new_line_item.ticket_count = li.ticket_count
-        if new_ticket_class.ticket_type == TicketClass::DONATION
-          new_line_item.price_override = TicketOrder.applicable_price(li.ticket_class,
-                                                                      new_ticket_class)
-        end
-        replace_ticket_line_item(li, new_line_item)
-        adjust_seating_to_match_ticket_line_items(new_line_item, li)
-      end
-    
+    pass_class = production_ticket_class_from_offer(offer)
+    return if pass_class.nil?
+
+    # Iterate a snapshot: replacing items mutates the association's target,
+    # and walking it live skips items and re-swaps the new ones. Items already
+    # in the pass class are skipped: this before_validation runs more than
+    # once per transition (valid? before the charge, then save!), and a
+    # re-swap would price them from the pass class rather than the ticket.
+    ticket_line_items.to_a.each do |li|
+      next if li.ticket_class_id == pass_class.id
+
+      new_line_item = pass_redemption_line_item(li, pass_class)
+      replace_ticket_line_item(li, new_line_item)
+      adjust_seating_to_match_ticket_line_items(new_line_item, li)
+    end
+  end
+
+  # line_item's replacement in the pass class. A pass charges the lesser of the
+  # ticket's price and the pass class price (PassPaymentType.applicable_price,
+  # which also sizes the pass payment), so the replacement overrides the pass
+  # class price whenever that differs. A donation pass class always carries it.
+  def pass_redemption_line_item(line_item, pass_class)
+    price = PassPaymentType.applicable_price(line_item, pass_class)
+    keeps_price = pass_class.ticket_type == TicketClass::DONATION || price != pass_class.ticket_price
+    TicketLineItem.new(ticket_class: pass_class, ticket_count: line_item.ticket_count,
+                       price_override: keeps_price ? price : nil)
+  end
+
+  # Order#transition_to! hooks. A failed transition must hand the form back
+  # what the user submitted, not the pass class line items
+  # set_tickets_for_pass_redemption swapped in. The snapshot holds the
+  # in-memory objects (unsaved edits included); the transaction rollback
+  # restores their new_record/destroyed/id state.
+  def snapshot_before_transition
+    @line_items_before_transition = ticket_line_items.to_a
+  end
+
+  def restore_snapshot_after_failed_transition
+    return if @line_items_before_transition.nil?
+
+    association(:ticket_line_items).target = @line_items_before_transition
+    # reclass_seat_for updated the loaded seats in memory; the rollback
+    # undoes only their rows, so reload them.
+    seats.reset if seats.loaded?
+    discard_transition_snapshot
+  end
+
+  def discard_transition_snapshot
+    @line_items_before_transition = nil
   end
 
   def update_attendance_record
