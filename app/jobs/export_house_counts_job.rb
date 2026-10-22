@@ -38,10 +38,11 @@ class ExportHouseCountsJob
     HudTableFormatter.write_to_file(content, file_path || self.file_path)
   end
 
-  # "~84" from the pace snapshot, blank when nothing was projected or Sold
-  # has already passed it.
+  # Expected as a share of capacity, "~ 67%" (capped at the sellable seats), from the pace
+  # snapshot; blank when nothing was projected, Sold has already passed it, or
+  # the house size is unknown.
   def self.pace_text(house_count)
-    expected = house_count.expected_seats
-    expected.present? ? "~#{expected}" : ''
+    pct = house_count.expected_pct
+    pct.nil? ? '' : "~ #{pct}%"
   end
 end

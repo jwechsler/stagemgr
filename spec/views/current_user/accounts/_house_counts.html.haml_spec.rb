@@ -33,10 +33,11 @@ RSpec.describe 'current_user/accounts/_house_counts', type: :view do
     expect(headers.last(2)).to eq(['% booked', 'Expected'])
   end
 
-  it 'shows the expected count with its basis on hover' do
+  it 'shows the expected share of the house with its basis and seats on hover' do
     expect(row_for('PROJ01')).to have_css(
-      'td span[title="Sold 20 as of Oct 6; this house typically has 50% in hand 7 days out"]',
-      exact_text: '~84'
+      'td span[title="Sold 20 as of Oct 6; this house typically has 50% in hand 7 days out; ' \
+      'expected ~ 84 of 100 seats"]',
+      exact_text: "~\u00A084%"
     )
   end
 

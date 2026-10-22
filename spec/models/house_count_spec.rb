@@ -308,27 +308,66 @@ RSpec.describe HouseCount, type: :model do
         expect(house_count.expected_seats).to be_nil
       end
 
-      it 'caps the expected seats at the house when demand runs past it' do
-        house_count.assign_attributes(total_seats: 104, sold_seats: 71, projected_seats: 124)
+      it 'caps the expected seats at the sellable seats when demand runs past them' do
+        house_count.assign_attributes(total_seats: 104, held_seats: 6, sold_seats: 71, projected_seats: 124)
 
+        expect(house_count.sellable_seats).to eq(98)
         expect(house_count).to be_projection_capped
-        expect(house_count.capped_projected_seats).to eq(104)
+        expect(house_count.capped_projected_seats).to eq(98)
         expect(house_count.projected_seats).to eq(124)
-        expect(house_count.expected_seats).to eq(104)
+        expect(house_count.expected_seats).to eq(98)
       end
 
-      it 'is met once sold reaches a capped projection' do
-        house_count.assign_attributes(total_seats: 104, sold_seats: 104, projected_seats: 124)
+      it 'caps a projection that fits the house but not the sellable seats' do
+        house_count.assign_attributes(total_seats: 100, held_seats: 4, sold_seats: 0, projected_seats: 100)
+
+        expect(house_count).to be_projection_capped
+        expect(house_count.capped_projected_seats).to eq(96)
+      end
+
+      it 'is met once sold reaches the sellable seats of a capped projection' do
+        house_count.assign_attributes(total_seats: 104, held_seats: 6, sold_seats: 98, projected_seats: 124)
 
         expect(house_count).to be_expected_met
         expect(house_count.expected_seats).to be_nil
       end
 
-      it 'leaves a projection within the house uncapped' do
-        house_count.assign_attributes(total_seats: 100, projected_seats: 100)
+      it 'is not met while sold is short of the sellable seats of a capped projection' do
+        house_count.assign_attributes(total_seats: 104, held_seats: 6, sold_seats: 97, projected_seats: 124)
 
+        expect(house_count).not_to be_expected_met
+        expect(house_count.expected_seats).to eq(98)
+      end
+
+      it 'treats no held seats as none when capping' do
+        house_count.assign_attributes(total_seats: 100, held_seats: nil, projected_seats: 100)
+
+        expect(house_count.sellable_seats).to eq(100)
         expect(house_count).not_to be_projection_capped
         expect(house_count.capped_projected_seats).to eq(100)
+      end
+
+      it 'gives the expected seats as a whole percentage of the house' do
+        house_count.assign_attributes(total_seats: 104, sold_seats: 20, projected_seats: 70)
+
+        expect(house_count.expected_pct).to eq(67)
+      end
+
+      it 'gives a capped projection as a percentage of capacity, not of the sellable seats' do
+        house_count.assign_attributes(total_seats: 104, held_seats: 6, sold_seats: 71, projected_seats: 124)
+
+        expect(house_count.expected_pct).to eq(94)
+      end
+
+      it 'has no expected percentage without expected seats or a house size' do
+        house_count.assign_attributes(total_seats: 100, sold_seats: 41, projected_seats: 40)
+        expect(house_count.expected_pct).to be_nil
+
+        house_count.assign_attributes(total_seats: nil, sold_seats: 0, projected_seats: 40)
+        expect(house_count.expected_pct).to be_nil
+
+        house_count.assign_attributes(total_seats: 0, sold_seats: 0, projected_seats: 40)
+        expect(house_count.expected_pct).to be_nil
       end
 
       it 'has no capped projection without a projection' do

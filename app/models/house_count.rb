@@ -73,22 +73,30 @@ class HouseCount < Metric
     pace_share.present? && projected_seats.nil?
   end
 
+  # The seats that can still end up sold: the house less its holds. Holds
+  # convert into processed orders, so the projection already counts them, and
+  # Sold can never reach total_seats while seats are held. Nil when the house
+  # size is unknown.
+  def sellable_seats
+    total_seats.nil? ? nil : total_seats - held_seats.to_i
+  end
+
   # projected_seats keeps the raw demand AdvanceSalesPace computed, which can
-  # run past the house on a hot show; nobody can be expected beyond the seats
-  # there are, so everything shown to staff reads this capped figure instead.
+  # run past the house on a hot show; nobody can be expected beyond the
+  # sellable seats, so everything shown to staff reads this capped figure.
   def capped_projected_seats
     return nil if projected_seats.nil?
 
-    total_seats.nil? ? projected_seats : [projected_seats, total_seats].min
+    projection_capped? ? sellable_seats : projected_seats
   end
 
   def projection_capped?
-    projected_seats.present? && total_seats.present? && projected_seats > total_seats
+    projected_seats.present? && sellable_seats.present? && projected_seats > sellable_seats
   end
 
   # Sold has gone past the projection (strictly greater), or a capped
-  # projection has been reached: with a full house there is nothing left to
-  # anticipate, and sold cannot pass the seats in the house.
+  # projection has been reached: with every sellable seat sold there is
+  # nothing left to anticipate, and sold cannot pass them.
   def expected_met?
     return false if projected_seats.nil?
 
@@ -99,6 +107,16 @@ class HouseCount < Metric
   # The Sold column has already passed the projection, nothing more to anticipate.
   def expected_seats
     expected_met? ? nil : capped_projected_seats
+  end
+
+  # Expected as a whole percentage of production capacity (total_seats, not
+  # the sellable seats), e.g. 67 for 70 of 104 seats; a capped projection reads
+  # under 100 while seats are held. Nil when nothing is expected or the house
+  # size is unknown.
+  def expected_pct
+    return nil if expected_seats.nil? || total_seats.to_i.zero?
+
+    (expected_seats * 100.0 / total_seats).round
   end
 
   def pace_days_out

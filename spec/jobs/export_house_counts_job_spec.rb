@@ -49,24 +49,24 @@ RSpec.describe ExportHouseCountsJob, type: :job do
     expect(content).to include('Generated')
   end
 
-  it 'adds an Expected column showing the projected seats, blank when nothing was projected' do
-    performance1.house_count.update_columns(projected_seats: 87)
+  it 'adds an Expected column showing the expected share of the house, blank when nothing was projected' do
+    performance1.house_count.update_columns(total_seats: 104, projected_seats: 70)
 
     ExportHouseCountsJob.perform(file_path)
 
     lines = File.read(file_path).lines
     expect(lines.find { |l| l.include?('| Code') }).to match(/\| Max Price\s*\| Expected\s*\|/)
-    expect(lines.find { |l| l.include?(performance1.performance_code) }).to match(/\|\s*~87 \|\s*$/)
+    expect(lines.find { |l| l.include?(performance1.performance_code) }).to match(/\|\s*~ 67% \|\s*$/)
     expect(lines.find { |l| l.include?(performance2.performance_code) }).to match(/\|\s+\|\s*$/)
   end
 
-  it 'caps Expected at the seats in the house when demand exceeds it' do
-    performance1.house_count.update_columns(total_seats: 104, sold_seats: 71, projected_seats: 124)
+  it 'caps Expected at the sellable seats, as a share of capacity, when demand exceeds them' do
+    performance1.house_count.update_columns(total_seats: 104, held_seats: 6, sold_seats: 71, projected_seats: 124)
 
     ExportHouseCountsJob.perform(file_path)
 
     expect(File.read(file_path).lines.find { |l| l.include?(performance1.performance_code) })
-      .to match(/\|\s*~104 \|\s*$/)
+      .to match(/\|\s*~ 94% \|\s*$/)
   end
 
   it 'leaves Expected blank once sold has passed the projection' do
