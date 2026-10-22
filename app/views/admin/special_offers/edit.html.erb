@@ -1,12 +1,17 @@
 <%= content_for :title do %>Special Offers<% end %>
 <% content_for :breadcrumbs do %>
-  <%= render "shared/components/breadcrumb", items: [
-        { label: 'Special Offers', path: [:admin, :special_offers] },
-        { label: "Edit #{@special_offer.code}" }
-      ] %>
+  <% member_address = @special_offer.system_generated? && @special_offer.membership&.address %>
+  <% parent = if member_address
+                [{ label: 'Customers', path: admin_addresses_path },
+                 { label: member_address.full_name, path: admin_address_path(member_address) }]
+              else
+                [{ label: 'Special Offers', path: [:admin, :special_offers] }]
+              end %>
+  <%= render "shared/components/breadcrumb", items: parent + [{ label: "Edit #{@special_offer.code}" }] %>
 <% end %>
 
 <%= simple_form_for [:admin, @special_offer], :url=>admin_special_offer_path do |f| %>
 <%= token_tag %>
+<%= hidden_field_tag :return_to, @return_to if @return_to %>
 <%= render :partial => '/admin/special_offers/form', :locals=>{:f=>f} %>
 <% end %>
