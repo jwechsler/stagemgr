@@ -4501,7 +4501,11 @@ pass <code>--force</code>, and keeps the branch.</p>
   tree; <strong>nothing is baked into the image</strong>.</li>
 <li>Gems live in the image's RVM gemset (<code>ruby-3.2.2@stagemgr</code>), backed by the
   <code>bundle-cache</code> named volume -- never in <code>vendor/bundle</code>, so the container never
-  writes into the checkout.</li>
+  writes into the checkout. The image's Ruby (3.2.2) comes from the phusion
+  base image and is independent of <code>.ruby-version</code>, which only the native
+  install and CI read; a login shell (<code>bash -lc</code>) in the container warns that
+  ruby-3.2.11 is not installed, which you can ignore -- use <code>bash -c</code>, as the
+  everyday commands do.</li>
 <li><code>node_modules</code> is a named volume too: it has to sit in-tree for
   yarn/webpacker resolution, but the builds are Linux ones and must not
   overwrite your host's.</li>
@@ -4541,9 +4545,10 @@ brew<span class="w"> </span>services<span class="w"> </span>start<span class="w"
 <p><code>libvips</code> is not optional: <code>ruby-vips</code> loads <code>libvips.so</code> at boot, so the app
 will not start without it.</p>
 <h3 id="2-ruby-and-node">2. Ruby and Node<a class="headerlink" href="#2-ruby-and-node" title="Permanent link">&para;</a></h3>
-<p>Ruby <strong>3.2.2</strong> (<code>.ruby-version</code>) and Node <strong>22</strong> (<code>.nvmrc</code>), under whichever
-version manager you use:</p>
-<div class="highlight"><pre><span></span><code>rbenv<span class="w"> </span>install<span class="w"> </span><span class="m">3</span>.2.2<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>rbenv<span class="w"> </span><span class="nb">local</span><span class="w"> </span><span class="m">3</span>.2.2<span class="w">   </span><span class="c1"># or asdf / rvm</span>
+<p>Ruby <strong>3.2.11</strong> (<code>.ruby-version</code>) and Node <strong>22</strong> (<code>.nvmrc</code>), under whichever
+version manager you use. Any 3.2.x patch release works; the Gemfile does not
+pin a Ruby version.</p>
+<div class="highlight"><pre><span></span><code>rbenv<span class="w"> </span>install<span class="w"> </span><span class="m">3</span>.2.11<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>rbenv<span class="w"> </span><span class="nb">local</span><span class="w"> </span><span class="m">3</span>.2.11<span class="w"> </span><span class="c1"># or asdf / rvm</span>
 nvm<span class="w"> </span>install<span class="w"> </span><span class="m">22</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>nvm<span class="w"> </span>use<span class="w"> </span><span class="m">22</span>
 gem<span class="w"> </span>install<span class="w"> </span>bundler:2.4.10<span class="w">                 </span><span class="c1"># the version in Gemfile.lock</span>
 npm<span class="w"> </span>install<span class="w"> </span>-g<span class="w"> </span>yarn

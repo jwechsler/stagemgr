@@ -4177,8 +4177,8 @@
 
 
 <h1 id="deployment">Deployment<a class="headerlink" href="#deployment" title="Permanent link">&para;</a></h1>
-<p>The reference production deployment is <strong>bare metal</strong>: a flat git checkout at
-<code>~/stagemgr</code>, served by Phusion Passenger, with the Resque worker and scheduler
+<p>The reference production deployment is <strong>bare metal</strong>: a flat git checkout on
+the production box, served by Phusion Passenger, with the Resque worker and scheduler
 started as ordinary background processes. This page documents that path first,
 because it is the one in daily use, and then what a container-based production
 would need.</p>
@@ -4205,7 +4205,7 @@ would need.</p>
 </tr>
 <tr>
 <td>Recurring jobs</td>
-<td><code>script/scheduler start</code> (<code>config/schedule.yml</code>)</td>
+<td><code>script/scheduler start</code>. The scheduler reads <code>config/schedule.yml</code> once at start, so after editing it run <code>script/scheduler restart</code></td>
 </tr>
 <tr>
 <td>Configuration</td>
@@ -4222,7 +4222,7 @@ would need.</p>
 </tbody>
 </table>
 <h2 id="bindeploy"><code>bin/deploy</code><a class="headerlink" href="#bindeploy" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>yourbox<span class="w"> </span><span class="s1">&#39;stagemgr/bin/deploy&#39;</span>
+<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>yourbox<span class="w"> </span><span class="s1">&#39;RAILS_ENV=production stagemgr/bin/deploy&#39;</span>
 </code></pre></div>
 <p><code>master</code> only moves when a release branch is merged or a hotfix lands
 (<a href="../releases/">Branches and Releases</a>), so pulling it always deploys a
@@ -4249,10 +4249,11 @@ there instead of surfacing to the first customer. Each run appends a line to
 <p>The <code>curl</code> only proves the app boots. For a deploy that changes Rails, Ruby or
 the asset build, also walk the manual checklist kept in the repository at
 <code>docs/runbooks/upgrade-smoke-checklist.md</code>, which isn't part of this manual.</p>
-<p>Two knobs: <code>SMOKE_URL</code> (defaults to Theater Wit's login page) and
-<code>FORCE_DEPLOY=1</code>, which lifts the guard that refuses to run anywhere but
-<code>$HOME/stagemgr</code> -- the development tree must never receive production rake
-tasks.</p>
+<p>One knob: <code>SMOKE_URL</code> (defaults to Theater Wit's login page). The script
+refuses to run unless <code>RAILS_ENV=production</code> is already set in its
+environment, so a development checkout can never receive production rake
+tasks. Export it in the deploy user's profile, or pass it on the command line
+as above, since a non-interactive <code>ssh</code> may not source the profile.</p>
 <div class="admonition tip">
 <p class="admonition-title">The doctor is the deploy gate</p>
 <p><code>bin/deploy</code> runs <code>rake setup:doctor</code> after migrating and before
@@ -4431,7 +4432,10 @@ folded into every mailed URL.</p>
 </ol>
 <h2 id="reports-from-cron">Reports from cron<a class="headerlink" href="#reports-from-cron" title="Permanent link">&para;</a></h2>
 <p><code>db/reports/mail_*.sh</code> build a text report with <code>mysql</code> and mail it with <code>mutt</code>
-or <code>mailx</code>. They read:</p>
+or <code>mailx</code>. The scripts locate their SQL relative to their own directory, so a
+cron entry only needs the absolute path to the script, e.g.
+<code>0 7 * * 1 /var/www/stagemgr/db/reports/mail_previous_week_box_office.sh boxoffice@example.org</code>.
+They read:</p>
 <table>
 <thead>
 <tr>
