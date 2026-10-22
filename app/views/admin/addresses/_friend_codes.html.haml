@@ -1,0 +1,21 @@
+-# Member friend codes are system-generated and hidden from the Special Offers listing, so staff reach them here.
+- offers = membership.special_offers.sort_by(&:created_at).reverse
+- if offers.any?
+  .friend-codes
+    %strong Friend codes
+    - offers.each do |offer|
+      .friend-code
+        :ruby
+          uses = offer.number_of_uses.nil? ? 'unlimited' : "#{pluralize(offer.number_of_uses, 'use')} left"
+          parts = [offer.code, uses]
+          parts << "expires #{offer.auto_expire.to_formatted_s(:long)}" if offer.auto_expire.present?
+        = parts.join(' · ')
+        - if offer.exhausted?
+          = ui_label('Used')
+        - elsif offer.expired?
+          = ui_label('Expired')
+        - elsif offer.status != SpecialOffer::ACTIVE
+          = ui_label(offer.status)
+        - if can?(:update, offer)
+          ·
+          = link_to 'Edit', edit_admin_special_offer_path(offer, return_to: address && admin_address_path(address))

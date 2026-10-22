@@ -113,6 +113,44 @@ RSpec.describe Admin::AddressesController, type: :controller do
       expect(response.body).not_to include('donor-tier-labels', 'Current FY', 'Previous FY')
     end
 
+    context 'with a member friend code' do
+      let!(:friend_code) do
+        TicketClassSpecialOffer.create!(code: 'MFTEST01', change_ticket_class_code: 'FRIEND',
+                                        status: SpecialOffer::ACTIVE, number_of_uses: 1,
+                                        auto_expire: Date.new(2027, 4, 22), system_generated: true,
+                                        membership: membership)
+      end
+
+      it 'lists the code with its uses, expiry and an Edit link back to the customer for box office' do
+        box_office_user = FactoryBot.create(:user, is_box_office_user: true)
+        allow(controller).to receive(:current_user).and_return(box_office_user)
+
+        get :show, params: { id: address.id }
+
+        edit_path = edit_admin_special_offer_path(friend_code, return_to: admin_address_path(address))
+        expect(response.body).to include('Friend codes', 'MFTEST01 · 1 use left · expires April 22, 2027')
+        expect(response.body).to include(%(href="#{ERB::Util.html_escape(edit_path)}"))
+      end
+
+      it 'labels a used code' do
+        friend_code.update!(number_of_uses: 0)
+
+        get :show, params: { id: address.id }
+
+        expect(response.body).to include('MFTEST01 · 0 uses left')
+        expect(response.body).to match(%r{<span class=['"]label secondary['"]>Used</span>})
+      end
+
+      it 'shows nothing about friend codes to a theater user' do
+        theater_user = FactoryBot.create(:user, theaters: [readable_order_theater])
+        allow(controller).to receive(:current_user).and_return(theater_user)
+
+        get :show, params: { id: address.id }
+
+        expect(response.body).not_to include('Friend codes', 'MFTEST01')
+      end
+    end
+
     context 'when the customer attended productions at two theaters' do
       let(:own_production) { readable_order.performance.production }
       let!(:other_production) do

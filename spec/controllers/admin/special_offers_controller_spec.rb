@@ -69,4 +69,47 @@ RSpec.describe Admin::SpecialOffersController, type: :controller do
       end
     end
   end
+  describe 'PATCH #update' do
+    let(:address) { FactoryBot.create(:address) }
+    let(:offer) { FactoryBot.create(:percent_off_special_offer, number_of_uses: 1) }
+
+    def update_offer(return_to:)
+      patch :update, params: { id: offer.id, return_to: return_to,
+                               percent_off_special_offer: { code: offer.code, number_of_uses: '2' } }
+    end
+
+    it 'redirects to a local return_to path' do
+      update_offer(return_to: admin_address_path(address))
+
+      expect(response).to redirect_to(admin_address_path(address))
+      expect(offer.reload.number_of_uses).to eq(2)
+    end
+
+    it 'falls back to the special offers list for an external return_to' do
+      update_offer(return_to: 'https://evil.example.com/phish')
+
+      expect(response).to redirect_to(admin_special_offers_path)
+    end
+
+    it 'falls back to the special offers list for a protocol-relative return_to' do
+      update_offer(return_to: '//evil.example.com/phish')
+
+      expect(response).to redirect_to(admin_special_offers_path)
+    end
+  end
+
+  describe 'GET #edit' do
+    it 'carries return_to through the form and points the breadcrumb at the member' do
+      membership = FactoryBot.create(:membership)
+      offer = TicketClassSpecialOffer.create!(code: 'MFTEST02', change_ticket_class_code: 'FRIEND',
+                                              status: SpecialOffer::ACTIVE, system_generated: true,
+                                              membership: membership)
+      customer_path = admin_address_path(membership.address)
+
+      get :edit, params: { id: offer.id, return_to: customer_path }
+
+      expect(response.body).to match(/<input[^>]*name="return_to"[^>]*value="#{Regexp.escape(customer_path)}"/)
+      expect(response.body).to include(membership.address.full_name)
+    end
+  end
 end
