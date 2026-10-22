@@ -81,6 +81,8 @@ RUN curl -sL https://deb.nodesource.com/setup_22.x | bash - \
 # Pin Ruby 3.2.2 in a named gemset so the Passenger site configs can point at a
 # stable wrapper path. The gemset -- not the bare ruby -- is the RVM default, so
 # a login shell lands in it without an explicit `rvm use`.
+# 3.2.2 is the base image's Ruby and is deliberately not tied to .ruby-version
+# (see docs/manual/developer/installation.md).
 RUN bash -lc "rvm gemset create stagemgr && \
               rvm gemset use stagemgr && \
               rvm --default use 3.2.2@stagemgr && \

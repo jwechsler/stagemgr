@@ -221,7 +221,11 @@ pass `--force`, and keeps the branch.
   tree; **nothing is baked into the image**.
 - Gems live in the image's RVM gemset (`ruby-3.2.2@stagemgr`), backed by the
   `bundle-cache` named volume -- never in `vendor/bundle`, so the container never
-  writes into the checkout.
+  writes into the checkout. The image's Ruby (3.2.2) comes from the phusion
+  base image and is independent of `.ruby-version`, which only the native
+  install and CI read; a login shell (`bash -lc`) in the container warns that
+  ruby-3.2.11 is not installed, which you can ignore -- use `bash -c`, as the
+  everyday commands do.
 - `node_modules` is a named volume too: it has to sit in-tree for
   yarn/webpacker resolution, but the builds are Linux ones and must not
   overwrite your host's.
@@ -270,11 +274,12 @@ will not start without it.
 
 ### 2. Ruby and Node
 
-Ruby **3.2.2** (`.ruby-version`) and Node **22** (`.nvmrc`), under whichever
-version manager you use:
+Ruby **3.2.11** (`.ruby-version`) and Node **22** (`.nvmrc`), under whichever
+version manager you use. Any 3.2.x patch release works; the Gemfile does not
+pin a Ruby version.
 
 ```sh
-rbenv install 3.2.2 && rbenv local 3.2.2   # or asdf / rvm
+rbenv install 3.2.11 && rbenv local 3.2.11 # or asdf / rvm
 nvm install 22 && nvm use 22
 gem install bundler:2.4.10                 # the version in Gemfile.lock
 npm install -g yarn
