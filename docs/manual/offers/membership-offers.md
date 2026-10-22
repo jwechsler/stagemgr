@@ -224,9 +224,11 @@ filled in is the switch.
    the artistic director. It explains that the friend's seat is booked as a separate general
    admission reservation with the code entered as the special offer.
 4. **Tracking.** Each MF code is linked to the membership that earned it and flagged as
-   system generated, so it does not clutter the
-   [special offers list](special-offers.md). Unused codes are purged three months after they
-   expire, like any other special offer.
+   system generated, so it does not appear on the
+   [special offers list](special-offers.md). Find it instead under **Friend codes** on the
+   member's [customer page](../customers/patron-history.md#membership-status) or
+   [membership order](../ticketing/membership-orders.md#viewing-membership-details). Unused
+   codes are purged three months after they expire, like any other special offer.
 
 The task is not sent when the member has no email address on file. It stops when the
 membership is **Canceled**; a membership that lapses by suspension or expiry keeps its queued
@@ -238,6 +240,25 @@ passes.
     Clearing **Use Member Friend Code** on an offer stops future passes for every membership
     on it, even those already scheduled. Setting it on an offer that previously had none only
     affects memberships sold from then on; existing members are not back-filled.
+
+### Finding and Restoring a Friend Code
+
+Every friend code a membership has earned is listed under **Friend codes** in the
+**Active Memberships** box on the member's customer page and in the membership detail on
+the membership order page, newest first, with its uses left and expiry date. A code that has
+been spent shows **Used**; one past its date shows **Expired**.
+
+![Active Memberships box listing two member codes, each with its friend codes, uses left, expiry dates and Edit links](../assets/images/screenshots/customers-friend-codes.png)
+
+Box office staff and administrators can click **Edit** on any code to open its special offer
+form; saving returns to the customer page.
+
+A code's use is not given back automatically when the friend's order is refunded. To let the
+member use it again, click **Edit**, set **Maximum uses** back to `1` under **Use
+restrictions**, and save. If the code has also expired, set its **Status** back to `Active`
+and move **Expire on** to a future date in the same edit.
+
+![Use restrictions section of the friend code's edit form with Expire on and Maximum uses fields](../assets/images/screenshots/offers-friend-code-edit.png)
 
 ---
 

@@ -107,6 +107,10 @@ The system checks the following during redemption:
     - Active status
     - Preferred seating
     - Usage history
+    - **Friend codes** the membership has earned, with uses left, expiry and an **Edit** link
+      (see [Membership Offers -- Finding and Restoring a Friend Code](../offers/membership-offers.md#finding-and-restoring-a-friend-code))
+
+![Membership detail on a membership order showing the offer, member ID, billing date and the Friend codes list with Edit links](../assets/images/screenshots/membership-order-friend-codes.png)
 
 ### Updating Seating Preferences
 

@@ -170,5 +170,10 @@ Check any combination of **Sunday** through **Saturday** to restrict the offer t
 - **Track usage** by reviewing the Number of Uses counter on the offer detail page.
 - Offers that pass their Auto Expire datetime are automatically marked `Expired`.
 
+!!! note "Member friend codes are not listed here"
+    The one-use **MF** codes that memberships earn are system generated and kept off this
+    list. Find and edit them from the member's customer page or membership order; see
+    [Membership Offers -- Finding and Restoring a Friend Code](membership-offers.md#finding-and-restoring-a-friend-code).
+
 !!! note "Automatic weekly cleanup"
     Once a week, Stagemgr automatically marks an `Active` offer `Inactive` when everything it targets is well in the past -- its performance, production, expiration date, or performance date range ended more than a month ago. These offers appear on the Expired/Inactive tab afterward. Reactivate an offer manually if it was cleaned up but you still need it.

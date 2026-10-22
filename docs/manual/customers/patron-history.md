@@ -66,6 +66,14 @@ Active memberships are highlighted and appear in search results with a **[MEMBER
 !!! tip
     When a patron calls and you search for their name, the [MEMBER] badge in autocomplete results immediately tells you they are a current member, even before you open their record.
 
+### Friend Codes
+
+When a membership offer issues [bring-a-friend passes](../offers/membership-offers.md#how-friend-passes-work), the **Active Memberships** box lists each membership's friend codes under its member code, newest first, with the uses left and the expiry date. A spent code shows **Used** and one past its date shows **Expired**. Click **Edit** to open the code's special offer form, for example to [restore a use](../offers/membership-offers.md#finding-and-restoring-a-friend-code) after the friend's order was refunded; saving brings you back to the patron.
+
+![Active Memberships box listing member codes with their friend codes, uses left, expiry dates and Edit links](../assets/images/screenshots/customers-friend-codes.png)
+
+Theater users do not see the Active Memberships box or its friend codes.
+
 ---
 
 ## Flex Pass Balances
