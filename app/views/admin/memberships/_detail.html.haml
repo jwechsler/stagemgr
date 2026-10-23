@@ -4,7 +4,6 @@
       .small-6.cell
         = link_to membership.membership_offer.name, admin_membership_offer_path(membership.membership_offer.id)
 
-
       .small-6.cell
         = ui_label("Membership #{membership.current_status}", variant: :success, class: 'right')
 
@@ -20,8 +19,9 @@
     %strong Member Since:
     = membership.member_since
     %br
-    -# One-time (gift) memberships end on this date; subscriptions show their
-    -# billing below instead.
+    -#
+      One-time (gift) memberships end on this date; subscriptions show their
+      billing below instead.
     - if membership.one_time?
       %strong Expires:
       = membership.expires_on.to_formatted_s(:long)
