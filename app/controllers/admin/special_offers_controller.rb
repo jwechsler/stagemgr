@@ -30,6 +30,7 @@ class Admin::SpecialOffersController < Admin::ApplicationController
 
   def edit
     @special_offer = SpecialOffer.find(params[:id])
+    @return_to = safe_return_path
   end
 
   def create
@@ -45,6 +46,7 @@ class Admin::SpecialOffersController < Admin::ApplicationController
 
   def update
     @special_offer = SpecialOffer.find(params[:id])
+    @return_to = safe_return_path
     object_type = posted_offer_param_key
     @special_offer.update(special_offer_params(object_type))
     @special_offer.limiting_model_type = params[object_type][:limiting_model_type]
@@ -52,7 +54,7 @@ class Admin::SpecialOffersController < Admin::ApplicationController
 
     if @special_offer.save
       flash[:notice] = 'Offer updated'
-      redirect_to admin_special_offers_path
+      redirect_to @return_to || admin_special_offers_path
     else
       render :edit
     end
@@ -78,6 +80,18 @@ class Admin::SpecialOffersController < Admin::ApplicationController
   end
 
   private
+
+  # Rails 6.1 has no url_from: accept only a same-site path ("/x", not
+  # "//host" or a full URL) so return_to cannot redirect off site.
+  def safe_return_path
+    path = params[:return_to].to_s
+    return nil unless path.start_with?('/') && !path.start_with?('//') && path.exclude?('\\')
+
+    uri = URI.parse(path)
+    uri.scheme.nil? && uri.host.nil? ? path : nil
+  rescue URI::InvalidURIError
+    nil
+  end
 
   def posted_offer_param_key
     OFFER_PARAM_KEYS.find { |key| params.key?(key) } ||

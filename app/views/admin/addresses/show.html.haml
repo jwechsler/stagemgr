@@ -13,6 +13,8 @@
         %legend Active Memberships
         - active = @address.memberships.select(&:active?)
         = safe_join(active.map { |m| link_to(m.member_code, [:admin, m.membership_order || m]) }, ', ')
+        - active.each do |m|
+          = render '/admin/addresses/friend_codes', membership: m, address: @address
     - if @address.is_current_flex_pass_holder?
       %fieldset.fieldset
         %legend Active Flex Passes

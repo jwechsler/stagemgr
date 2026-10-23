@@ -151,25 +151,86 @@ RSpec.describe Admin::AdvanceSalesHelper, type: :helper do
       )
     end
 
-    it 'shows the expected count alone, with the basis in the title' do
+    it 'shows the expected share of the house alone, with the basis and seats in the title' do
       html = helper.house_count_pace_cell(house_count(projected_seats: 1234, total_seats: 2000))
 
       expect(html).to have_css(
+        'span[title="Sold 20 as of Oct 6; this house typically has 50% in hand 7 days out; ' \
+        'expected ~ 1,234 of 2,000 seats"]',
+        exact_text: "~\u00A062%"
+      )
+    end
+
+    it 'rounds the expected share to a whole percent' do
+      html = helper.house_count_pace_cell(house_count(projected_seats: 70, total_seats: 104))
+
+      expect(html).to have_css('span', exact_text: "~\u00A067%")
+    end
+
+    it 'shows a dash, with the basis in the title, when the house size is unknown' do
+      html = helper.house_count_pace_cell(house_count(total_seats: nil))
+
+      expect(html).to have_css(
         'span[title="Sold 20 as of Oct 6; this house typically has 50% in hand 7 days out"]',
-        exact_text: '~1,234'
+        exact_text: '—'
       )
     end
 
     it 'shows the empty cell, titled to say so, once sold has passed the expected count' do
       html = helper.house_count_pace_cell(house_count(sold_seats: 1235, projected_seats: 1234, total_seats: 2000))
 
-      expect(html).to have_css('span[title="Sold has already passed the expected ~1,234"]', exact_text: '—')
+      expect(html).to have_css('span[title="Sold has already passed the expected ~ 1,234"]', exact_text: '—')
     end
 
-    it 'still shows the expected count when sold equals it' do
+    it 'shows the sellable seats as a share of capacity when demand exceeds them, with the demand in the title' do
+      html = helper.house_count_pace_cell(house_count(total_seats: 104, held_seats: 6, sold_seats: 71, pace_sold: 71,
+                                                      projected_seats: 124))
+
+      expect(html).to have_css(
+        'span[title="Sold 71 as of Oct 6; this house typically has 50% in hand 7 days out; ' \
+        'expected ~ 98 of 104 seats; demand ~ 124 exceeds the 98 sellable seats"]',
+        exact_text: "~\u00A094%"
+      )
+    end
+
+    it 'shows the titled empty cell, naming the capped count, once sold reaches a capped projection' do
+      html = helper.house_count_pace_cell(house_count(total_seats: 104, held_seats: 6, sold_seats: 98,
+                                                      projected_seats: 124))
+
+      expect(html).to have_css('span[title="Sold has already passed the expected ~ 98"]', exact_text: '—')
+    end
+
+    it 'adds comps already issued to Expected and splits them out in the title' do
+      html = helper.house_count_pace_cell(house_count(total_seats: 104, projected_seats: 80, comp_seats: 4))
+
+      expect(html).to have_css(
+        'span[title="Sold 20 as of Oct 6; this house typically has 50% in hand 7 days out; ' \
+        'expected ~ 84 of 104 seats (80 paid + 4 comps)"]',
+        exact_text: "~\u00A081%"
+      )
+    end
+
+    it 'names the combined demand when comps push it past the sellable seats' do
+      html = helper.house_count_pace_cell(house_count(total_seats: 104, held_seats: 6, sold_seats: 71, pace_sold: 71,
+                                                      projected_seats: 124, comp_seats: 4))
+
+      expect(html).to have_css(
+        'span[title="Sold 71 as of Oct 6; this house typically has 50% in hand 7 days out; ' \
+        'expected ~ 98 of 104 seats (124 paid + 4 comps); demand ~ 128 exceeds the 98 sellable seats"]',
+        exact_text: "~\u00A094%"
+      )
+    end
+
+    it 'names the paid projection plus comps once sold has passed them' do
+      html = helper.house_count_pace_cell(house_count(sold_seats: 45, projected_seats: 40, comp_seats: 4))
+
+      expect(html).to have_css('span[title="Sold has already passed the expected ~ 44"]', exact_text: '—')
+    end
+
+    it 'still shows the expected share when sold equals the expected count' do
       html = helper.house_count_pace_cell(house_count(sold_seats: 40))
 
-      expect(html).to have_css('span', exact_text: '~40')
+      expect(html).to have_css('span', exact_text: "~\u00A040%")
     end
 
     it 'describes the show-day basis in the title on the day of the show' do
@@ -178,8 +239,9 @@ RSpec.describe Admin::AdvanceSalesHelper, type: :helper do
                                                       pace_source: 'building'))
 
       expect(html).to have_css(
-        'span[title="Sold 19 before today; this house typically has 79% in hand by show day (building-wide curve)"]',
-        exact_text: '~24'
+        'span[title="Sold 19 before today; this house typically has 79% in hand by show day (building-wide curve); ' \
+        'expected ~ 24 of 100 seats"]',
+        exact_text: "~\u00A024%"
       )
     end
 
@@ -187,8 +249,9 @@ RSpec.describe Admin::AdvanceSalesHelper, type: :helper do
       html = helper.house_count_pace_cell(house_count(pace_source: 'building'))
 
       expect(html).to have_css(
-        'span[title="Sold 20 as of Oct 6; this house typically has 50% in hand 7 days out (building-wide curve)"]',
-        exact_text: '~40'
+        'span[title="Sold 20 as of Oct 6; this house typically has 50% in hand 7 days out (building-wide curve); ' \
+        'expected ~ 40 of 100 seats"]',
+        exact_text: "~\u00A040%"
       )
     end
   end
