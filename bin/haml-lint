@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
 # Runs haml-lint with Logger preloaded: Rails 6.1's ActiveSupport references
 # Logger before requiring it (config/boot.rb does the same for the app).
-RUBYOPT="-rlogger ${RUBYOPT}" exec bundle exec haml-lint "$@"
+#
+# Logger is loaded with ruby's own -r flag, after `bundle exec` has set up the
+# bundle, so it resolves to the locked gem. Putting -rlogger in RUBYOPT instead
+# loads it inside the `bundle` process before Bundler.setup runs, where RubyGems
+# picks the newest logger installed under vendor/bundle; when that is not the
+# locked version Bundler refuses to start ("You have already activated logger").
+exec bundle exec ruby -rlogger -S haml-lint "$@"
