@@ -21,6 +21,7 @@ RSpec.describe 'current_user/accounts/_house_counts', type: :view do
     render partial: 'current_user/accounts/house_counts', locals: {
       house_counts: [
         house_count('PROJ01', projected_seats: 84),
+        house_count('COMP01', projected_seats: 80, comp_seats: 4),
         house_count('EARLY01', projected_seats: nil, pace_share: 0.05),
         house_count('EXT01', external: true, projected_seats: 84)
       ]
@@ -33,10 +34,19 @@ RSpec.describe 'current_user/accounts/_house_counts', type: :view do
     expect(headers.last(2)).to eq(['% booked', 'Expected'])
   end
 
-  it 'shows the expected count with its basis on hover' do
+  it 'shows the expected share of the house with its basis and seats on hover' do
     expect(row_for('PROJ01')).to have_css(
-      'td span[title="Sold 20 as of Oct 6; this house typically has 50% in hand 7 days out"]',
-      exact_text: '~84'
+      'td span[title="Sold 20 as of Oct 6; this house typically has 50% in hand 7 days out; ' \
+      'expected ~ 84 of 100 seats"]',
+      exact_text: "~\u00A084%"
+    )
+  end
+
+  it 'adds the comps already issued to Expected, split out on hover' do
+    expect(row_for('COMP01')).to have_css(
+      'td span[title="Sold 20 as of Oct 6; this house typically has 50% in hand 7 days out; ' \
+      'expected ~ 84 of 100 seats (80 paid + 4 comps)"]',
+      exact_text: "~\u00A084%"
     )
   end
 

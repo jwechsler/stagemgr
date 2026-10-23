@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_10_15_120003) do
+ActiveRecord::Schema.define(version: 2026_10_22_120000) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -234,6 +234,7 @@ ActiveRecord::Schema.define(version: 2026_10_15_120003) do
     t.integer "pace_sold"
     t.string "pace_source", limit: 8
     t.date "pace_as_of"
+    t.integer "comp_seats", default: 0
     t.index ["performance_id"], name: "index_house_counts_on_performance_id"
   end
 
