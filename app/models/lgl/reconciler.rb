@@ -133,6 +133,8 @@ module Lgl
         result, keeper = reconcile_pair(keeper, other, lgl_id)
         result
       end
+      # merge_and_purge also queues a delayed MERGE_TRIGGER sync for a tagged
+      # keeper; this one keeps the run's own reason. Duplicates are harmless.
       enqueue_sync(keeper) if results.include?(:merged)
       %i[review in_flight deferred merged].find { |result| results.include?(result) }
     end

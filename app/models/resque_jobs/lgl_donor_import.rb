@@ -26,20 +26,19 @@ require 'csv'
 # file is the complete list of current donors.
 #
 # Rows without an External constituent ID that no LGL ID tag resolves
-# (organisations, and constituents not yet copied into Stagemgr) are skipped
-# and only counted. The LGL ids of those skipped rows and of the unmatched
-# ones are handed, once the file has loaded and when LGL is enabled, to one
+# (organisations, and constituents not yet copied into Stagemgr) are skipped and
+# only counted. The LGL ids of those skipped rows and of the unmatched ones are
+# handed, once the file has loaded and when LGL is enabled, to one
 # LglBackfillLinks replicate job (Lgl::Reconciler links, creates or reviews
-# each); whatever it links gets its tiers on the next nightly import. The
-# result file lists only the rows that have an entry in the Error column (an
-# id that is not a number, a number that matches no customer and whose LGL id
-# no tag resolves, an LGL id tagged on several customers, an LGL id waiting on
-# an LGL Review merge, or a failed save); these are the rows counted as
-# errors. It has
+# each); whatever it links gets its tiers on the next nightly import. The result
+# file lists only the rows that have an entry in the Error column (an id that is
+# not a number, a number that matches no customer and whose LGL id no tag
+# resolves, an LGL id tagged on several customers, an LGL id waiting on an LGL
+# Review merge, or a failed save); these are the rows counted as errors. It has
 # the upload's own columns plus Error and is created only when some row has an
-# error. When the import finishes, the
-# uploader (the supervisor-notifications user for the nightly LGL run) is
-# always emailed the counts, with the result file attached when there is one.
+# error. When the import finishes, the uploader (the supervisor-notifications
+# user for the nightly LGL run) is always emailed the counts, with the result
+# file attached when there is one.
 class LglDonorImport < ImportIssuesReport
   include LoggedJob
 

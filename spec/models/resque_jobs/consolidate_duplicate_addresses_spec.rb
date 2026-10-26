@@ -20,6 +20,20 @@ RSpec.describe ConsolidateDuplicateAddresses, type: :model do
     expect(order.reload.address_id).to eq(keeper.id)
   end
 
+  it 'queues the LGL merge sync for the keeper when the purged duplicate was linked to LGL' do
+    Theater.default_theater || FactoryBot.create(:theater, theater_class: Theater::DEFAULT)
+    allow(Lgl).to receive(:enabled?).and_return(true)
+    allow(Resque).to receive(:enqueue_in)
+    keeper, duplicate = duplicate_pair(full_name: 'Linked Duplicate', email: 'linked@example.com')
+    duplicate.set_lgl_id!(900_100)
+
+    described_class.perform
+
+    expect(keeper.lgl_id).to eq('900100')
+    expect(Resque).to have_received(:enqueue_in)
+      .with(LglLinkable::LGL_MERGE_SYNC_DELAY, LglSyncAddressJob, keeper.id, LglSyncAddressJob::MERGE_TRIGGER)
+  end
+
   it 'is idempotent - a second run finds nothing to merge' do
     duplicate_pair(full_name: 'Dana Duplicate', email: 'dana@example.com')
 

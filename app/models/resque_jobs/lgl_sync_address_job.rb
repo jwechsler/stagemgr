@@ -43,8 +43,9 @@ require 'resque-retry'
 #   3. Email -> Lgl::ConstituentResolver decides adopt / review / merge / create.
 #      Merge: the email is on a constituent linked to a same-name twin, so LGL
 #      says the two are one person; Lgl::AddressMerger merges them (lowest id
-#      kept) and a fresh run for the keeper re-points LGL. Nothing is written
-#      to LGL in this run.
+#      kept) and a fresh run for the keeper re-points LGL (queued by
+#      Address#merge_and_purge when the keeper has an LGL ID, else here).
+#      Nothing is written to LGL in this run.
 #   4. Create a new constituent. A dead link is never re-created
 #      automatically: unless the trigger is MANUAL_TRIGGER (staff clicked Link
 #      to LGL / Re-sync), the dead tag stays and the address gets an LGL Review
@@ -220,7 +221,10 @@ class LglSyncAddressJob
     result, keeper = merge_without_dead_link(other)
     case result
     when :merged
-      Resque.enqueue(self.class, keeper.id, MERGE_TRIGGER)
+      # merge_and_purge queued the merge sync if the keeper has an LGL ID. The
+      # twin may be linked by external id alone, untagged: run the keeper
+      # now so it adopts that constituent.
+      Resque.enqueue(self.class, keeper.id, MERGE_TRIGGER) if keeper.lgl_id.blank?
       Outcome.new(:merged, decision.constituent['id'], decision.reason)
     when :in_flight
       review("Same person as ##{other.id} in LGL; merge skipped while an order is in progress")

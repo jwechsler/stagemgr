@@ -142,4 +142,63 @@ RSpec.describe 'a customer record' do
       expect(AddressTag.where(tag_label: AddressTag::LGL_REVIEW, address_id: keeper.id).count).to eq(1)
     end
   end
+
+  describe '#merge_and_purge LGL merge sync' do
+    let!(:house) { Theater.default_theater || FactoryBot.create(:theater, theater_class: Theater::DEFAULT) }
+    let(:keeper) { FactoryBot.create(:address) }
+    let(:duplicate) { FactoryBot.create(:address) }
+    let(:merge_sync) do
+      [LglLinkable::LGL_MERGE_SYNC_DELAY, LglSyncAddressJob, keeper.id, LglSyncAddressJob::MERGE_TRIGGER]
+    end
+
+    before do
+      allow(Lgl).to receive(:enabled?).and_return(true)
+      allow(Resque).to receive(:enqueue_in)
+    end
+
+    it 'queues a delayed merge sync for a keeper that carries an LGL ID' do
+      keeper.set_lgl_id!(11)
+
+      keeper.merge_and_purge(duplicate)
+
+      expect(Resque).to have_received(:enqueue_in).with(*merge_sync).once
+    end
+
+    it 'queues the merge sync when only the purged record carried the LGL ID' do
+      duplicate.set_lgl_id!(22)
+
+      keeper.merge_and_purge(duplicate)
+
+      expect(keeper.lgl_id).to eq('22')
+      expect(Resque).to have_received(:enqueue_in).with(*merge_sync).once
+    end
+
+    it 'queues no merge sync when LGL is disabled' do
+      allow(Lgl).to receive(:enabled?).and_return(false)
+      keeper.set_lgl_id!(11)
+
+      keeper.merge_and_purge(duplicate)
+
+      expect(Resque).not_to have_received(:enqueue_in).with(*merge_sync)
+    end
+
+    it 'queues no merge sync when neither record carries an LGL ID' do
+      keeper.merge_and_purge(duplicate)
+
+      expect(Resque).not_to have_received(:enqueue_in).with(*merge_sync)
+    end
+
+    it 'completes the merge and logs when the merge sync cannot be queued' do
+      duplicate.set_lgl_id!(22)
+      duplicate_id = duplicate.id
+      allow(Resque).to receive(:enqueue_in).with(*merge_sync).and_raise(Redis::CannotConnectError)
+      allow(Rails.logger).to receive(:error)
+
+      expect { keeper.merge_and_purge(duplicate) }.not_to raise_error
+
+      expect(Address.exists?(duplicate_id)).to be(false)
+      expect(keeper.lgl_id).to eq('22')
+      expect(Rails.logger).to have_received(:error).with(/\A\[LGL\] could not queue the merge sync of ##{keeper.id}/)
+    end
+  end
 end

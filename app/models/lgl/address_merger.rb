@@ -7,7 +7,8 @@ module Lgl
   #
   # The keeper is the lower id, matching ConsolidateDuplicateAddresses and
   # Address#find_original. Never calls LGL; re-pointing the constituent at the
-  # keeper is left to the caller (an enqueued LglSyncAddressJob).
+  # keeper is left to an enqueued LglSyncAddressJob (merge_and_purge queues one
+  # for a tagged keeper; callers may queue their own).
   #
   # While Lgl is read-only, a pair is merged only when both ids are on the
   # writable allowlist: the merge is driven by LGL data, and acceptance testing

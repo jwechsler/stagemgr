@@ -21,6 +21,10 @@ module LglLinkable
   # resque-scheduler's MULTI), so a burst may queue several runs; each reads
   # current state, so the later ones push nothing.
   LGL_EDIT_DEBOUNCE = 2.minutes
+  # Delays the sync Address#merge_and_purge queues. The merge often runs inside
+  # an outer transaction (Address::ManualMerge, Lgl::AddressMerger), and an
+  # immediate job could run before it commits and see the pre-merge records.
+  LGL_MERGE_SYNC_DELAY = LGL_EDIT_DEBOUNCE
   # LGL Review reasons naming a second constituent for this address: "Also LGL
   # constituent N" (Lgl::Reconciler) and "Also LGL constituent N: merge the two
   # in LGL" (Address#merge_and_purge). Build them with
@@ -108,6 +112,20 @@ module LglLinkable
     return unless Lgl.enabled? && saved_changes.keys.intersect?(LGL_SYNCED_COLUMNS) && lgl_id.present?
 
     Resque.enqueue_in(LGL_EDIT_DEBOUNCE, LglSyncAddressJob, id, LglSyncAddressJob::EDIT_TRIGGER)
+  end
+
+  # Called by Address#merge_and_purge on the keeper, for every merge, staff or
+  # automatic. The keeper may now carry the purged record's LGL ID, and LGL's
+  # external id still names the purged id until a sync re-points it; the edit
+  # hook above does not fire when no synced column changed. MERGE_TRIGGER never
+  # pushes contact fields. A queueing failure is logged and never fails the
+  # merge; LGL then names the purged id until a later sync of the keeper.
+  def enqueue_lgl_merge_sync
+    return unless Lgl.enabled? && lgl_id.present?
+
+    Resque.enqueue_in(LGL_MERGE_SYNC_DELAY, LglSyncAddressJob, id, LglSyncAddressJob::MERGE_TRIGGER)
+  rescue StandardError => e
+    Rails.logger.error("[LGL] could not queue the merge sync of ##{id}: #{e.class}: #{e.message}")
   end
 
   # The other address's LGL ID when both carry one and they differ.
