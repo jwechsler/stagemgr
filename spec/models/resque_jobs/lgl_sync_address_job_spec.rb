@@ -520,7 +520,7 @@ RSpec.describe LglSyncAddressJob do
       allow(Resque).to receive(:enqueue)
     end
 
-    it 'merges into the lower id and enqueues a sync for the keeper, writing nothing to LGL now' do
+    it 'merges into the lower id and enqueues a sync for the untagged keeper, writing nothing to LGL now' do
       expect(client).not_to receive(:create)
       expect(client).not_to receive(:update)
 
@@ -622,6 +622,7 @@ RSpec.describe LglSyncAddressJob do
               'email_addresses' => [{ 'id' => 1, 'address' => dead.email, 'is_preferred' => true }] }
       allow(client).to receive(:search_by_email).and_return([lgl])
       allow(Resque).to receive(:enqueue)
+      allow(Resque).to receive(:enqueue_in)
     end
 
     it 'merges without flagging the dead id for review and keeps the survivor id' do
@@ -634,7 +635,10 @@ RSpec.describe LglSyncAddressJob do
       keeper = Address.find(dead.id)
       expect(keeper.lgl_id).to eq('979629')
       expect(keeper.lgl_review_reason).to be_nil
-      expect(Resque).to have_received(:enqueue).with(described_class, dead.id, described_class::MERGE_TRIGGER)
+      # The keeper is tagged: merge_and_purge's delayed merge sync covers it.
+      expect(Resque).not_to have_received(:enqueue).with(described_class, dead.id, described_class::MERGE_TRIGGER)
+      expect(Resque).to have_received(:enqueue_in)
+        .with(LglLinkable::LGL_MERGE_SYNC_DELAY, described_class, dead.id, described_class::MERGE_TRIGGER)
     end
 
     it 'keeps the dead tag when the merge is skipped' do

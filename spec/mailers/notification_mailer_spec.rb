@@ -125,7 +125,10 @@ RSpec.describe NotificationMailer, type: :mailer do
       store.datafile.attach(io: StringIO.new("x\n"), filename: 'donors.csv', content_type: 'text/csv')
       store.tap(&:save!)
     end
-    let(:counts) { { rows: 9, updated: 3, cleared: 1, unchanged: 2, unmatched: 1, bad_id: 1, blank_id: 1 } }
+    let(:counts) do
+      { rows: 9, updated: 3, cleared: 1, unchanged: 2, unmatched: 1, bad_id: 1, blank_id: 1, in_review: 1,
+        sent_to_matching: 2 }
+    end
 
     it 'sends the uploader the counts, saying no rows had errors when there is no result file' do
       mail = described_class.donor_levels_imported(upload, counts)
@@ -134,7 +137,8 @@ RSpec.describe NotificationMailer, type: :mailer do
       expect(mail.to).to eq([user.email])
       expect(mail.subject).to eq('Donor levels import complete')
       expect(body).to include('donors.csv', 'Constituents in file: 9', 'Customer records updated: 4',
-                              'Update errors: 2', 'Unchanged: 2', 'not in the file: 0', 'No rows had errors')
+                              'Update errors: 3', 'Unchanged: 2', 'not in the file: 0', 'No rows had errors',
+                              'Unlinked LGL constituents sent to LGL matching: 2')
       expect(mail.attachments).to be_empty
     end
 

@@ -208,15 +208,31 @@ RSpec.describe Admin::AddressesController, type: :controller do
       let!(:keeper) { FactoryBot.create(:address, full_name: 'Merged Patron', email: 'merged@example.com') }
       let!(:edited) { FactoryBot.create(:address, full_name: 'Merged Patron-typo', email: 'merged@example.com') }
 
-      before { allow(Resque).to receive(:enqueue) }
+      before do
+        allow(Resque).to receive(:enqueue)
+        allow(Resque).to receive(:enqueue_in)
+      end
 
-      it 'queues an LGL sync for the kept record after a merge' do
+      it 'queues an LGL sync for a kept record with no LGL ID after a merge' do
         allow(Lgl).to receive(:enabled?).and_return(true)
 
         put :update, params: { id: edited.id, address: { full_name: 'Merged Patron' } }
 
         expect(Resque).to have_received(:enqueue)
           .with(LglSyncAddressJob, keeper.id, LglSyncAddressJob::MERGE_TRIGGER)
+      end
+
+      it 'leaves a linked kept record to the delayed merge sync merge_and_purge queues' do
+        Theater.default_theater || FactoryBot.create(:theater, theater_class: Theater::DEFAULT)
+        allow(Lgl).to receive(:enabled?).and_return(true)
+        edited.set_lgl_id!(900_200)
+
+        put :update, params: { id: edited.id, address: { full_name: 'Merged Patron' } }
+
+        expect(Resque).not_to have_received(:enqueue)
+          .with(LglSyncAddressJob, keeper.id, LglSyncAddressJob::MERGE_TRIGGER)
+        expect(Resque).to have_received(:enqueue_in)
+          .with(LglLinkable::LGL_MERGE_SYNC_DELAY, LglSyncAddressJob, keeper.id, LglSyncAddressJob::MERGE_TRIGGER)
       end
 
       it 'queues no LGL sync when LGL is disabled' do
@@ -226,6 +242,8 @@ RSpec.describe Admin::AddressesController, type: :controller do
 
         expect(Resque).not_to have_received(:enqueue)
           .with(LglSyncAddressJob, keeper.id, LglSyncAddressJob::MERGE_TRIGGER)
+        expect(Resque).not_to have_received(:enqueue_in)
+          .with(anything, LglSyncAddressJob, keeper.id, LglSyncAddressJob::MERGE_TRIGGER)
       end
     end
 

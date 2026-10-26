@@ -210,6 +210,23 @@ RSpec.describe Lgl::Reconciler do
 
       expect(reconciler.apply(person(900_065, 'new@example.com'))).to eq(:created)
     end
+
+    context 'with create: false' do
+      subject(:reconciler) { described_class.new(reason: 'replicate', create: false) }
+
+      it 'creates nothing and enqueues nothing when no customer matches' do
+        expect { expect(reconciler.apply(person(900_066, 'new@example.com'))).to eq(:not_created) }
+          .not_to change(Address, :count)
+        expect(Resque).not_to have_received(:enqueue)
+      end
+
+      it 'still links the one matching address and enqueues a link sync' do
+        address = patron('Jane Smith', email: 'jane@example.com')
+
+        expect(reconciler.apply(person(900_067, 'jane@example.com'))).to eq(:linked)
+        expect(Resque).to have_received(:enqueue).with(LglSyncAddressJob, address.id, LglSyncAddressJob::LINK_TRIGGER)
+      end
+    end
   end
 
   context 'when local_only (backfill)' do
