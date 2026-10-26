@@ -294,5 +294,50 @@ RSpec.describe Lgl::ConstituentReplicator do
       expect { expect(described_class.new(lgl(920_006, is_org: true)).apply!.outcome).to eq(:org_skipped) }
         .not_to change(Address, :count)
     end
+
+    context 'with create: false' do
+      it 'creates nothing when no customer matches and clears its stale several-matches review' do
+        dropped = person('Holliday', 'old@example.com', first: 'Robert')
+        dropped.lgl_review!('LGL constituent 920020 matches several customers by email and last name')
+
+        result = nil
+        expect do
+          result = described_class.new(lgl(920_020, first: 'Robert', last: 'Holliday',
+                                                    emails: [email('robert.new@example.com')]), create: false).apply!
+        end.not_to change(Address, :count)
+
+        expect([result.outcome, result.address]).to eq([:not_created, nil])
+        expect(dropped.reload.lgl_review_reason).to be_nil
+        expect(AddressTag.lgl(AddressTag::LGL_ID).exists?(tag_value: '920020')).to be(false)
+      end
+
+      it 'creates nothing for an email-only name' do
+        constituent = lgl(920_021, first: nil, last: 'echuukwu@example.org', emails: [email('echuukwu@example.org')])
+
+        result = nil
+        expect { result = described_class.new(constituent, create: false).apply! }.not_to change(Address, :count)
+
+        expect(result.outcome).to eq(:not_created)
+      end
+
+      it 'still links the one matching address' do
+        smith = person('Smith', 'smith@example.com')
+
+        result = described_class.new(lgl(920_022, emails: [email('smith@example.com')]), create: false).apply!
+
+        expect([result.outcome, result.address]).to eq([:linked, smith])
+        expect(smith.reload.lgl_id).to eq('920022')
+      end
+
+      it 'still flags every match when several match' do
+        smiths = [person('Smith', 'smith@example.com', first: 'Ann'), person('Smith', 'smith@example.com', first: 'Bo')]
+
+        result = described_class.new(lgl(920_023, emails: [email('smith@example.com')]), create: false).apply!
+
+        expect(result.outcome).to eq(:review)
+        expect(smiths.map { |address| address.reload.lgl_review_reason })
+          .to all(eq('LGL constituent 920023 matches several customers by email and last name'))
+      end
+    end
   end
 end

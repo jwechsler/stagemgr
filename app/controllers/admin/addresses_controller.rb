@@ -84,7 +84,7 @@ class Admin::AddressesController < Admin::ApplicationController
       begin
         match.merge_and_purge(@address, clear_lgl_review: true)
         @address = match
-        queue_lgl_merge_sync(match) if Lgl.enabled?
+        queue_lgl_link_after_merge(match)
         notice = "Updated data merged with existing audience member"
       rescue StandardError => e
         Rails.logger.warn("Admin address merge failed for ##{@address.id} -> ##{match.id}: #{e.message}")
@@ -202,9 +202,12 @@ class Admin::AddressesController < Admin::ApplicationController
 
   private
 
-  # LGL still names the purged id until a sync runs, and the keeper's edit hook
-  # does not fire when its synced columns did not change.
-  def queue_lgl_merge_sync(keeper)
+  # merge_and_purge already queues the merge sync for a keeper with an LGL ID.
+  # A keeper with none still gets one run, as before, which links it by
+  # external id or email (or creates its constituent).
+  def queue_lgl_link_after_merge(keeper)
+    return unless Lgl.enabled? && keeper.lgl_id.blank?
+
     Resque.enqueue(LglSyncAddressJob, keeper.id, LglSyncAddressJob::MERGE_TRIGGER)
   rescue StandardError => e
     Rails.logger.error("[LGL] could not queue the merge sync of ##{keeper.id}: #{e.class}: #{e.message}")

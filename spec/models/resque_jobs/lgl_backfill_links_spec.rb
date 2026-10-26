@@ -271,6 +271,21 @@ RSpec.describe LglBackfillLinks do
         expect(Rails.logger).to have_received(:info).with('[LGL] replicate: constituent 930099 not found')
       end
 
+      it 'links but never creates in match mode' do
+        counts = nil
+        expect { counts = described_class.perform('match', %w[930001 930002 930003]) }
+          .not_to change(Address, :count)
+
+        expect(counts).to eq(not_created: 1, linked: 1, org_skipped: 1)
+        expect(matched.lgl_id).to eq('930002')
+        expect(client).not_to have_received(:search_updated_since)
+      end
+
+      it 'reports not_created on a link-only dry run' do
+        expect(described_class.replicate(constituent_ids: %w[930001 930002], dry_run: true, create: false))
+          .to eq(not_created: 1, linked: 1)
+      end
+
       it 're-points a tagged junk constituent with LINK_TRIGGER, never a reason that may create' do
         described_class.replicate(constituent_ids: %w[930004])
 
@@ -299,6 +314,15 @@ RSpec.describe LglBackfillLinks do
 
     it 'is what perform runs in replicate mode' do
       expect(described_class.perform('replicate')).to eq(created: 2, linked: 1, org_skipped: 1, repointed: 1)
+    end
+
+    it 'does nothing in match mode without ids, never scanning every constituent' do
+      allow(client).to receive(:find)
+
+      expect { expect(described_class.perform('match')).to eq({}) }.not_to change(Address, :count)
+      expect(described_class.perform('match', [])).to eq({})
+      expect(client).not_to have_received(:search_updated_since)
+      expect(client).not_to have_received(:find)
     end
 
     it 'does nothing when LGL is disabled' do

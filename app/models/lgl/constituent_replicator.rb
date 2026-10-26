@@ -30,6 +30,9 @@ module Lgl
   #                                       not one Address accepts;
   #                                       :already_tagged when another run
   #                                       tagged one first)
+  #   none, built with create: false   -> clear its stale reviews, create
+  #                                       nothing: :not_created (the donor
+  #                                       import's link-only matching)
   class ConstituentReplicator
     Result = Struct.new(:outcome, :address)
 
@@ -126,9 +129,11 @@ module Lgl
     end
     private_class_method :emails, :first_preferred
 
-    def initialize(constituent)
+    # +create: false+ links or reviews but never creates an address.
+    def initialize(constituent, create: true)
       @constituent = constituent
       @lgl_id = constituent['id'].to_s
+      @create = create
     end
 
     def apply!
@@ -139,7 +144,7 @@ module Lgl
       case outcome
       when :one_match then link(address)
       when :several_matches then review(flagged)
-      else create
+      else @create ? create : not_created
       end
     end
 
@@ -165,6 +170,13 @@ module Lgl
     # email); any other review still needs a person.
     def clear_stale_reviews
       Lgl::ReviewList.several_matches_addresses(@lgl_id).each(&:clear_lgl_review!)
+    end
+
+    # Matching no customer still clears this constituent's old several-matches
+    # reviews, as create does.
+    def not_created
+      clear_stale_reviews
+      Result.new(:not_created, nil)
     end
 
     # The re-check guards an inline rake run overlapping the poll. No early

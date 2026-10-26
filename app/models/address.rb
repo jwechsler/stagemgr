@@ -284,6 +284,11 @@ end
 
   # clear_lgl_review: true only for merges staff choose on the Customers page;
   # automatic merges leave review tags as update_from carries them.
+  #
+  # Every merge, staff or automatic, then queues a delayed MERGE_TRIGGER
+  # LglSyncAddressJob for the keeper when LGL is enabled and the keeper ends
+  # with an LGL ID (its own or the purged record's), so LGL's external id stops
+  # naming the purged id (LglLinkable#enqueue_lgl_merge_sync).
   def merge_and_purge(from_address, clear_lgl_review: false)
     Rails.logger.debug("Merging address ##{from_address.id} into ##{id}")
     # update_from copies from_address's tags over the keeper's tags with the
@@ -319,6 +324,7 @@ end
       from_address.address_tags.destroy_all
       from_address.destroy!
     end
+    enqueue_lgl_merge_sync
   end
 
   def self.purge_matched_duplicates
