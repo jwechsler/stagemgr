@@ -292,11 +292,11 @@ RSpec.describe LglDonorImport do
         allow(Resque).to receive(:enqueue_in)
       end
 
-      it 'enqueues one replicate job with the LGL ids of blank and unmatched rows, without repeats' do
+      it 'enqueues one link-only match job with the LGL ids of blank and unmatched rows, without repeats' do
         notes = run(',900050,Org,Gold,', '999999999,900051,Gone,Gold,', ',900050,Again,Gold,', head: lgl_header).notes
 
         expect(Resque).to have_received(:enqueue)
-          .with(LglBackfillLinks, LglBackfillLinks::REPLICATE_MODE, %w[900050 900051]).once
+          .with(LglBackfillLinks, LglBackfillLinks::MATCH_MODE, %w[900050 900051]).once
         expect(notes).to include('sent 2 to LGL matching;')
         expect(ActionMailer::Base.deliveries.last.body.encoded)
           .to include('Unlinked LGL constituents sent to LGL matching: 2')

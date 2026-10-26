@@ -29,14 +29,19 @@ require 'csv'
 # (organisations, and constituents not yet copied into Stagemgr) are skipped and
 # only counted. The LGL ids of those skipped rows and of the unmatched ones are
 # handed, once the file has loaded and when LGL is enabled, to one
-# LglBackfillLinks replicate job (Lgl::Reconciler links, creates or reviews
-# each); whatever it links gets its tiers on the next nightly import. The result
-# file lists only the rows that have an entry in the Error column (an id that is
-# not a number, a number that matches no customer and whose LGL id no tag
-# resolves, an LGL id tagged on several customers, an LGL id waiting on an LGL
-# Review merge, or a failed save); these are the rows counted as errors. It has
-# the upload's own columns plus Error and is created only when some row has an
-# error. When the import finishes, the uploader (the supervisor-notifications
+# LglBackfillLinks match job, which matches them to EXISTING customers only:
+# each is linked (one email + last name match) or reviewed (several), and a
+# constituent with no customer is never created by the import (organisations
+# and email-only names would become junk customers; the poll and
+# `rake lgl:replicate` create). Whatever it links gets its tiers on the next
+# nightly import.
+#
+# The result file lists only the rows that have an entry in the Error column
+# (an id that is not a number, a number that matches no customer and whose LGL
+# id no tag resolves, an LGL id tagged on several customers, an LGL id waiting
+# on an LGL Review merge, or a failed save); these are the rows counted as
+# errors. It has the upload's own columns plus Error and is created only when
+# some row has an error. When the import finishes, the uploader (the supervisor-notifications
 # user for the nightly LGL run) is always emailed the counts, with the result
 # file attached when there is one.
 class LglDonorImport < ImportIssuesReport
@@ -151,12 +156,12 @@ class LglDonorImport < ImportIssuesReport
     "#{LGL_ID_HEADER} is on customers #{addresses.map(&:id).join(', ')}: merge them"
   end
 
-  # Enqueues one LglBackfillLinks replicate job for +lgl_ids+ when LGL is
+  # Enqueues one link-only LglBackfillLinks match job for +lgl_ids+ when LGL is
   # enabled; returns how many ids were sent (0 when none, or on failure).
   def self.send_to_matching(lgl_ids)
     return 0 if lgl_ids.empty? || !Lgl.enabled?
 
-    Resque.enqueue(LglBackfillLinks, LglBackfillLinks::REPLICATE_MODE, lgl_ids)
+    Resque.enqueue(LglBackfillLinks, LglBackfillLinks::MATCH_MODE, lgl_ids)
     lgl_ids.size
   rescue StandardError => e
     Rails.logger.error("LglDonorImport: could not send #{lgl_ids.size} LGL ids to matching - #{e.message}")

@@ -26,11 +26,14 @@ module Lgl
   #                              (LglSyncAddressJob::LINK_TRIGGER) so LGL's
   #                              external id names it; or skip / review
   #                              (:org_skipped, :no_contact, :no_name,
-  #                              :invalid_email, :review)
+  #                              :invalid_email, :review; :not_created
+  #                              under create: false)
   #
   # +local_only+ (the backfill) disables merges, replication and enqueues:
   # only local tags and reviews are written. +replicate: false+ leaves an
-  # untagged junk constituent counted by its junk kind. Replication is gated
+  # untagged junk constituent counted by its junk kind. +create: false+ (the
+  # donor import's matching) lets replication link or review but never create
+  # an address. Replication is gated
   # by Lgl.enabled? alone (the callers check it), never by Lgl.writable?: the
   # address is created locally even when LGL is read-only, and the sync job's
   # PATCH is what read-only skips. +enqueue+ is a callable (address, reason)
@@ -70,17 +73,18 @@ module Lgl
       Address.where(id: address_ids, placeholder: false).order(:id).to_a
     end
 
-    def initialize(reason: 'poll', local_only: false, replicate: !local_only, enqueue: nil)
+    def initialize(reason: 'poll', local_only: false, replicate: !local_only, enqueue: nil, create: true)
       @reason = reason
       @local_only = local_only
       @replicate = replicate
+      @create = create
       @enqueue = enqueue || DEFAULT_ENQUEUE
     end
 
     # A result symbol for counting: :already_tagged, :pulled, :tagged, :merged,
     # :repointed, :review, :in_flight, :deferred, :self_referencing,
     # :dead_external_id, :blank_external_id, :created, :linked, :org_skipped,
-    # :no_contact, :no_name, :invalid_email or :error. Lgl::Error (including
+    # :no_contact, :no_name, :invalid_email, :not_created or :error. Lgl::Error (including
     # RateLimited) is re-raised so the calling job fails; anything else is
     # logged and counted, so one bad record never stops a run.
     def apply(constituent)
@@ -176,7 +180,7 @@ module Lgl
     def replicate(constituent, kind)
       return kind unless @replicate
 
-      result = Lgl::ConstituentReplicator.new(constituent).apply!
+      result = Lgl::ConstituentReplicator.new(constituent, create: @create).apply!
       enqueue_sync(result.address, LglSyncAddressJob::LINK_TRIGGER) if result.address
       result.outcome
     end
