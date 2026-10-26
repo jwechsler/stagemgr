@@ -271,6 +271,11 @@ RSpec.describe LglBackfillLinks do
         expect(Rails.logger).to have_received(:info).with('[LGL] replicate: constituent 930099 not found')
       end
 
+      it 'is what perform runs in replicate mode with ids' do
+        expect(described_class.perform('replicate', %w[930002])).to eq(linked: 1)
+        expect(client).not_to have_received(:search_updated_since)
+      end
+
       it 're-points a tagged junk constituent with LINK_TRIGGER, never a reason that may create' do
         described_class.replicate(constituent_ids: %w[930004])
 

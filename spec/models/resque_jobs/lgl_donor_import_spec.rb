@@ -37,7 +37,7 @@ RSpec.describe LglDonorImport do
 
     expect(tiers(address)).to eq(%w[Gold Silver])
     expect(notes).to eq('Donor levels: 1 rows; updated 1, unchanged 0, cleared 0, matched by LGL ID 0, no id 0, ' \
-                        'errors 0; cleared 0 absent customers')
+                        'errors 0; sent 0 to LGL matching; cleared 0 absent customers')
   end
 
   it 'finds headers whatever their case, spacing or byte-order mark' do
@@ -246,6 +246,95 @@ RSpec.describe LglDonorImport do
       run(',900050,Ann,Gold,', head: lgl_header)
 
       expect(ActionMailer::Base.deliveries.last.body.encoded).to include('Rows matched by LGL Constituent ID: 1')
+    end
+
+    describe 'an LGL id waiting on an LGL Review merge' do
+      def review(address, lgl_id = '900050')
+        reason = "#{Lgl::ConstituentReplicator.several_matches_prefix(lgl_id)} named Pat Twin by email: " \
+                 'merge them in Stagemgr, then Re-sync'
+        address.address_tags.create!(tag_label: AddressTag::LGL_REVIEW, tag_value: reason, theater_id: house.id)
+        address
+      end
+
+      let!(:first) { review(FactoryBot.create(:address)) }
+      let!(:second) { review(FactoryBot.create(:address)) }
+      let(:review_error) do
+        "LGL Review: LGL constituent 900050 matches customers #{first.id} and #{second.id}: " \
+          'merge them in Stagemgr, then Re-sync'
+      end
+
+      it 'names the customers to merge in an error row when the External constituent ID is blank' do
+        notes = run(',900050,Twin,Gold,Silver', head: lgl_header).notes
+
+        expect(result_rows.pluck('Error')).to eq([review_error])
+        expect([tiers(first), tiers(second)]).to eq([[nil, nil], [nil, nil]])
+        expect(notes).to include('no id 0, errors 1;')
+      end
+
+      it 'names the customers to merge when the External constituent ID matches no customer' do
+        notes = run('999999999,900050,Twin,Gold,Silver', head: lgl_header).notes
+
+        expect(result_rows.pluck('Error')).to eq([review_error])
+        expect(notes).to include('no id 0, errors 1;')
+      end
+
+      it 'counts the row as an update error in the completion email' do
+        run(',900050,Twin,Gold,Silver', head: lgl_header)
+
+        expect(ActionMailer::Base.deliveries.last.body.encoded).to include('Update errors: 1')
+      end
+    end
+
+    describe 'sending unplaced rows to LGL matching' do
+      before do
+        allow(Lgl).to receive(:enabled?).and_return(true)
+        allow(Resque).to receive(:enqueue)
+        allow(Resque).to receive(:enqueue_in)
+      end
+
+      it 'enqueues one replicate job with the LGL ids of blank and unmatched rows, without repeats' do
+        notes = run(',900050,Org,Gold,', '999999999,900051,Gone,Gold,', ',900050,Again,Gold,', head: lgl_header).notes
+
+        expect(Resque).to have_received(:enqueue)
+          .with(LglBackfillLinks, LglBackfillLinks::REPLICATE_MODE, %w[900050 900051]).once
+        expect(notes).to include('sent 2 to LGL matching;')
+        expect(ActionMailer::Base.deliveries.last.body.encoded)
+          .to include('Unlinked LGL constituents sent to LGL matching: 2')
+      end
+
+      it 'sends no row placed by tag, tagged on several customers, with a bad id or waiting on a review' do
+        tag(FactoryBot.create(:address), '900060')
+        tag(FactoryBot.create(:address), '900061')
+        tag(FactoryBot.create(:address), '900061')
+        reason = "#{Lgl::ConstituentReplicator.several_matches_prefix('900063')} by email: merge them"
+        FactoryBot.create(:address).address_tags.create!(tag_label: AddressTag::LGL_REVIEW, tag_value: reason,
+                                                         theater_id: house.id)
+
+        notes = run(',900060,Tagged,Gold,', ',900061,Twin,Gold,', 'abc,900062,Bad,Gold,', ',900063,Review,Gold,',
+                    ',,Nothing,Gold,', head: lgl_header).notes
+
+        expect(Resque).not_to have_received(:enqueue).with(LglBackfillLinks, any_args)
+        expect(notes).to include('sent 0 to LGL matching;')
+      end
+
+      it 'sends nothing when LGL is disabled' do
+        allow(Lgl).to receive(:enabled?).and_return(false)
+
+        notes = run(',900050,Org,Gold,', head: lgl_header).notes
+
+        expect(Resque).not_to have_received(:enqueue).with(LglBackfillLinks, any_args)
+        expect(notes).to include('no id 1, errors 0; sent 0 to LGL matching;')
+      end
+
+      it 'still finishes the import, sending 0, when the enqueue fails' do
+        allow(Resque).to receive(:enqueue).with(LglBackfillLinks, any_args).and_raise(Redis::CannotConnectError)
+        allow(Rails.logger).to receive(:error)
+
+        notes = run(',900050,Org,Gold,', head: lgl_header).notes
+
+        expect(notes).to include('sent 0 to LGL matching;')
+        expect(Rails.logger).to have_received(:error).with(/could not send 1 LGL ids to matching/)
+      end
     end
   end
 

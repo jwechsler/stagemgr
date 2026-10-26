@@ -30,7 +30,8 @@
 # the local LGL ID tag is already set. The others are counted as
 # :sync_skipped_readonly. Run with
 # `rake lgl:replicate_dry_run` (inline, writes nothing) first, then
-# `rake lgl:replicate`.
+# `rake lgl:replicate`. LglDonorImport enqueues it with the LGL ids (strings)
+# of the rows it could not place, limiting the run to those constituents.
 class LglBackfillLinks
   @queue = :maintenance
 
@@ -46,9 +47,10 @@ class LglBackfillLinks
   # listing that expands email addresses.
   LINK_SCAN_FROM = Time.utc(1970, 1, 1)
 
-  def self.perform(mode = RECONCILE_MODE)
+  # +constituent_ids+ (REPLICATE_MODE only) limits the run to those LGL ids.
+  def self.perform(mode = RECONCILE_MODE, constituent_ids = nil)
     return link_by_email if mode == LINK_BY_EMAIL_MODE
-    return replicate if mode == REPLICATE_MODE
+    return replicate(constituent_ids: constituent_ids) if mode == REPLICATE_MODE
 
     unless Lgl.enabled?
       Lgl.log_disabled('backfill')

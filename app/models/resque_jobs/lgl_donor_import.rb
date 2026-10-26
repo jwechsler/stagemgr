@@ -12,8 +12,11 @@ require 'csv'
 # constituent ID is blank or a number that matches no customer, that LGL id is
 # looked up in the customers' LGL ID tags (Lgl::Reconciler.tagged_addresses):
 # one tagged customer is matched as usual and also counted as matched by LGL
-# ID; several make an error row (they should be merged); none, or no usable LGL
-# id, leaves the row as it would be without the fallback (skipped when the
+# ID; several make an error row (they should be merged). When no customer
+# carries the LGL id but it has a several-matches LGL Review
+# (Lgl::ReviewList.several_matches_addresses), the row is an :in_review error
+# naming the customers waiting to be merged. Otherwise, or with no usable LGL
+# id, the row stays as it would be without the fallback (skipped when the
 # External constituent ID is blank, an error when it matches no customer). An
 # External constituent ID that is not a number never falls back.
 #
@@ -24,10 +27,15 @@ require 'csv'
 #
 # Rows without an External constituent ID that no LGL ID tag resolves
 # (organisations, and constituents not yet copied into Stagemgr) are skipped
-# and only counted. The result file lists only the rows that have an entry in
-# the Error column (an id that is not a number, a number that matches no
-# customer and whose LGL id no tag resolves, an LGL id tagged on several
-# customers, or a failed save); these are the rows counted as errors. It has
+# and only counted. The LGL ids of those skipped rows and of the unmatched
+# ones are handed, once the file has loaded and when LGL is enabled, to one
+# LglBackfillLinks replicate job (Lgl::Reconciler links, creates or reviews
+# each); whatever it links gets its tiers on the next nightly import. The
+# result file lists only the rows that have an entry in the Error column (an
+# id that is not a number, a number that matches no customer and whose LGL id
+# no tag resolves, an LGL id tagged on several customers, an LGL id waiting on
+# an LGL Review merge, or a failed save); these are the rows counted as
+# errors. It has
 # the upload's own columns plus Error and is created only when some row has an
 # error. When the import finishes, the
 # uploader (the supervisor-notifications user for the nightly LGL run) is
@@ -47,6 +55,8 @@ class LglDonorImport < ImportIssuesReport
     bad_id: "#{ID_HEADER} is not a number",
     unmatched: "No customer with this #{ID_HEADER}"
   }.freeze
+  # Outcomes whose LGL id goes to LGL matching: the tag fallback found nobody.
+  MATCHING_OUTCOMES = %i[blank_id unmatched].freeze
 
   @queue = :import
 
@@ -79,14 +89,17 @@ class LglDonorImport < ImportIssuesReport
   def self.import_rows(filestore, columns, problems)
     counts = Hash.new(0)
     seen_ids = Set.new
+    unplaced_lgl_ids = Set.new
     CSV.foreach(filestore.path, headers: true, **CSV_OPTIONS) do |row|
       counts[:rows] += 1
       outcome, message, by_lgl_id = import_row(row, columns, seen_ids)
       counts[outcome] += 1
       counts[:by_lgl_id] += 1 if by_lgl_id
+      unplaced_lgl_ids << lgl_id(row, columns) if MATCHING_OUTCOMES.include?(outcome)
       problems.add_problem_row(row: row.to_h, message: message) if message
     end
     counts[:cleared_absent] = clear_absent(seen_ids)
+    counts[:sent_to_matching] = send_to_matching(unplaced_lgl_ids.to_a.compact)
     counts
   end
 
@@ -106,20 +119,49 @@ class LglDonorImport < ImportIssuesReport
 
   # A row whose External constituent ID is blank or matches no customer,
   # matched through the customer's LGL ID tag. Returns [outcome, message,
-  # matched_by_lgl_id], or not_found when no customer carries the LGL id.
+  # matched_by_lgl_id]: :in_review when no customer carries the LGL id but
+  # a several-matches LGL Review names it, else not_found.
   def self.import_by_lgl_id(row, columns, seen_ids, not_found)
-    lgl_id = columns[LGL_ID_HEADER] && row[columns[LGL_ID_HEADER]].to_s.strip
-    return not_found unless lgl_id.to_s.match?(/\A\d+\z/)
+    lgl_id = lgl_id(row, columns)
+    return not_found if lgl_id.nil?
 
     addresses = Lgl::Reconciler.tagged_addresses(lgl_id)
-    return not_found if addresses.empty?
+    return in_review(lgl_id) || not_found if addresses.empty?
     return [:several_lgl_id, several_lgl_id_message(addresses)] if addresses.size > 1
 
     [apply_row(addresses.first, row, columns, seen_ids), nil, true]
   end
 
+  # The row's LGL Constituent ID when it is a number, else nil.
+  def self.lgl_id(row, columns)
+    lgl_id = columns[LGL_ID_HEADER] && row[columns[LGL_ID_HEADER]].to_s.strip
+    lgl_id if lgl_id.to_s.match?(/\A\d+\z/)
+  end
+
+  # [:in_review, message] when the LGL id waits on a several-matches LGL
+  # Review merge, else nil.
+  def self.in_review(lgl_id)
+    addresses = Lgl::ReviewList.several_matches_addresses(lgl_id)
+    return nil if addresses.empty?
+
+    ids = Lgl::ReviewList.constituent_id_list(addresses.map(&:id))
+    [:in_review, "LGL Review: LGL constituent #{lgl_id} matches customers #{ids}: merge them in Stagemgr, then Re-sync"]
+  end
+
   def self.several_lgl_id_message(addresses)
     "#{LGL_ID_HEADER} is on customers #{addresses.map(&:id).join(', ')}: merge them"
+  end
+
+  # Enqueues one LglBackfillLinks replicate job for +lgl_ids+ when LGL is
+  # enabled; returns how many ids were sent (0 when none, or on failure).
+  def self.send_to_matching(lgl_ids)
+    return 0 if lgl_ids.empty? || !Lgl.enabled?
+
+    Resque.enqueue(LglBackfillLinks, LglBackfillLinks::REPLICATE_MODE, lgl_ids)
+    lgl_ids.size
+  rescue StandardError => e
+    Rails.logger.error("LglDonorImport: could not send #{lgl_ids.size} LGL ids to matching - #{e.message}")
+    0
   end
 
   def self.apply_row(address, row, columns, seen_ids)
@@ -160,15 +202,16 @@ class LglDonorImport < ImportIssuesReport
   def self.summary(counts)
     "Donor levels: #{counts[:rows]} rows; updated #{counts[:updated]}, unchanged #{counts[:unchanged]}, " \
       "cleared #{counts[:cleared]}, matched by LGL ID #{counts[:by_lgl_id]}, no id #{counts[:blank_id]}, " \
-      "errors #{error_count(counts)}; " \
+      "errors #{error_count(counts)}; sent #{counts[:sent_to_matching]} to LGL matching; " \
       "cleared #{counts[:cleared_absent]} absent customers"
   end
 
   # Rows with an entry in the result file's Error column: an id that is not a
   # number, a number that matches no customer (nor by LGL id), an LGL id
-  # tagged on several customers, or a row that could not be saved.
+  # tagged on several customers, an LGL id waiting on an LGL Review merge, or
+  # a row that could not be saved.
   def self.error_count(counts)
-    counts[:error] + counts[:bad_id] + counts[:unmatched] + counts[:several_lgl_id]
+    counts[:error] + counts[:bad_id] + counts[:unmatched] + counts[:several_lgl_id] + counts[:in_review]
   end
 
   # The result FileStore listing the rows with an Error entry, or nil when
