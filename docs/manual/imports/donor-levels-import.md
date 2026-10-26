@@ -94,8 +94,18 @@ and the column's name.
   customer is an error; an `External constituent ID` that is not a number is
   an error and the LGL id is not tried. Names and emails in the file are never
   used to find a customer.
-- **The import only sets tiers.** It never creates, merges or renames
-  customers, and never changes any other field.
+- **The import only sets tiers.** The import itself never creates, merges or
+  renames customers, and never changes any other field.
+- **Rows it cannot place go to LGL sync's matching.** A row is unplaced when
+  its `External constituent ID` is blank or matches no customer, and no
+  customer carries its LGL ID tag. When [LGL sync](../customers/lgl-sync.md) is
+  on, these rows' LGL ids are handed to its matching after the file loads.
+  Matching links the constituent to an existing customer with the same email
+  and last name (and then sets its External constituent ID in LGL), or flags
+  an [LGL Review](../customers/lgl-sync.md#the-lgl-review-tag) when several
+  customers match. It never creates a customer: organisations and constituents
+  not yet in Stagemgr stay as they are. A linked constituent's tiers load on
+  the next nightly import.
 - **Blank tier cells clear the tier.** A matched row with an empty
   `TG Tier This Fiscal` leaves that customer with no current-year tier.
 - **The file is the complete list of current donors.** After the whole file
@@ -123,12 +133,18 @@ no row has an error, there is no result file. See
 | `External constituent ID` is not a number | `External constituent ID is not a number` |
 | No customer has that number, and no customer carries the row's LGL ID tag | `No customer with this External constituent ID` |
 | Blank or unmatched customer number, and several customers carry the row's LGL ID tag | `LGL Constituent ID is on customers 123, 456: merge them` |
+| Blank or unmatched customer number, no customer carries the LGL ID tag, and the constituent has an LGL Review naming several customers | `LGL Review: LGL constituent 900110 matches customers 123 and 456: merge them in Stagemgr, then Re-sync` |
 | The customer could not be saved | The reason it failed |
+
+Merging the named customers on the
+[Merge customers page](../customers/merging-duplicates.md#the-merge-customers-page)
+and then clicking **Re-sync** lets the next import match the row.
 
 Matched rows (including those matched by LGL id) and rows with a blank
 `External constituent ID` whose LGL id is on no customer (organisations, and
-constituents not yet in Stagemgr) are counted but not listed. Organisations
-never become Stagemgr customers, so they are always counted this way.
+constituents not yet in Stagemgr) are counted but not listed, unless the LGL
+id is waiting on an LGL Review like the one above. Organisations never become
+Stagemgr customers, so they are always counted this way.
 
 ### Completion Email
 
@@ -136,15 +152,15 @@ Every time the import finishes, Stagemgr emails the person who uploaded the
 file (for the nightly import, the supervisor-notifications user) with the
 file name and its counts: constituents in the file, customer records updated
 and update errors, then unchanged rows, rows without an
-`External constituent ID`, rows matched by `LGL Constituent ID`, and customers
-cleared because they were not in the
+`External constituent ID`, rows matched by `LGL Constituent ID`, unlinked LGL
+constituents sent to LGL matching, and customers cleared because they were not in the
 file. When there is a result file it is attached; otherwise the email says no
 rows had errors.
 
 The Imports page shows a summary line for each run, for example:
 
 ```text
-Donor levels: 1250 rows; updated 40, unchanged 1150, cleared 3, matched by LGL ID 12, no id 43, errors 2; cleared 6 absent customers
+Donor levels: 1250 rows; updated 40, unchanged 1150, cleared 3, matched by LGL ID 12, no id 43, errors 2; sent 5 to LGL matching; cleared 6 absent customers
 ```
 
 | Count | Meaning |
@@ -154,7 +170,8 @@ Donor levels: 1250 rows; updated 40, unchanged 1150, cleared 3, matched by LGL I
 | cleared | Matched customers whose row had both tiers blank |
 | matched by LGL ID | Rows whose `External constituent ID` is blank or matches no customer, matched through a customer's LGL ID tag (also counted as updated, unchanged or cleared) |
 | no id | Rows with a blank `External constituent ID` that no LGL ID tag resolved |
-| errors | Rows with an entry in the Error column: a number that matches no customer and whose LGL id is on no customer, an id that is not a number, an LGL id on several customers, or a row that could not be saved |
+| errors | Rows with an entry in the Error column: a number that matches no customer and whose LGL id is on no customer, an id that is not a number, an LGL id on several customers, an LGL id waiting on an LGL Review merge, or a row that could not be saved |
+| sent to LGL matching | Distinct LGL ids from rows no customer could be found for, handed to LGL sync's matching (0 when LGL sync is off) |
 | absent customers | Customers with a tier who were not in the file and had both tiers cleared |
 
 ---
@@ -187,8 +204,9 @@ In this example:
 - Ana Lopez has no customer number in LGL; the customer tagged LGL ID 900104
   gets Silver last year and Gold this year.
 - Example Foundation is an organisation with no customer number, and no
-  customer carries its LGL id. It is counted as a row without an id, is not listed in the result file, and
-  changes nothing.
+  customer carries its LGL id. It is counted as a row without an id and is not listed in the result file.
+  It is also sent to LGL matching, which finds no customer and changes
+  nothing.
 - Every other customer who has a tier has both tiers cleared, because they
   are not in the file.
 
