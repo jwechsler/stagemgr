@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_10_22_120000) do
+ActiveRecord::Schema.define(version: 2026_10_30_120000) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -364,7 +364,7 @@ ActiveRecord::Schema.define(version: 2026_10_22_120000) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.text "notes", size: :medium
-    t.integer "address_id"
+    t.integer "address_id", null: false
     t.string "special_offer_code"
     t.string "ip_address"
     t.integer "theater_id"
@@ -852,6 +852,7 @@ ActiveRecord::Schema.define(version: 2026_10_22_120000) do
   add_foreign_key "line_items", "ticket_classes", name: "line_items_to_ticket_class"
   add_foreign_key "membership_offer_tags", "membership_offers", on_delete: :cascade
   add_foreign_key "order_tasks", "orders", name: "fk_order_tasks", on_delete: :cascade
+  add_foreign_key "orders", "addresses", name: "orders_to_address"
   add_foreign_key "payments", "orders", name: "payments_to_orders", on_delete: :cascade
   add_foreign_key "performance_broadcasts", "performances"
   add_foreign_key "performance_broadcasts", "users"

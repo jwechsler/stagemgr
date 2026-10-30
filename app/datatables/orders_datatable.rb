@@ -73,6 +73,61 @@ class OrdersDatatable < DatatableBase
     datatable.orders.any? { |order| order.column&.column_name == :seats }
   end
 
+  # Deferred join. Sorting the full eager-load (every column of orders,
+  # addresses, performances and productions) made MySQL filesort 250k wide
+  # rows: 2.7 s for a Name sort. Picking the page's ids from a narrow join
+  # lets it walk an index instead (Name: ~1 ms), and only those rows are then
+  # loaded. The Seats sort keeps the gem's path: it needs the seats join,
+  # which multiplies rows, and is fast enough (~0.9 s).
+  def retrieve_records
+    return super if sorted_by_seats?
+
+    ids = page_order_ids
+    by_id = order_rows(Order.where(id: ids)).index_by(&:id)
+    ids.filter_map { |id| by_id[id] }
+  end
+
+  def page_order_ids
+    ids = narrow_scope.where(build_conditions)
+    ids = sort_records(ids).order(Arel.sql(tiebreaker)) if datatable.orderable?
+    ids = paginate_records(ids) if datatable.paginate?
+    ids.pluck(:id)
+  end
+
+  # Joins only the to-one tables the active filters and sorts name: even an
+  # inner addresses join turns a 70 ms Code sort into 350 ms. Every order has
+  # an address (NOT NULL + foreign key), so that join can be inner; a
+  # donation or pass order has no performance, so that one stays LEFT.
+  def narrow_scope
+    scope = count_scope
+    scope = scope.joins(:address) if referenced_columns.include?(:name)
+    scope = scope.left_outer_joins(:performance) if referenced_columns.include?(:code)
+    scope
+  end
+
+  # The name filter (full_name/last_name) and sort need addresses; the code
+  # filter and sort need performances. A global search tests every
+  # searchable column.
+  def referenced_columns
+    @referenced_columns ||= begin
+      searched = datatable.searchable? ? searchable_columns : search_columns
+      sorted = datatable.orders.filter_map(&:column)
+      (searched + sorted).map(&:column_name).uniq
+    end
+  end
+
+  # Makes the page order total, so rows neither repeat nor go missing across
+  # pages. A Name sort breaks ties on addresses.id: the name index carries
+  # the address id, so MySQL still walks it, whereas orders.id would force a
+  # filesort (~150 ms). Orders sharing an address then come in the join's
+  # address_owns_orders index order (ascending id).
+  def tiebreaker
+    primary = datatable.orders.find { |order| order.column&.orderable? }
+    direction = primary&.direction || 'ASC'
+    column = primary&.column&.column_name == :name ? 'addresses.id' : 'orders.id'
+    "#{column} #{direction}"
+  end
+
   # The gem counts by running count(:all) on get_raw_records, which turns
   # the eager-load joins into COUNT(DISTINCT) over every join, twice per
   # draw. Counting needs none of those joins.
@@ -82,11 +137,11 @@ class OrdersDatatable < DatatableBase
 
   # No search term: same as the total, so skip the second query. Otherwise
   # join only the to-one tables the filters name (no row multiplication, so
-  # no DISTINCT).
+  # no DISTINCT); see narrow_scope.
   def records_filtered_count
     return records_total_count if build_conditions.nil?
 
-    @records_filtered_count ||= count_scope.left_outer_joins(:address, :performance).where(build_conditions).count
+    @records_filtered_count ||= narrow_scope.where(build_conditions).count
   end
 
   def count_scope
