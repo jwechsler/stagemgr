@@ -17,6 +17,21 @@ RSpec.describe Address do
     end
   end
 
+  describe '#has_flex_pass?' do
+    it 'is true for a patron whose order carries an active flex pass' do
+      order = FactoryBot.create(:flex_pass_order)
+
+      expect(order.address.has_flex_pass?).to be(true)
+    end
+
+    it 'is false once that flex pass is inactive' do
+      order = FactoryBot.create(:flex_pass_order)
+      order.flex_pass_line_item.flex_pass.update!(active: false)
+
+      expect(order.address.has_flex_pass?).to be(false)
+    end
+  end
+
   describe '#is_donor?' do
     it 'is true when either fiscal-year tier is present' do
       expect(FactoryBot.build(:address, donor_tier_for_last_fiscal_year: 'Gold')).to be_is_donor

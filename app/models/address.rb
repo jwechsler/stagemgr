@@ -456,9 +456,9 @@ end
   end
 
   def has_flex_pass?
-    !FlexPassLineItem.joins(:order, :flex_passes).references(:order, :flex_passes).where(
-      "orders.address_id = :address_id AND flex_passes.active = :active", address_id: id, active: true
-    ).empty?
+    FlexPassLineItem.joins(:order, :flex_pass).exists?(
+      ['orders.address_id = :address_id AND flex_passes.active = :active', { address_id: id, active: true }]
+    )
   end
 
   # @todo Flex pass programs can't be hard coded.
