@@ -153,4 +153,33 @@ RSpec.describe VenuesController, type: :controller do
       expect(plus_block).to match(/First show blurb\s*<br>\s*<div class='production_name'>/)
     end
   end
+
+  describe 'widget caching' do
+    let(:venue) { FactoryBot.create(:venue) }
+    let(:memory_store) { ActiveSupport::Cache::MemoryStore.new }
+
+    before do
+      allow(Rails).to receive(:cache).and_return(memory_store)
+      now_playing_play(venue)
+    end
+
+    %i[now_playing now_playing_fb now_playing_vertical].each do |action|
+      it "serves a repeat #{action} request from cache without gathering productions" do
+        get action
+        expect(response).to have_http_status(:ok)
+        first_body = response.body
+
+        expect_any_instance_of(Venue).not_to receive(:now_playing_or_next_up)
+        get action
+
+        expect(response.body).to eq(first_body)
+      end
+    end
+
+    it 'keys the cache on action, background and date' do
+      get :now_playing, params: { background: 'dark' }
+
+      expect(memory_store.exist?(['venues/widget', 'now_playing', 'dark', Date.current.iso8601])).to be(true)
+    end
+  end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_10_30_120000) do
+ActiveRecord::Schema.define(version: 2026_11_02_120001) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -274,6 +274,7 @@ ActiveRecord::Schema.define(version: 2026_10_30_120000) do
     t.decimal "amount", precision: 8, scale: 2, default: "0.0"
     t.boolean "suppress_for_pass_payments", default: false
     t.integer "seat_assignment_id"
+    t.index ["address_id"], name: "index_line_items_on_address_id"
     t.index ["membership_id"], name: "index_line_items_on_membership_id"
     t.index ["order_id"], name: "line_items_oid_i"
     t.index ["seat_assignment_id"], name: "index_line_items_on_seat_assignment_id", unique: true
@@ -456,6 +457,7 @@ ActiveRecord::Schema.define(version: 2026_10_30_120000) do
     t.decimal "processing_fee", precision: 8, scale: 2
     t.decimal "amount", precision: 8, scale: 2, default: "0.0"
     t.string "stripe_refund_id"
+    t.index ["address_id"], name: "index_payments_on_address_id"
     t.index ["flex_pass_id"], name: "index_payments_on_flex_pass_id"
     t.index ["ipn_track_id"], name: "index_payments_on_ipn_track_id"
     t.index ["membership_id"], name: "index_payments_on_membership_id"
@@ -578,6 +580,7 @@ ActiveRecord::Schema.define(version: 2026_10_30_120000) do
     t.index ["festival_id"], name: "index_productions_on_festival_id"
     t.index ["production_code"], name: "index_productions_on_production_code"
     t.index ["seat_map_id"], name: "index_productions_on_seat_map_id"
+    t.index ["venue_id"], name: "index_productions_on_venue_id"
   end
 
   create_table "rate_of_sales", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|

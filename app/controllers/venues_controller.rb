@@ -2,26 +2,37 @@ class VenuesController < ApplicationController
   layout Rails.configuration.x.server_config['ext_site_wrapper']
   before_action :set_background
 
+  # The public now-playing widgets are fetched hundreds of times an hour and
+  # each build walks every venue's productions; serve the rendered widget
+  # body from cache (the layout renders outside it).
+  WIDGET_CACHE_TTL = 5.minutes
+
   def now_playing_fb
-    set_now_playing_productions
-    @now_playing_productions += @offtime_productions
-    @home_shows = @now_playing_productions.select { |prod| prod.theater.producing? }
-    @now_playing_productions -= @home_shows
-    @max_pieces = 3
-    render :now_playing_fb, layout: 'facebook'
+    body = cached_widget(:now_playing_fb) do
+      set_now_playing_productions
+      @now_playing_productions += @offtime_productions
+      @home_shows = @now_playing_productions.select { |prod| prod.theater.producing? }
+      @now_playing_productions -= @home_shows
+      @max_pieces = 3
+    end
+    render html: body, layout: 'facebook'
   end
 
   def now_playing
-    set_now_playing_productions
-    @max_pieces = 4
     respond_to do |format|
-      format.html { render layout: false } # your-action.html.erb
+      format.html do
+        body = cached_widget(:now_playing) do
+          set_now_playing_productions
+          @max_pieces = 4
+        end
+        render html: body, layout: false
+      end
     end
   end
 
   def now_playing_vertical
-    set_background
-    set_now_playing_productions
+    body = cached_widget(:now_playing_vertical) { set_now_playing_productions }
+    render html: body, layout: true
   end
 
   def set_background
@@ -50,6 +61,20 @@ class VenuesController < ApplicationController
   end
 
   protected
+
+  # Rendered widget body (no layout), built by running the block to gather
+  # the productions and rendering +template+. Keyed on the date because the
+  # widgets' contents depend on it.
+  def cached_widget(template)
+    Rails.cache.fetch(widget_cache_key, expires_in: WIDGET_CACHE_TTL) do
+      yield
+      render_to_string(template, layout: false)
+    end.html_safe # rubocop:disable Rails/OutputSafety -- our own rendered template output
+  end
+
+  def widget_cache_key
+    ['venues/widget', action_name, @background, Date.current.iso8601]
+  end
 
   def set_now_playing_productions
     festival_members = []
