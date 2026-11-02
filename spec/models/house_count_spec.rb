@@ -291,12 +291,12 @@ RSpec.describe HouseCount, type: :model do
     end
 
     describe 'sold and comp seat aggregates' do
-      def sql_statement_count
+      def sql_statement_count(&block)
         count = 0
         counter = lambda do |_name, _start, _finish, _id, payload|
           count += 1 unless %w[SCHEMA TRANSACTION].include?(payload[:name]) || payload[:cached]
         end
-        ActiveSupport::Notifications.subscribed(counter, 'sql.active_record') { yield }
+        ActiveSupport::Notifications.subscribed(counter, 'sql.active_record', &block)
         count
       end
 

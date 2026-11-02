@@ -52,7 +52,7 @@ RSpec.describe Address do
   end
 
   describe '#revenue_collected' do
-    let(:since_when) { Time.current - 30.days }
+    let(:since_when) { 30.days.ago }
 
     def settled_order(address, status: Order::PROCESSED, **attrs)
       order = FactoryBot.create(:ticket_order, address: address, **attrs)
@@ -60,7 +60,7 @@ RSpec.describe Address do
       order
     end
 
-    def pay(order, amount, processed_on: Time.current - 1.day)
+    def pay(order, amount, processed_on: 1.day.ago)
       payment = FactoryBot.create(:cash_payment, order: order, amount: amount)
       payment.update_columns(processed_on: processed_on)
       payment
