@@ -3,15 +3,15 @@ class HistoricActivityReport < MailingList
 
   def initialize(start_day, minimum_attended = 0, required_theater_ids = [], minimum_revenue = 0.0,
                  reporting_user_id = nil)
+    super(reporting_user_id)
     self.required_theater_ids = required_theater_ids
     self.minimum_attended = minimum_attended
     self.minimum_revenue = minimum_revenue
     self.start_day = start_day
 
-    # build headers
-    headers = TRG_IMPORT_HEADERS + %i[PrimaryTheatreAttendee LastAttended AttendedInPeriod TotalAttended
-                                      CompaniesAttendedInPeriod TotalCompaniesAttended IsMember IsFlexPassHolder ProductionHistory]
-    super(headers, reporting_user_id)
+    # MailingList sets the TRG base headers; this report appends its own.
+    self.headers = TRG_IMPORT_HEADERS + %i[PrimaryTheatreAttendee LastAttended AttendedInPeriod TotalAttended
+                                           CompaniesAttendedInPeriod TotalCompaniesAttended IsMember IsFlexPassHolder ProductionHistory]
   end
 
   def create
