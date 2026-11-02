@@ -195,6 +195,46 @@ RSpec.describe AdvanceSalesCurve, type: :service do
         expect(AdvanceSalesRows).to have_received(:fetch).once
         expect(store.exist?('advance_sales_curve/v3/building/before/2025/both')).to be(true)
       end
+
+      it 'stores both historical curves for 24 hours' do
+        allow(store).to receive(:fetch).and_call_original
+
+        described_class.for_theater(theater, before_season: 2025)
+        described_class.for_building(before_season: 2025)
+        expect(store).to have_received(:fetch)
+          .with("advance_sales_curve/v3/theater/#{theater.id}/before/2025/both", hash_including(expires_in: 24.hours))
+        expect(store).to have_received(:fetch)
+          .with('advance_sales_curve/v3/building/before/2025/both', hash_including(expires_in: 24.hours))
+      end
+
+      it 'recomputes on force: true and serves the refreshed entry to a plain call' do
+        allow(AdvanceSalesRows).to receive(:fetch).and_call_original
+
+        described_class.for_theater(theater, before_season: 2025)
+        described_class.for_theater(theater, before_season: 2025, force: true)
+        described_class.for_building(before_season: 2025)
+        described_class.for_building(before_season: 2025, force: true)
+        expect(AdvanceSalesRows).to have_received(:fetch).exactly(4).times
+
+        described_class.for_theater(theater, before_season: 2025)
+        described_class.for_building(before_season: 2025)
+        expect(AdvanceSalesRows).to have_received(:fetch).exactly(4).times
+      end
+
+      it 'warms each theater curve and each season building curve once' do
+        other = FactoryBot.create(:theater)
+        allow(described_class).to receive(:for_theater).and_call_original
+        allow(described_class).to receive(:for_building).and_call_original
+
+        described_class.warm!([[theater, 2025], [other, 2025], [theater, 2025], [theater, 2026]])
+        expect(described_class).to have_received(:for_theater).exactly(3).times
+        expect(described_class).to have_received(:for_theater).with(theater, before_season: 2025, force: true)
+        expect(described_class).to have_received(:for_theater).with(other, before_season: 2025, force: true)
+        expect(described_class).to have_received(:for_theater).with(theater, before_season: 2026, force: true)
+        expect(described_class).to have_received(:for_building).twice
+        expect(described_class).to have_received(:for_building).with(before_season: 2025, force: true)
+        expect(described_class).to have_received(:for_building).with(before_season: 2026, force: true)
+      end
     end
 
     it 'raises for an unknown segment' do

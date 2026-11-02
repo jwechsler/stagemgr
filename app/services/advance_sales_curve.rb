@@ -1,7 +1,8 @@
 # The share of a group's final ticket sales already in hand a given number
 # of days before the performance, built from AdvanceSalesRows. A theater's
 # curve (for_theater) is its own earlier seasons; the building curve
-# (for_building) pools every in-house theater. Both are cached.
+# (for_building) pools every in-house theater. Both are cached, and
+# ProjectHouseCountsJob refreshes them nightly through warm!.
 #
 # "In hand at d days out" counts tickets whose root purchase was d or more
 # days before the performance, so share_at(0) is 1.0 and the share falls to
@@ -12,7 +13,11 @@ class AdvanceSalesCurve
   # one, so the shares sum to 1.0. nil upper bound = no limit.
   BUCKETS          = [[0, 0], [1, 2], [3, 6], [7, 13], [14, 29], [30, nil]].freeze
   OVER_TWO_WEEKS   = 14
-  CACHE_TTL        = 1.hour
+  # Both curves read only closed seasons (season < before_season), so a day is
+  # safe: a backdated order write to a past season is rare and is picked up on
+  # the next expiry. ProjectHouseCountsJob re-warms them nightly (warm!), so
+  # the daytime sweep finds a fresh entry instead of paying for the scan.
+  HISTORY_CACHE_TTL = 24.hours
   SEGMENT_CHOICES  = %w[both single pass].freeze
   CACHE_PREFIX     = 'advance_sales_curve/v3'.freeze
 
@@ -23,22 +28,33 @@ class AdvanceSalesCurve
     new(rows, source: source)
   end
 
-  def self.for_theater(theater, before_season:, segment: 'both')
+  # force: true recomputes and rewrites the cache entry.
+  def self.for_theater(theater, before_season:, segment: 'both', force: false)
     validate_segment!(segment)
     key = "#{CACHE_PREFIX}/theater/#{theater.id}/before/#{before_season}/#{segment}"
-    Rails.cache.fetch(key, expires_in: CACHE_TTL) do
+    Rails.cache.fetch(key, expires_in: HISTORY_CACHE_TTL, force: force) do
       rows = AdvanceSalesRows.fetch(theater_ids: [theater.id], before_season: before_season)
       from_rows(select_segment(rows, segment), source: :theater)
     end
   end
 
-  def self.for_building(before_season:, segment: 'both')
+  def self.for_building(before_season:, segment: 'both', force: false)
     validate_segment!(segment)
     key = "#{CACHE_PREFIX}/building/before/#{before_season}/#{segment}"
-    Rails.cache.fetch(key, expires_in: CACHE_TTL) do
+    Rails.cache.fetch(key, expires_in: HISTORY_CACHE_TTL, force: force) do
       rows = AdvanceSalesRows.fetch(before_season: before_season)
       from_rows(select_segment(rows, segment), source: :building)
     end
+  end
+
+  # Recomputes the curves AdvanceSalesPace#curve reads (default segment) for
+  # each [theater, before_season] pair: every theater curve, and the building
+  # curve once per season.
+  def self.warm!(pairs)
+    pairs.uniq { |theater, season| [theater.id, season] }.each do |theater, season|
+      for_theater(theater, before_season: season, force: true)
+    end
+    pairs.map(&:last).uniq.each { |season| for_building(before_season: season, force: true) }
   end
 
   def self.validate_segment!(segment)
