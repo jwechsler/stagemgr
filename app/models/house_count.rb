@@ -153,23 +153,27 @@ class HouseCount < Metric
 
   private
 
-  # Seats on sold orders (TicketOrder#sold?). Only classes that hold a seat
-  # count, matching calculate_held_seats: an add-on such as a captioning tablet
-  # is a line item but occupies no seat in the house.
+  # Seats on sold orders (TicketOrder#sold?, i.e. a status in
+  # TicketOrderMergeable::SOLD_STATUSES). Only classes that hold a seat count,
+  # matching calculate_held_seats: an add-on such as a captioning tablet is a
+  # line item but occupies no seat in the house. One SUM for the performance.
   def calculate_sold_seats
-    performance.orders.includes(:ticket_line_items).select(&:sold?).sum do |order|
-      order.ticket_line_items.joins(:ticket_class).where(ticket_classes: { holds_seats: true }).sum(:ticket_count)
-    end
+    sold_seat_line_items.sum(:ticket_count)
   end
 
   # The comps among the sold seats: seat-holding complimentary classes on sold
-  # orders, the same orders calculate_sold_seats counts. Sold already includes
-  # them; this sub-count only feeds Expected (see #expected_demand).
+  # orders, the same line items calculate_sold_seats counts. Sold already
+  # includes them; this sub-count only feeds Expected (see #expected_demand).
   def calculate_comp_seats
-    performance.orders.includes(:ticket_line_items).select(&:sold?).sum do |order|
-      order.ticket_line_items.joins(:ticket_class)
-           .where(ticket_classes: { holds_seats: true, complimentary: true }).sum(:ticket_count)
-    end
+    sold_seat_line_items.where(ticket_classes: { complimentary: true }).sum(:ticket_count)
+  end
+
+  # Seat-holding ticket line items on this performance's sold TicketOrders.
+  # Joining :ticket_order (not :order) adds orders.type = 'TicketOrder'.
+  def sold_seat_line_items
+    TicketLineItem.joins(:ticket_order, :ticket_class)
+                  .where(orders: { performance_id: performance.id, status: TicketOrderMergeable::SOLD_STATUSES })
+                  .where(ticket_classes: { holds_seats: true })
   end
 
   # Count ticket_count from TicketLineItem joined to orders in Hold status

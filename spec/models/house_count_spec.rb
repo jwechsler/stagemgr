@@ -290,6 +290,106 @@ RSpec.describe HouseCount, type: :model do
       end
     end
 
+    describe 'sold and comp seat aggregates' do
+      def sql_statement_count
+        count = 0
+        counter = lambda do |_name, _start, _finish, _id, payload|
+          count += 1 unless %w[SCHEMA TRANSACTION].include?(payload[:name]) || payload[:cached]
+        end
+        ActiveSupport::Notifications.subscribed(counter, 'sql.active_record') { yield }
+        count
+      end
+
+      def seat_classes_for(production, performance)
+        comp = FactoryBot.create(:ticket_class, production: production, complimentary: true, holds_seats: true,
+                                                ticket_price: 0, class_code: "AGC#{production.id}",
+                                                class_name: 'Comp')
+        tablet = FactoryBot.create(:ticket_class, production: production, holds_seats: false, ticket_price: 0,
+                                                  class_code: "AGT#{production.id}", class_name: 'Captioning tablet')
+        [comp, tablet].each do |ticket_class|
+          FactoryBot.create(:ticket_class_allocation, performance: performance, ticket_class: ticket_class)
+        end
+        [comp, tablet]
+      end
+
+      def sold_order(performance, status, trait = :for_a_single_ticket)
+        order = FactoryBot.create(:ticket_order, trait, :paid_with_credit_card, performance: performance)
+        order.update_column(:status, status)
+        order
+      end
+
+      it 'sums seat-holding tickets on Processed, Fulfilled and Unclaimed orders only' do
+        production = FactoryBot.create(:production, capacity: 50)
+        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
+        comp, tablet = seat_classes_for(production, performance)
+
+        processed = sold_order(performance, Order::PROCESSED, :for_a_pair_of_tickets)
+        processed.ticket_line_items.create!(ticket_class: tablet, ticket_count: 1)
+        processed.ticket_line_items.create!(ticket_class: comp, ticket_count: 3)
+        sold_order(performance, Order::FULFILLED)
+        unclaimed = sold_order(performance, Order::UNCLAIMED, :for_a_pair_of_tickets)
+        unclaimed.ticket_line_items.create!(ticket_class: comp, ticket_count: 1)
+
+        hold = FactoryBot.create(:ticket_order, :for_a_single_ticket, status: Order::HOLD, performance: performance)
+        hold.ticket_line_items.create!(ticket_class: comp, ticket_count: 1)
+        canceled = sold_order(performance, Order::CANCELED, :for_a_pair_of_tickets)
+        canceled.ticket_line_items.create!(ticket_class: comp, ticket_count: 2)
+        sold_order(performance, Order::REFUNDED)
+
+        house_count = HouseCount.new(performance: performance)
+        allow(AdvanceSalesPace).to receive(:for_performance).and_return(nil)
+        house_count.calculate
+
+        # Processed 2 + 3 comps (tablet excluded), Fulfilled 1, Unclaimed 2 + 1 comp.
+        expect(house_count.sold_seats).to eq(9)
+        expect(house_count.comp_seats).to eq(4)
+
+        # The per-order Ruby filter this replaced gives the same figures.
+        legacy_sum = lambda do |conditions|
+          performance.orders.reload.select(&:sold?).sum do |order|
+            order.ticket_line_items.joins(:ticket_class).where(ticket_classes: conditions).sum(:ticket_count)
+          end
+        end
+        expect(house_count.sold_seats).to eq(legacy_sum.call(holds_seats: true))
+        expect(house_count.comp_seats).to eq(legacy_sum.call(holds_seats: true, complimentary: true))
+      end
+
+      it 'returns integer zero when the performance has no sold orders' do
+        production = FactoryBot.create(:production, capacity: 50)
+        performance = FactoryBot.create(:general_admission, production: production, performance_date: Date.current)
+        FactoryBot.create(:ticket_order, :for_a_single_ticket, status: Order::HOLD, performance: performance)
+
+        house_count = HouseCount.new(performance: performance)
+
+        expect(house_count.send(:calculate_sold_seats)).to eql(0)
+        expect(house_count.send(:calculate_comp_seats)).to eql(0)
+      end
+
+      it 'issues the same number of queries however many orders the performance has' do
+        counts = [3, 12].map do |order_count|
+          production = FactoryBot.create(:production, capacity: 50)
+          performance = FactoryBot.create(:general_admission, production: production,
+                                                              performance_date: Date.current)
+          comp, = seat_classes_for(production, performance)
+          order_count.times do
+            order = sold_order(performance, Order::PROCESSED)
+            order.ticket_line_items.create!(ticket_class: comp, ticket_count: 1)
+          end
+          house_count = HouseCount.new(performance: Performance.find(performance.id))
+
+          aggregates = sql_statement_count do
+            expect(house_count.send(:calculate_sold_seats)).to eq(order_count * 2)
+            expect(house_count.send(:calculate_comp_seats)).to eq(order_count)
+          end
+          [aggregates, sql_statement_count { house_count.calculate }]
+        end
+
+        # One SUM each for sold and comp, and #calculate as a whole stays flat.
+        expect(counts.map(&:first)).to eq([2, 2])
+        expect(counts.last.last).to eq(counts.first.last)
+      end
+    end
+
     describe '.export_columns' do
       it 'includes held_seats and max_ticket_price' do
         expect(HouseCount.export_columns).to include('held_seats', 'max_ticket_price')
