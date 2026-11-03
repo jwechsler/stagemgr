@@ -456,9 +456,9 @@ end
   end
 
   def has_flex_pass?
-    !FlexPassLineItem.joins(:order, :flex_passes).references(:order, :flex_passes).where(
-      "orders.address_id = :address_id AND flex_passes.active = :active", address_id: id, active: true
-    ).empty?
+    FlexPassLineItem.joins(:order, :flex_pass).exists?(
+      ['orders.address_id = :address_id AND flex_passes.active = :active', { address_id: id, active: true }]
+    )
   end
 
   # @todo Flex pass programs can't be hard coded.
@@ -478,9 +478,14 @@ end
     orders.none? { |o| (o.id != current_order.id) && o.settled? }
   end
 
+  # Payments on settled orders this address owns (orders.address_id), processed
+  # since since_when. Gift orders where this address is only the recipient
+  # (orders.recipient_address_id) do not count, matching performances_attended.
+  # The order's address is the authority, not payments.address_id (set only by
+  # CreditCardPayment).
   def revenue_collected(since_when = 18.months.ago)
-    Payment.includes(:order).where('orders.status in (?) and payments.processed_on >= ?', Order::SETTLED_STATUSES,
-                                   since_when).sum(:amount)
+    Payment.joins(:order).where(orders: { address_id: id, status: Order::SETTLED_STATUSES })
+           .where(payments: { processed_on: since_when.. }).sum(:amount)
   end
 
   def performances_attended(since_when = 5.years.ago)
@@ -521,7 +526,7 @@ end
   end
 
   def last_attendance_date
-    TicketOrder.joins(:performance).maximum('performance_date', :conditions => ["orders.address_id = ?", id])
+    TicketOrder.joins(:performance).where(address_id: id).maximum('performances.performance_date')
   end
 
   def productions_attended(start_date = 25.years.ago.to_date, end_date = Date.current)

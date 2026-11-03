@@ -79,6 +79,40 @@ RSpec.describe ProjectHouseCountsJob, type: :job do
       .with(contain_exactly(production, other.production), as_of: Date.current)
   end
 
+  describe 'warming the historical curves' do
+    let(:store) { ActiveSupport::Cache::MemoryStore.new }
+    let(:season) { production.season }
+
+    before do
+      allow(Rails).to receive(:cache).and_return(store)
+      allow(AdvanceSalesRows).to receive(:fetch).and_return([])
+      allow(AdvanceSalesCurve).to receive(:for_theater).and_call_original
+      allow(AdvanceSalesCurve).to receive(:for_building).and_call_original
+    end
+
+    it 'forces the curves for each upcoming production before computing pace' do
+      allow(AdvanceSalesPace).to receive(:for_productions).and_call_original
+
+      described_class.perform
+
+      expect(AdvanceSalesCurve).to have_received(:for_theater)
+        .with(production.theater, before_season: season, force: true).ordered
+      expect(AdvanceSalesCurve).to have_received(:for_building).with(before_season: season, force: true).ordered
+      expect(AdvanceSalesRows).to have_received(:fetch).with(theater_ids: [production.theater_id],
+                                                             before_season: season).once
+      expect(AdvanceSalesRows).to have_received(:fetch).with(before_season: season).once
+    end
+
+    it 'skips a production whose sales are recorded externally' do
+      production.update!(sales_recorded_externally: true)
+
+      described_class.perform
+
+      expect(AdvanceSalesCurve).not_to have_received(:for_theater)
+      expect(AdvanceSalesCurve).not_to have_received(:for_building)
+    end
+  end
+
   it 'logs a failed row and still writes the others' do
     allow(Rails.logger).to receive(:error)
     allow_any_instance_of(HouseCount).to receive(:save!).and_wrap_original do |original, *args|

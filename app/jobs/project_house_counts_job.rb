@@ -4,7 +4,10 @@ require 'resque-lock-timeout'
 
 # Writes the nightly sales pace snapshot (projected_seats, pace_share,
 # pace_sold, pace_source, pace_as_of) onto every upcoming sellable house count
-# in one pass, from a single AdvanceSalesPace.for_productions call.
+# in one pass, from a single AdvanceSalesPace.for_productions call. It first
+# recomputes the historical curves that call reads (AdvanceSalesCurve.warm!),
+# so this nightly job pays for the slow scan and the daytime sweep reads a
+# fresh cache entry.
 #
 # Why a nightly pass as well as the sweep: a projection depends on days_out,
 # which moves every day even on a quiet show, while CalculateHouseCountsJob
@@ -32,6 +35,7 @@ class ProjectHouseCountsJob < ApplicationJob
     as_of = Date.current
     house_counts = upcoming_house_counts(as_of).to_a
     productions = house_counts.map { |hc| hc.performance.production }.uniq
+    warm_curves(productions)
     readings = AdvanceSalesPace.for_productions(productions, as_of: as_of)
 
     without_reading = 0
@@ -43,6 +47,14 @@ class ProjectHouseCountsJob < ApplicationJob
 
     Rails.logger.info("#{LOG_PREFIX}: projected #{house_counts.size - without_reading} house counts, " \
                       "#{without_reading} with no reading, as of #{as_of.to_formatted_s(:db)}")
+  end
+
+  # The [theater, season] pairs AdvanceSalesPace will ask a curve for; it skips
+  # externally recorded and seasonless productions.
+  def self.warm_curves(productions)
+    pairs = productions.reject { |p| p.sales_recorded_externally? || p.season.nil? }
+                       .map { |p| [p.theater, p.season] }
+    AdvanceSalesCurve.warm!(pairs)
   end
 
   # preload (not includes) so the performances-table where clause does not turn

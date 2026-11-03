@@ -9,84 +9,101 @@
 
 ## Purpose
 
-The Mine Customer Data report identifies high-value patrons based on customizable criteria
-including activity dates, minimum revenue thresholds, attendance frequency, and theater
-affiliations. It is the most flexible report in Stagemgr for segmenting your customer base
-and building targeted outreach lists.
+The Mine Customer Data report builds a list of patrons who attended in a period, filtered by
+how much they spent and how many productions they saw. It is the most flexible report in
+Stagemgr for segmenting your customer base and building targeted outreach lists, and its
+CSV uses the TRG Arts import layout so it drops straight into a TRG upload.
 
 ## Generating the Report
 
 1. Navigate to **Admin Menu > Reports**.
-2. In the **Mine Customer Data** section, configure the criteria fields (see below).
-3. Click **Generate**. The report runs as a background job.
-4. When processing completes, you will receive an email with a download link. The report also
+2. In the **Mine Customer Data** section, set the criteria fields (see below).
+3. Click **Download**. The report runs as a background job.
+4. When processing completes, you receive an email with a download link. The report also
    appears in the **Generated Reports** section at the bottom of the Reports page.
 
 !!! note "Background Job"
-    This report always runs as a background job due to the potentially large dataset it must
-    scan. Processing time varies depending on the breadth of your criteria. Narrower criteria
-    (shorter date range, higher thresholds) will process faster.
+    This report always runs as a background job because it scans every patron with activity
+    in the period. A wide-open run (a year back, no minimums) takes about a minute; narrower
+    criteria finish in seconds.
+
+## Who Is Included
+
+Before any threshold is applied, a patron must have:
+
+- a **Processed** or **Fulfilled** ticket order for a performance dated between the
+  **Activity After** date and today,
+- at least one non-complimentary ticket on that order (comp-only patrons are left out), and
+- a street address on file (line 1 is not blank).
 
 ## Input Fields
 
 | Field | Required | Description |
 |---|---|---|
-| **Activity Date** | Yes | Only consider customer activity on or after this date. This defines the lookback window for all other criteria. |
-| **Minimum Revenue** | No | Only include customers whose total spending meets or exceeds this dollar amount within the activity window. |
-| **Minimum Performances** | No | Only include customers who attended at least this many distinct performances within the activity window. |
-| **Required Theaters** | No | Only include customers who have purchased tickets at the selected theater(s). Select one or more theaters from the list. |
+| **Activity After** | Yes | Start of the lookback window. Attendance, spending and the production count all run from this date through today. |
+| **Min. Revenue** | No | Only include patrons whose settled payments processed since the Activity After date total at least this dollar amount. Only orders the patron bought count; gift tickets bought for them by someone else do not. `0` applies no filter. |
+| **Min. Perf.** | No | Only include patrons who attended at least this many distinct **productions** in the window (the same number the `AttendedInPeriod` column reports). Two performances of the same show count once. `0` applies no filter. |
+| **Must have attended** | No | Only include patrons whose attendance in the window includes a production by one of the selected theaters. Select one or more; leave empty for no filter. |
 
 ### How Criteria Combine
 
-All specified criteria are applied together using AND logic. A customer must satisfy every
-criterion you set to appear in the results. For example:
+All criteria are applied together using AND logic. A patron must satisfy every criterion you
+set to appear in the results. For example:
 
-- **Activity Date** = January 1, 2025 + **Minimum Revenue** = $200 + **Minimum Performances** = 3
+- **Activity After** = January 1, 2025 + **Min. Revenue** = $200 + **Min. Perf.** = 3
 
-This would return only customers who, since January 1, 2025, have spent at least $200 AND
-attended at least 3 performances.
+returns only patrons who, since January 1, 2025, have paid at least $200 AND attended at
+least 3 different productions.
 
 !!! tip "Start Broad, Then Narrow"
-    If you are unsure what thresholds to use, start with a broad date range and low minimums.
+    If you are unsure what thresholds to use, start with an early date and zero minimums.
     Review the results, then re-run with tighter criteria to refine your list.
 
 ## Output Format
 
-The report generates a CSV file containing matching customer records:
+The CSV starts with the standard TRG Arts import columns, then adds the report's own.
+Email addresses are **not** exported by this report; the `Email` column is blank.
 
-| Column | Description |
+| Column | Value |
 |---|---|
-| **Customer Name** | Full name |
-| **Email** | Email address |
-| **Phone** | Phone number |
-| **Address** | Mailing address |
-| **Total Revenue** | Total spending within the activity window |
-| **Performance Count** | Number of distinct performances attended |
-| **Theaters** | Theaters where the customer has purchased tickets |
-| **Last Activity** | Date of the customer's most recent order |
+| **Segment** | `LST` for every row |
+| **Season**, **Title** | Blank |
+| **FirstName**, **LastName**, **FullName** | Patron name |
+| **CompanyName**, **Address3**, **BusinessPhone** | Blank |
+| **Email** | Blank (not exported) |
+| **Address1**, **Address2**, **City**, **State**, **Zip** | Mailing address |
+| **HomePhone** | Phone number |
+| **ClientPatronID** | The patron's id in your external system, if tagged for one of your theaters |
+| **StagemgrPatronID** | The patron's Stagemgr customer id |
+| **PrimaryTheatreAttendee** | `*` when the patron has ever attended a producing (in-house) theater |
+| **LastAttended** | Date of the patron's most recent performance, any status |
+| **AttendedInPeriod** | Distinct productions attended in the window |
+| **TotalAttended** | Distinct productions attended, all time |
+| **CompaniesAttendedInPeriod** | Distinct theaters attended in the window |
+| **TotalCompaniesAttended** | Distinct theaters attended, all time |
+| **ProductionHistory** | Names of the productions attended in the window, alphabetical, comma-separated |
+| **IsMember** | `Y` when the patron holds an active membership |
+| **IsFlexPassHolder** | `Y` when the patron holds an active FlexPass |
 
 ## Typical Use Cases
 
 - **Major donor prospecting**: Identify patrons with high spending and frequent attendance as
   candidates for fundraising outreach.
 - **VIP programs**: Build lists of top patrons for exclusive invitations and early access offers.
-- **Cross-venue marketing**: Find customers who attend shows at one theater but not another,
+- **Cross-venue marketing**: Find patrons who attend shows at one theater but not another,
   and target them with cross-promotional offers.
-- **Lapsed patron recovery**: Set the activity date far back and a high minimum performance
+- **Lapsed patron recovery**: Set the Activity After date far back and a high production
   count to find previously active patrons who may have stopped attending.
 - **Season ticket campaigns**: Identify frequent attendees who might benefit from a FlexPass
   or membership offering.
 
 ## Tips
 
-- The **Required Theaters** field is useful when your organization operates multiple venues.
+- The **Must have attended** field is useful when your organization hosts multiple companies.
   Use it to find patrons loyal to a specific theater or to identify cross-venue attendees.
-- Leave optional fields blank to apply no filter for that criterion. For example, omitting
-  **Minimum Revenue** includes customers at all spending levels.
-- The **Activity Date** field defines the start of the lookback window. There is no end date;
-  the system includes all activity from the specified date through the present.
-- Results are delivered as a CSV that can be imported into email marketing platforms, CRM
-  systems, or spreadsheet applications.
+- Leave the minimums at `0` to apply no filter for that criterion.
+- There is no end date; the window always runs from the **Activity After** date through today.
+- Results are delivered as a CSV that can be uploaded to TRG Arts or opened in a spreadsheet.
 
 !!! warning "Admin Only"
     This report provides access to comprehensive customer data across all theaters. It is

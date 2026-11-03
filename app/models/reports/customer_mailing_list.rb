@@ -33,27 +33,36 @@ class CustomerMailingList < MailingList
     consolidation_code = 'LST'
 
     addresses.each do |address|
-      primary_attendee = !address.theaters_attended.none? { |t| t.producing? }
       production_names = address.names_of_productions_attended(start_date)
-      theater_names = address.names_of_theaters_attended(start_date)
-      hash = mailing_hash_from_buyer(address)
-      hash[:PrimaryTheatreAttendee] = primary_attendee ? '*' : ''
-      hash[:LastAttended] = address.last_attendance_date
-      hash[:ProductionHistory] = production_names.join(', ')
-      hash[:AttendedInPeriod] = production_names.size
-      hash[:TotalAttended] = address.number_of_productions_attended
-      hash[:CompaniesAttendedInPeriod] = theater_names.size
-      hash[:TotalCompaniesAttended] = address.number_of_theaters_attended
-      hash[:ProductionHistory] = production_names.sort.join(', ')
-      hash[:IsMember] = address.is_current_member? ? 'Y' : 'N'
-      hash[:IsFlexPassHolder] = address.has_flex_pass? ? 'Y' : 'N'
-      data[consolidation_code] << hash
+      # Form thresholds: skip patrons below minimum_attended productions or minimum_revenue paid in the period.
+      next if production_names.size < minimum_attended.to_i
+      next if address.revenue_collected(start_date) < minimum_revenue.to_f
+
+      data[consolidation_code] << customer_hash(address, production_names)
     end
 
     file_name = "/tmp/#{Admin::ReportsHelper.safe_title("customer_list#{reporting_user_id}")}.csv"
     save_report_to_filestore(file_name)
   rescue StandardError => e
-    Rails.logger.error("ProductionMailingList export failed: #{e.message}")
+    Rails.logger.error("CustomerMailingList export failed: #{e.message}")
     e.backtrace.each { |line| Rails.logger.error line }
+    raise
+  end
+
+  private
+
+  def customer_hash(address, production_names)
+    theater_names = address.names_of_theaters_attended(start_date)
+    hash = mailing_hash_from_buyer(address)
+    hash[:PrimaryTheatreAttendee] = address.theaters_attended.any?(&:producing?) ? '*' : ''
+    hash[:LastAttended] = address.last_attendance_date
+    hash[:AttendedInPeriod] = production_names.size
+    hash[:TotalAttended] = address.number_of_productions_attended
+    hash[:CompaniesAttendedInPeriod] = theater_names.size
+    hash[:TotalCompaniesAttended] = address.number_of_theaters_attended
+    hash[:ProductionHistory] = production_names.sort.join(', ')
+    hash[:IsMember] = address.is_current_member? ? 'Y' : 'N'
+    hash[:IsFlexPassHolder] = address.has_flex_pass? ? 'Y' : 'N'
+    hash
   end
 end
