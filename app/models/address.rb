@@ -485,7 +485,7 @@ end
   # CreditCardPayment).
   def revenue_collected(since_when = 18.months.ago)
     Payment.joins(:order).where(orders: { address_id: id, status: Order::SETTLED_STATUSES })
-           .where('payments.processed_on >= ?', since_when).sum(:amount)
+           .where(payments: { processed_on: since_when.. }).sum(:amount)
   end
 
   def performances_attended(since_when = 5.years.ago)
