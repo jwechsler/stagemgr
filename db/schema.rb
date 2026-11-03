@@ -844,6 +844,7 @@ ActiveRecord::Schema.define(version: 2026_11_02_130000) do
     t.boolean "external", default: false, null: false
   end
 
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "address_tags", "addresses", name: "address_tags_to_address", on_delete: :cascade
   add_foreign_key "address_tags", "theaters", name: "address_tags_to_theater", on_delete: :cascade
