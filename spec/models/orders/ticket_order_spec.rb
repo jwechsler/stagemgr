@@ -602,6 +602,30 @@ RSpec.describe TicketOrder do
     expect(o2.performance.production.addresses.uniq.size).to eq (1)
   end
 
+  it "links the address to the production once when a second order for the same production is fulfilled" do
+    first_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+    address = first_order.address
+    production = first_order.production
+    second_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash,
+                                     performance: first_order.performance)
+    second_order.update!(address: address)
+
+    allow(Rails.logger).to receive(:error).and_call_original
+    expect(Rails.logger).not_to receive(:error).with(/Failed to update attendee status/)
+
+    first_order.transition_to!(Order::FULFILLED)
+    second_order.transition_to!(Order::FULFILLED)
+
+    join_rows = ActiveRecord::Base.connection.select_value(
+      ActiveRecord::Base.sanitize_sql_array(
+        ["SELECT COUNT(*) FROM addresses_productions WHERE address_id = ? AND production_id = ?",
+         address.id, production.id]
+      )
+    )
+    expect(join_rows.to_i).to eq(1)
+    expect(production.addresses.where(id: address.id).count).to eq(1)
+  end
+
   it "does not block off seats when unclaimed" do
     o = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
     o2 = o.dup

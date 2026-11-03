@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_11_02_120001) do
+ActiveRecord::Schema.define(version: 2026_11_02_130000) do
 
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
@@ -92,10 +92,10 @@ ActiveRecord::Schema.define(version: 2026_11_02_120001) do
     t.index ["updated_at"], name: "index_addresses_on_updated_at"
   end
 
-  create_table "addresses_productions", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.integer "address_id"
-    t.integer "production_id"
-    t.index ["address_id", "production_id"], name: "index_addresses_productions_on_address_id_and_production_id"
+  create_table "addresses_productions", primary_key: ["address_id", "production_id"], charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.integer "address_id", null: false
+    t.integer "production_id", null: false
+    t.index ["production_id"], name: "index_addresses_productions_on_production_id"
   end
 
   create_table "audits", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -500,9 +500,9 @@ ActiveRecord::Schema.define(version: 2026_11_02_120001) do
     t.index ["production_id"], name: "index_performances_on_production_id"
   end
 
-  create_table "performances_special_features", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.integer "performance_id"
-    t.integer "special_feature_id"
+  create_table "performances_special_features", primary_key: ["performance_id", "special_feature_id"], charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.integer "performance_id", null: false
+    t.integer "special_feature_id", null: false
   end
 
   create_table "performances_ticket_classes", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -628,10 +628,9 @@ ActiveRecord::Schema.define(version: 2026_11_02_120001) do
     t.index ["class_code"], name: "index_resourced_ticket_classes_on_class_code", unique: true
   end
 
-  create_table "resourced_ticket_classes_venues", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "resourced_ticket_classes_venues", primary_key: ["resourced_ticket_class_id", "venue_id"], charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "resourced_ticket_class_id", null: false
     t.bigint "venue_id", null: false
-    t.index ["resourced_ticket_class_id", "venue_id"], name: "index_rtc_venues_on_rtc_and_venue", unique: true
   end
 
   create_table "seat_assignments", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -764,9 +763,9 @@ ActiveRecord::Schema.define(version: 2026_11_02_120001) do
     t.text "secondary_donation_appeal"
   end
 
-  create_table "theaters_users", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.integer "theater_id"
-    t.integer "user_id"
+  create_table "theaters_users", primary_key: ["theater_id", "user_id"], charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.integer "theater_id", null: false
+    t.integer "user_id", null: false
   end
 
   create_table "ticket_class_allocations", id: :integer, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|

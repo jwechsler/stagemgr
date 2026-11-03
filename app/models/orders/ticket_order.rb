@@ -1184,11 +1184,7 @@ end
       begin
         case status
         when Order::FULFILLED
-          # In a Rails console or in your Rails application code
-          ActiveRecord::Base.connection.execute("SELECT COUNT(*) FROM addresses_productions").first[0]
-          performance.production
-          production.addresses << address
-          # In a Rails console or in your Rails application code
+          production.addresses << address unless production.addresses.exists?(address.id)
 
         when Order::REFUNDED, Order::UNCLAIMED
           address.productions.delete(production) if is_unique_visit?
