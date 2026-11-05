@@ -74,4 +74,57 @@ RSpec.describe SalesByPerformanceReport, type: :model do
       expect(summary_row[:net]).to eq(Money.new(211))
     end
   end
+  describe 'with several performances, settled orders and held orders' do
+    # A second performance on another day, so the two never share a 15-minute
+    # time block.
+    let(:second_performance) do
+      FactoryBot.create(:performance, production: production, performance_date: Date.current + 1)
+    end
+
+    def add_settled_orders(perf, count)
+      FactoryBot.create_list(:ticket_order, count, :for_a_pair_of_tickets, :paid_with_credit_card, performance: perf)
+    end
+
+    def add_held_order(perf)
+      FactoryBot.create(:ticket_order, :for_a_single_ticket, performance: perf, status: Order::HOLD)
+    end
+
+    def queries_during_create
+      report = described_class.new([production.id])
+      count = 0
+      counter = lambda do |_name, _start, _finish, _id, payload|
+        next if %w[SCHEMA TRANSACTION CACHE].include?(payload[:name]) || payload[:cached]
+
+        count += 1
+      end
+      ActiveSupport::Notifications.subscribed(counter, 'sql.active_record') { report.create }
+      count
+    end
+
+    def row_for(perf)
+      described_class.new([production.id]).create[1].find { |r| r[:performance_code] == perf.performance_code }
+    end
+
+    before do
+      [performance, second_performance].each do |perf|
+        add_settled_orders(perf, 3)
+        add_held_order(perf)
+      end
+    end
+
+    it 'runs the same number of queries regardless of how many orders each performance has' do
+      baseline = queries_during_create
+
+      [performance, second_performance].each { |perf| add_settled_orders(perf, 3) }
+
+      expect(queries_during_create).to eq(baseline)
+    end
+
+    it 'counts paid and held tickets per performance row' do
+      # performance: the outer single-ticket order plus three pairs; one held single.
+      expect(row_for(performance)).to include(paid: 7, holds: 1)
+      # second_performance: three pairs; one held single.
+      expect(row_for(second_performance)).to include(paid: 6, holds: 1)
+    end
+  end
 end

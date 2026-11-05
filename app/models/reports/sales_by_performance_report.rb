@@ -52,6 +52,8 @@ class SalesByPerformanceReport < Report
                              p.production.id == production.id
                            end
                          end
+      preload_ticket_class_allocations(use_performances)
+      orders_for = orders_by_performance(use_performances)
       use_performances.sort do |x, y|
         if x.performance_date == y.performance_date
           x.performance_time <=> y.performance_time
@@ -59,8 +61,9 @@ class SalesByPerformanceReport < Report
           x.performance_date <=> y.performance_date
         end
       end.each do |perf|
-        settled_orders = perf.orders.select { |o| o.settled? }
-        held_orders = perf.orders.select { |o| o.held? }
+        perf_orders = orders_for.fetch(perf.id, [])
+        settled_orders = perf_orders.select { |o| o.settled? }
+        held_orders = perf_orders.select { |o| o.held? }
         paid_tickets = settled_orders.sum { |o| o.number_of_tickets }
         held_tickets = held_orders.sum { |o| o.number_of_tickets }
         max_ticket_price = perf.ticket_class_allocations.select do |tca|
@@ -125,5 +128,22 @@ class SalesByPerformanceReport < Report
     @headers += %i[paid holds max_ticket revenue_collected reportable facility processing net]
 
     [headers, report]
+  end
+
+  private
+
+  # One query for every order across the performances, with the associations
+  # RevenueCalculator, #number_of_tickets and #ticket_quantity_by_class read,
+  # instead of loading each performance's orders and line items lazily.
+  def orders_by_performance(performances)
+    TicketOrder.where(performance_id: performances.map(&:id))
+               .includes(*RevenueCalculator::PRELOADS)
+               .group_by(&:performance_id)
+  end
+
+  # Loads allocations and their ticket classes in bulk for the max ticket
+  # price lookup; works for both a relation and an array of performances.
+  def preload_ticket_class_allocations(performances)
+    ActiveRecord::Associations::Preloader.new.preload(performances.to_a, ticket_class_allocations: :ticket_class)
   end
 end
