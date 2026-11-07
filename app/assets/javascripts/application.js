@@ -14,6 +14,7 @@
 //= require cocoon
 //= require jquery-ui/widgets/autocomplete
 //= require autocomplete-rails
+//= require autocomplete_defaults
 //= require grouped_typeahead
 //= require production_picker
 //= require production_multi_picker

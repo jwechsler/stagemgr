@@ -14,6 +14,12 @@ ASSET_PREFIXES = %w[/assets /packs /favicon].freeze
 LOGIN_PATH_RE = %r{/(user_session|login)\z}
 ORDER_PATH_RE = %r{/(ticket|donation|membership|flex_pass)_orders(\.|/|\z)}
 
+# Signed-in staff (administrator or box office) bypass every throttle below, so
+# colleagues behind one office IP never lock each other out.
+# This also bypasses logins/ip, which only matters for an already-signed-in
+# staff member re-posting the login form.
+Rack::Attack.safelist('staff-session') { |req| RackAttack::StaffSession.staff?(req) }
+
 Rack::Attack.throttle('req/ip', limit: 300, period: 5.minutes) do |req|
   req.ip unless ASSET_PREFIXES.any? { |p| req.path.include?(p) }
 end
