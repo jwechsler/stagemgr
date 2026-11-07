@@ -16,7 +16,7 @@ Adjust paths to wherever `site/docker-compose.yml` lives on the production box.
 
 ## At deploy — one-time verification
 
-Run all four. All should return the expected output. If any fail, rate limiting is not active.
+Run all five. All should return the expected output. If any fail, rate limiting is not active.
 
 ### 1. Middleware is registered
 
@@ -54,6 +54,14 @@ redis-cli config get maxmemory-policy
 redis-cli config set maxmemory-policy noeviction
 redis-cli config rewrite
 ```
+
+### 5. Staff safelist loaded
+
+```bash
+rails-runner 'puts Rack::Attack.safelists.keys.inspect'
+```
+
+**Expected:** `["staff-session"]`
 
 ## Day-to-day monitoring
 
@@ -182,6 +190,14 @@ Reference — copy of what's in `config/initializers/rack_attack.rb` at time of 
 | `orders-post/ip` | 30 | 1 min | POST to `/ticket_orders`, `/donation_orders`, `/membership_orders`, `/flex_pass_orders` |
 
 Throttled responses include `Retry-After`, `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset` headers.
+
+### Staff are exempt
+
+Requests from a signed-in staff user (administrator or box office, status not `Inactive`) match the `staff-session` safelist and skip all three throttles, so staff sharing one office IP never lock each other out. Theater-company users (neither flag) and patrons are throttled as usual.
+
+The check lives in `lib/rack_attack/staff_session.rb`. It reads the two keys Authlogic's `UserSession` writes into the Rails session, `user_credentials` (the persistence token) and `user_credentials_id` (the user id), and confirms them against the `users` table: matching id and `persistence_token`, a staff flag set, not inactive. A logged-out, stale or tampered session does not match. The result is memoised in `Rails.cache` for 60 seconds, keyed on the user id and a SHA-256 hash of the token (never the token itself, since the default file cache store puts the key in a file name). If the check errors it returns false (the request is throttled normally) and logs `[rack-attack] staff check failed` at WARN. Safelisted requests are not logged.
+
+Verify with deploy check 5 above.
 
 ## Related configuration
 
