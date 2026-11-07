@@ -38,7 +38,7 @@ Given(/^a processed order for (\d+) "(.*?)" seats at "(.*?)" paid in cash$/) do 
     @order.ticket_line_items.build(ticket_class: ticket_class, ticket_count: 1, seat_assignment_id: seat.id)
   end
   @order.save!
-  @order.payments << CashPayment.new(amount: @order.total_due, payment_type: cash, order: @order)
+  @order.payments << CashPayment.new(amount: @order.total_due, payment_type: cash)
   @order.update!(status: Order::PROCESSED)
   @original_seat_ids = seats.map(&:id)
 end

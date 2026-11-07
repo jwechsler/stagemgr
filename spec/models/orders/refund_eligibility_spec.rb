@@ -37,7 +37,7 @@ RSpec.describe RefundEligibility do
   end
 
   it 'blocks an order holding a payment kind the refund cannot return' do
-    order.payments << PriceOverridePayment.new(amount: 5, order: order, source_payment_type: order.payment_type)
+    order.payments << PriceOverridePayment.new(amount: 5, source_payment_type: order.payment_type)
 
     expect(order.refund_blockers).to eq(["Refunds don't handle #{order.payments.last.display_name} payments."])
   end

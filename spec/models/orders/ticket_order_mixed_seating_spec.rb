@@ -258,9 +258,8 @@ RSpec.describe 'reserved-seating orders with non-seat-holding tickets' do
       add_seat_ticket(original, seat_class)
       add_non_seat_ticket(original, addon)
       original.save!
-      original.payments << FactoryBot.create(:cash_payment, order: original,
-                                                            number_of_tickets: 2,
-                                                            amount: original.total_due)
+      original.payments << FactoryBot.build(:cash_payment, number_of_tickets: 2,
+                                                           amount: original.total_due)
       original.status = Order::PROCESSED
       original.save!
 
