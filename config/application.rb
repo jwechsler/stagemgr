@@ -21,7 +21,17 @@ require_relative '../lib/required_secrets'
 module Stagemgr
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 6.0
+    config.load_defaults 6.1
+
+    # Held at the pre-6.1 value. The flip is one of the Rails 7.2 release's
+    # defaults deploys (docs/rails-upgrade-plan.md, Release 2). On 6.1 the
+    # inverse dedup set is not identity-based (fixed in Rails 7.0): a record
+    # built with `order:` and saved before `<<` is appended twice in memory.
+    config.active_record.has_many_inversing = false
+
+    # Held at the pre-6.1 values for their own small deploy (PR 2).
+    config.action_dispatch.cookies_same_site_protection = nil
+    config.action_controller.urlsafe_csrf_tokens = false
 
     # app/models/<dir>/ only groups files: orders/ticket_order.rb defines
     # TicketOrder, not Orders::TicketOrder. Collapse the folders rather than adding

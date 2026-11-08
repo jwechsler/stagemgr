@@ -64,7 +64,7 @@ RSpec.describe RefundPayment, type: :model do
 
     it 'is invalid when the source is an exchange offset' do
       offset = card_payment.new_exchange_offset_payment
-      offset.save!
+      order.payments << offset
       expect(build_refund(offset)).not_to be_valid
     end
 

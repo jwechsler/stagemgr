@@ -263,7 +263,7 @@ RSpec.describe TicketOrderAddition do
     it 'refuses an addition that the order\'s own special offer would re-price' do
       offer_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, performance: performance, payment_type: cash)
       offer_order.create_special_offer_line_item!(special_offer: FactoryBot.create(:percent_off_special_offer, amount: 50))
-      offer_order.payments << FactoryBot.create(:cash_payment, order: offer_order, amount: offer_order.total_due)
+      offer_order.payments << FactoryBot.build(:cash_payment, amount: offer_order.total_due)
       offer_order.update!(status: Order::PROCESSED)
 
       expect do
@@ -552,8 +552,8 @@ RSpec.describe TicketOrderAddition do
                               payment_type: FactoryBot.create(:membership_payment_type))
       again.ticket_line_items << TicketLineItem.new(ticket_class: seat_class, ticket_count: 2)
       again.save!
-      again.payments << FactoryBot.create(:membership_payment, order: again, membership: membership,
-                                                               number_of_tickets: 2, amount: 0)
+      again.payments << FactoryBot.build(:membership_payment, membership: membership,
+                                                              number_of_tickets: 2, amount: 0)
       expect { membership.verify_applicable_for(again) }.not_to raise_error
     end
   end

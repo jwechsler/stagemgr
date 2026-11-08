@@ -55,8 +55,8 @@ change and each Ruby bump), with small follow-up deploys that flip framework def
 
 ## 2. Current state (audit summary)
 
-**Stack:** Rails 6.1.7.10, Ruby 3.2.2, `config.load_defaults 6.0` (with a
-partially applied `new_framework_defaults_6_1.rb`), MySQL 8 (utf8mb4_0900),
+**Stack:** Rails 6.1.7.10, Ruby 3.2.2, `config.load_defaults 6.1` (since 1d, with
+`has_many_inversing`, SameSite and urlsafe CSRF held explicitly), MySQL 8 (utf8mb4_0900),
 Redis via Resque 2.6, Sprockets 4 + Webpacker 5 (webpack 4), Passenger on a
 macOS 13 host, deployed by `bin/deploy` (git pull → bundle → yarn → migrate →
 doctor → precompile → restart).
@@ -65,7 +65,7 @@ doctor → precompile → restart).
 
 | Gem | Locked | Problem | Fix |
 |---|---|---|---|
-| authlogic | 6.4.3 | AR `< 7.2` | 6.5.0 (to 8.0), then 6.6.0 (7.2–8.1) |
+| authlogic | 6.5.0 (was 6.4.3) | 6.5.x allows AR `< 8.1`; 6.6.0 needs Rails >= 7.2 | 6.5.0 done in 1d; 6.6.x at Release 2 (2c) |
 | exception_notification | 4.5.0 | actionmailer `< 8` | 4.6.0 now, 5.0.x on 7.1+ |
 | cucumber-rails | 2.5.1 (pinned) | railties `< 8` | 3.1.1, later 4.1.0 |
 | rspec-rails | 5.1.2 (pinned `< 6`) | supports ≤ 7.0 | 6.1 → 7.1 → 8.0 per hop |
@@ -105,7 +105,7 @@ beyond 11.x (capped by stripe-ruby-mock). Each is its own later project.
 | 7.0 defaults | `key_generator_hash_digest_class = SHA256` logs everyone out unless a SHA1 cookie rotator is added | Must-fix | `config/initializers/session_store.rb` |
 | 7.0 → 7.1 | 43 `to_s(:format)` calls: deprecated in 7.0, **silently ignored** in 7.1 (dates print in the wrong format — tickets, reports, emails) | Must-fix | e.g. `app/helpers/admin/reports_helper.rb:17`, `app/models/week_select.rb:5`, `app/decorators/performance_decorator.rb` |
 | 7.1 | `Time#to_s` stops honoring `Time::DATE_FORMATS[:default]`; implicit time interpolation changes format | Must-fix | `config/environment.rb`; e.g. `app/views/current_user/accounts/show.html.haml:23,29` |
-| 7.1 | `legacy_connection_handling` config removed — boot failure | Blocker | `config/initializers/new_framework_defaults_6_1.rb:45` |
+| 7.1 | `legacy_connection_handling` config removed — boot failure | Blocker | `config/initializers/new_framework_defaults_6_1.rb:45` (file deleted in 1d; applied by `load_defaults 6.1`) |
 | 7.1 | `config.fixture_path` → `fixture_paths` (dir doesn't exist; delete the line) | Must-fix | `spec/rails_helper.rb:37` |
 | 7.1 | `Hash#deep_merge` override drops block support that ActiveSupport 7.1 relies on | Medium | `config/initializers/hash_extensions.rb` |
 | 7.2 | `Rails.application.secrets` removed; the shim silently returns false | Must-fix | `lib/required_secrets.rb:143`, `config/secrets.yml`, `spec/lib/required_secrets_spec.rb:71` |
@@ -306,7 +306,7 @@ their own windows.*
 7. Bumped rspec-rails 5.1.2 → 6.1.5, cucumber-rails 2.5.1 → 3.1.1 (cucumber
    7.1 → 9.2; `AfterConfiguration` became `BeforeAll`) and
    exception_notification 4.5.0 → 4.6.0. **authlogic 6.5 is deferred** to
-   the 1b.8 window, see below.
+   window 1d.
 8. `config.active_support.deprecation = :raise` in test (moved here from 1a).
    Fixed the two remaining app deprecations: `CreditCardPayment#refund!`
    left a transaction block with `return` (6.1 commits, 7.0 would roll back
@@ -318,20 +318,59 @@ their own windows.*
 
 **Moved to their own windows:**
 
-- **Framework defaults** (was 1b.8): `load_defaults 6.1` and deleting
-  `new_framework_defaults_6_1.rb`. **Finding:** authlogic 6.4.3 loads
-  `ActiveRecord::Base` during `Bundler.require`, before the initializers run,
-  so the two `config.active_record` lines in `new_framework_defaults_6_1.rb`
-  (`has_many_inversing = true`, `legacy_connection_handling = false`) have
-  **never taken effect**. Production runs with `has_many_inversing` false and
-  legacy connection handling on. authlogic 6.5.0 (allows AR ≥ 5.2, < 8.1)
-  loads lazily, which silently turns both on. That changes behaviour: with
-  inversing on, `spec/models/orders/ticket_exchange_spec.rb` sees a duplicate
-  in-memory payment. So bump authlogic in the same window as the defaults
-  flip, decide `has_many_inversing` deliberately (and fix whatever code
-  depends on it being off), and run the login/session specs and features.
-  Then check staff login, patron login and password reset by hand.
+- **Framework defaults** (was 1b.8): see 1d below.
 - **Ruby 3.3** (was 1b.9): unchanged, still a separate window.
+
+**1d. Framework defaults (done 2026-11-07, branch `rails-upgrade/release-1-defaults`)**
+
+*Done on `rails-upgrade/release-1-defaults`. The `has_many_inversing` flip itself
+moved to Release 2; `cookies_same_site_protection` and `urlsafe_csrf_tokens` ship
+as a second, small PR a few days later.*
+
+1. **Finding.** authlogic 6.4.3 required `ActiveRecord::Base` during
+   `Bundler.require` (`authlogic/acts_as_authentic/base.rb:107`), before
+   `config/initializers/new_framework_defaults_6_1.rb` ran. The Active Record
+   and Active Job lines of that file therefore never applied: production ran
+   with `has_many_inversing` off, legacy connection handling on and
+   `retry_jitter` 0. (The Action View, Active Storage and `utc_to_local` lines
+   did apply.)
+2. Pinned authlogic `~> 6.5.0`, which loads once Active Record has loaded
+   (allows AR >= 5.2, < 8.1). 6.6.0 needs Rails >= 7.2, so it moves to
+   Release 2 (2c).
+3. `config.load_defaults 6.1`; `new_framework_defaults_6_1.rb` is deleted. Three
+   explicit holds in `config/application.rb`, each commented:
+   `active_record.has_many_inversing = false` (flip moved to Release 2's
+   defaults deploys, below), `action_dispatch.cookies_same_site_protection = nil`
+   and `action_controller.urlsafe_csrf_tokens = false` (held for their own small
+   deploy, PR 2 of this window). `legacy_connection_handling = false` and the
+   Active Job settings now apply; no multi-database code exists, so the first is
+   a no-op in practice.
+4. `HAS_MANY_INVERSING=1` forces inversing on in `config/environments/test.rb`
+   (no other environment reads it), so the suite can be rerun with Release 2's
+   behaviour at any time. `spec/config/framework_defaults_spec.rb` guards the
+   settings above.
+5. **One-side association rule:** never both `order:` (or `.order =`) and
+   `<<`/`concat` for the same record. With inversing on, Rails 6.1 can append the
+   record to the target twice (see Release 2). Six app sites were fixed:
+   - the exchange hold-back payment is detached from the target after it is
+     built, so `save!` no longer autosaves it (a card price-increase exchange
+     would otherwise fail);
+   - exchange offsets, credits and refunds are built unattached and attached by
+     `concat`, which also stops $0 offsets leaking into the original order's
+     payments;
+   - the refund paths (`Payment#create_refund_payment`, `ReversalPayment`) no
+     longer set `.order =` before `<<`;
+   - `Order#create_proper_payment_in_amount_of!` and
+     `ExternalPaymentType#create_refund_payment` were unreachable and are deleted.
+6. Factories and specs now use `o.payments << FactoryBot.build(...)` (or
+   `create(order:)` alone); `spec/lint/one_side_association_spec.rb` greps for
+   the pattern and fails on a hit.
+7. Dead code deleted on the way: `reload_associated` x3 (raised `ArgumentError`
+   since Rails 5.1), the `all_line_items(reload)` flag, `FlexPass.fix_mangled_passes`
+   and `has_many :exchange_payments`.
+8. Manual checks: staff login/logout, patron login and password reset (authlogic),
+   card exchange up and down, refunds, membership purchase with a new address
+   (all in the smoke checklist).
 
 **1c. Replace Webpacker (~1 day)**
 
@@ -403,6 +442,47 @@ walking through `new_framework_defaults_7_0.rb` → `_7_1.rb` → `_7_2.rb`:
   cookie rotator *in the same deploy* so nobody is logged out (R2). Flip it last
   because a code rollback past this deploy would sign everyone out. Remove the
   rotator one or two releases later.
+- **`has_many_inversing` flip.** Deferred out of Release 1 (see 1d). Why: on
+  Rails 6.1, `CollectionAssociation` dedups with `Set.new`, which is not
+  identity-based. A record built with `order: x` and then saved (directly, or by
+  `<<` on a persisted owner, which saves before the lookup) changes its `hash`
+  from identity to id, the Set misses it, and `<<` appends the same object a
+  second time: `total_paid` reads $10 for one $5 payment. Rails 7.0+ uses
+  `Set.new.compare_by_identity`, so the flip is safe once on 7.2. Two effects are
+  **not** the Set bug and still apply then: (1) `has_many :payments` is
+  autosave (via `accepts_nested_attributes_for`), so any payment built with
+  `order: x` is saved by `x.save!` even if never appended; (2) re-pointing a
+  record to another owner never removes it from the first owner's in-memory
+  target. `LineItem#order` (base class) has no inverse, so ticket line items
+  never touch a collection; only service/adjustment/special-offer, donation,
+  membership and flex-pass line items, payments, tasks and the
+  Address/Theater/Performance `orders` collections invert. Readiness is measured
+  with `HAS_MANY_INVERSING=1 bundle exec rspec` (the 2026-11-07 audit, session
+  plan file, found about 90 failures in 45 files before the 1d hygiene; the
+  residue is what remains). Pin these with specs at the flip:
+  1. Double `Order` `after_save` with a new address (address autosave re-enters
+     the order through `address.orders`): regression spec that a new order with a
+     new address creates each task once, plus a comment on the association; no
+     `autosave: false`.
+  2. A `Membership` saved through the address's autosave
+     (`membership_line_item.membership.address = address`): spec a membership
+     purchase with a new address.
+  3. Unsaved in-flight orders visible on the `Address` instance
+     (`address.rb` `orders.select` helpers): spec checkout with a donation and
+     `recent_orders`.
+  4. `Order#total` (`payments.empty? ? total_due : total_paid`) flips to the SQL
+     sum once a payment is built with `order:` on a persisted order: pin it.
+  5. Membership and flex-pass in-memory targets (`membership_payments`,
+     `flex_pass_payments`; `last_effective_date` on an unsaved row's nil
+     `processed_on`).
+  6. Chain-refund tender iteration (`earlier_chain_tenders`/`tender_offset`):
+     spec two credit offsets refunded against one earlier-order tender.
+  7. `spec/models/venue_spec.rb` "keeps a production with no dates as a next-up
+     candidate": the `old_next_up` helper filters `venue.productions.to_a`, and
+     with inversing on the productions created with `venue: venue` stay in that
+     in-memory collection after `destroy`. Read `venue.productions.reload.to_a`
+     in the helper (the app side already reloads). The only failure left in the
+     1d readiness run.
 - When a file is fully enabled, delete it and bump `load_defaults` (7.0, then
   7.1, then 7.2).
 

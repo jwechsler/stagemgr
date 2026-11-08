@@ -39,13 +39,11 @@ FactoryBot.define do
 
     trait :with_payment do
       after(:create) do |flex_pass_order, _evaluator|
-        flex_pass_order.payments << FactoryBot.create(:credit_card_payment,
-                                                      order: flex_pass_order,
-                                                      amount: flex_pass_order.flex_pass_offer.price,
-                                                      transaction_id: 'TEST_TRANSACTION',
-                                                      confirmation_code: 'CONFIRMED',
-                                                      card_type: 'bogus',
-                                                      card_last_four: '1111')
+        flex_pass_order.payments << FactoryBot.build(:credit_card_payment, amount: flex_pass_order.flex_pass_offer.price,
+                                                                           transaction_id: 'TEST_TRANSACTION',
+                                                                           confirmation_code: 'CONFIRMED',
+                                                                           card_type: 'bogus',
+                                                                           card_last_four: '1111')
         flex_pass_order.status = Order::PROCESSED
         flex_pass_order.save!
       end

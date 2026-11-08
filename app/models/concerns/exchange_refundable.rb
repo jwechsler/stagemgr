@@ -72,10 +72,14 @@ module ExchangeRefundable
     if refund
       raise RefundNotPossible, "Exchange did not net to zero ($#{format('%.2f', difference)})" unless difference.zero?
     elsif difference.negative?
-      payments << PriceOverridePayment.new(amount: difference, order: self,
-                                           source_payment_type: exchange_source.payment_type)
+      payments << PriceOverridePayment.new(amount: difference, source_payment_type: exchange_source.payment_type)
     elsif difference.positive?
       @exchange_difference_payment = payment_type.build_uncharged_payment(difference, self)
+      # Held back until transition_exchanging_to_processed! reloads payments
+      # and charges it. It is built with order:, which under has_many_inversing
+      # also puts it in payments, where the save! of begin_exchange! would
+      # autosave it uncharged; take it out (as ChargeAfterChecks#abandon_charge).
+      association(:payments).target.delete(@exchange_difference_payment)
       raise ActiveRecord::RecordInvalid, @exchange_difference_payment if @exchange_difference_payment.invalid?
     end
   end
@@ -208,7 +212,11 @@ module ExchangeRefundable
            .sort_by(&:amount)
   end
 
-  def build_refund_payment(source_payment, portion, order: exchange_source)
+  # A refund of the original's own tender is left unattached (order: nil):
+  # begin_exchange! concats it onto the original, the one side that attaches
+  # it. A chain refund is saved directly and never appended, so it is built
+  # with its tender's order.
+  def build_refund_payment(source_payment, portion, order: nil)
     RefundPayment.new(amount: -portion, order: order, source_payment: source_payment,
                       payment_type: source_payment.payment_type, note: 'Exchange refund')
   end

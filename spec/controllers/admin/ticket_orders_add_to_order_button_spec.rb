@@ -49,8 +49,8 @@ RSpec.describe Admin::TicketOrdersController, 'Add to Order button', type: :cont
   end
 
   it 'explains why an order paid with a pass and a card cannot be exchanged' do
-    order.payments << FactoryBot.create(:membership_payment, order: order, number_of_tickets: 1, amount: 0,
-                                                             membership: FactoryBot.create(:membership))
+    order.payments << FactoryBot.build(:membership_payment, number_of_tickets: 1, amount: 0,
+                                                            membership: FactoryBot.create(:membership))
 
     get :show, params: { id: order.id }
 

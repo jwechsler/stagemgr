@@ -139,8 +139,7 @@ RSpec.describe Admin::TicketOrdersController, type: :controller do
                                                       ticket_count: 1, order: order)
       order.ticket_line_items << addon_tli
       order.save!
-      order.payments << FactoryBot.create(:cash_payment, order: order,
-                                                         number_of_tickets: 3, amount: order.total_due)
+      order.payments << FactoryBot.build(:cash_payment, number_of_tickets: 3, amount: order.total_due)
       order.status = Order::PROCESSED
       order.save!
 

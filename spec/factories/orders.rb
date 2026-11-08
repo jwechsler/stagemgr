@@ -143,14 +143,12 @@ FactoryBot.define do
       association :payment_type, factory: :credit_card_payment_type
       after(:create) do |ticket_order, _evaluator|
         num_tix = TicketLineItem.where(order_id: ticket_order.id).sum(:ticket_count)
-        ticket_order.payments << FactoryBot.create(:credit_card_payment,
-                                                   order: ticket_order,
-                                                   number_of_tickets: num_tix,
-                                                   amount: ticket_order.total_due,
-                                                   transaction_id: 'TEST_TRANSACTION',
-                                                   confirmation_code: 'CONFIRMED',
-                                                   card_type: 'bogus',
-                                                   card_last_four: '1111')
+        ticket_order.payments << FactoryBot.build(:credit_card_payment, number_of_tickets: num_tix,
+                                                                        amount: ticket_order.total_due,
+                                                                        transaction_id: 'TEST_TRANSACTION',
+                                                                        confirmation_code: 'CONFIRMED',
+                                                                        card_type: 'bogus',
+                                                                        card_last_four: '1111')
         ticket_order.status = Order::PROCESSED
         ticket_order.save!
       end
@@ -197,19 +195,15 @@ FactoryBot.define do
 
         ticket_order.adjust_seating_to_match_ticket_line_items
         num_tix = ticket_order.ticket_line_items.inject(0) { |sum, tli| sum + tli.ticket_count }
-        ticket_order.payments << FactoryBot.create(:flex_pass_payment,
-                                                   order: ticket_order,
-                                                   number_of_tickets: num_tix,
-                                                   flex_pass: flex_pass,
-                                                   amount: (num_tix * new_ticket_class.ticket_price))
+        ticket_order.payments << FactoryBot.build(:flex_pass_payment, number_of_tickets: num_tix,
+                                                                      flex_pass: flex_pass,
+                                                                      amount: (num_tix * new_ticket_class.ticket_price))
 
         unless ticket_order.service_line_items.empty?
-          ticket_order.payments << FactoryBot.create(:cash_payment,
-                                                     order: ticket_order,
-                                                     number_of_tickets: num_tix,
-                                                     amount: ticket_order.service_line_items.inject(0) do |total, sli|
-                                                       total + sli.amount
-                                                     end)
+          ticket_order.payments << FactoryBot.build(:cash_payment, number_of_tickets: num_tix,
+                                                                   amount: ticket_order.service_line_items.inject(0) do |total, sli|
+                                                                     total + sli.amount
+                                                                   end)
         end
         ticket_order.status = Order::PROCESSED
         ticket_order.save!
@@ -250,20 +244,14 @@ FactoryBot.define do
         end
         ticket_order.adjust_seating_to_match_ticket_line_items
         num_tix = ticket_order.ticket_line_items.inject(0) { |sum, tli| sum + tli.ticket_count }
-        payment = FactoryBot.create(:membership_payment,
-                                    order: ticket_order,
-                                    number_of_tickets: num_tix,
-                                    membership: membership,
-                                    amount: (num_tix * new_ticket_class.ticket_price))
-
-        ticket_order.payments << payment
+        ticket_order.payments << FactoryBot.build(:membership_payment, number_of_tickets: num_tix,
+                                                                       membership: membership,
+                                                                       amount: (num_tix * new_ticket_class.ticket_price))
         unless ticket_order.service_line_items.empty?
-          ticket_order.payments << FactoryBot.create(:cash_payment,
-                                                     order: ticket_order,
-                                                     number_of_tickets: num_tix,
-                                                     amount: ticket_order.service_line_items.inject(0) do |total, sli|
-                                                       total + sli.amount
-                                                     end)
+          ticket_order.payments << FactoryBot.build(:cash_payment, number_of_tickets: num_tix,
+                                                                   amount: ticket_order.service_line_items.inject(0) do |total, sli|
+                                                                     total + sli.amount
+                                                                   end)
         end
         ticket_order.status = Order::PROCESSED
         ticket_order.save!
@@ -274,10 +262,8 @@ FactoryBot.define do
       association :payment_type, factory: :cash_payment_type
       after(:create) do |ticket_order, _evaluator|
         num_tix = ticket_order.ticket_line_items.inject(0) { |sum, tli| sum + tli.ticket_count }
-        ticket_order.payments << FactoryBot.create(:cash_payment,
-                                                   order: ticket_order,
-                                                   number_of_tickets: num_tix,
-                                                   amount: ticket_order.total_due)
+        ticket_order.payments << FactoryBot.build(:cash_payment, number_of_tickets: num_tix,
+                                                                 amount: ticket_order.total_due)
         ticket_order.status = Order::PROCESSED
         ticket_order.save!
       end
@@ -287,11 +273,9 @@ FactoryBot.define do
       association :payment_type, factory: :external_payment_type
       after(:create) do |ticket_order, _evaluator|
         num_tix = ticket_order.ticket_line_items.inject(0) { |sum, tli| sum + tli.ticket_count }
-        ticket_order.payments << FactoryBot.create(:external_payment,
-                                                   order: ticket_order,
-                                                   number_of_tickets: num_tix,
-                                                   payment_type_id: ticket_order.payment_type_id,
-                                                   amount: ticket_order.total_due)
+        ticket_order.payments << FactoryBot.build(:external_payment, number_of_tickets: num_tix,
+                                                                     payment_type_id: ticket_order.payment_type_id,
+                                                                     amount: ticket_order.total_due)
         ticket_order.status = Order::PROCESSED
         ticket_order.save!
       end
@@ -317,25 +301,6 @@ FactoryBot.define do
     end
 
     factory :donation_order_for_one_thousand_dollars, traits: [:one_thousand_dollar_donation]
-  end
-
-  factory :donation_pledge_order do
-    order
-
-    trait :paid_with_credit_card do
-      credit_card_type                    { 'bogus' }
-      credit_card_number                  { '4111111111111111' }
-      credit_card_expiration_month        { '12' }
-      credit_card_expiration_year         { Date.current.year.to_s }
-      credit_card_verification_number     { '999' }
-      after(:create) do |order, _evaluator|
-        order.create_proper_payment_in_amount_of!(order.value_of_all_line_items)
-      end
-    end
-
-    factory :donation_pledge_order_for_one_thousand_dollars, traits: [:one_thousand_dollar_donation]
-    factory :donation_pledge_order_for_one_thousand_dollars_using_credit_card,
-            traits: %i[one_thousand_dollar_donation paid_with_credit_card]
   end
 
   factory :special_offer_line_item do

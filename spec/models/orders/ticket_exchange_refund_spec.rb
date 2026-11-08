@@ -38,8 +38,8 @@ RSpec.describe 'TicketOrder#exchange_and_refund_from!' do
   end
 
   def pay_by_card!(order, amount)
-    order.payments << FactoryBot.create(:credit_card_payment, order: order, amount: amount,
-                                                              transaction_id: 'pi_test', confirmation_code: 'pi_test')
+    order.payments << FactoryBot.build(:credit_card_payment, amount: amount,
+                                                             transaction_id: 'pi_test', confirmation_code: 'pi_test')
   end
 
   def settle!(order)
@@ -232,8 +232,8 @@ RSpec.describe 'TicketOrder#exchange_and_refund_from!' do
     it 'refuses when the cash portion cannot cover the difference' do
       original = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets)
       cash_part = BigDecimal('1.00')
-      original.payments << FactoryBot.create(:cash_payment, order: original, amount: cash_part)
-      original.payments << FactoryBot.create(:external_payment, order: original, amount: original.total_due - cash_part)
+      original.payments << FactoryBot.build(:cash_payment, amount: cash_part)
+      original.payments << FactoryBot.build(:external_payment, amount: original.total_due - cash_part)
       settle!(original)
       exchange = cheaper_exchange_for(original)
       expect(gateway).not_to receive(:refund)

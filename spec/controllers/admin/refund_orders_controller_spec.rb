@@ -39,8 +39,7 @@ RSpec.describe Admin::RefundOrdersController, type: :controller do
     end
 
     it 'refuses an order holding a payment kind the refund cannot return' do
-      order.payments << PriceOverridePayment.new(amount: 5, order: order,
-                                                 source_payment_type: order.payment_type)
+      order.payments << PriceOverridePayment.new(amount: 5, source_payment_type: order.payment_type)
 
       get :new, params: { order_id: order.id }
 
@@ -146,7 +145,7 @@ RSpec.describe Admin::RefundOrdersController, type: :controller do
 
   describe 'POST create' do
     it 'refuses an order holding a payment kind the refund cannot return' do
-      order.payments << PriceOverridePayment.new(amount: 5, order: order, source_payment_type: order.payment_type)
+      order.payments << PriceOverridePayment.new(amount: 5, source_payment_type: order.payment_type)
 
       post :create, params: { order_id: order.id }
 

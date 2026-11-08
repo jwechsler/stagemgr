@@ -126,8 +126,8 @@ RSpec.describe Admin::ExchangeTicketOrdersController, type: :controller do
   describe 'an order paid with both a pass and a card' do
     before do
       allow(controller).to receive(:current_user).and_return(box_office_user)
-      original.payments << FactoryBot.create(:membership_payment, order: original, number_of_tickets: 1, amount: 0,
-                                                                  membership: FactoryBot.create(:membership))
+      original.payments << FactoryBot.build(:membership_payment, number_of_tickets: 1, amount: 0,
+                                                                 membership: FactoryBot.create(:membership))
     end
 
     it 'refuses the exchange page with the reason' do

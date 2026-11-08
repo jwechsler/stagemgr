@@ -41,16 +41,18 @@ Paths are relative to the app's mount point: `https://www.theaterwit.org/tickets
 - [ ] Reserved-seat purchase: the seat picker loads, seats hold and release, checkout completes.
 - [ ] *(Stripe)* Card purchase, and a 3DS card (`4000 0027 6000 3184`) that completes the challenge.
 - [ ] Confirmation email renders with the right performance date and time (formats above) and working links.
-- [ ] Patron login (`/login`) and the account page (`/`).
-- [ ] Flex pass purchase (`/flex_pass_offers/:id/orders/new`) and membership purchase (`/membership_offers`). *(Stripe)* for recurring memberships.
+- [ ] Patron login (`/login`) and the account page (`/`), then logout.
+- [ ] Password reset: request one from `/login`, the email arrives, the link sets a new password and logs in (authlogic bump).
+- [ ] Flex pass purchase (`/flex_pass_offers/:id/orders/new`) and membership purchase (`/membership_offers`), the latter with a brand-new address. *(Stripe)* for recurring memberships.
 - [ ] Donation (`/donations/new`).
 
 ## Box office and admin
 
-- [ ] Staff login; the dashboard at `/` shows house counts for upcoming performances.
+- [ ] Staff login and logout; the dashboard at `/` shows house counts for upcoming performances.
 - [ ] Order entry (`/admin/ticket_orders/new`): address autocomplete finds a patron, production/performance/ticket-class autocompletes fill, cocoon's "Add tickets" row works, cash and card payment forms both load.
 - [ ] Exchange with a price differential ("Exchange Order" on the order, `/admin/ticket_orders/:id/exchange_ticket_orders/new`); the balance is charged or refunded.
-- [ ] *(Stripe)* Refund (`/admin/ticket_orders/:id/refund_orders/new`).
+- [ ] Card exchange with a price increase (the difference is charged) and another with a price decrease (the difference is refunded); the order's payments total matches its due.
+- [ ] Refund of a cash order, and *(Stripe)* refund of a card order (`/admin/orders/:id/refund_orders/new`; the `ticket_orders` nesting of that route 404s); one refund payment each, not two.
 - [ ] Reseating from an order's ticket table: move a seat, commit, and the seat map reflects it.
 - [ ] Seat map editor (`/admin/venues/:venue_id/seat_maps/:id/editor`): the Konva canvas draws, and select/drag/save work.
 - [ ] DataTables grids with filters and sorting: `/admin/orders`, `/admin/addresses`, `/admin/users`.
@@ -64,6 +66,7 @@ Paths are relative to the app's mount point: `https://www.theaterwit.org/tickets
 ## Ops
 
 - [ ] `RAILS_ENV=production bundle exec rake setup:doctor` is all green (`bin/deploy` runs it; read the output).
+- [ ] Framework defaults applied: `grep -c 'has_many_inversing' config/application.rb` is 1 and `RAILS_ENV=production bin/rails runner 'p ActiveRecord::Base.legacy_connection_handling'` prints `false`.
 - [ ] `script/resque-worker status` shows three workers; `script/scheduler status` shows one scheduler and no orphans.
 - [ ] *(Stripe)* The next webhook to `/stripecb` gets a 2xx (Stripe dashboard → Webhooks → recent deliveries).
 - [ ] Exception mail arrives: `RAILS_ENV=production bin/rails runner 'ExceptionNotifier.notify_exception(RuntimeError.new("upgrade smoke test"))'`.
