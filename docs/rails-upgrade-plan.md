@@ -477,6 +477,12 @@ walking through `new_framework_defaults_7_0.rb` → `_7_1.rb` → `_7_2.rb`:
      `processed_on`).
   6. Chain-refund tender iteration (`earlier_chain_tenders`/`tender_offset`):
      spec two credit offsets refunded against one earlier-order tender.
+  7. `spec/models/venue_spec.rb` "keeps a production with no dates as a next-up
+     candidate": the `old_next_up` helper filters `venue.productions.to_a`, and
+     with inversing on the productions created with `venue: venue` stay in that
+     in-memory collection after `destroy`. Read `venue.productions.reload.to_a`
+     in the helper (the app side already reloads). The only failure left in the
+     1d readiness run.
 - When a file is fully enabled, delete it and bump `load_defaults` (7.0, then
   7.1, then 7.2).
 
