@@ -907,9 +907,11 @@ class Order < ApplicationRecord
       when REFUNDED then enqueue_lgl_refund_note
       end
     end
-    return unless saved_change_to_status? && status.eql?(Order::PROCESSED)
-      create_address_of_record_task
-    
+    # do_not_create_tasks covers the address link too: a split order already
+    # carries a copy of its source's LinkToAddressOfRecordTask.
+    return unless do_not_create_tasks.nil? && saved_change_to_status? && status.eql?(Order::PROCESSED)
+
+    create_address_of_record_task
   end
 
   def copy_payment_information(from_order)

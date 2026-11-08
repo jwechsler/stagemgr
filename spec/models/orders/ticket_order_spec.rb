@@ -998,6 +998,17 @@ RSpec.describe TicketOrder do
       expect(original_order.tasks.first.status == OrderTask::CANCELLED)
     end
 
+    it "writes only the copied tasks for each split order, with no address-of-record task of its own" do
+      original_order = FactoryBot.create(:ticket_order, :for_a_pair_of_tickets, :paid_with_cash)
+      expect(original_order.tasks.count).to eql(2)
+      order1, order2 = original_order.split([original_order.flatten_ticket_line_items[0]])
+
+      [order1, order2].each do |split_order|
+        expect(split_order.tasks.count).to eql(2)
+        expect(split_order.tasks.where(type: 'LinkToAddressOfRecordTask').count).to eql(1)
+      end
+    end
+
     # Regression for the per-seat TLI shape introduced by commit bf0e8cb3:
     # each seat is its own TLI (ticket_count: 1) carrying a unique
     # seat_assignment_id FK. The split path used to leave the source TLI's FK
