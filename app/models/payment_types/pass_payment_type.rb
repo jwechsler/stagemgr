@@ -8,7 +8,7 @@ class PassPaymentType < PaymentType
     [line_item.price, pass_ticket_class.ticket_price].min
   end
 
-  def build_exchange_offset_payments(_source_payments)
+  def build_exchange_offset_payments(_source_payments, _exchanged_order)
     []
   end
 end

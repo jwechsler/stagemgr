@@ -303,25 +303,6 @@ FactoryBot.define do
     factory :donation_order_for_one_thousand_dollars, traits: [:one_thousand_dollar_donation]
   end
 
-  factory :donation_pledge_order do
-    order
-
-    trait :paid_with_credit_card do
-      credit_card_type                    { 'bogus' }
-      credit_card_number                  { '4111111111111111' }
-      credit_card_expiration_month        { '12' }
-      credit_card_expiration_year         { Date.current.year.to_s }
-      credit_card_verification_number     { '999' }
-      after(:create) do |order, _evaluator|
-        order.create_proper_payment_in_amount_of!(order.value_of_all_line_items)
-      end
-    end
-
-    factory :donation_pledge_order_for_one_thousand_dollars, traits: [:one_thousand_dollar_donation]
-    factory :donation_pledge_order_for_one_thousand_dollars_using_credit_card,
-            traits: %i[one_thousand_dollar_donation paid_with_credit_card]
-  end
-
   factory :special_offer_line_item do
     association :order, factory: :order
   end

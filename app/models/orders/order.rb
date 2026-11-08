@@ -453,13 +453,6 @@ class Order < ApplicationRecord
     @allow_destroy || false
   end
 
-  # Builds and charges in one step, for callers that want a settled payment.
-  def create_proper_payment_in_amount_of!(amount, payment_options = {})
-    new_payment = payment_type.build_payment(amount, self, payment_options)
-    payments << new_payment
-    new_payment
-  end
-
   # Adds an uncharged payment to this order's payments without saving it
   # (payments << would save it at once on a persisted order), so it is
   # validated with the order and saved by the order's save!.

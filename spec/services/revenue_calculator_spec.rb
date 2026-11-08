@@ -76,8 +76,7 @@ RSpec.describe RevenueCalculator, type: :service do
 
       it 'nets negative offset payments against collected' do
         original = order.total_paid
-        offset_payment = order.payments.first.new_exchange_offset_payment
-        offset_payment.save!
+        order.payments << order.payments.first.new_exchange_offset_payment
         order.update!(status: Order::EXCHANGED)
 
         result = RevenueCalculator.for(performance.orders)

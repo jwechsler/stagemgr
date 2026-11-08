@@ -717,8 +717,11 @@ end
       offsets = original_order.create_offset_payments
       refunds = refund ? allocate_exchange_refunds(offsets) : []
       offsets.reject! { |offset| offset.amount.zero? }
-      credits = payment_type.build_exchange_offset_payments(offsets)
+      credits = payment_type.build_exchange_offset_payments(offsets, original_order)
 
+      # Offsets, refunds and credits are built unattached and these concats
+      # attach them, so a rejected $0 offset is in no order's payments even
+      # with has_many_inversing. Chained refund rows are built with their order.
       original_order.payments.concat(offsets, refunds - chained_refund_rows)
       payments.concat(credits)
       settle_exchange_difference!(total_due - credits.sum(&:amount), refund: refund)
