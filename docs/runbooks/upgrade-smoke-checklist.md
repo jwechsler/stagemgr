@@ -52,7 +52,7 @@ Paths are relative to the app's mount point: `https://www.theaterwit.org/tickets
 - [ ] Order entry (`/admin/ticket_orders/new`): address autocomplete finds a patron, production/performance/ticket-class autocompletes fill, cocoon's "Add tickets" row works, cash and card payment forms both load.
 - [ ] Exchange with a price differential ("Exchange Order" on the order, `/admin/ticket_orders/:id/exchange_ticket_orders/new`); the balance is charged or refunded.
 - [ ] Card exchange with a price increase (the difference is charged) and another with a price decrease (the difference is refunded); the order's payments total matches its due.
-- [ ] Refund of a cash order, and *(Stripe)* refund of a card order (`/admin/ticket_orders/:id/refund_orders/new`); one refund payment each, not two.
+- [ ] Refund of a cash order, and *(Stripe)* refund of a card order (`/admin/orders/:id/refund_orders/new`; the `ticket_orders` nesting of that route 404s); one refund payment each, not two.
 - [ ] Reseating from an order's ticket table: move a seat, commit, and the seat map reflects it.
 - [ ] Seat map editor (`/admin/venues/:venue_id/seat_maps/:id/editor`): the Konva canvas draws, and select/drag/save work.
 - [ ] DataTables grids with filters and sorting: `/admin/orders`, `/admin/addresses`, `/admin/users`.
