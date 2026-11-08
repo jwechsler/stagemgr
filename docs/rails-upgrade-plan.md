@@ -324,8 +324,9 @@ their own windows.*
 **1d. Framework defaults (done 2026-11-07, branch `rails-upgrade/release-1-defaults`)**
 
 *Done on `rails-upgrade/release-1-defaults`. The `has_many_inversing` flip itself
-moved to Release 2; `cookies_same_site_protection` and `urlsafe_csrf_tokens` ship
-as a second, small PR a few days later.*
+moved to Release 2; `cookies_same_site_protection` (`:lax`) and
+`urlsafe_csrf_tokens` (`true`) shipped in the SameSite/CSRF follow-up PR. Rails 6.1 accepts
+both CSRF token encodings, so sessions in flight across the deploy keep working.*
 
 1. **Finding.** authlogic 6.4.3 required `ActiveRecord::Base` during
    `Bundler.require` (`authlogic/acts_as_authentic/base.rb:107`), before
@@ -337,12 +338,13 @@ as a second, small PR a few days later.*
 2. Pinned authlogic `~> 6.5.0`, which loads once Active Record has loaded
    (allows AR >= 5.2, < 8.1). 6.6.0 needs Rails >= 7.2, so it moves to
    Release 2 (2c).
-3. `config.load_defaults 6.1`; `new_framework_defaults_6_1.rb` is deleted. Three
-   explicit holds in `config/application.rb`, each commented:
+3. `config.load_defaults 6.1`; `new_framework_defaults_6_1.rb` is deleted. One
+   explicit hold in `config/application.rb`, commented:
    `active_record.has_many_inversing = false` (flip moved to Release 2's
-   defaults deploys, below), `action_dispatch.cookies_same_site_protection = nil`
-   and `action_controller.urlsafe_csrf_tokens = false` (held for their own small
-   deploy, PR 2 of this window). `legacy_connection_handling = false` and the
+   defaults deploys, below). `action_dispatch.cookies_same_site_protection` and
+   `action_controller.urlsafe_csrf_tokens` were held at first and shipped in the
+   SameSite/CSRF follow-up PR; 6.1 accepts both CSRF encodings, so sessions in flight
+   across that deploy keep working. `legacy_connection_handling = false` and the
    Active Job settings now apply; no multi-database code exists, so the first is
    a no-op in practice.
 4. `HAS_MANY_INVERSING=1` forces inversing on in `config/environments/test.rb`
