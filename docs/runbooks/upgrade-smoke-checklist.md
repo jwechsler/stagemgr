@@ -67,6 +67,7 @@ Paths are relative to the app's mount point: `https://www.theaterwit.org/tickets
 
 - [ ] `RAILS_ENV=production bundle exec rake setup:doctor` is all green (`bin/deploy` runs it; read the output).
 - [ ] Framework defaults applied: `grep -c 'has_many_inversing' config/application.rb` is 1 and `RAILS_ENV=production bin/rails runner 'p ActiveRecord::Base.legacy_connection_handling'` prints `false`.
+- [ ] *(SameSite/CSRF deploy)* The session cookie carries `SameSite=Lax` (`curl -sI https://<host>/tickets/login | grep -i set-cookie` shows `SameSite=Lax`) and a form submitted from a page loaded before the deploy still passes CSRF.
 - [ ] `script/resque-worker status` shows three workers; `script/scheduler status` shows one scheduler and no orphans.
 - [ ] *(Stripe)* The next webhook to `/stripecb` gets a 2xx (Stripe dashboard → Webhooks → recent deliveries).
 - [ ] Exception mail arrives: `RAILS_ENV=production bin/rails runner 'ExceptionNotifier.notify_exception(RuntimeError.new("upgrade smoke test"))'`.
