@@ -63,4 +63,10 @@ RSpec.describe Theater do
       expect(theater.secondary_donation_appeal_for(company: nil)).to eq('Helping .')
     end
   end
+
+  describe 'associations' do
+    it 'pairs special_offers with SpecialOffer#theater as its inverse' do
+      expect(Theater.reflect_on_association(:special_offers).inverse_of.name).to eq(:theater)
+    end
+  end
 end

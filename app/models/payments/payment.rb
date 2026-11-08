@@ -50,12 +50,14 @@ class Payment < ApplicationRecord
     ''
   end
 
-  # creates an exchange payment to offset the current payment
-  def new_exchange_offset_payment
+  # An unattached exchange payment offsetting this one; the caller attaches it
+  # with payments.concat, the one side of the association that does. Called on
+  # an offset (which has no order yet) to build the exchange order's credit, so
+  # the order being exchanged is passed in for the note.
+  def new_exchange_offset_payment(exchanged_order = order)
     ExchangePayment.new(
       amount: -1 * amount,
-      order: order,
-      note: "Exchange for order #{order.id}",
+      note: "Exchange for order #{exchanged_order.id}",
       payment_type: payment_type,
       payment_id: id
     )
@@ -96,7 +98,6 @@ class Payment < ApplicationRecord
   def create_refund_payment(_cc_number = nil, _note = nil)
     refund_payment = dup_for_refund
     refund_payment.amount = 0.0 - refund_payment.amount
-    refund_payment.order = order
     order.payments << refund_payment
     refund_payment
   end

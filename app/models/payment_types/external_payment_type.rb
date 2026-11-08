@@ -11,12 +11,6 @@ class ExternalPaymentType < PaymentType
     ExternalPayment.new(amount: amount, order: order, payment_type: self)
   end
 
-  def create_refund_payment(_cc_number = nil, _note = nil)
-    refund_payment = ReversalPayment.create(amount: amount * -1, order: order, payment_id: id)
-    order.payments << refund_payment
-    refund_payment
-  end
-
   def ==(other)
     instance_of?(other.class) && display_name == other.display_name
   end

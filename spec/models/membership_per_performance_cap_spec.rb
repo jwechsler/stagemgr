@@ -25,8 +25,8 @@ RSpec.describe Membership, 'per-performance cap across orders' do
                             payment_type: FactoryBot.create(:membership_payment_type), **attrs)
     order.ticket_line_items << TicketLineItem.new(ticket_class: pass_class, ticket_count: count)
     order.save!
-    order.payments << FactoryBot.create(:membership_payment, order: order, membership: membership,
-                                                             number_of_tickets: count, amount: 0)
+    order.payments << FactoryBot.build(:membership_payment, membership: membership,
+                                                            number_of_tickets: count, amount: 0)
     order.update_column(:status, status)
     order
   end

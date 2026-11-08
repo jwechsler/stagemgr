@@ -26,8 +26,7 @@ class DonationOrder < Order
     to_s
   end
 
-  def all_line_items(reload_line_items = false)
-    donation_line_items.reload if reload_line_items
+  def all_line_items
     super +
       donation_line_items
   end
@@ -35,11 +34,6 @@ class DonationOrder < Order
   def valid_payment_types_for(current_user)
     valid_payment_types = super
     valid_payment_types.grep(CurrencyPaymentType)
-  end
-
-  def reload_associated
-    super
-    donation_line_items(true)
   end
 
   protected

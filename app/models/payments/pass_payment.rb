@@ -1,5 +1,5 @@
 class PassPayment < Payment
-  def new_exchange_offset_payment
+  def new_exchange_offset_payment(exchanged_order = order)
     offset_payment = super
     offset_payment.number_of_tickets = 0 - number_of_tickets
     offset_payment

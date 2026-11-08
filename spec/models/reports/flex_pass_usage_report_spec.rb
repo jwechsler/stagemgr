@@ -49,15 +49,15 @@ RSpec.describe FlexPassUsageReport do
 
   def create_paid_order_for(offer, amount:)
     order = FactoryBot.create(:flex_pass_order, flex_pass_offer: offer)
-    order.payments << FactoryBot.create(:cash_payment, order: order, amount: amount,
-                                                       processed_on: in_may)
+    order.payments << FactoryBot.build(:cash_payment, amount: amount,
+                                                      processed_on: in_may)
     order
   end
 
   def redeem_tickets_on(order, count:, amount: 0)
-    FactoryBot.create(:flex_pass_payment, order: order, flex_pass: order.flex_pass,
-                                          number_of_tickets: count, amount: amount,
-                                          processed_on: in_may)
+    order.payments << FactoryBot.build(:flex_pass_payment, flex_pass: order.flex_pass,
+                                                           number_of_tickets: count, amount: amount,
+                                                           processed_on: in_may)
   end
 
   def may_row(report_output)
@@ -125,8 +125,8 @@ RSpec.describe FlexPassUsageReport do
     end
 
     it 'does not multiply pass counts by the payment count of split-payment orders' do
-      wit_order.payments << FactoryBot.create(:cash_payment, order: wit_order, amount: 25.0,
-                                                             processed_on: in_may)
+      wit_order.payments << FactoryBot.build(:cash_payment, amount: 25.0,
+                                                            processed_on: in_may)
 
       row = may_row(described_class.new(starting_date, ending_date).create)
       expect(row).to include(new_passes: 2, new_deposits: 185.to_money)

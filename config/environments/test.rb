@@ -12,6 +12,10 @@ Rails.application.configure do
 
   config.cache_classes = true
 
+  # Readiness check for the Rails 7.2 defaults flip: HAS_MANY_INVERSING=1 runs
+  # the suite with has_many_inversing on. Not read in any other environment.
+  config.active_record.has_many_inversing = true if ENV['HAS_MANY_INVERSING'] == '1'
+
   # Do not eager load code on boot. This avoids loading your whole application
   # just for the purpose of running a single test. If you are using a tool that
   # preloads Rails for running tests, you may have to set it to true.

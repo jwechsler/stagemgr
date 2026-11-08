@@ -90,7 +90,7 @@ class FlexPassPayment < PassPayment
     "#{number_of_tickets} FlexPass"
   end
 
-  def new_exchange_offset_payment
+  def new_exchange_offset_payment(exchanged_order = order)
     offset_payment = super
     offset_payment.flex_pass = flex_pass
     offset_payment
