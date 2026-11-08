@@ -370,11 +370,6 @@ end
     ticket_detail_description
   end
 
-  def reload_associated
-    super
-    preset_line_items
-  end
-
   def preset_line_items
     super
     return if finalized?
@@ -695,7 +690,7 @@ end
     offsets.reject { |p| p.amount == 0 }
   end
 
-  def total_ticket_face_value(reload_line_items = false)
+  def total_ticket_face_value
     a = ticket_line_items.to_a.sum { |line_item| line_item.respond_to?(:total) ? line_item.total : 0 }
     a = 0.0 if a < 0.0
     a
@@ -805,9 +800,8 @@ end
     performance.performance_date
   end
 
-  def all_line_items(reload_line_items = false)
-    ticket_line_items.reload if reload_line_items
-    super(reload_line_items) + ticket_line_items
+  def all_line_items
+    super + ticket_line_items
   end
 
   # for form processing

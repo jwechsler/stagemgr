@@ -23,7 +23,7 @@ class FlexPassOrder < Order
     'FLEXPASS'
   end
 
-  def all_line_items(reload_line_items = false)
+  def all_line_items
     super << flex_pass_line_item
   end
 

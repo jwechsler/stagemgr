@@ -85,23 +85,6 @@ class FlexPass < ApplicationRecord
     end
   end
 
-  def self.fix_mangled_passes
-    passes = FlexPass.all
-    passes.select { |p| p.flex_pass_line_item.nil? }.each do |p|
-      Rails.logger.warn("Kept mangled flex pass #{p.id}: #{p.errors.full_messages.to_sentence}") unless p.destroy
-    end
-    passes = FlexPass.all
-    passes.each do |p|
-      next if p.flex_pass_line_item.nil? # kept above: used on orders
-
-      p.order = p.flex_pass_line_item.order
-      p.address = p.order.address
-      p.expiration_date = p.created_at.to_date + p.flex_pass_offer.months_till_expiration.months
-      p.save!
-    end
-    ''
-  end
-
   def has_placed_orders?
     FlexPassPayment.where(flex_pass_id: id).count > 0
   end

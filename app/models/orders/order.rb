@@ -28,7 +28,6 @@ class Order < ApplicationRecord
                                  inverse_of: :orders_as_recipient
 
   has_many :payments, inverse_of: :order
-  has_many :exchange_payments
   has_many :tasks, class_name: 'OrderTask', dependent: :destroy, inverse_of: :order
   has_many :seats, foreign_key: :order_uuid, primary_key: :uuid, class_name: 'SeatAssignment', inverse_of: :order
   has_one :special_offer_line_item, inverse_of: :order
@@ -397,12 +396,6 @@ class Order < ApplicationRecord
     special_offer_line_item.nil? ? '' : special_offer_line_item.special_offer.code
   end
 
-  def reload_associated
-    payments(true)
-    tasks(true)
-    special_offer_line_item(true)
-  end
-
   def regularize_credit_card_expiration
     self.credit_card_expiration_year = Order.fix_expiration_year(credit_card_expiration_year)
     return if credit_card_expiration_year.blank? || credit_card_expiration_year.length > 2
@@ -656,12 +649,8 @@ class Order < ApplicationRecord
     hack
   end
 
-  def all_line_items(reload_line_items = false)
+  def all_line_items
     result = []
-    if reload_line_items
-      special_offer_line_item.reload
-      service_line_item.reload
-    end
     result << special_offer_line_item unless special_offer_line_item.nil?
     result += service_line_items
     result += adjustment_line_items

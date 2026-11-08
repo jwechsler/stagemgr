@@ -130,7 +130,7 @@ class MembershipOrder < Order
     result
   end
 
-  def all_line_items(reload_line_items = false)
+  def all_line_items
     result = super
     result << membership_line_item unless membership_line_item.nil?
     result
