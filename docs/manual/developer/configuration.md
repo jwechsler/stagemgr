@@ -300,7 +300,6 @@ from the cron environment:
 |---|---|---|
 | `REPORT_EMAIL` | **none -- the scripts abort without it** | Recipient and envelope sender for `mail_*.sh` |
 | `REPORT_SUBJECT_TAG` | `StageMgr` | Prefix in the subject line, e.g. `[StageMgr] Unfulfilled Flexpasses` |
-| `MY_CNF` | `$HOME/.my.cnf` | MySQL defaults file the HUD count scripts (`db/reports/hud/*.sh`) authenticate with |
 
 ## `config/server.yml`
 
