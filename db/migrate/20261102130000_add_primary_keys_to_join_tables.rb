@@ -54,7 +54,7 @@ class AddPrimaryKeysToJoinTables < ActiveRecord::Migration[6.1]
   private
 
   def dedupe(table, first, second)
-    execute "CREATE TEMPORARY TABLE #{table}_distinct AS SELECT DISTINCT #{first}, #{second} FROM #{table}"
+    execute "CREATE TEMPORARY TABLE #{table}_distinct (PRIMARY KEY (#{first}, #{second})) AS SELECT DISTINCT #{first}, #{second} FROM #{table}"
     execute "DELETE FROM #{table}"
     execute "INSERT INTO #{table} (#{first}, #{second}) SELECT #{first}, #{second} FROM #{table}_distinct"
     execute "DROP TEMPORARY TABLE #{table}_distinct"
