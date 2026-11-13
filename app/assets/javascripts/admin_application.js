@@ -38,16 +38,16 @@ function refresh_window(){
 };
 
 
+// Called from inline onclick handlers, which ignore the return value; the
+// form is submitted once the user confirms in the reveal dialog.
 function confirmSubmit(prompt, val) {
-  if (confirm(prompt)) {
+  revealConfirm(prompt).then(function(confirmed) {
+    if (!confirmed) { return; }
     $('.submit-button').prop('disabled', true);
     $('#submit_action').val(val);
     $('.simple_form').submit();
-    return true;
     // @todo disable button with processing instructions
-  } else {
-    return false;
-  };
+  });
 };
 
 function submitForm(val) {
@@ -150,13 +150,20 @@ $(document).ready(function() {
     }
 
     var recipientCount = $('#recipient-count').text();
+    var $sendButton = $(this);
 
-    if (!confirm('Are you sure you want to send this email to ' + recipientCount + ' recipients?')) {
-      return;
-    }
+    revealConfirm('Are you sure you want to send this email to ' + recipientCount + ' recipients?', {
+      confirmText: 'Send Email'
+    }).then(function(confirmed) {
+      if (confirmed) {
+        sendBroadcast($sendButton, subject, fromAddress, body, recipientCount);
+      }
+    });
+  });
 
+  function sendBroadcast($sendButton, subject, fromAddress, body, recipientCount) {
     // Disable button to prevent double-submission
-    $(this).prop('disabled', true).text('Sending...');
+    $sendButton.prop('disabled', true).text('Sending...');
 
     var performanceId = $('#broadcast-performance-id').val();
     var theaterId = $('#broadcast-theater-id').val();
@@ -194,7 +201,7 @@ $(document).ready(function() {
         $('#confirm-broadcast').prop('disabled', false).text('Send Email to ' + recipientCount + ' Recipients');
       }
     });
-  });
+  }
 });
 
 // Allocation sync status polling — auto-clears banner when background job finishes

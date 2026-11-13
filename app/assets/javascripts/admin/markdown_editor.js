@@ -9,6 +9,7 @@
   var EMPTY_PREVIEW = '<p class="markdown-editor__empty">Nothing here yet.</p>';
 
   var SENDING_LABEL = 'Sending…';
+  var SEND_SAMPLE_CONFIRM_LABEL = 'Send Sample';
 
   function previewUrl() {
     var root = document.querySelector('meta[name="app-root-path"]');
@@ -183,8 +184,13 @@
   }
 
   function sendSample(button) {
-    if (!window.confirm('Send a sample ' + button.dataset.emailName + ' to ' + button.dataset.email + '?')) return;
+    var question = 'Send a sample ' + button.dataset.emailName + ' to ' + button.dataset.email + '?';
+    revealConfirm(question, { confirmText: SEND_SAMPLE_CONFIRM_LABEL }).then(function(confirmed) {
+      if (confirmed) postSample(button);
+    });
+  }
 
+  function postSample(button) {
     var label = button.textContent;
     button.disabled = true;
     button.textContent = SENDING_LABEL;

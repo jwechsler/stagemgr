@@ -25,3 +25,23 @@ Feature: Flex Pass Box Office Ordering
       And I enter a valid credit card as payment through the backend
       And I place the order
       And I should see "successfully processed"
+
+  Scenario: Confirming Make Inactive in the dialog deactivates the selected offers
+    Given I log out
+      And I am logged in as an administrator
+      And I visit the admin flex pass offer page
+    When I select the "Flex Pass" row in the active flex pass offers table
+      And I click the "Make Inactive" bulk action
+      And I confirm making 1 flex pass offer inactive
+    Then I should see the offer bulk result "Make Inactive: 1 offer updated."
+      And the flex pass offer "Flex Pass" should be inactive
+
+  Scenario: Cancelling Make Inactive in the dialog changes nothing
+    Given I log out
+      And I am logged in as an administrator
+      And I visit the admin flex pass offer page
+    When I select the "Flex Pass" row in the active flex pass offers table
+      And I click the "Make Inactive" bulk action
+      And I cancel making 1 flex pass offer inactive
+    Then I should not see an offer bulk result
+      And the flex pass offer "Flex Pass" should be active

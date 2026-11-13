@@ -55,8 +55,9 @@ function initOfferStatusTabs(pageKey) {
 //   bulkActions: [{text, url, confirm}] -- buttons that act on the selected
 //     rows, right-aligned above the table as Fulfill Selected is on the orders
 //     list (on a row of their own, below the search box) and enabled only
-//     while rows are selected. Each POSTs the selected ids to +url+ (after
-//     confirm(count) returns a question the user accepts, when given) and
+//     while rows are selected. Each POSTs the selected ids to +url+ (when
+//     confirm(count) is given, only after the user accepts the question it
+//     returns in a reveal dialog whose confirm button reads +text+) and
 //     expects {updated, failed: [{name, errors}]} back. Needs selectable.
 function initOfferTable(selector, columns, language, tableOptions) {
   var config = tableOptions || {};
@@ -117,17 +118,28 @@ function initOfferTable(selector, columns, language, tableOptions) {
   }
 }
 
-// POSTs the selected rows' ids for one bulk action, reports the outcome above
-// the table and redraws every offer table, since changed offers move tabs.
+// Runs one bulk action on the selected rows, asking first when the action
+// has a confirm question.
 function runOfferBulkAction(table, bulkAction) {
   var ids = table.rows({ selected: true }).ids().toArray();
   if (!ids.length) {
     return;
   }
-  if (bulkAction.confirm && !window.confirm(bulkAction.confirm(ids.length))) {
+  if (!bulkAction.confirm) {
+    postOfferBulkAction(table, bulkAction, ids);
     return;
   }
+  revealConfirm(bulkAction.confirm(ids.length), { confirmText: bulkAction.text })
+    .then(function (confirmed) {
+      if (confirmed) {
+        postOfferBulkAction(table, bulkAction, ids);
+      }
+    });
+}
 
+// POSTs the ids for one bulk action, reports the outcome above the table and
+// redraws every offer table, since changed offers move tabs.
+function postOfferBulkAction(table, bulkAction, ids) {
   table.buttons().disable();
   $.ajax({ url: bulkAction.url, type: 'POST', dataType: 'json', data: { ids: ids } })
     .done(function (result) {

@@ -163,7 +163,10 @@ $(document).ready(function() {
     }
   });
 
-  $(document).on('closed.zf.reveal', '[data-reveal]', function () {
+  // Only the reseating modal: Foundation marks every reveal [data-reveal],
+  // including the shared confirm dialog, and none of them should roll back.
+  $(document).on('closed.zf.reveal', '#change-seats', function (e) {
+    if (e.target !== this) { return; }
     $.post(rollback_reseating_url(),
       { 'order_uuid': ticket_order_id()
       }, function(response, status) {

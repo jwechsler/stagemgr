@@ -57,7 +57,7 @@ end
 
 When(/^I place the order$/) do
   click_link('Place Order')
-  page.driver.browser.switch_to.alert.accept
+  accept_reveal_confirm('Process this order?')
 end
 
 When('I submit the order') do
