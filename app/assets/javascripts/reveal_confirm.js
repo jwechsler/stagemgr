@@ -34,9 +34,10 @@ var REVEAL_CONFIRM_ESCAPE_KEYS = ['Escape', 'Esc'];
 var REVEAL_DIALOG_MODE_ATTR = 'data-reveal-dialog-mode';
 var REVEAL_DIALOG_MODE_CONFIRM = 'confirm';
 var REVEAL_DIALOG_MODE_ALERT = 'alert';
-// One-shot jQuery data flag: the next allowAction on this element skips the
-// question because the user has just answered it.
-var REVEAL_CONFIRM_UJS_BYPASS_KEY = 'revealConfirmAnswered';
+// DOM-node properties (see the jquery_ujs section): set while the answered
+// action is re-dispatched, and while the element's question is open.
+var REVEAL_CONFIRM_UJS_BYPASS_PROP = 'revealConfirmAnswered';
+var REVEAL_CONFIRM_UJS_PENDING_PROP = 'revealConfirmPending';
 var REVEAL_CONFIRM_UJS_ACCEPT_DATA = 'confirm-accept';
 
 var revealConfirmState = { $el: null, reveal: null, resolve: null, $returnFocus: null };
@@ -166,12 +167,16 @@ function revealAlert(message, options) {
 // the action once with the question bypassed: a native click() for links and
 // buttons (jQuery's trigger('click') does not follow an href), a fresh submit
 // for a form carrying data-confirm itself.
+//
+// The bypass and pending markers live on the DOM node, not in jQuery data:
+// pages that load seat_map.js evaluate jquery_ujs and this file twice, so two
+// jQuery instances (separate data caches) each handle the same click.
 
 function revealConfirmRedispatch($element) {
   var el = $element[0];
   if (!el || !document.body.contains(el)) { return; }
 
-  $element.data(REVEAL_CONFIRM_UJS_BYPASS_KEY, true);
+  el[REVEAL_CONFIRM_UJS_BYPASS_PROP] = true;
   try {
     if ($element.is('form')) {
       revealConfirmResubmit(el);
@@ -179,9 +184,9 @@ function revealConfirmRedispatch($element) {
       el.click();
     }
   } finally {
-    // The re-dispatch runs synchronously; clear the flag even if nothing
-    // reached allowAction (e.g. the element was disabled meanwhile).
-    $element.removeData(REVEAL_CONFIRM_UJS_BYPASS_KEY);
+    // The re-dispatch runs synchronously, so every handler has seen the
+    // flag by now; clear it even if nothing reached allowAction.
+    el[REVEAL_CONFIRM_UJS_BYPASS_PROP] = false;
   }
 }
 
@@ -199,15 +204,17 @@ function revealConfirmAllowAction(rails, nativeAllowAction, element) {
   var message = element.data('confirm');
   if (!message) { return true; }
 
-  if (element.data(REVEAL_CONFIRM_UJS_BYPASS_KEY)) {
-    element.removeData(REVEAL_CONFIRM_UJS_BYPASS_KEY);
-    return true;
-  }
+  var el = element[0];
+  if (el[REVEAL_CONFIRM_UJS_BYPASS_PROP]) { return true; }
   if (!revealDialogIsAvailable()) { return nativeAllowAction.call(rails, element); }
+  // Another jQuery instance's handler has already opened this question.
+  if (el[REVEAL_CONFIRM_UJS_PENDING_PROP]) { return false; }
   if (!rails.fire(element, 'confirm')) { return false; }
 
+  el[REVEAL_CONFIRM_UJS_PENDING_PROP] = true;
   revealConfirm(String(message), { confirmText: element.data(REVEAL_CONFIRM_UJS_ACCEPT_DATA) || undefined })
     .then(function (answer) {
+      el[REVEAL_CONFIRM_UJS_PENDING_PROP] = false;
       var isAllowed = rails.fire(element, 'confirm:complete', [answer]);
       if (answer && isAllowed) { revealConfirmRedispatch(element); }
     });
