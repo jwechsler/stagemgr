@@ -79,18 +79,18 @@ $reveal-dialog-action-gap: rem-calc(24);
     background: none;
     color: $anchor-color;
     font: inherit;
+    font-weight: $global-weight-normal;
     line-height: $paragraph-lineheight;
     cursor: pointer;
 
     &:hover {
       color: $anchor-color-hover;
     }
+  }
 
-    // what-input strips the outline after a mouse click, so the underline is
-    // the focus indicator that always shows (the accept action opens focused).
-    &:focus {
-      text-decoration: underline;
-      text-underline-offset: 0.2em;
-    }
+  // The accept action is the default (it opens focused and Enter triggers
+  // it), shown by weight as a native confirm sheet does.
+  .reveal-dialog__action--accept {
+    font-weight: $global-weight-bold;
   }
 }
