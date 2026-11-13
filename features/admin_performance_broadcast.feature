@@ -47,7 +47,7 @@ Feature: Box office users can email performance attendees
     Then the subject field should contain "Important update regarding Production One"
 
   @javascript
-  Scenario: Form validation requires all fields
+  Scenario: Missing required fields show a validation notice dialog and leave the email modal open
     Given I am a box office user
     And I am logged in
     When I go to the admin production detail page for "Production One"

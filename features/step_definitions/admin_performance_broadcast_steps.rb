@@ -145,24 +145,22 @@ Then(/^the subject field should contain "(.*?)"$/) do |text|
   end
 end
 
-# The send question is a reveal dialog over the modal (reveal_confirm.js);
-# the success/error message after the AJAX response is still a native alert.
+# The send question and the result after the AJAX response are both the
+# shared reveal dialog over the modal (reveal_confirm.js): a confirmation,
+# then a one-button notice.
 When(/^I click "([^"]*)" and confirm with alert "([^"]*)"$/) do |button_text, expected_alert|
   within('#email-attendees-modal') do
     click_button button_text
   end
-  @last_alert_message = accept_reveal_confirm_and_alert(/send this email to \d+ recipients\?/,
-                                                        accept_label: 'Send Email')
-  expect(@last_alert_message).to include(expected_alert)
+  accept_reveal_confirm(/send this email to \d+ recipients\?/, accept_label: 'Send Email')
+  @last_alert_message = accept_reveal_alert(expected_alert)
 end
 
 When(/^I click "([^"]*)" and accept the validation alert$/) do |button_text|
-  message = accept_alert do
-    within('#email-attendees-modal') do
-      click_button button_text
-    end
+  within('#email-attendees-modal') do
+    click_button button_text
   end
-  expect(message).to include('Please fill in all required fields')
+  accept_reveal_alert('Please fill in all required fields')
 end
 
 When(/^I click "([^"]*)"$/) do |button_text|
@@ -196,8 +194,8 @@ When(/^I send a sample of the message and confirm$/) do
   within('#email-attendees-modal') do
     click_button 'Send sample email'
   end
-  @last_alert_message = accept_reveal_confirm_and_alert(/\ASend a sample attendee email to \S+@\S+\?\z/,
-                                                        accept_label: 'Send Sample')
+  accept_reveal_confirm(/\ASend a sample attendee email to \S+@\S+\?\z/, accept_label: 'Send Sample')
+  @last_alert_message = accept_reveal_alert
 end
 
 When(/^I send a sample of the message and cancel$/) do

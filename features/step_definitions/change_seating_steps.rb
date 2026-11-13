@@ -6,8 +6,6 @@ def change_seating_circle(seat_id, status = nil)
 end
 
 When(/^I open Change Seating$/) do
-  # A real alert would block WebDriver; record any instead.
-  page.execute_script('window.__alerts = []; window.alert = function(m) { window.__alerts.push(String(m)); };')
   find('#seating-control').click
   expect(page).to have_css('#change-seats', visible: true)
   @old_seat_id = @original_seat_ids.first
@@ -23,13 +21,14 @@ When(/^I move the order's first seat to an open seat$/) do
   target.click
   expect(page).to have_css(change_seating_circle(@new_seat_id, 'assigned'))
   expect(page).to have_css('#finalize-seating:not(.disabled)')
+  expect_no_reveal_alert
 end
 
 When(/^I finalize the new seating$/) do
   find('#finalize-seating').click
   @new_location = SeatAssignment.find(@new_seat_id).seat.location
   expect(page).to have_css('#seatinglist', text: @new_location)
-  expect(page.evaluate_script('window.__alerts')).to eq([])
+  expect_no_reveal_alert
 end
 
 Then(/^the first seat's line item holds the new seat$/) do

@@ -23,7 +23,7 @@ class ServiceItemTemplateDecorator < ApplicationDecorator
      end) +
       (if h.current_user.can?(:destroy,
                               object)
-         link_to('Destroy', [:admin, object], confirm: 'Are you sure?', method: :delete,
+         link_to('Destroy', [:admin, object], data: { confirm: 'Are you sure?' }, method: :delete,
                                               class: 'tiny alert button')
        else
          ''

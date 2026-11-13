@@ -53,3 +53,24 @@ Feature: Administer Festivals
       And I follow "Destroy" and confirm
      Then I should see "This festival still has productions assigned"
       And a festival "Physical Theatre Festival" should still exist
+
+  @javascript
+  Scenario: Confirming Destroy deletes a festival with no productions
+    Given a festival "Physical Theatre Festival" exists
+      And I am an Administrator
+      And I am logged in
+      And I go to the admin festivals page
+      And I follow "Destroy" and confirm
+     Then I should see "Festival was successfully deleted."
+      And I should not see "Physical Theatre Festival"
+
+  @javascript
+  Scenario: Cancelling the Destroy confirmation leaves the festival in place
+    Given a festival "Physical Theatre Festival" exists
+      And I am an Administrator
+      And I am logged in
+      And I go to the admin festivals page
+      And I follow "Destroy" and cancel
+     Then I should not see "Festival was successfully deleted."
+      And I should see "Physical Theatre Festival"
+      And a festival "Physical Theatre Festival" should still exist

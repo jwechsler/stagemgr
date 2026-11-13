@@ -2,12 +2,12 @@
 # Wraps $.post -- what seat_assignment.js and reseating.js call -- so each
 # reserve/release is recorded and held until a step lets it through, and
 # returns a jQuery Deferred promise so .done/.fail/.always chaining still works.
-# window.alert is replaced with a recorder: a real alert blocks WebDriver.
+# Rejection notices are the shared reveal dialog (revealAlert), read through
+# features/support/reveal_confirm.rb.
 SEAT_LATCH_JS = <<~JS.freeze
   (function() {
-    var latch = { held: [], alerts: [] };
+    var latch = { held: [] };
     var realPost = $.post;
-    window.alert = function(message) { latch.alerts.push(String(message)); };
     $.post = function(url, data, success) {
       if (!/\\/(reserve|release)\\.json/.test(String(url))) { return realPost.apply(this, arguments); }
       var deferred = $.Deferred();
@@ -117,8 +117,7 @@ Then(/^the ticket rows name open seats (\d+) and (\d+) once each$/) do |first, s
 end
 
 Then(/^an alert said "(.*?)"$/) do |message|
-  wait_for_condition { page.evaluate_script('window.__seatLatch.alerts').include?(message) }
-  expect(page.evaluate_script('window.__seatLatch.alerts')).to include(message)
+  expect(accept_reveal_alert).to eq(message)
 end
 
 Then(/^open seat (\d+) is still open$/) do |number|

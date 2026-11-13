@@ -61,9 +61,8 @@ When(/^I place the order$/) do
 end
 
 When('I submit the order') do
-  accept_confirm do
-    click_button('Place Order')
-  end
+  click_button('Place Order')
+  accept_reveal_confirm
 end
 
 Given(/^I create a ticket order$/) do

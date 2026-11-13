@@ -46,7 +46,7 @@
                 -# position misaligns once non-seat rows interleave.
                 =select_tag 'seats[]', options_for_select(all_seats, ticket[:seat].seat.id), {include_blank: true, id:"line#{index}", class: 'seat-selector'}
           -index += 1
-        = f.submit 'Split Order', :disable_with=>'Processing...', :class=>'alert button', confirm:"Are you sure?", id: "split_button"
+        = f.submit 'Split Order', :disable_with=>'Processing...', :class=>'alert button', data: { confirm: "Are you sure?" }, id: "split_button"
       -else
         .grid-x.grid-padding-x
           .column.small-2
@@ -80,7 +80,7 @@
               =hidden_field_tag 'seats[]', 0, {id:"line#{index}", class: 'seat-selector'}
               GA
           -index += 1
-        = f.submit 'Split Order', :disable_with=>'Processing...', :class=>'alert button', confirm:"Are you sure?", id: "split_button"
+        = f.submit 'Split Order', :disable_with=>'Processing...', :class=>'alert button', data: { confirm: "Are you sure?" }, id: "split_button"
 = content_for :js do
   :javascript
     function replicate_seat_selector_value(selector_id, new_seat) {

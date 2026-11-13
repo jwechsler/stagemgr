@@ -65,7 +65,7 @@ $(document).ready(function() {
         // enforces the same rule in reserve and commit_reseating.
         var seatZone = String($(this).data('zone') || '');
         if (!zone_allowed_for_order(seatZone)) {
-          alert("Seat " + $(this).data('location') + " (zone " + seatZone + ") is not available for your ticket type");
+          revealAlert("Seat " + $(this).data('location') + " (zone " + seatZone + ") is not available for your ticket type");
           break;
         }
         mark_seat_pending(clicked_id)
@@ -85,11 +85,11 @@ $(document).ready(function() {
                   // $( '[data-assignment-id='+value+']').mapster('deselect')
                 });
                 if (response['status'] == 'unavailable') {
-                  alert("Sorry, that seat is no longer available")
+                  revealAlert("Sorry, that seat is no longer available")
                 } else if (response['status'] == 'assigned') {
                   update_seating_attributes(e_reference, response['status'])
                 } else {
-                  alert("You can only assign " + max_tix + ((max_tix==1) ? " seat" : " seats"))
+                  revealAlert("You can only assign " + max_tix + ((max_tix==1) ? " seat" : " seats"))
                   // $( e_reference ).mapster('deselect')
                 }
                 // $('img.seatingmap').mapster('rebind',mapster_options())
@@ -157,7 +157,7 @@ $(document).ready(function() {
 
         } else {
           console.log("failure")
-          alert(response['message'] || 'Unable to finalize seating')
+          revealAlert(response['message'] || 'Unable to finalize seating')
         }
       });
     }

@@ -16,7 +16,7 @@ class VenueDecorator < ApplicationDecorator
     if h.current_user.can?(
       :destroy, object
     )
-      actions << ('<li>' + h.link_to('Destroy', [:admin, object], confirm: 'Are you sure?', method: :delete,
+      actions << ('<li>' + h.link_to('Destroy', [:admin, object], data: { confirm: 'Are you sure?' }, method: :delete,
                                                                   class: 'tiny alert button') + '</li>')
     end
     h.raw('<ul class="button-group">' + actions.join(' ') + '</ul>')

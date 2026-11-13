@@ -95,8 +95,9 @@
      // Handle global DataTables errors
      $('#order-listing').on('error.dt', function(e, settings, techNote, message) {
        // Display a custom alert message with a page reload
-       alert("An error occurred while loading the data. The page will now reload.");
-       location.reload();
+       revealAlert("An error occurred while loading the data. The page will now reload.").then(function() {
+         location.reload();
+       });
      });
 
      update_buttons(oListing);
@@ -124,11 +125,11 @@
 
 
       $('#print-button').click( function () {
-          alert( $("#address-listing").DataTable().rows('.selected').data().length +' row(s) selected' );
+          revealAlert( $("#address-listing").DataTable().rows('.selected').data().length +' row(s) selected' );
       } );
 
       $('#unclaimed-button').click( function () {
-          alert( $("#address-listing").DataTable().rows('.selected').data().length +' row(s) selected' );
+          revealAlert( $("#address-listing").DataTable().rows('.selected').data().length +' row(s) selected' );
       } );
 
 

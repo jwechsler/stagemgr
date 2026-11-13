@@ -127,7 +127,7 @@ $(document).ready(function() {
         console.error('Error loading recipient count:', status, error, xhr.responseText);
         $('#recipient-count').text('Error loading').removeClass('secondary').addClass('alert');
         $('#confirm-broadcast').prop('disabled', true);
-        alert('Error loading recipient count. Please try again.');
+        revealAlert('Error loading recipient count. Please try again.');
       }
     });
 
@@ -145,7 +145,7 @@ $(document).ready(function() {
     var body = $('#broadcast-body').val().trim();
 
     if (!subject || !fromAddress || !body) {
-      alert('Please fill in all required fields.');
+      revealAlert('Please fill in all required fields.');
       return;
     }
 
@@ -181,26 +181,32 @@ $(document).ready(function() {
         body: body
       },
       success: function(data) {
+        // The notice opens over the modal; the modal closes and the button
+        // resets only once the user dismisses it, as with the old native alert.
         if (data.success) {
-          alert(data.message);
-          $('#email-attendees-modal').foundation('close');
-          // Reset form
-          $('#email-attendees-form')[0].reset();
-          document.getElementById('broadcast-body').dispatchEvent(new Event('input'));
+          revealAlert(data.message).then(function() {
+            $('#email-attendees-modal').foundation('close');
+            // Reset form
+            $('#email-attendees-form')[0].reset();
+            document.getElementById('broadcast-body').dispatchEvent(new Event('input'));
+            resetSendButton();
+          });
         } else {
-          alert('Error: ' + data.message);
+          revealAlert('Error: ' + data.message).then(resetSendButton);
         }
-        $('#confirm-broadcast').prop('disabled', false).text('Send Email to ' + recipientCount + ' Recipients');
       },
       error: function(xhr) {
         var message = 'Error sending broadcast. Please try again.';
         if (xhr.responseJSON && xhr.responseJSON.message) {
           message = 'Error: ' + xhr.responseJSON.message;
         }
-        alert(message);
-        $('#confirm-broadcast').prop('disabled', false).text('Send Email to ' + recipientCount + ' Recipients');
+        revealAlert(message).then(resetSendButton);
       }
     });
+
+    function resetSendButton() {
+      $('#confirm-broadcast').prop('disabled', false).text('Send Email to ' + recipientCount + ' Recipients');
+    }
   }
 });
 

@@ -214,7 +214,7 @@ function initialize_seating_assignment() {
         update_unavailable_seats(response['unavailable']);
         console.log("result = " + response['status'])
         if (response['status'] == 'unavailable') {
-          alert("Sorry, that seat is no longer available")
+          revealAlert("Sorry, that seat is no longer available")
         } else if (response['status'] == 'assigned') {
           if (is_reserved_seating_mode()) {
             var tcInfo = find_ticket_class_info(ticket_class_id) || {}

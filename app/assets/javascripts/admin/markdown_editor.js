@@ -204,10 +204,10 @@
         throw new Error('HTTP ' + response.status);
       });
     }).then(function(data) {
-      window.alert(data.success ? data.message : 'Error: ' + data.message);
+      return revealAlert(data.success ? data.message : 'Error: ' + data.message);
     }).catch(function(error) {
       console.error(error);
-      window.alert('Could not send the sample email. Please try again.');
+      return revealAlert('Could not send the sample email. Please try again.');
     }).then(function() {
       button.disabled = false;
       button.textContent = label;
