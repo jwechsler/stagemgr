@@ -5,7 +5,7 @@ class ProductionDecorator < ApplicationDecorator
     actions = []
     if h.current_user.can? :destroy, Production
       actions << if object.performances.count == 0
-                   h.link_to('Destroy', [:admin, object.theater, object], data: { confirm: 'Are you sure?' }, method: :delete,
+                   h.link_to('Destroy', [:admin, object.theater, object], data: h.destroy_confirm_data, method: :delete,
                                                                           class: 'alert tiny button')
                  else
                    h.link_to('Destroy', '#', method: :get, class: 'disabled alert tiny button')

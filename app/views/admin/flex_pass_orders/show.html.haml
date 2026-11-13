@@ -28,7 +28,7 @@
       = link_to 'Refund Order', new_admin_order_refund_order_path(@flex_pass_order), :class=>'small alert button' if @flex_pass_order.refundable?
     = link_to 'Fulfill Order', fulfill_admin_order_path(@flex_pass_order), :class=>'small button' if @flex_pass_order.fulfillable?
     - if @flex_pass_order.status == 'Processing' || @flex_pass_order.status == 'Hold' || @flex_pass_order.status == Order::NEW || can?(:cancel, FlexPassOrder)
-      = link_to 'Cancel Order', cancel_admin_order_path(@flex_pass_order), :class=>'small alert button', data: { confirm: "Are you sure you want to cancel this FlexPass order? The order will be refunded and any upcoming ticket orders using this flex pass will also be cancelled." }, :method=>:post
+      = link_to 'Cancel Order', cancel_admin_order_path(@flex_pass_order), :class=>'small alert button', data: cancel_default_confirm_data("Are you sure you want to cancel this FlexPass order? The order will be refunded and any upcoming ticket orders using this flex pass will also be cancelled."), :method=>:post
 
 .grid-x.grid-padding-x
   .small-12.cell

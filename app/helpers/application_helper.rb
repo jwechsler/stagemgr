@@ -67,4 +67,17 @@ module ApplicationHelper
   def survey_link(production = nil)
     production.nil? || production.survey_link.blank? ? Rails.configuration.x.server_config['survey_link'] : production.survey_link
   end
+
+  # data attributes for a data-confirm whose shared dialog opens with Cancel as
+  # the default action; accept, when given, labels the accept button.
+  def cancel_default_confirm_data(message, accept: nil)
+    data = { confirm: message, confirm_default: 'cancel' }
+    accept ? data.merge(confirm_accept: accept) : data
+  end
+
+  # data attributes for a destructive link: the shared dialog labels its accept
+  # button with the action and makes Cancel the default.
+  def destroy_confirm_data(message = 'Are you sure?', accept: 'Destroy')
+    cancel_default_confirm_data(message, accept: accept)
+  end
 end

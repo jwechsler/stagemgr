@@ -23,7 +23,7 @@ class ResourcedTicketClassDecorator < ApplicationDecorator
       actions << h.link_to('Edit', [:edit, :admin, object], class: 'tiny button')
     end
     if h.current_user.can? :destroy, object
-      actions << h.link_to('Destroy', [:admin, object], data: { confirm: 'Are you sure?' }, method: :delete,
+      actions << h.link_to('Destroy', [:admin, object], data: h.destroy_confirm_data, method: :delete,
                                                         class: 'tiny alert button')
     end
     h.safe_join(actions, ' ')

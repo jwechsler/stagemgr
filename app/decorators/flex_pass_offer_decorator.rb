@@ -49,7 +49,7 @@ class FlexPassOfferDecorator < ApplicationDecorator
     end
 
     if h.current_user.can? :destroy, FlexPassOffer
-      actions << h.link_to('Destroy', [:admin, object], method: :delete, data: { confirm: 'Are you sure?' },
+      actions << h.link_to('Destroy', [:admin, object], method: :delete, data: h.destroy_confirm_data,
                                                         class: 'tiny alert button')
     end
 

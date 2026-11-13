@@ -12,7 +12,7 @@ class TheaterDecorator < ApplicationDecorator
               end)
     links << (if h.current_user.can?(:destroy,
                                      object)
-                h.link_to('Destroy', [:admin, object], data: { confirm: 'Are you sure?' }, method: :delete,
+                h.link_to('Destroy', [:admin, object], data: h.destroy_confirm_data, method: :delete,
                                                        class: 'tiny alert button')
               else
                 ''

@@ -75,5 +75,5 @@
 .grid-x.grid-padding-x
   .small-12.cell
     = link_to "Edit", edit_admin_resourced_ticket_class_path(@resourced_ticket_class), :class=>'tiny button'
-    = link_to "Destroy", [:admin, @resourced_ticket_class], data: { confirm: 'Are you sure?' }, :method => :delete, :class=>'tiny alert button'
+    = link_to "Destroy", [:admin, @resourced_ticket_class], data: destroy_confirm_data, :method => :delete, :class=>'tiny alert button'
     = link_to "View All", admin_resourced_ticket_classes_path, :class=>'tiny button'

@@ -88,9 +88,12 @@ $reveal-dialog-action-gap: rem-calc(24);
     }
   }
 
-  // The accept action is the default (it opens focused and Enter triggers
-  // it), shown by weight as a native confirm sheet does.
-  .reveal-dialog__action--accept {
+  // The default action (it opens focused and Enter triggers it) is shown by
+  // weight, as a native confirm sheet does. reveal_confirm.js names it in
+  // data-reveal-dialog-default: accept unless the dialog says cancel
+  // (destructive links), so a missing attribute still bolds accept.
+  &:not([data-reveal-dialog-default='cancel']) .reveal-dialog__action--accept,
+  &[data-reveal-dialog-default='cancel'] .reveal-dialog__action--cancel {
     font-weight: $global-weight-bold;
   }
 }

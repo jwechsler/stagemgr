@@ -15,7 +15,7 @@ class TicketClassDecorator < ApplicationDecorator
     if h.current_user.can? :destroy,
                            TicketClass
       actions << h.link_to('Destroy', [:admin, object.production.theater, object.production, object],
-                           data: { confirm: 'Are you sure?' }, method: :delete, class: 'button alert tiny')
+                           data: h.destroy_confirm_data, method: :delete, class: 'button alert tiny')
     end
     h.safe_join(actions, ' ')
   end

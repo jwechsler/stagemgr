@@ -25,7 +25,7 @@
 	<th><%= user.current_login_at %></th>
 	<th><%= user.is_administrator %></th>
     <td><%= link_to 'Edit', edit_user_path(user) %></td>
-    <td><%= link_to 'Destroy', user, data: { confirm: 'Are you sure?' }, :method => :delete %></td>
+    <td><%= link_to 'Destroy', user, data: destroy_confirm_data, :method => :delete %></td>
   </tr>
 <% end %>
 </table>

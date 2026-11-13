@@ -29,3 +29,10 @@ Feature: Box office resends an order's confirmation email
     Then I am still on the admin page for that order
     And I should not see the notice "Confirmation email resent"
     And no confirmation email has been sent for that order
+
+  Scenario: The question opens with OK as the default, so Enter resends
+    When I follow "Resend Confirmation"
+    Then the confirmation "Resend confirmation email?" defaults to OK
+    When I press Enter in the confirmation
+    Then I should see the notice "Confirmation email resent"
+    And one confirmation email has been sent for that order
