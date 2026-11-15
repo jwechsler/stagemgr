@@ -21,6 +21,8 @@
 						%a.disabled.button#finalize-seating Reseat
 				.cell.medium-3.hide-for-small-only
 					&nbsp;
+			%button.close-button{ "data-close" => true, "aria-label" => "Close Change Seating", type: "button" }
+				%span{ "aria-hidden" => "true" } &times;
 			
 	%div.grid-x.grid-padding-x
 		%div.small-12.cell

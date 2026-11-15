@@ -34,7 +34,13 @@ function rollback_reseating_url() {
 }
 
 $(document).ready(function() {
+  // True once this opening of Change Seating has been finalized. Closing the
+  // modal rolls back an unfinished change; a finalized one has nothing to undo.
+  var isSeatingFinalized = false;
+
   $("#seating-control").click(function() {
+    // The order page does not reload after a finalize, so each opening starts a new change.
+    isSeatingFinalized = false;
     $('#change-seats').foundation('open');
 
     setTimeout(function() {
@@ -148,7 +154,7 @@ $(document).ready(function() {
       }, function(response, status) {
         console.log('response is ' + response['status'])
         if (response['status'] == 'success') {
-          $("#seating-config").data('finalized','true')
+          isSeatingFinalized = true;
           $('#change-seats').foundation('close')
           console.log("success")
           setTimeout(function () {
@@ -165,8 +171,10 @@ $(document).ready(function() {
 
   // Only the reseating modal: Foundation marks every reveal [data-reveal],
   // including the shared confirm dialog, and none of them should roll back.
+  // A finalized change is not rolled back either.
   $(document).on('closed.zf.reveal', '#change-seats', function (e) {
     if (e.target !== this) { return; }
+    if (isSeatingFinalized) { return; }
     $.post(rollback_reseating_url(),
       { 'order_uuid': ticket_order_id()
       }, function(response, status) {
