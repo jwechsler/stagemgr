@@ -50,7 +50,7 @@ Feature: Administer Festivals
       And I am an Administrator
       And I am logged in
       And I go to the admin festivals page
-      And I follow "Destroy" and confirm
+      And I follow "Destroy" and answer "Are you sure?" with OK
      Then I should see "This festival still has productions assigned"
       And a festival "Physical Theatre Festival" should still exist
 
@@ -60,7 +60,7 @@ Feature: Administer Festivals
       And I am an Administrator
       And I am logged in
       And I go to the admin festivals page
-      And I follow "Destroy" and confirm with "Destroy"
+      And I follow "Destroy" and answer "Are you sure?" with "Destroy"
      Then I should see "Festival was successfully deleted."
       And I should not see "Physical Theatre Festival"
 
@@ -70,7 +70,7 @@ Feature: Administer Festivals
       And I am an Administrator
       And I am logged in
       And I go to the admin festivals page
-      And I follow "Destroy" and cancel
+      And I follow "Destroy" and answer "Are you sure?" with Cancel
      Then I should not see "Festival was successfully deleted."
       And I should see "Physical Theatre Festival"
       And a festival "Physical Theatre Festival" should still exist
@@ -84,7 +84,7 @@ Feature: Administer Festivals
      When I follow "Destroy"
      Then the confirmation "Are you sure?" defaults to Cancel
       And the confirmation's accept button reads "Destroy"
-     When I press Enter in the confirmation
+     When I press Enter in the confirmation "Are you sure?"
      Then I should not see "Festival was successfully deleted."
       And I should see "Physical Theatre Festival"
       And a festival "Physical Theatre Festival" should still exist
@@ -96,7 +96,7 @@ Feature: Administer Festivals
       And I am logged in
       And I go to the admin festivals page
      When I follow "Destroy"
-      And I click outside the confirmation
+      And I click outside the confirmation "Are you sure?"
      Then the confirmation is not showing
       And the "Destroy" link has focus
       And I should see "Physical Theatre Festival"

@@ -12,17 +12,24 @@ Then(/^the confirmation's accept button reads "([^"]*)"$/) do |label|
   expect_reveal_confirm_accept_label(label)
 end
 
-When(/^I press Enter in the confirmation$/) do
-  press_enter_on_reveal_confirm
+When(/^I press Enter in the confirmation "([^"]*)"$/) do |question|
+  press_enter_on_reveal_confirm(question)
 end
 
-When(/^I click outside the confirmation$/) do
-  click_reveal_confirm_overlay
+When(/^I click outside the confirmation "([^"]*)"$/) do |question|
+  click_reveal_confirm_overlay(question)
 end
 
-When(/^I follow "([^"]*)" and confirm with "([^"]*)"$/) do |link_text, accept_label|
+# Answers with the accept button (whatever it is labelled) or Cancel.
+When(/^I follow "([^"]*)" and answer "([^"]*)" with (OK|Cancel)$/) do |link_text, question, answer|
   click_link link_text
-  accept_reveal_confirm(nil, accept_label: accept_label)
+  answer_reveal_confirm_with(question, answer)
+end
+
+# Accepts, checking the accept button reads +accept_label+.
+When(/^I follow "([^"]*)" and answer "([^"]*)" with "([^"]*)"$/) do |link_text, question, accept_label|
+  click_link link_text
+  accept_reveal_confirm(question, accept_label: accept_label)
 end
 
 Then(/^the confirmation is not showing$/) do

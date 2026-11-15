@@ -14,7 +14,7 @@ Feature: Box office users and administrators can release held seats
     And the performance "PROD01A" has 3 held seats without orders
     When I go to the admin production detail page for "Production One"
     Then I should see "Release Held Seats" in the datatable for performance "PROD01A"
-    When I follow "Release Held Seats" in the datatable for performance "PROD01A" and confirm
+    When I follow "Release Held Seats" in the datatable for performance "PROD01A" and answer "Are you sure you want to release all held seats for this performance?" with OK
     Then I should see "Released 3 held seats"
     And the performance "PROD01A" should have 0 held seats without orders
 
@@ -25,7 +25,7 @@ Feature: Box office users and administrators can release held seats
     And the performance "PROD01A" has 2 held seats without orders
     When I go to the admin production detail page for "Production One"
     Then I should see "Release Held Seats" in the datatable for performance "PROD01A"
-    When I follow "Release Held Seats" in the datatable for performance "PROD01A" and confirm
+    When I follow "Release Held Seats" in the datatable for performance "PROD01A" and answer "Are you sure you want to release all held seats for this performance?" with OK
     Then I should see "Released 2 held seats"
 
   @javascript
@@ -43,7 +43,7 @@ Feature: Box office users and administrators can release held seats
     And the performance "PROD01A" has 2 held seats with a valid HOLD order
     And the performance "PROD01A" has 1 assigned seat
     When I go to the admin production detail page for "Production One"
-    And I follow "Release Held Seats" in the datatable for performance "PROD01A" and confirm
+    And I follow "Release Held Seats" in the datatable for performance "PROD01A" and answer "Are you sure you want to release all held seats for this performance?" with OK
     Then I should see "Released 2 held seats"
     And the performance "PROD01A" should have 0 held seats without orders
     And the performance "PROD01A" should have 2 held seats with valid orders
@@ -54,7 +54,7 @@ Feature: Box office users and administrators can release held seats
     Given I am a box office user
     And I am logged in
     When I go to the admin production detail page for "Production One"
-    And I follow "Release Held Seats" in the datatable for performance "PROD01A" and confirm
+    And I follow "Release Held Seats" in the datatable for performance "PROD01A" and answer "Are you sure you want to release all held seats for this performance?" with OK
     Then I should see "Released 0 held seats"
 
   Scenario: Button does not appear for general admission productions

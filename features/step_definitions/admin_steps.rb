@@ -78,9 +78,15 @@ When(/^I enter a theater called "([^"]*)"$/) do |name|
   select Theater::THEATER_CLASSES.first, from: 'Theater class'
 end
 
+# Types the code and picks the matching autocomplete suggestion, as a box
+# office user does; the selection is what fills #performance_id and lets the
+# order actions enable.
 When(/^I enter performance code "([^"]*)"$/) do |perf_code|
-  fill_in 'ticket_order_performance_code', with: perf_code
-  page.execute_script "$('#performance_id').val('#{Performance.find_by(performance_code: perf_code).id}')"
+  performance = Performance.find_by!(performance_code: perf_code)
+  find('#ticket_order_performance_code').set(perf_code)
+  expect(page).to have_css('ul.ui-autocomplete li', text: perf_code, visible: true)
+  find('ul.ui-autocomplete li', text: perf_code, visible: true).click
+  expect(page).to have_field('performance_id', type: :hidden, with: performance.id.to_s)
 end
 
 When(/^I enter a membership offer "(.*?)"$/) do |offer_name|

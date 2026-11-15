@@ -22,14 +22,14 @@ Feature: Box office cancels a held ticket order
     When I follow "Cancel Order"
     Then the confirmation "Are you sure?" defaults to Cancel
     And the confirmation's accept button reads "OK"
-    When I press Enter in the confirmation
+    When I press Enter in the confirmation "Are you sure?"
     Then the held order is still on hold
 
   Scenario: Cancelling the question leaves the order alone
-    When I follow "Cancel Order" and cancel
+    When I follow "Cancel Order" and answer "Are you sure?" with Cancel
     Then the held order is still on hold
 
   Scenario: Confirming cancels the order once
-    When I follow "Cancel Order" and confirm with "OK"
+    When I follow "Cancel Order" and answer "Are you sure?" with "OK"
     Then the held order has been cancelled once
     And the performance "PROD01A" should have 0 held seats with valid orders

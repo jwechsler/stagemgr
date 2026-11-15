@@ -169,25 +169,18 @@ When(/^I click "([^"]*)"$/) do |button_text|
   end
 end
 
-When(/^I click "([^"]*)" and confirm$/) do |button_text|
+When(/^I click "([^"]*)" and answer "([^"]*)" with (OK|Cancel)$/) do |button_text, question, answer|
   within('#email-attendees-modal') do
     click_button button_text
   end
-  accept_reveal_confirm
+  answer_reveal_confirm_with(question, answer)
 end
 
-When(/^I click "([^"]*)" and cancel$/) do |button_text|
+When(/^I click "([^"]*)" and press Esc in the confirmation "([^"]*)"$/) do |button_text, question|
   within('#email-attendees-modal') do
     click_button button_text
   end
-  dismiss_reveal_confirm
-end
-
-When(/^I click "([^"]*)" and press Esc in the confirmation dialog$/) do |button_text|
-  within('#email-attendees-modal') do
-    click_button button_text
-  end
-  escape_reveal_confirm
+  escape_reveal_confirm(question)
 end
 
 When(/^I send a sample of the message and confirm$/) do

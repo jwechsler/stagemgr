@@ -3,8 +3,11 @@
 # window.alert() in app code. Every step that answers it goes through these
 # helpers so the dialog's selectors live in one place.
 #
-# Each helper waits for the dialog to open, checks its message when +text+ is
-# given, answers it and waits for it to close. The dialog is appended to
+# Each helper waits for the dialog to open, checks its message, answers it
+# and waits for it to close. The helpers that answer a confirmation take its
+# question as a required argument (a String, matched as a substring, or a
+# Regexp) so no step can answer the wrong dialog: put the question in the
+# step's wording, or hardcode it in a single-purpose step. The dialog is appended to
 # <body>, outside any modal it was opened over, so it is looked up from the
 # document rather than the current `within` scope.
 #
@@ -31,18 +34,18 @@ module RevealConfirmHelpers
   REVEAL_CONFIRM_OVERLAY_CLICK_POINT = [5, 5].freeze
 
   # Clicks the confirm button. +accept_label+ checks its text when given.
-  def accept_reveal_confirm(text = nil, accept_label: nil)
+  def accept_reveal_confirm(text, accept_label: nil)
     answer_reveal_confirm(text) { |dialog| reveal_confirm_accept_button(dialog, accept_label).click }
   end
 
   # Clicks the Cancel button.
-  def dismiss_reveal_confirm(text = nil)
+  def dismiss_reveal_confirm(text)
     answer_reveal_confirm(text) { |dialog| dialog.find(REVEAL_CONFIRM_CANCEL_SELECTOR).click }
   end
 
   # Presses Esc with focus inside the dialog (on its confirm button), which
   # answers it "no".
-  def escape_reveal_confirm(text = nil)
+  def escape_reveal_confirm(text)
     answer_reveal_confirm(text) { |dialog| dialog.find(REVEAL_CONFIRM_ACCEPT_SELECTOR).send_keys(:escape) }
   end
 
@@ -73,17 +76,23 @@ module RevealConfirmHelpers
 
   # Presses Enter on whatever has focus (the dialog's default action), without
   # focusing a button first.
-  def press_enter_on_reveal_confirm(text = nil)
+  def press_enter_on_reveal_confirm(text)
     answer_reveal_confirm(text) { page.send_keys(:enter) }
   end
 
   # Clicks the overlay outside the dialog, which answers it "no".
-  def click_reveal_confirm_overlay(text = nil)
+  def click_reveal_confirm_overlay(text)
     answer_reveal_confirm(text) do
       expect(page.document).to have_css(REVEAL_CONFIRM_OVERLAY_SELECTOR, visible: true)
       x, y = REVEAL_CONFIRM_OVERLAY_CLICK_POINT
       page.driver.browser.action.move_to_location(x, y).click.perform
     end
+  end
+
+  # Answers the confirmation +question+ by clicking OK (whatever the accept
+  # button is labelled) or Cancel.
+  def answer_reveal_confirm_with(question, answer)
+    answer == 'OK' ? accept_reveal_confirm(question) : dismiss_reveal_confirm(question)
   end
 
   def expect_no_reveal_confirm
@@ -120,6 +129,8 @@ module RevealConfirmHelpers
   end
 
   def answer_reveal_confirm(text)
+    raise ArgumentError, 'state the question the step expects before answering a confirmation' if text.blank?
+
     yield reveal_confirm_dialog(text)
     expect_no_reveal_confirm
   end

@@ -17,6 +17,7 @@ Feature: Box office resends an order's confirmation email
     And I am logged in
     When I visit the admin page for that order
     Then the order page loads reseating.js
+    And I note how many confirmation emails that order has been sent
 
   Scenario: Confirming resends the confirmation email
     When I follow "Resend Confirmation" and answer "Resend confirmation email?" with OK
@@ -33,6 +34,6 @@ Feature: Box office resends an order's confirmation email
   Scenario: The question opens with OK as the default, so Enter resends
     When I follow "Resend Confirmation"
     Then the confirmation "Resend confirmation email?" defaults to OK
-    When I press Enter in the confirmation
+    When I press Enter in the confirmation "Resend confirmation email?"
     Then I should see the notice "Confirmation email resent"
     And one confirmation email has been sent for that order

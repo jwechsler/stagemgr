@@ -62,7 +62,7 @@ end
 
 When('I submit the order') do
   click_button('Place Order')
-  accept_reveal_confirm
+  accept_reveal_confirm('Process this order?')
 end
 
 Given(/^I create a ticket order$/) do

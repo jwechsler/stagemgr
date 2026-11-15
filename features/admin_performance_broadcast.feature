@@ -86,7 +86,7 @@ Feature: Box office users can email performance attendees
     And I follow "Email Attendees" in the datatable for performance "TEST01A"
     And I select "Test Theater Box Office" from "From Address"
     And I fill in "Message Body" with "Test message"
-    And I click "Send Email to 3 Recipients" and cancel
+    And I click "Send Email to 3 Recipients" and answer "Are you sure you want to send this email to 3 recipients?" with Cancel
     Then the modal should remain open
     And the send button should read "Send Email to 3 Recipients"
     And no performance broadcast should be created
@@ -99,7 +99,7 @@ Feature: Box office users can email performance attendees
     And I follow "Email Attendees" in the datatable for performance "TEST01A"
     And I select "Test Theater Box Office" from "From Address"
     And I fill in "Message Body" with "Test message"
-    And I click "Send Email to 3 Recipients" and press Esc in the confirmation dialog
+    And I click "Send Email to 3 Recipients" and press Esc in the confirmation "Are you sure you want to send this email to 3 recipients?"
     Then the modal should remain open
     And no performance broadcast should be created
 

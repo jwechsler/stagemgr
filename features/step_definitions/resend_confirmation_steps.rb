@@ -8,16 +8,20 @@ def confirmation_emails_for(order)
   end
 end
 
+def expect_confirmation_baseline_noted
+  return unless @confirmation_emails_before.nil?
+
+  raise 'No baseline recorded: add the step "I note how many confirmation emails that order has been sent" before the action'
+end
+
 # reseating.js requires seat_map.js, which requires application.js: with it on
 # the page jQuery, jquery_ujs and reveal_confirm.js are each evaluated twice.
 Then(/^the order page loads reseating\.js$/) do
   expect(page).to have_css('script[src*="/reseating"]', visible: :all)
-  @confirmation_emails_before = confirmation_emails_for(@order).size
 end
 
-When(/^I follow "([^"]*)" and answer "([^"]*)" with (OK|Cancel)$/) do |link_text, question, answer|
-  click_link link_text
-  answer == 'OK' ? accept_reveal_confirm(question) : dismiss_reveal_confirm(question)
+Then(/^I note how many confirmation emails that order has been sent$/) do
+  @confirmation_emails_before = confirmation_emails_for(@order).size
 end
 
 Then(/^I should see the notice "([^"]*)"$/) do |text|
@@ -38,9 +42,11 @@ Then(/^I am still on the admin page for that order$/) do
 end
 
 Then(/^one confirmation email has been sent for that order$/) do
+  expect_confirmation_baseline_noted
   expect(confirmation_emails_for(@order).size).to eq(@confirmation_emails_before + 1)
 end
 
 Then(/^no confirmation email has been sent for that order$/) do
+  expect_confirmation_baseline_noted
   expect(confirmation_emails_for(@order).size).to eq(@confirmation_emails_before)
 end

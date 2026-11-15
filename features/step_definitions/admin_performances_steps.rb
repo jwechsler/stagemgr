@@ -174,16 +174,6 @@ Given(/^the performance "(.*?)" has (\d+) assigned seat(?:s)?$/) do |perf_code, 
   end
 end
 
-When(/^I follow "([^"]*)" and confirm$/) do |link_text|
-  click_link link_text
-  accept_reveal_confirm
-end
-
-When(/^I follow "([^"]*)" and cancel$/) do |link_text|
-  click_link link_text
-  dismiss_reveal_confirm
-end
-
 # Datatable-specific steps for the new button location
 
 Then(/^I should see "(.*?)" in the datatable for performance "(.*?)"$/) do |link_text, perf_code|
@@ -202,13 +192,13 @@ Then(/^I should not see "(.*?)" in the datatable for performance "(.*?)"$/) do |
   end
 end
 
-When(/^I follow "(.*?)" in the datatable for performance "(.*?)" and confirm$/) do |link_text, perf_code|
+When(/^I follow "(.*?)" in the datatable for performance "(.*?)" and answer "([^"]*)" with (OK|Cancel)$/) do |link_text, perf_code, question, answer|
   performance = Performance.find_by_performance_code(perf_code)
   expect(page).to have_css("tr[id='#{performance.id}']", wait: 15)
   within("tr[id='#{performance.id}']") do
     click_link link_text
   end
-  accept_reveal_confirm
+  answer_reveal_confirm_with(question, answer)
 end
 
 # Step for creating a general admission production
