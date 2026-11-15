@@ -188,3 +188,37 @@ Then(/^the second move was rolled back, keeping the first$/) do
   expect(@old_line_item.reload.seat_assignment_id).to eq(@first_new_seat_id)
   expect(SeatAssignment.find(@old_seat_id)).to have_attributes(status: SeatAssignment::AVAILABLE, order_uuid: nil)
 end
+
+def seat_list_for(seat_ids)
+  SeatAssignment.includes(:seat).where(id: seat_ids).map { |sa| sa.seat.location }.sort.join(', ')
+end
+
+# Both seat lists and the Reseat button, as Change Seating shows a settled order.
+def expect_change_seating_lists_settled_on(seat_list)
+  expect(page).to have_css('#change-seats #original-seat-list', exact_text: seat_list)
+  expect(page).to have_css('#change-seats #updated-seat-list', exact_text: seat_list)
+  expect(page).to have_css('#change-seats #finalize-seating.disabled')
+end
+
+Then(/^Change Seating shows the order's original seating$/) do
+  @cancelled_seat_id = @new_seat_id
+  # The map is reset in the rollback request's callback, so wait on the DOM.
+  expect(page).to have_css(change_seating_circle(@old_seat_id, 'assigned'))
+  expect(page).to have_no_css(change_seating_circle(@old_seat_id, 'releasing'))
+  expect(page).to have_css(change_seating_circle(@cancelled_seat_id, 'available'))
+  expect(page).to have_no_css(change_seating_circle(@cancelled_seat_id, 'assigned'))
+  expect_change_seating_lists_settled_on(seat_list_for(@original_seat_ids))
+end
+
+Then(/^Change Seating shows the new seating$/) do
+  new_seat_ids = @original_seat_ids - [@old_seat_id] + [@new_seat_id]
+  old_location = SeatAssignment.find(@old_seat_id).seat.location
+  expect(page).to have_css(change_seating_circle(@old_seat_id, 'available'))
+  expect(page).to have_no_css(change_seating_circle(@old_seat_id, 'releasing'))
+  expect(page).to have_css(change_seating_circle(@new_seat_id, 'assigned'))
+  expect_change_seating_lists_settled_on(seat_list_for(new_seat_ids))
+  %w[#original-seat-list #updated-seat-list].each do |list|
+    expect(find("#change-seats #{list}").text.split(', ')).to include(@new_location)
+    expect(find("#change-seats #{list}").text.split(', ')).not_to include(old_location)
+  end
+end

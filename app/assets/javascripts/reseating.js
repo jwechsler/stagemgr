@@ -38,6 +38,47 @@ $(document).ready(function() {
   // modal rolls back an unfinished change; a finalized one has nothing to undo.
   var isSeatingFinalized = false;
 
+  // The order page does not reload when a change ends, so the map and seat
+  // lists are brought back in step with the server at finalize and rollback.
+  // settledSeating is the map as the server last settled it.
+  var settledSeating = captureSettledSeating();
+
+  function captureSettledSeating() {
+    var statuses = {};
+    $('#seatingmap circle').each(function() {
+      var status = String($(this).data('status'));
+      // A rollback turns a releasing seat (an abandoned earlier change) back into assigned.
+      statuses[$(this).data('assignment-id')] = (status == 'releasing') ? 'assigned' : status;
+    });
+    return { statuses: statuses, seatList: $('#original-seat-list').text() };
+  }
+
+  function showSeatList(seatList) {
+    $('#original-seat-list').text(seatList)
+    $('#updated-seat-list').text(seatList)
+    $('#finalize-seating').addClass('disabled')
+  }
+
+  // Seats other orders took during this change stay unavailable.
+  function restoreSettledSeating() {
+    $('#seatingmap circle').each(function() {
+      if (String($(this).data('status')) == 'unavailable') { return; }
+      var settled = settledSeating.statuses[$(this).data('assignment-id')];
+      if (settled) { update_seating_attributes(this, settled) }
+    });
+    showSeatList(settledSeating.seatList)
+  }
+
+  function settleFinalizedSeating(seatList) {
+    $('#seatingmap circle').each(function() {
+      if (String($(this).data('status')) == 'releasing') {
+        update_seating_attributes(this, 'available')
+      }
+    });
+    showSeatList(seatList)
+    settledSeating = captureSettledSeating();
+  }
+
   $("#seating-control").click(function() {
     // The order page does not reload after a finalize, so each opening starts a new change.
     isSeatingFinalized = false;
@@ -154,6 +195,7 @@ $(document).ready(function() {
       }, function(response, status) {
         console.log('response is ' + response['status'])
         if (response['status'] == 'success') {
+          settleFinalizedSeating(response['current_seat_assignments'])
           isSeatingFinalized = true;
           $('#change-seats').foundation('close')
           console.log("success")
@@ -178,7 +220,10 @@ $(document).ready(function() {
     $.post(rollback_reseating_url(),
       { 'order_uuid': ticket_order_id()
       }, function(response, status) {
-      });
+        restoreSettledSeating()
+      })
+      // On failure the server still holds the pending change the map shows.
+      .fail(seat_request_failed);
   });
 
 });
