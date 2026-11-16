@@ -72,6 +72,35 @@ stagemgr.theaterwit.org) and `README.md`. The essentials:
 - Keep tasks small. If a subagent stops at its turn limit, narrow the task rather
   than just retrying it.
 
+## Review checklist
+What a code review of this repository applies on top of the rules above. The
+review method itself (for example a `peer-review` skill) lives in each
+developer's own Claude configuration, not here.
+
+- **Diff base**: PRs target the newest `release/YYYY-MM<letter>` branch, not
+  master (master is production and moves only on a release merge or hotfix):
+  `git for-each-ref --format='%(refname:short)' --sort=refname 'refs/remotes/origin/release' | tail -1`.
+  A hotfix cut from master is reviewed against `origin/master`.
+- **Lint the changed files**: `bundle exec rubocop <changed .rb files>` and
+  `bin/haml-lint <changed .haml files>` (use the binstub; `bundle exec haml-lint`
+  crashes). CI runs RuboCop but not haml-lint.
+- **Tests**: `bundle exec rspec <spec files>` and `bundle exec cucumber <feature files>`,
+  never two test processes at once. Delete `public/assets` before `@javascript`
+  scenarios after any JavaScript or stylesheet change, or they run stale assets.
+  Each `app/**` file's spec is the same path under `spec/`.
+- **Coverage**: SimpleCov runs with every `rspec` invocation, but `coverage/`
+  reflects only the last run, usually a targeted one, and sees no JavaScript or
+  views. Treat it as measured only for specs run during the review.
+- **House rules to check against the diff**: secrets through `AppSecrets`; no
+  specific theater's name, phone or address in `app/`, `lib/` or `config/`;
+  explicit date and time formatting; `Date.current` / `Time.current`, never
+  `Date.today` / `Time.now`; any change to a `TicketClass` form or attribute
+  mirrored onto `DefaultTicketClass`; specs that need a `config/server.yml` key
+  read the `test:` block of `config/server.yml.example`.
+- **Plan context**: `.remember/today-<date>.md` and `.remember/recent.md`
+  (entries tagged with the branch name), `plan-*.md` in the repository root,
+  and `docs/release-notes/`.
+
 ## Capacity gotcha
 `Production#capacity` returns `seat_map.capacity` (live seat count) whenever a seat map is assigned, silently
 overriding the stored column; read the manual value with `production.read_attribute(:capacity)`. Troubleshooting
