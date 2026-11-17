@@ -198,6 +198,22 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
           expect(flash[:warning]).to include('1 row was skipped')
           expect(flash[:warning]).to include('line 3 (location AA2)')
         end
+
+        it 'imports only the good seat and warns about a row with a non-numeric origin-x' do
+          file = uploaded_geometry(<<~CSV)
+            #{geometry_header}
+            AA1,AA,1,10,10,5,5,
+            AA2,AA,2,abc,10,5,5,
+          CSV
+
+          expect { create_with(file) }.to change(Seat, :count).by(1)
+
+          expect(response).to redirect_to(admin_venue_path(venue))
+          created = SeatMap.find_by(label: 'Geometry Map', venue: venue)
+          expect(created.seats.pluck(:location)).to eq(['AA1'])
+          expect(flash[:warning]).to include('line 3 (location AA2)')
+          expect(flash[:warning]).to include('origin-x')
+        end
       end
     end
 

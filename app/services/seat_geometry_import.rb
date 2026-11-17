@@ -12,6 +12,12 @@ require 'csv'
 # A file that cannot be parsed, is empty or lacks a required column imports
 # nothing. Otherwise each row is saved on its own, and rows whose seat fails
 # validation are reported in Result#skipped_rows rather than stopping the run.
+#
+# The number columns are integer database columns, which would silently turn
+# "abc" into 0 and "12.7" into 12, so each row's raw sequence, origin-x,
+# origin-y and width are checked first (WHOLE_NUMBER_MINIMUMS). A row that
+# fails is skipped and reported without touching its seat. These checks belong
+# to the import only; the seat map editor's bulk save does not apply them.
 class SeatGeometryImport
   REQUIRED_HEADERS = %w[location row sequence origin-x origin-y width height feature].freeze
   # When the zone column is absent, existing seat zones are left untouched.
@@ -38,6 +44,17 @@ class SeatGeometryImport
   # session, so only the first few rows are listed.
   MAX_LISTED_SKIPPED_ROWS = 10
   MAX_LOCATION_LENGTH = 20
+  # Raw cell values echoed in a skip reason come from the uploaded file and
+  # travel in the same cookie flash, so they are cut short too.
+  MAX_ECHOED_VALUE_LENGTH = 20
+
+  # Smallest whole number each checked column accepts. height is unused when
+  # drawing and is not checked.
+  WHOLE_NUMBER_MINIMUMS = { 'sequence' => 1, 'origin-x' => 0, 'origin-y' => 0, 'width' => 1 }.freeze
+  # A blank sequence is left to Seat's presence validation so the row gets
+  # one reason ("Seat number can't be blank"), not two.
+  BLANK_LEFT_TO_SEAT_VALIDATION = %w[sequence].freeze
+  WHOLE_NUMBER = /\A-?\d+\z/
 
   SkippedRow = Struct.new(:line, :location, :reason, keyword_init: true) do
     def to_s
@@ -149,6 +166,9 @@ class SeatGeometryImport
     imported = Set.new
     skipped = []
     @rows.each do |line, row|
+      problems = number_problems(row)
+      next skipped << SkippedRow.new(line: line, location: row['location'], reason: problems.join('; ')) if problems.any?
+
       seat = apply_row(seats_by_location, row)
       if seat.save
         imported << seat.location
@@ -157,6 +177,26 @@ class SeatGeometryImport
       end
     end
     [imported, skipped]
+  end
+
+  # Plain-text problems with the row's raw number columns, empty when all pass.
+  def number_problems(row)
+    WHOLE_NUMBER_MINIMUMS.filter_map do |column, minimum|
+      value = row[column].to_s.strip
+      next if value.empty? && BLANK_LEFT_TO_SEAT_VALIDATION.include?(column)
+
+      whole_number_problem(column, value, minimum)
+    end
+  end
+
+  def whole_number_problem(column, value, minimum)
+    return "#{column} is blank" if value.empty?
+
+    shown = "(was \"#{value.truncate(MAX_ECHOED_VALUE_LENGTH)}\")"
+    return "#{column} must be a whole number #{shown}" unless value.match?(WHOLE_NUMBER)
+    return if value.to_i >= minimum
+
+    "#{column} must be a whole number of #{minimum} or more #{shown}"
   end
 
   def apply_row(seats_by_location, row)

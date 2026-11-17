@@ -216,6 +216,169 @@ RSpec.describe SeatGeometryImport do
     end
   end
 
+  describe '#call checking the number columns' do
+    def skipped_by_location(result)
+      result.skipped_rows.index_by(&:location)
+    end
+
+    it 'skips and reports a row whose sequence is not a whole number, importing the others' do
+      result = import(<<~CSV).call
+        #{header}
+        AA1,AA,1,10,10,5,5,
+        AA2,AA,abc,20,10,5,5,
+        AA3,AA,1.5,30,10,5,5,
+        AA4,AA,4,40,10,5,5,
+      CSV
+
+      expect(result.imported_count).to eq(2)
+      expect(seat_map.seats.reload.pluck(:location)).to contain_exactly('AA1', 'AA4')
+      expect(result.skipped_rows.map(&:line)).to eq([3, 4])
+      expect(result.skipped_rows.map(&:reason)).to eq(
+        ['sequence must be a whole number (was "abc")', 'sequence must be a whole number (was "1.5")']
+      )
+    end
+
+    it 'skips a row whose sequence is zero or negative with the "1 or more" reason' do
+      result = import(<<~CSV).call
+        #{header}
+        AA1,AA,0,10,10,5,5,
+        AA2,AA,-3,20,10,5,5,
+        AA3,AA,3,30,10,5,5,
+      CSV
+
+      expect(result.imported_count).to eq(1)
+      expect(result.skipped_rows.map(&:reason)).to eq(
+        ['sequence must be a whole number of 1 or more (was "0")',
+         'sequence must be a whole number of 1 or more (was "-3")']
+      )
+    end
+
+    it 'skips rows with a non-numeric, decimal, negative or blank origin, reporting each line' do
+      result = import(<<~CSV).call
+        #{header}
+        X1,AA,1,abc,10,5,5,
+        X2,AA,2,1.5,10,5,5,
+        X3,AA,3,-1,10,5,5,
+        X4,AA,4,,10,5,5,
+        Y1,AA,5,10,abc,5,5,
+        Y2,AA,6,10,2.25,5,5,
+        Y3,AA,7,10,-4,5,5,
+        Y4,AA,8,10,,5,5,
+        OK,AA,9,10,10,5,5,
+      CSV
+
+      expect(result.imported_count).to eq(1)
+      expect(seat_map.seats.reload.pluck(:location)).to eq(['OK'])
+      expect(result.skipped_rows.map { |row| [row.line, row.location, row.reason] }).to eq(
+        [
+          [2, 'X1', 'origin-x must be a whole number (was "abc")'],
+          [3, 'X2', 'origin-x must be a whole number (was "1.5")'],
+          [4, 'X3', 'origin-x must be a whole number of 0 or more (was "-1")'],
+          [5, 'X4', 'origin-x is blank'],
+          [6, 'Y1', 'origin-y must be a whole number (was "abc")'],
+          [7, 'Y2', 'origin-y must be a whole number (was "2.25")'],
+          [8, 'Y3', 'origin-y must be a whole number of 0 or more (was "-4")'],
+          [9, 'Y4', 'origin-y is blank']
+        ]
+      )
+    end
+
+    it 'skips rows with a blank, zero or non-numeric width' do
+      result = import(<<~CSV).call
+        #{header}
+        AA1,AA,1,10,10,,5,
+        AA2,AA,2,20,10,0,5,
+        AA3,AA,3,30,10,wide,5,
+        AA4,AA,4,40,10,1,5,
+      CSV
+
+      expect(result.imported_count).to eq(1)
+      expect(seat('AA4').width).to eq(1)
+      expect(skipped_by_location(result).transform_values(&:reason)).to eq(
+        'AA1' => 'width is blank',
+        'AA2' => 'width must be a whole number of 1 or more (was "0")',
+        'AA3' => 'width must be a whole number (was "wide")'
+      )
+    end
+
+    it 'does not check height, importing rows with a blank or non-numeric height' do
+      result = import(<<~CSV).call
+        #{header}
+        AA1,AA,1,10,10,5,,
+        AA2,AA,2,20,10,5,tall,
+      CSV
+
+      expect(result.skipped_rows).to be_empty
+      expect(result.imported_count).to eq(2)
+      expect(seat_map.seats.reload.pluck(:location)).to contain_exactly('AA1', 'AA2')
+    end
+
+    it 'accepts values with surrounding whitespace and an origin of 0' do
+      result = import(<<~CSV).call
+        #{header}
+        AA1,AA, 3 , 12 ,0,  7 ,5,
+      CSV
+
+      expect(result.skipped_rows).to be_empty
+      expect(geometry(seat('AA1'))).to eq(['AA', 3, 12, 0, 7, 5, nil])
+    end
+
+    it 'reports every problem on a row in one reason' do
+      result = import(<<~CSV).call
+        #{header}
+        AA1,AA,1,abc,10,,5,
+      CSV
+
+      expect(result.skipped_rows.size).to eq(1)
+      expect(result.skipped_rows.first.reason).to eq('origin-x must be a whole number (was "abc"); width is blank')
+    end
+
+    it 'leaves an existing seat untouched and creates no new seat when rows are skipped for a bad number' do
+      existing = FactoryBot.create(:seat, seat_map: seat_map, location: 'AA1', row: 'AA', seat_number: 1,
+                                          origin_x: 1, origin_y: 2, width: 3, height: 4, feature: nil)
+      original = existing.reload.attributes
+
+      result = nil
+      expect do
+        result = import(<<~CSV).call
+          #{header}
+          AA1,ZZ,9,abc,50,6,7,wheelchair
+          NEW1,AA,2,20,10,0,5,
+        CSV
+      end.not_to change(Seat, :count)
+
+      expect(result.imported_count).to eq(0)
+      expect(result.skipped_rows.map(&:location)).to eq(%w[AA1 NEW1])
+      expect(existing.reload.attributes).to eq(original)
+      expect(seat('NEW1')).to be_nil
+    end
+
+    it "reports a blank sequence on an otherwise good row once, with Seat's wording" do
+      result = import(<<~CSV).call
+        #{header}
+        AA1,AA,,10,10,5,5,
+      CSV
+
+      expect(result.skipped_rows.size).to eq(1)
+      expect(result.skipped_rows.first.reason).to eq("Seat number can't be blank")
+    end
+
+    it 'truncates a very long echoed value' do
+      long_value = 'x' * 500
+      result = import(<<~CSV).call
+        #{header}
+        AA1,AA,1,#{long_value},10,5,5,
+      CSV
+
+      reason = result.skipped_rows.first.reason
+      expect(reason).to start_with('origin-x must be a whole number (was "')
+      expect(reason).to include('...')
+      expect(reason).not_to include(long_value)
+      bound = 'origin-x must be a whole number (was "")'.length + described_class::MAX_ECHOED_VALUE_LENGTH
+      expect(reason.length).to be <= bound
+    end
+  end
+
   describe 'Result#skipped_message' do
     it 'lists at most MAX_LISTED_SKIPPED_ROWS rows followed by the number left over' do
       extra = 3

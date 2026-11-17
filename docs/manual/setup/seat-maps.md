@@ -45,10 +45,10 @@ All eight of these column headers must be present in the file, even when a colum
 |--------|-------------|---------|
 | `location` | Unique seat identifier. Must be filled in and unique within the seat map. | `A1`, `B12`, `AA3` |
 | `row` | Row designation. Must be filled in. | `A`, `B`, `AA` |
-| `sequence` | Seat number within the row. Must be filled in. | `1`, `2`, `12` |
-| `origin-x` | X coordinate of the **center** of the seat's circle, in pixels from the left edge of the map image | `150` |
-| `origin-y` | Y coordinate of the **center** of the seat's circle, in pixels from the top edge of the map image | `300` |
-| `width` | **Radius** of the seat's circle in pixels (not its full width). A seat with `width` 10 is drawn 20 pixels across. | `10` |
+| `sequence` | Seat number within the row. Must be a whole number of 1 or more. | `1`, `2`, `12` |
+| `origin-x` | X coordinate of the **center** of the seat's circle, in pixels from the left edge of the map image. Must be a whole number of 0 or more. | `150` |
+| `origin-y` | Y coordinate of the **center** of the seat's circle, in pixels from the top edge of the map image. Must be a whole number of 0 or more. | `300` |
+| `width` | **Radius** of the seat's circle in pixels (not its full width). A seat with `width` 10 is drawn 20 pixels across. Must be a whole number of 1 or more. | `10` |
 | `height` | Not used when drawing the seat. The column must be present; repeat the `width` value or leave it blank. | `10` |
 | `feature` | Accessibility designation -- if set, indicates the seat can be converted to wheelchair accessible. Leave blank for an ordinary seat. | `wheelchair` |
 
@@ -84,7 +84,7 @@ When the seat map is saved, a message reports how many seats were imported from 
 |-----------|--------------|
 | A required column header is missing | Nothing is imported and the seat map is not created or changed. The form is shown again with a message naming the missing column(s). |
 | The file is empty or cannot be read as a CSV | Nothing is imported and the seat map is not created or changed. The form is shown again with a message. |
-| A row has a blank `location`, `row` or `sequence`, or an invalid `zone` | That row is skipped and the rest of the file is imported. A warning lists each skipped row by its line number in the file (the header row is line 1), with its location and the reason. Only the first 10 skipped rows are listed, followed by a count of the rest. |
+| A row has a blank `location`, `row` or `sequence`, an invalid `zone`, or a `sequence`, `origin-x`, `origin-y` or `width` that is blank or not a whole number in the allowed range (for example `abc`, `12.5`, or a `sequence` of `0`) | That row is skipped and the rest of the file is imported. If the row's location is already on the seat map, that seat is left as it was. A warning lists each skipped row by its line number in the file (the header row is line 1), with its location and the reason. Only the first 10 skipped rows are listed, followed by a count of the rest. |
 | Two rows share a `location` | The later row overwrites the earlier one. |
 
 Fix the listed rows in your file and upload it again from the seat map's edit form; rows that already imported are simply updated.
