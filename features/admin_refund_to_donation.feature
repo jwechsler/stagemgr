@@ -4,11 +4,10 @@ Feature: Box office converts a processed ticket order to a donation
   I want Refund to Donation to ask first and then convert the order once
   So that one OK makes exactly one donation and moves the payment once
 
-  # A reserved-seating processed order: its page loads reseating.js, which
-  # bundles application.js a second time (jQuery, jquery_ujs and
-  # reveal_confirm.js evaluated twice). Refund to Donation is a data-method
-  # POST link, so both jquery_ujs copies could build and submit its hidden
-  # form; the action must still run exactly once.
+  # A reserved-seating processed order: its page loads reseating.js beside
+  # the layout's application bundle, and must carry one copy of jQuery and
+  # jquery_ujs. Refund to Donation is a data-method POST link that jquery_ujs
+  # turns into a hidden form; one OK must submit it exactly once.
   Background:
     Given a theater with reserved seating exists
     And a test performance "PROD01A" exists
@@ -19,6 +18,7 @@ Feature: Box office converts a processed ticket order to a donation
     And I am logged in
     When I visit the admin page for that order
     Then the order page loads reseating.js
+    And the page loads the application bundle once and reseating.js carries only its own code
 
   Scenario: Confirming converts the order to a donation once
     Given I count the requests that convert an order to a donation

@@ -6,8 +6,8 @@ Feature: Box office cancels a held ticket order
 
   # A held order is editable, so its admin page is the edit form with the
   # seat map (the seat map needs a plotted image to render). That page loads
-  # seat_assignment.js, which bundles application.js a second time, so the
-  # data-method Cancel Order link is answered on a double-jQuery page.
+  # seat_assignment.js beside the layout's application bundle; the
+  # data-method Cancel Order link must cancel the order once.
   Background:
     Given a theater with reserved seating exists
     And a test performance "PROD01A" exists

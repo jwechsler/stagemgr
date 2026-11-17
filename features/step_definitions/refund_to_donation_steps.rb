@@ -2,10 +2,10 @@
 # data-method POST link with a data-confirm question, on the admin page of a
 # processed reserved-seating order).
 #
-# That page loads reseating.js, which bundles application.js a second time,
-# so two jquery_ujs copies could each submit the link's hidden form. The
+# That page loads reseating.js beside the layout's application bundle. The
 # request counter below sees every convert_to_donation request the test
-# server handles, from either copy.
+# server handles, so a second submission of the link's hidden form would
+# show up in it.
 
 CONVERT_TO_DONATION_CONTROLLER = 'Admin::TicketOrdersController'.freeze
 CONVERT_TO_DONATION_ACTION = 'convert_to_donation'.freeze
@@ -35,7 +35,17 @@ After do
   ActiveSupport::Notifications.unsubscribe(@convert_subscriber) if @convert_subscriber
 end
 
-# Two evaluations of reveal_confirm.js must still leave a single dialog.
+# The layout's application bundle is the page's only jQuery: reseating.js is
+# served with its own code and no library copy.
+Then(/^the page loads the application bundle once and reseating\.js carries only its own code$/) do
+  expect(page_script_bundles.count('application')).to eq(1)
+  reseating = served_bundle_source('reseating')
+  expect(reseating).to include('function commit_reseating_url')
+  expect(reseating).not_to include(ScriptBundleHelpers::JQUERY_MARKER)
+  expect(page.evaluate_script('window.$ === window.jQuery && typeof jQuery.rails === "object"')).to be(true)
+end
+
+# The shared dialog element exists once on the page.
 Then(/^the page has one confirmation dialog, asking "([^"]*)"$/) do |question|
   reveal_confirm_dialog(question)
   expect(page.document).to have_css(RevealConfirmHelpers::REVEAL_CONFIRM_SELECTOR, count: 1, visible: :all)

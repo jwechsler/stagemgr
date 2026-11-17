@@ -4,10 +4,9 @@ Feature: Box office resends an order's confirmation email
   I want Resend Confirmation to ask once and then send the email
   So that the patron gets exactly one new confirmation when I say OK
 
-  # A reserved-seating processed order: its page loads reseating.js, which
-  # bundles application.js a second time (jQuery, jquery_ujs and
-  # reveal_confirm.js evaluated twice). A plain data-confirm GET link must
-  # still follow through after one OK there.
+  # A reserved-seating processed order: its page loads reseating.js beside
+  # the layout's application bundle. A plain data-confirm GET link must
+  # follow through after one OK, sending one confirmation.
   Background:
     Given a theater with reserved seating exists
     And a test performance "PROD01A" exists

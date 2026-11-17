@@ -20,8 +20,8 @@ Then(/^the held order is still on hold$/) do
   expect(Order.count).to eq(@orders_before_cancel)
 end
 
-# seat_assignment.js requires seat_map.js, which requires application.js, so
-# jQuery, jquery_ujs and reveal_confirm.js are evaluated twice on this page.
+# The edit page of a held reserved-seating order includes seat_assignment.js
+# (the seat picker) beside the layout's application bundle.
 Then(/^the order page loads seat_assignment\.js$/) do
   expect(page).to have_css('script[src*="/seat_assignment"]', visible: :all)
 end
