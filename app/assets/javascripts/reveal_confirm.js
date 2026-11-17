@@ -232,9 +232,10 @@ function revealAlert(message, options) {
 // buttons (jQuery's trigger('click') does not follow an href), a fresh submit
 // for a form carrying data-confirm itself.
 //
-// The bypass and pending markers live on the DOM node, not in jQuery data, so
-// they hold whichever jQuery instance's handler sees the click (public order
-// pages can carry the site wrapper's jQuery beside the bundle's own).
+// The bypass and pending markers are properties of the DOM node, not jQuery
+// data, so they do not depend on any jQuery instance's data cache. jquery_ujs
+// is attached to one jQuery per page: frontend.js's on public pages,
+// application.js's on admin pages.
 
 function revealConfirmRedispatch($element) {
   var el = $element[0];
