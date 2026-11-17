@@ -21,15 +21,6 @@
   :javascript
     'use strict';
 
-    function update_order_selection_buttons() {
-      rows = new $.fn.dataTable.TableTools( $('#orders-table').DataTable() ).fnGetSelected();
-      if (rows.length == 0) {
-        $('#print-tickets-button,#unclaimed-tickets-button').addClass('disabled');
-      } else {
-        $('#print-tickets-button,#unclaimed-tickets-button').removeClass('disabled');
-      }
-    }
-
     function update_buttons(table) {
       var selectedRows = table.rows( { selected: true } ).count();
 
@@ -95,8 +86,9 @@
      // Handle global DataTables errors
      $('#order-listing').on('error.dt', function(e, settings, techNote, message) {
        // Display a custom alert message with a page reload
-       alert("An error occurred while loading the data. The page will now reload.");
-       location.reload();
+       revealAlert("An error occurred while loading the data. The page will now reload.").then(function() {
+         location.reload();
+       });
      });
 
      update_buttons(oListing);
@@ -115,23 +107,4 @@
      ]);
 
      $('#order-listing_filter').hide();
-
-      // $('#order-listing tbody').on( 'click', 'tr', function () {
-      //     $(this).toggleClass('selected');
-      // } );
-
-      // @todo make these buttons
-
-
-      $('#print-button').click( function () {
-          alert( $("#address-listing").DataTable().rows('.selected').data().length +' row(s) selected' );
-      } );
-
-      $('#unclaimed-button').click( function () {
-          alert( $("#address-listing").DataTable().rows('.selected').data().length +' row(s) selected' );
-      } );
-
-
-
-
     });

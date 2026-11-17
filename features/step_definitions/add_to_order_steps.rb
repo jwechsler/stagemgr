@@ -60,7 +60,8 @@ Then(/^the order's current seats show as taken on the seat map$/) do
 end
 
 When(/^I place the order and confirm$/) do
-  accept_confirm { click_link 'Place Order' }
+  click_link 'Place Order'
+  accept_reveal_confirm('Process this order?')
 end
 
 When(/^I add the "(.*?)" add-on$/) do |class_name|

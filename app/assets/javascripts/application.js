@@ -8,6 +8,7 @@
 //= require datatables_select_defaults
 //= require what-input/dist/what-input
 //= require foundation-sites/dist/js/foundation
+//= require reveal_confirm
 //= require jquery.dataTables.yadcf
 //= require utility
 //= require activestorage

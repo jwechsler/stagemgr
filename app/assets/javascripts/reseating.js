@@ -34,7 +34,54 @@ function rollback_reseating_url() {
 }
 
 $(document).ready(function() {
+  // True once this opening of Change Seating has been finalized. Closing the
+  // modal rolls back an unfinished change; a finalized one has nothing to undo.
+  var isSeatingFinalized = false;
+
+  // The order page does not reload when a change ends, so the map and seat
+  // lists are brought back in step with the server at finalize and rollback.
+  // settledSeating is the map as the server last settled it.
+  var settledSeating = captureSettledSeating();
+
+  function captureSettledSeating() {
+    var statuses = {};
+    $('#seatingmap circle').each(function() {
+      var status = String($(this).data('status'));
+      // A rollback turns a releasing seat (an abandoned earlier change) back into assigned.
+      statuses[$(this).data('assignment-id')] = (status == 'releasing') ? 'assigned' : status;
+    });
+    return { statuses: statuses, seatList: $('#original-seat-list').text() };
+  }
+
+  function showSeatList(seatList) {
+    $('#original-seat-list').text(seatList)
+    $('#updated-seat-list').text(seatList)
+    $('#finalize-seating').addClass('disabled')
+  }
+
+  // Seats other orders took during this change stay unavailable.
+  function restoreSettledSeating() {
+    $('#seatingmap circle').each(function() {
+      if (String($(this).data('status')) == 'unavailable') { return; }
+      var settled = settledSeating.statuses[$(this).data('assignment-id')];
+      if (settled) { update_seating_attributes(this, settled) }
+    });
+    showSeatList(settledSeating.seatList)
+  }
+
+  function settleFinalizedSeating(seatList) {
+    $('#seatingmap circle').each(function() {
+      if (String($(this).data('status')) == 'releasing') {
+        update_seating_attributes(this, 'available')
+      }
+    });
+    showSeatList(seatList)
+    settledSeating = captureSettledSeating();
+  }
+
   $("#seating-control").click(function() {
+    // The order page does not reload after a finalize, so each opening starts a new change.
+    isSeatingFinalized = false;
     $('#change-seats').foundation('open');
 
     setTimeout(function() {
@@ -65,7 +112,7 @@ $(document).ready(function() {
         // enforces the same rule in reserve and commit_reseating.
         var seatZone = String($(this).data('zone') || '');
         if (!zone_allowed_for_order(seatZone)) {
-          alert("Seat " + $(this).data('location') + " (zone " + seatZone + ") is not available for your ticket type");
+          revealAlert("Seat " + $(this).data('location') + " (zone " + seatZone + ") is not available for your ticket type");
           break;
         }
         mark_seat_pending(clicked_id)
@@ -85,11 +132,11 @@ $(document).ready(function() {
                   // $( '[data-assignment-id='+value+']').mapster('deselect')
                 });
                 if (response['status'] == 'unavailable') {
-                  alert("Sorry, that seat is no longer available")
+                  revealAlert("Sorry, that seat is no longer available")
                 } else if (response['status'] == 'assigned') {
                   update_seating_attributes(e_reference, response['status'])
                 } else {
-                  alert("You can only assign " + max_tix + ((max_tix==1) ? " seat" : " seats"))
+                  revealAlert("You can only assign " + max_tix + ((max_tix==1) ? " seat" : " seats"))
                   // $( e_reference ).mapster('deselect')
                 }
                 // $('img.seatingmap').mapster('rebind',mapster_options())
@@ -148,7 +195,8 @@ $(document).ready(function() {
       }, function(response, status) {
         console.log('response is ' + response['status'])
         if (response['status'] == 'success') {
-          $("#seating-config").data('finalized','true')
+          settleFinalizedSeating(response['current_seat_assignments'])
+          isSeatingFinalized = true;
           $('#change-seats').foundation('close')
           console.log("success")
           setTimeout(function () {
@@ -157,17 +205,25 @@ $(document).ready(function() {
 
         } else {
           console.log("failure")
-          alert(response['message'] || 'Unable to finalize seating')
+          revealAlert(response['message'] || 'Unable to finalize seating')
         }
       });
     }
   });
 
-  $(document).on('closed.zf.reveal', '[data-reveal]', function () {
+  // Only the reseating modal: Foundation marks every reveal [data-reveal],
+  // including the shared confirm dialog, and none of them should roll back.
+  // A finalized change is not rolled back either.
+  $(document).on('closed.zf.reveal', '#change-seats', function (e) {
+    if (e.target !== this) { return; }
+    if (isSeatingFinalized) { return; }
     $.post(rollback_reseating_url(),
       { 'order_uuid': ticket_order_id()
       }, function(response, status) {
-      });
+        restoreSettledSeating()
+      })
+      // On failure the server still holds the pending change the map shows.
+      .fail(seat_request_failed);
   });
 
 });

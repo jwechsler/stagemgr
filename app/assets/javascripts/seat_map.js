@@ -72,7 +72,7 @@ function seat_request_failed(xhr) {
   } catch (e) {
     console.log("seat request failed: " + xhr.status)
   }
-  alert(msg)
+  revealAlert(msg)
 }
 
 function update_seating_attributes(e_reference, status) {

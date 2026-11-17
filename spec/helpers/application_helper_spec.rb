@@ -57,4 +57,33 @@ RSpec.describe ApplicationHelper, type: :helper do
       expect(helper.theater_info).to equal(helper.theater_info)
     end
   end
+
+  describe '#cancel_default_confirm_data' do
+    it 'makes Cancel the default and leaves the accept label alone' do
+      expect(helper.cancel_default_confirm_data('Cancel this order?'))
+        .to eq(confirm: 'Cancel this order?', confirm_default: 'cancel')
+    end
+
+    it 'labels the accept button when accept is given' do
+      expect(helper.cancel_default_confirm_data('Split?', accept: 'Split'))
+        .to eq(confirm: 'Split?', confirm_default: 'cancel', confirm_accept: 'Split')
+    end
+  end
+
+  describe '#destroy_confirm_data' do
+    it 'asks "Are you sure?" with a Destroy button and Cancel as the default' do
+      expect(helper.destroy_confirm_data)
+        .to eq(confirm: 'Are you sure?', confirm_accept: 'Destroy', confirm_default: 'cancel')
+    end
+
+    it 'uses the given message and accept label' do
+      expect(helper.destroy_confirm_data('Delete this fee?', accept: 'Delete'))
+        .to eq(confirm: 'Delete this fee?', confirm_accept: 'Delete', confirm_default: 'cancel')
+    end
+
+    it 'renders as data-confirm-accept and data-confirm-default attributes' do
+      html = helper.link_to('Destroy', '/x', method: :delete, data: helper.destroy_confirm_data)
+      expect(html).to include('data-confirm-accept="Destroy"', 'data-confirm-default="cancel"')
+    end
+  end
 end

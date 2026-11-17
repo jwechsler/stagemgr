@@ -47,7 +47,7 @@ Feature: Box office users can email performance attendees
     Then the subject field should contain "Important update regarding Production One"
 
   @javascript
-  Scenario: Form validation requires all fields
+  Scenario: Missing required fields show a validation notice dialog and leave the email modal open
     Given I am a box office user
     And I am logged in
     When I go to the admin production detail page for "Production One"
@@ -79,16 +79,55 @@ Feature: Box office users can email performance attendees
     Then I should see a confirmation dialog asking about sending to "3 recipients"
 
   @javascript
-  Scenario: Canceling confirmation dialog keeps modal open
+  Scenario: Cancelling the confirmation dialog keeps the email modal open and sends nothing
     Given I am a box office user
     And I am logged in
     When I go to the admin production detail page for "Production One"
     And I follow "Email Attendees" in the datatable for performance "TEST01A"
     And I select "Test Theater Box Office" from "From Address"
     And I fill in "Message Body" with "Test message"
-    And I click "Send Email to 3 Recipients" and cancel
+    And I click "Send Email to 3 Recipients" and answer "Are you sure you want to send this email to 3 recipients?" with Cancel
+    Then the modal should remain open
+    And the send button should read "Send Email to 3 Recipients"
+    And no performance broadcast should be created
+
+  @javascript
+  Scenario: Pressing Esc in the confirmation dialog closes only the dialog
+    Given I am a box office user
+    And I am logged in
+    When I go to the admin production detail page for "Production One"
+    And I follow "Email Attendees" in the datatable for performance "TEST01A"
+    And I select "Test Theater Box Office" from "From Address"
+    And I fill in "Message Body" with "Test message"
+    And I click "Send Email to 3 Recipients" and press Esc in the confirmation "Are you sure you want to send this email to 3 recipients?"
     Then the modal should remain open
     And no performance broadcast should be created
+
+  @javascript
+  Scenario: Confirming a sample send emails the sample to the signed-in user
+    Given I am a box office user with email "boxoffice@example.com"
+    And I am logged in
+    When I go to the admin production detail page for "Production One"
+    And I follow "Email Attendees" in the datatable for performance "TEST01A"
+    And I select "Test Theater Box Office" from "From Address"
+    And I fill in "Message Body" with "Sample message"
+    And I send a sample of the message and confirm
+    Then I should see the alert "Sample attendee email sent to boxoffice@example.com"
+    And a sample email should have been sent to "boxoffice@example.com"
+    And the modal should remain open
+    And no performance broadcast should be created
+
+  @javascript
+  Scenario: Cancelling a sample send sends nothing
+    Given I am a box office user with email "boxoffice@example.com"
+    And I am logged in
+    When I go to the admin production detail page for "Production One"
+    And I follow "Email Attendees" in the datatable for performance "TEST01A"
+    And I select "Test Theater Box Office" from "From Address"
+    And I fill in "Message Body" with "Sample message"
+    And I send a sample of the message and cancel
+    Then the modal should remain open
+    And no sample email should have been sent
 
   @javascript
   Scenario: Performance with no eligible recipients shows zero count

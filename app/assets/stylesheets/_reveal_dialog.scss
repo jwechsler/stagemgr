@@ -1,0 +1,99 @@
+// Shared confirm/alert dialog (reveal_confirm.js): a rounded white sheet with
+// the message as plain body text, a hairline divider and right-aligned
+// text-only actions, in the manner of Safari's native confirm sheet.
+//
+// Imported by application.scss and required by frontend.css (the public order
+// pages load only the latter), so it pulls in the settings itself.
+// Text inherits the page's body font: admin pages set it in common.css.
+@import 'settings';
+
+$reveal-dialog-max-width: 28rem;
+$reveal-dialog-top: 100px; // Foundation's reveal offset
+$reveal-dialog-side-margin: rem-calc(16);
+$reveal-dialog-radius: rem-calc(12);
+$reveal-dialog-shadow: 0 rem-calc(10) rem-calc(30) rgba($black, 0.2);
+$reveal-dialog-message-color: #555;
+$reveal-dialog-message-padding: rem-calc(20) rem-calc(24);
+$reveal-dialog-divider: 1px solid $light-gray;
+$reveal-dialog-actions-padding: rem-calc(12) rem-calc(24);
+$reveal-dialog-action-gap: rem-calc(24);
+
+// Foundation's own overlay and show/hide rules, repeated for pages that load
+// no Foundation CSS (the standalone public layout). Foundation's JS shows the
+// overlay and the dialog with inline display: block.
+.reveal-overlay.reveal-dialog-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: $reveal-zindex;
+  display: none;
+  overflow-y: auto;
+  background-color: $reveal-overlay-background;
+}
+
+// .reveal.reveal-dialog outranks Foundation's .reveal rules, including the
+// small-screen ones that make every reveal full-screen and square.
+.reveal.reveal-dialog {
+  position: relative;
+  z-index: $reveal-zindex + 1;
+  display: none;
+  overflow-y: auto;
+  box-sizing: border-box;
+  top: $reveal-dialog-top;
+  left: auto;
+  width: calc(100% - #{2 * $reveal-dialog-side-margin});
+  max-width: $reveal-dialog-max-width;
+  height: auto;
+  min-height: 0;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: $reveal-dialog-radius;
+  background-color: $white;
+  box-shadow: $reveal-dialog-shadow;
+
+  .reveal-dialog__message {
+    box-sizing: border-box;
+    margin: 0;
+    padding: $reveal-dialog-message-padding;
+    color: $reveal-dialog-message-color;
+    font: inherit;
+    font-weight: $global-weight-normal;
+    line-height: $paragraph-lineheight;
+    border-bottom: $reveal-dialog-divider;
+  }
+
+  .reveal-dialog__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: $reveal-dialog-action-gap;
+    padding: $reveal-dialog-actions-padding;
+  }
+
+  .reveal-dialog__action {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: $anchor-color;
+    font: inherit;
+    font-weight: $global-weight-normal;
+    line-height: $paragraph-lineheight;
+    cursor: pointer;
+
+    &:hover {
+      color: $anchor-color-hover;
+    }
+  }
+
+  // The default action (it opens focused and Enter triggers it) is shown by
+  // weight, as a native confirm sheet does. reveal_confirm.js names it in
+  // data-reveal-dialog-default: accept unless the dialog says cancel
+  // (destructive links), so a missing attribute still bolds accept.
+  &:not([data-reveal-dialog-default='cancel']) .reveal-dialog__action--accept,
+  &[data-reveal-dialog-default='cancel'] .reveal-dialog__action--cancel {
+    font-weight: $global-weight-bold;
+  }
+}

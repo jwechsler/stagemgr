@@ -57,13 +57,12 @@ end
 
 When(/^I place the order$/) do
   click_link('Place Order')
-  page.driver.browser.switch_to.alert.accept
+  accept_reveal_confirm('Process this order?')
 end
 
 When('I submit the order') do
-  accept_confirm do
-    click_button('Place Order')
-  end
+  click_button('Place Order')
+  accept_reveal_confirm('Process this order?')
 end
 
 Given(/^I create a ticket order$/) do

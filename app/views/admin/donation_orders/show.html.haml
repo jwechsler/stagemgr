@@ -8,10 +8,10 @@
   .cell.small-12
     %p
       - if can? :refund, DonationOrder
-        = link_to 'Refund Donation', new_admin_order_refund_order_path(@donation_order), :confirm => "Are you sure?", :class=>"button"
+        = link_to 'Refund Donation', new_admin_order_refund_order_path(@donation_order), :class=>"button"
       - if can? :fulfull, DonationOrder
         = link_to 'Fulfill Order', fulfill_admin_order_path(@donation_order) if @donation_order.fulfillable?
       - if @donation_order.status == 'Processing' || @donation_order.status == 'Hold' || @donation_order.status == Order::NEW
-        = link_to 'Cancel Order', cancel_admin_order_path(@donation_order), :confirm => "Are you sure?", :method=>:post
+        = link_to 'Cancel Order', cancel_admin_order_path(@donation_order), data: cancel_default_confirm_data("Are you sure?"), :method=>:post
 
     = render '/admin/orders/audit_show', :order_form=>@donation_order

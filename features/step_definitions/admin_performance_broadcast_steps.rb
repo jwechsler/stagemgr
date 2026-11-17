@@ -145,25 +145,22 @@ Then(/^the subject field should contain "(.*?)"$/) do |text|
   end
 end
 
+# The send question and the result after the AJAX response are both the
+# shared reveal dialog over the modal (reveal_confirm.js): a confirmation,
+# then a one-button notice.
 When(/^I click "([^"]*)" and confirm with alert "([^"]*)"$/) do |button_text, expected_alert|
   within('#email-attendees-modal') do
-    accept_confirm do
-      click_button button_text
-    end
+    click_button button_text
   end
-  # Accept the success/error alert that appears after the AJAX response
-  @last_alert_message = accept_alert do
-  end
-  expect(@last_alert_message).to include(expected_alert)
+  accept_reveal_confirm(/send this email to \d+ recipients\?/, accept_label: 'Send Email')
+  @last_alert_message = accept_reveal_alert(expected_alert)
 end
 
 When(/^I click "([^"]*)" and accept the validation alert$/) do |button_text|
-  message = accept_alert do
-    within('#email-attendees-modal') do
-      click_button button_text
-    end
+  within('#email-attendees-modal') do
+    click_button button_text
   end
-  expect(message).to include('Please fill in all required fields')
+  accept_reveal_alert('Please fill in all required fields')
 end
 
 When(/^I click "([^"]*)"$/) do |button_text|
@@ -172,19 +169,50 @@ When(/^I click "([^"]*)"$/) do |button_text|
   end
 end
 
-When(/^I click "([^"]*)" and confirm$/) do |button_text|
+When(/^I click "([^"]*)" and answer "([^"]*)" with (OK|Cancel)$/) do |button_text, question, answer|
   within('#email-attendees-modal') do
-    accept_confirm do
-      click_button button_text
-    end
+    click_button button_text
   end
+  answer_reveal_confirm_with(question, answer)
 end
 
-When(/^I click "([^"]*)" and cancel$/) do |button_text|
+When(/^I click "([^"]*)" and press Esc in the confirmation "([^"]*)"$/) do |button_text, question|
   within('#email-attendees-modal') do
-    dismiss_confirm do
-      click_button button_text
-    end
+    click_button button_text
+  end
+  escape_reveal_confirm(question)
+end
+
+When(/^I send a sample of the message and confirm$/) do
+  within('#email-attendees-modal') do
+    click_button 'Send sample email'
+  end
+  accept_reveal_confirm(/\ASend a sample attendee email to \S+@\S+\?\z/, accept_label: 'Send Sample')
+  @last_alert_message = accept_reveal_alert
+end
+
+When(/^I send a sample of the message and cancel$/) do
+  within('#email-attendees-modal') do
+    click_button 'Send sample email'
+  end
+  dismiss_reveal_confirm(/\ASend a sample attendee email to /)
+end
+
+Then(/^I should see the alert "(.*?)"$/) do |text|
+  expect(@last_alert_message).to include(text)
+end
+
+Then(/^a sample email should have been sent to "(.*?)"$/) do |email|
+  expect(ActionMailer::Base.deliveries.flat_map(&:to)).to eq([email])
+end
+
+Then(/^no sample email should have been sent$/) do
+  expect(ActionMailer::Base.deliveries).to be_empty
+end
+
+Then(/^the send button should read "(.*?)"$/) do |label|
+  within('#email-attendees-modal') do
+    expect(page).to have_button(label, disabled: false)
   end
 end
 
@@ -209,8 +237,7 @@ Then(/^the send button should be disabled$/) do
 end
 
 Then(/^I should see a confirmation dialog asking about sending to "(.*?)"$/) do |text|
-  # This is handled by the accept_confirm/dismiss_confirm methods
-  # The confirmation text is checked in the browser's native dialog
+  reveal_confirm_dialog("Are you sure you want to send this email to #{text}?")
 end
 
 Then(/^the from address dropdown should include "(.*?)"$/) do |option|
