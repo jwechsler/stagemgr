@@ -98,11 +98,6 @@ function revealDialogIsAvailable() {
 }
 
 function revealConfirmBuild() {
-  // This file can be evaluated twice on a page (seat_map.js re-requires
-  // application.js); drop a dialog built by the earlier copy.
-  var $stale = $('#' + REVEAL_CONFIRM_ID);
-  $stale.closest('.reveal-overlay').remove();
-  $stale.remove();
   var $el = $('<div class="reveal reveal-dialog"></div>').attr({
     id: REVEAL_CONFIRM_ID,
     'aria-labelledby': REVEAL_CONFIRM_MESSAGE_ID
@@ -237,9 +232,9 @@ function revealAlert(message, options) {
 // buttons (jQuery's trigger('click') does not follow an href), a fresh submit
 // for a form carrying data-confirm itself.
 //
-// The bypass and pending markers live on the DOM node, not in jQuery data:
-// pages that load seat_map.js evaluate jquery_ujs and this file twice, so two
-// jQuery instances (separate data caches) each handle the same click.
+// The bypass and pending markers live on the DOM node, not in jQuery data, so
+// they hold whichever jQuery instance's handler sees the click (public order
+// pages can carry the site wrapper's jQuery beside the bundle's own).
 
 function revealConfirmRedispatch($element) {
   var el = $element[0];
@@ -276,7 +271,7 @@ function revealConfirmAllowAction(rails, nativeAllowAction, element) {
   var el = element[0];
   if (el[REVEAL_CONFIRM_UJS_BYPASS_PROP]) { return true; }
   if (!revealDialogIsAvailable()) { return nativeAllowAction.call(rails, element); }
-  // Another jQuery instance's handler has already opened this question.
+  // This element's question is already open.
   if (el[REVEAL_CONFIRM_UJS_PENDING_PROP]) { return false; }
   if (!rails.fire(element, 'confirm')) { return false; }
 

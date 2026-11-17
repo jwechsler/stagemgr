@@ -77,13 +77,6 @@ function initialize_seating_assignment() {
 
   // Namespaced and unbound first: this runs again whenever
   // update_ticketing_panel reloads the seatmap, and must not stack handlers.
-  $(document).off('closed.zf.reveal.seatAssignment')
-  $(document).on('closed.zf.reveal.seatAssignment', '[data-reveal]', function () {
-    var modal = $(this);
-    //$('img.seatingmap').mapster('rebind',mapster_options());
-
-  });
-
   $('#seatingmap circle').off('click.seatAssignment')
   $('#seatingmap circle').on('click.seatAssignment', function(e) {
     e.preventDefault();

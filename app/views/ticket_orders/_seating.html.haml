@@ -1,7 +1,13 @@
 <!--Creates the popup body-->
--# show_backend_classes is a render-context flag: false (default) on the public
--# order flow, passed true by admin/ticket_orders/_seating for the box office.
+-#
+  show_backend_classes is a render-context flag: false (default) on the public
+  order flow, passed true by admin/ticket_orders/_seating for the box office.
 - show_backend_classes = local_assigns.fetch(:show_backend_classes, false)
+-#
+  seat_script is the seat-assignment bundle to include: public_seating
+  (default) carries its own libraries for public layouts; admin callers pass
+  seat_assignment, since their layout already loads the application bundle.
+- seat_script = local_assigns.fetch(:seat_script, 'public_seating')
 = render partial:'/seat_assignments/ticket_class_selector', locals: {order_form: order_form, show_backend_classes: show_backend_classes}
 #ticket-items{'data-line-items':'[]'}
 - unavailable_data = raw '{"alwaysOn": true, "fillColor":"000000"}'
@@ -14,7 +20,7 @@
     =render partial:'/admin/ticket_orders/seatmap', locals:{ticket_order:ticket_order}
 
 = content_for :js do
-  = javascript_include_tag 'seat_assignment'
+  = javascript_include_tag seat_script
   - unless order_form.object.performance_id.blank?
     :javascript
       $(document).ready(function() {

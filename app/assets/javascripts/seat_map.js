@@ -1,5 +1,3 @@
-//= require application
-
 function count_assigned() {
   count = 0
   $("#seatingmap area").each(function () {
