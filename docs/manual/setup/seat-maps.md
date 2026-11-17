@@ -33,40 +33,61 @@ When a seat map is assigned to a production, that production becomes a **reserve
 
 ## Seat Geometry CSV Format
 
-The geometry CSV file defines the position and properties of each seat. Each row in the CSV creates one seat.
+The geometry CSV file defines the position and properties of each seat. Each row in the CSV creates one seat, drawn on the map as a **circle**.
+
+The first row must be a header row naming the columns. Columns can be in any order.
 
 ### Required Columns
 
+All eight of these column headers must be present in the file, even when a column's values are left blank. If one is missing, nothing is imported and a message names the missing column.
+
 | Column | Description | Example |
 |--------|-------------|---------|
-| `location` | Unique seat identifier | `A1`, `B12`, `AA3` |
-| `row` | Row designation | `A`, `B`, `AA` |
-| `sequence` | Seat number within the row | `1`, `2`, `12` |
+| `location` | Unique seat identifier. Must be filled in and unique within the seat map. | `A1`, `B12`, `AA3` |
+| `row` | Row designation. Must be filled in. | `A`, `B`, `AA` |
+| `sequence` | Seat number within the row. Must be filled in. | `1`, `2`, `12` |
+| `origin-x` | X coordinate of the **center** of the seat's circle, in pixels from the left edge of the map image | `150` |
+| `origin-y` | Y coordinate of the **center** of the seat's circle, in pixels from the top edge of the map image | `300` |
+| `width` | **Radius** of the seat's circle in pixels (not its full width). A seat with `width` 10 is drawn 20 pixels across. | `10` |
+| `height` | Not used when drawing the seat. The column must be present; repeat the `width` value or leave it blank. | `10` |
+| `feature` | Accessibility designation -- if set, indicates the seat can be converted to wheelchair accessible. Leave blank for an ordinary seat. | `wheelchair` |
+
+Coordinates are measured in pixels of the uploaded map image at its original size, so a seat at `origin-x` 150, `origin-y` 300 is centered 150 pixels from the left and 300 pixels down from the top of the image.
 
 ### Optional Columns
 
 | Column | Description | Example |
 |--------|-------------|---------|
-| `origin-x` | X coordinate (pixels from left) for seat position on the map image | `150` |
-| `origin-y` | Y coordinate (pixels from top) for seat position on the map image | `300` |
-| `width` | Width of the seat marker in pixels | `20` |
-| `height` | Height of the seat marker in pixels | `20` |
-| `feature` | Accessibility designation -- if set, indicates the seat can be converted to wheelchair accessible | `wheelchair` |
 | `zone` | Seating zone for [zoned pricing](seat-map-editor.md#seat-zones-and-zoned-pricing) (1--2 letters/digits; defaults to `A`). When the column is absent, re-imports leave existing zones untouched. | `B` |
 
 ### Example CSV
 
 ```csv
 location,row,sequence,origin-x,origin-y,width,height,feature
-A1,A,1,100,400,20,20,
-A2,A,2,125,400,20,20,
-A3,A,3,150,400,20,20,wheelchair
-B1,B,1,100,430,20,20,
-B2,B,2,125,430,20,20,
+A1,A,1,100,400,10,10,
+A2,A,2,125,400,10,10,
+A3,A,3,150,400,10,10,wheelchair
+B1,B,1,100,430,10,10,
+B2,B,2,125,430,10,10,
 ```
 
-!!! tip "Seat Location"
-    If you leave the `location` column blank, Stagemgr will automatically generate it by combining the `row` and `sequence` values (e.g., row `A` + sequence `1` = location `A1`). Each location must be unique within the seat map.
+Here each seat is a circle 20 pixels across, and the centers in a row are 25 pixels apart, leaving a 5-pixel gap between neighbors.
+
+!!! tip "Sizing and spacing"
+    Because `width` is a radius, two neighboring seats overlap when their centers are closer together than twice the `width`. The [Seat Map Editor](seat-map-editor.md) shows the same value as **Radius** and lets you adjust it, and drag seats into place, after the import.
+
+### What You See After an Import
+
+When the seat map is saved, a message reports how many seats were imported from the file.
+
+| Situation | What happens |
+|-----------|--------------|
+| A required column header is missing | Nothing is imported and the seat map is not created or changed. The form is shown again with a message naming the missing column(s). |
+| The file is empty or cannot be read as a CSV | Nothing is imported and the seat map is not created or changed. The form is shown again with a message. |
+| A row has a blank `location`, `row` or `sequence`, or an invalid `zone` | That row is skipped and the rest of the file is imported. A warning lists each skipped row by its line number in the file (the header row is line 1), with its location and the reason. Only the first 10 skipped rows are listed, followed by a count of the rest. |
+| Two rows share a `location` | The later row overwrites the earlier one. |
+
+Fix the listed rows in your file and upload it again from the seat map's edit form; rows that already imported are simply updated.
 
 ## How Seat Maps Work
 
