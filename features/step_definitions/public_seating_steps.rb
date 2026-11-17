@@ -1,12 +1,24 @@
-# Steps for features/public_reserved_seating.feature (the public order page
-# for a reserved-seating performance, which includes the public_seating
-# bundle). Seat picking and the latch come from seat_request_latch_steps.rb.
+# Steps for the public order pages (features/public_reserved_seating.feature,
+# features/public_order_scripts.feature), whose layout includes the frontend
+# bundle. Seat picking and the latch come from seat_request_latch_steps.rb.
 
-Then(/^the order page loads public_seating\.js and no other seat or application bundle$/) do
+# Bundles no public order page includes.
+PUBLIC_FORBIDDEN_BUNDLES = %w[application admin_application public_seating jquery reseating].freeze
+
+Then(/^the order page loads frontend\.js and seat_assignment\.js once each and no admin or application bundle$/) do
   expect(page).to have_css('#seatingmap circle.available[data-assignment-id]')
   bundles = page_script_bundles
-  expect(bundles.count('public_seating')).to eq(1)
-  expect(bundles & %w[application admin_application seat_assignment seat_map reseating]).to eq([])
+  expect(bundles.count('frontend')).to eq(1)
+  expect(bundles.count('seat_assignment')).to eq(1)
+  expect(bundles).to include('orders_common')
+  expect(bundles & PUBLIC_FORBIDDEN_BUNDLES).to eq([])
+end
+
+Then(/^the order page loads frontend\.js once and no seat, admin or application bundle$/) do
+  expect(page).to have_button('Review Order')
+  bundles = page_script_bundles
+  expect(bundles.count('frontend')).to eq(1)
+  expect(bundles & (PUBLIC_FORBIDDEN_BUNDLES + %w[seat_assignment seat_map])).to eq([])
 end
 
 # A bundle that failed to evaluate would leave its globals undefined.
@@ -18,12 +30,11 @@ Then(/^the seat picker's libraries are ready on the page's jQuery$/) do
       foundation: typeof jQuery.fn.foundation === 'function',
       reveal: !!(window.Foundation && window.Foundation.Reveal),
       revealAlert: typeof window.revealAlert === 'function',
-      formatCurrency: typeof window.formatCurrency === 'function',
       seating: typeof window.initialize_seating_assignment === 'function'
     })
   JS
   expect(ready).to eq('sameDollar' => true, 'ujs' => true, 'foundation' => true, 'reveal' => true,
-                      'revealAlert' => true, 'formatCurrency' => true, 'seating' => true)
+                      'revealAlert' => true, 'seating' => true)
 end
 
 # Stops the form's real submission (a handler on the form runs before the

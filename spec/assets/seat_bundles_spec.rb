@@ -1,10 +1,9 @@
 require 'rails_helper'
 
 # The seat-map scripts are included on pages whose layout already loads the
-# libraries they use (admin: the `application` bundle), so they carry only
-# their own code. The public reserved-seating order page has no such layout
-# bundle and includes `public_seating`, which carries exactly the libraries
-# seat_assignment needs, once each.
+# libraries they use (admin: the `application` bundle; public: the `frontend`
+# bundle), so they carry only their own code. `frontend` carries exactly the
+# libraries public order pages share, once each.
 module SeatBundleMarkers
   JS_ROOT = Rails.root.join('app/assets/javascripts')
 
@@ -14,14 +13,24 @@ module SeatBundleMarkers
     'jquery_ujs' => 'jquery-ujs has already been loaded',
     'Foundation Reveal' => 'function Reveal() {',
     'reveal_confirm' => 'function revealConfirmBuild',
-    'revealAlert' => 'function revealAlert',
-    'utility' => 'function formatCurrency',
-    'seat_assignment' => 'function initialize_seating_assignment'
+    'revealAlert' => 'function revealAlert'
   }.freeze
 
   ADMIN_ONLY_MARKERS = {
     'DataTables' => 'DataTables',
     'jQuery UI' => 'jQuery UI'
+  }.freeze
+
+  # Page code that belongs in the page's own scripts, not in frontend.
+  PAGE_CODE_MARKERS = {
+    'seat_assignment' => 'function initialize_seating_assignment',
+    'utility' => 'function formatCurrency'
+  }.freeze
+
+  # seat_assignment's own code and the seat_map code it requires.
+  SEAT_ASSIGNMENT_MARKERS = {
+    'initialize_seating_assignment' => 'function initialize_seating_assignment',
+    'seat_map' => 'function initialize_seatingmap'
   }.freeze
 
   SHARED_LIBRARIES = ['jQuery', 'jquery_ujs', 'Foundation Reveal', 'reveal_confirm'].freeze
@@ -54,12 +63,28 @@ RSpec.describe 'seat-map JavaScript bundles' do
     end
   end
 
-  describe 'public_seating.js' do
-    let(:source) { bundle_source('public_seating.js') }
+  describe 'seat_assignment.js' do
+    let(:source) { bundle_source('seat_assignment.js') }
+
+    SeatBundleMarkers::SEAT_ASSIGNMENT_MARKERS.each do |code, marker|
+      it "contains the #{code} code exactly once" do
+        expect(source.scan(marker).size).to eq(1)
+      end
+    end
+  end
+
+  describe 'frontend.js' do
+    let(:source) { bundle_source('frontend.js') }
 
     SeatBundleMarkers::LIBRARY_MARKERS.each do |library, marker|
       it "bundles #{library} exactly once" do
         expect(source.scan(marker).size).to eq(1)
+      end
+    end
+
+    SeatBundleMarkers::PAGE_CODE_MARKERS.each do |code, marker|
+      it "does not bundle #{code}" do
+        expect(source).not_to include(marker)
       end
     end
 
@@ -68,6 +93,10 @@ RSpec.describe 'seat-map JavaScript bundles' do
         expect(source).not_to include(marker)
       end
     end
+  end
+
+  it 'has no public_seating.js asset' do
+    expect(Rails.application.assets['public_seating.js']).to be_nil
   end
 
   it 'has no JavaScript file that requires the application bundle' do

@@ -1,5 +1,6 @@
 # Helpers for steps that check which Sprockets bundles a page includes and
 # what a served bundle contains (features/public_reserved_seating.feature,
+# features/public_order_scripts.feature,
 # features/admin_refund_to_donation.feature).
 module ScriptBundleHelpers
   # One line of jQuery's banner: present once per copy of jQuery.

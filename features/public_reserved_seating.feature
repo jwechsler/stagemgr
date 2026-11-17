@@ -4,16 +4,17 @@ Feature: A patron picks reserved seats on the public order page
   I want the seat picker, its notices and Place Order to work on the public page
   So that I can choose my seats and buy them
 
-  # The public order layout has no application bundle; the page includes the
-  # public_seating bundle, which carries one copy of each library the seat
-  # picker uses (jQuery, jquery_ujs, Foundation, reveal_confirm, utility).
+  # The public order layout has no application bundle; it includes the
+  # frontend bundle (one copy each of jQuery, jquery_ujs, Foundation and
+  # reveal_confirm), and the page adds seat_assignment, which carries only the
+  # seat picker's own code.
   Background:
     Given a theater with reserved seating exists
     And a test performance "PROD01A" exists
     And the seat map for "Production One" is plotted
     And "ADULT" tickets are sold online with public credit card payments
     When I go to new web order for production "Production One" and performance "PROD01A"
-    Then the order page loads public_seating.js and no other seat or application bundle
+    Then the order page loads frontend.js and seat_assignment.js once each and no admin or application bundle
     And the seat picker's libraries are ready on the page's jQuery
 
   Scenario: Picking a seat and placing the order
