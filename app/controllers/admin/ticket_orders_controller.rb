@@ -334,7 +334,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
       set_payment_accessors_from_params(order, params[:ticket_order])
       set_ticket_classes_for_line_items(order)
       order.send_merge_confirmation = params[:send_confirmation] != '0' if order.addition?
-      super
+      super(order)
       # A failed addition leaves no order behind; free the seats it held.
       TicketOrderAddition.release_holds(order) if order.addition? && !order.addition_placed?
     end

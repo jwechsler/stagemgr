@@ -148,11 +148,12 @@ class Admin::OrdersController < Admin::ApplicationController
   # after setting up the record, run the processing based on commit.
   # If no :commit value, and order status has not changed, then just save
   #
-  # The new status is determiend by params[:commit], which maps to a status
-  # template_by_order_status is called to determine which template to display post-processing
+  # The new status comes from params[:submit_action] || params[:commit], which
+  # maps to a status. template_by_order_status picks the template to display
+  # post-processing.
   #
   # @order [Order] order to process
-  def create_or_update(order, commit_action = nil)
+  def create_or_update(order)
     order.box_office_sale = true
     new_state = convert_button_label_to_state(params[:submit_action] || params[:commit])
     if new_state.blank?
@@ -163,7 +164,7 @@ class Admin::OrdersController < Admin::ApplicationController
       return redirect_to(redirect_path) if redirect_path
 
       respond_to do |format|
-        format.html { render template_by_order_status(order, commit_action) }
+        format.html { render template_by_order_status(order) }
       end
     end
   end
@@ -177,9 +178,9 @@ class Admin::OrdersController < Admin::ApplicationController
   # render the template refered to by template_by_order_status for the order
   #
   # @order [Order] order to evaluate
-  def render_by_status(order, commit_action = nil)
+  def render_by_status(order)
     respond_to do |format|
-      format.html { render template_by_order_status(order, commit_action) }
+      format.html { render template_by_order_status(order) }
     end
   end
 
@@ -189,8 +190,8 @@ class Admin::OrdersController < Admin::ApplicationController
     render_by_status(order)
   end
 
-  # override if there are more states to determine (like confirmation pages)
-  def template_by_order_status(order, _commit_action = nil)
+  # edit while the order is still editable, show once it is not
+  def template_by_order_status(order)
     if order.editable?
       'edit'
     else
