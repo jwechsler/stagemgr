@@ -46,7 +46,7 @@ A red **● unsaved changes** indicator appears whenever the working copy differ
 
 When multiple seats are selected, each property box shows the value they share, or **mult.** when the values differ. The Number and Label boxes are the exceptions -- they are set one seat at a time, so they read **mult.** and lock whenever more than one seat is selected.
 
-![A full row selected with the marquee; the toolbar shows Zone B and Y 1045 shared by the selection, with Label and X reading "mult."](../assets/images/screenshots/setup-seat-map-editor-selection.png)
+![A full row selected with the marquee; the toolbar shows Row H, Zone A, Radius 20 and Y 1045 shared by the selection, with Number, Label and X reading "mult."](../assets/images/screenshots/setup-seat-map-editor-selection.png)
 
 ## Moving and Aligning Seats
 

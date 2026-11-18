@@ -16,7 +16,7 @@ When a seat map is assigned to a production, that production becomes a **reserve
 
 ## Creating a Seat Map
 
-![The seat map edit form with label, image upload, and geometry file fields](../assets/images/screenshots/setup-seat-map-form.png)
+![The seat map edit form with label, image upload, geometry file and Present as zoned fields](../assets/images/screenshots/setup-seat-map-form.png)
 
 1. Navigate to the seat maps list
 2. Click **New Seat Map**
