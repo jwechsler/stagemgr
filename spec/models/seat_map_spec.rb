@@ -81,6 +81,85 @@ RSpec.describe SeatMap, type: :model do
     end
   end
 
+  context 'image dimensions' do
+    # Deliberately not square, so swapped width and height would be caught.
+    def png_bytes(width = 120, height = 40)
+      Vips::Image.black(width, height).write_to_buffer('.png')
+    end
+
+    def uploaded_png(bytes, filename = 'map.png')
+      file = Tempfile.new([File.basename(filename, '.*'), File.extname(filename)])
+      file.binmode
+      file.write(bytes)
+      file.rewind
+      Rack::Test::UploadedFile.new(file.path, 'image/png', true, original_filename: filename)
+    end
+
+    it 'records the pixel size of an image uploaded as a file when the seat map is created' do
+      seat_map = FactoryBot.build(:seat_map, base_image_map: uploaded_png(png_bytes))
+
+      expect(seat_map.save).to be true
+      seat_map.reload
+      expect([seat_map.original_width, seat_map.original_height]).to eq([120, 40])
+    end
+
+    it 'records the pixel size of an image attached as an io and stores the file intact' do
+      bytes = png_bytes
+      seat_map = FactoryBot.build(:seat_map)
+      seat_map.base_image_map.attach(io: StringIO.new(bytes), filename: 'map.png', content_type: 'image/png')
+
+      expect(seat_map.save).to be true
+      seat_map.reload
+      expect([seat_map.original_width, seat_map.original_height]).to eq([120, 40])
+      expect(seat_map.base_image_map.download.b).to eq(bytes.b)
+    end
+
+    it 'records the new image size when the image on an existing seat map is replaced' do
+      seat_map = FactoryBot.create(:seat_map, base_image_map: uploaded_png(png_bytes))
+
+      expect(seat_map.update(base_image_map: uploaded_png(png_bytes(300, 75), 'bigger.png'))).to be true
+      seat_map.reload
+      expect([seat_map.original_width, seat_map.original_height]).to eq([300, 75])
+    end
+
+    it 'leaves the image metadata alone when the seat map is saved without a new image' do
+      seat_map = FactoryBot.create(:seat_map, base_image_map: uploaded_png(png_bytes))
+      blob = seat_map.reload.base_image_map.blob
+      metadata_before = blob.metadata
+
+      expect(seat_map.update(label: 'Renamed')).to be true
+      expect(blob.reload.metadata).to eq(metadata_before)
+      expect(seat_map.reload.base_image_map.blob).to eq(blob)
+    end
+
+    it 'marks the blob analyzed so Rails does not enqueue its own analysis' do
+      expect(ActiveStorage::AnalyzeJob).not_to receive(:perform_later)
+
+      seat_map = FactoryBot.create(:seat_map, base_image_map: uploaded_png(png_bytes))
+
+      expect(seat_map.reload.base_image_map.blob).to be_analyzed
+    end
+
+    it 'refuses to save, with an error on the image, when the file cannot be read as an image' do
+      seat_map = FactoryBot.build(:seat_map, base_image_map: uploaded_png('not an image', 'broken.png'))
+
+      expect { expect(seat_map.save).to be false }.not_to raise_error
+      expect(seat_map.errors[:base_image_map]).to be_present
+      expect(seat_map).not_to be_persisted
+    end
+
+    it 'swaps width and height for a JPEG whose EXIF orientation turns it a quarter turn' do
+      rotated = Vips::Image.black(120, 40).mutate { |image| image.set_type!(GObject::GINT_TYPE, 'orientation', 6) }
+      seat_map = FactoryBot.build(:seat_map)
+      seat_map.base_image_map.attach(io: StringIO.new(rotated.write_to_buffer('.jpg')), filename: 'map.jpg',
+                                     content_type: 'image/jpeg')
+
+      expect(seat_map.save).to be true
+      seat_map.reload
+      expect([seat_map.original_width, seat_map.original_height]).to eq([40, 120])
+    end
+  end
+
   context 'deletion' do
     it 'is refused while a production uses the map, but allowed for an unassigned map' do
       seat_map = FactoryBot.create(:seat_map, seat_count: 2)

@@ -6,8 +6,9 @@ SEAT_MAP_PNG = Base64.decode64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAA
 
 Given(/^the seat map for "(.*?)" is plotted$/) do |production_name|
   seat_map = Production.find_by(name: production_name).seat_map
-  # Attached directly with its size recorded: SeatMap#save_image_dimensions
-  # would run the image analyzer, which needs MiniMagick.
+  # Attached directly with a fixed 480x80 size recorded: the seat coordinates
+  # below are laid out for that size, and SeatMap#save_image_dimensions would
+  # measure this 1x1 PNG instead.
   blob = ActiveStorage::Blob.create_and_upload!(io: StringIO.new(SEAT_MAP_PNG), filename: 'seat-map.png',
                                                 content_type: 'image/png',
                                                 metadata: { identified: true, analyzed: true, width: 480, height: 80 })

@@ -1,5 +1,3 @@
-require 'csv'
-
 class Admin::SeatMapsController < Admin::ApplicationController
   prepend_before_action :find_venue
   load_and_authorize_resource
@@ -32,22 +30,30 @@ class Admin::SeatMapsController < Admin::ApplicationController
     @geometry_import.format = FileStore::SEATMAP_GEOMETRY
   end
 
+  # A geometry file that cannot be read or lacks a required column stops the
+  # whole request: no seat map is created and nothing is imported. Otherwise
+  # the seat map is saved first and the file imported into it.
   def create
     @seat_map.venue = @venue
-    update_geometry(params[:seat_map][:geometry_import]) unless params[:seat_map][:geometry_import].nil?
-    if @seat_map.save!
-      flash[:notice] = "SeatMap '#{@seat_map.label}' was successfully created for venue #{@seat_map.venue.name}."
-      redirect_to(admin_venue_path(@venue))
-    else
-      render action: 'edit'
-    end
+    import = geometry_import
+    return render_with_import_problem('new', import) if import && !import.check.importable?
+    return render(action: 'new') unless @seat_map.save
+
+    flash[:notice] = "SeatMap '#{@seat_map.label}' was successfully created for venue #{@seat_map.venue.name}."
+    report_import(run_import(import)) if import
+    redirect_to(admin_venue_path(@venue))
   end
 
+  # As create: a bad geometry file leaves the seat map unchanged, including
+  # the other submitted attributes.
   def update
+    import = geometry_import
     respond_to do |format|
-      update_geometry(params[:seat_map][:geometry_import]) unless params[:seat_map][:geometry_import].nil?
-      if @seat_map.update(seat_map_params)
+      if import && !import.check.importable?
+        format.html { render_with_import_problem('edit', import) }
+      elsif @seat_map.update(seat_map_params)
         flash[:notice] = "SeatMap '#{@seat_map.label}' was successfully updated."
+        report_import(run_import(import)) if import
         format.html { redirect_to(admin_venue_path(@venue)) }
       else
         format.html { render action: 'edit' }
@@ -153,75 +159,29 @@ class Admin::SeatMapsController < Admin::ApplicationController
                   .exists?(["(order_uuid IS NOT NULL AND order_uuid <> '') OR status IN (:held)", { held: [SeatAssignment::TEMPORARY, SeatAssignment::ASSIGNED] }])
   end
 
-  def update_geometry(geometry_import)
-    headers = nil
-    total = 0
-    location_idx = 0
-    row_idx = 0
-    sequence_idx = 0
-    origin_x_idx = 0
-    origin_y_idx = 0
-    width_idx = 0
-    height_idx = 0
-    feature_idx = 0
-    zone_idx = nil
-    CSV.foreach(geometry_import.path) do |row|
-      if headers.nil?
+  def geometry_import
+    file = params.dig(:seat_map, :geometry_import).presence
+    file && SeatGeometryImport.new(@seat_map, file)
+  end
 
-        _index = 0
-        headers = Hash[row.map do |header|
-          _index += 1
-          [header, _index]
-        end]
-        headers.keys.each do |key|
-          encoding_options = {
-            invalid: :replace, # Replace invalid byte sequences
-            undef: :replace, # Replace anything not defined in ASCII
-            replace: '', # Use a blank for those replacements
-            universal_newline: true # Always break lines with \n
-          }
-          # Ruby 3: options must be passed as keywords — a positional hash is
-          # interpreted as a source encoding and raises TypeError.
-          stripped_key = key.encode(Encoding.find('ASCII'), **encoding_options)
-          headers[stripped_key] = headers.delete(key)
-        end
-        location_idx = headers['location'] - 1
-        row_idx = headers['row'] - 1
-        sequence_idx = headers['sequence'] - 1
-        origin_x_idx = headers['origin-x'] - 1
-        origin_y_idx = headers['origin-y'] - 1
-        width_idx = headers['width'] - 1
-        height_idx = headers['height'] - 1
-        feature_idx = headers['feature'] - 1
-        # Zoned pricing: the zone column is optional. When absent, existing
-        # seat zones are left untouched on re-import.
-        zone_idx = headers['zone'].nil? ? nil : headers['zone'] - 1
+  def run_import(import)
+    import.call.tap { |result| rebuild_inventory_for_seat_map if result.importable? }
+  end
 
-      else
-        total += 1
-        seat = @seat_map.seats.select do |s|
-          s.location.eql?(row[location_idx])
-        end.first
-        if seat.nil?
-          seat ||= Seat.new(location: row[location_idx])
-          @seat_map.seats << seat
-        end
-        seat.row = row[row_idx]
-        seat.seat_number = row[sequence_idx]
-        seat.origin_x = row[origin_x_idx]
-        seat.origin_y = row[origin_y_idx]
-        seat.width = row[width_idx]
-        seat.height = row[height_idx]
-        seat.feature = row[feature_idx]
-        # A blank cell under a present zone column resets the seat to the
-        # default zone "A" (Seat#normalize_zone).
-        seat.zone = row[zone_idx] unless zone_idx.nil?
-        seat.save
+  # Imports a geometry file into the (saved) seat map and rebuilds inventory.
+  def update_geometry(geometry_file)
+    run_import(SeatGeometryImport.new(@seat_map, geometry_file))
+  end
 
-      end
-    end
+  def render_with_import_problem(action, import)
+    flash.now[:error] = import.check.problem_message
+    render action: action
+  end
 
-    rebuild_inventory_for_seat_map
+  # Flash messages are plain text; the layout escapes them.
+  def report_import(result)
+    flash[:notice] = [flash[:notice], result.summary_message].compact.join(' ')
+    flash[:warning] = result.skipped_message if result.skipped_rows.any?
   end
 
   # Materializes SeatAssignment inventory for every performance of every

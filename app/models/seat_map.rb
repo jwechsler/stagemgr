@@ -14,11 +14,29 @@ class SeatMap < ApplicationRecord
   before_destroy :prevent_deletion_while_in_use, prepend: true
   before_save :save_image_dimensions
 
-  def save_image_dimensions
-    return unless base_image_map.attached? && base_image_map.changed? 
+  # EXIF orientations 5-8 turn the image 90 or 270 degrees, so the displayed
+  # width and height are swapped (as Rails' own image analyzer reports them).
+  ROTATED_EXIF_ORIENTATIONS = (5..8)
 
-      base_image_map.analyze
-    
+  # Records the pixel size of a newly attached image before the blob is saved.
+  # We measure the upload ourselves because Rails 6.1 puts the file on the
+  # storage service only after commit (so the blob cannot be downloaded yet),
+  # and its ImageAnalyzer needs ImageMagick, which we do not install (we use
+  # libvips). Marking the blob analyzed stops Rails enqueuing its own
+  # AnalyzeJob. Rails 7's built-in vips analyzer could replace this.
+  def save_image_dimensions
+    change = attachment_changes['base_image_map']
+    return unless change.is_a?(ActiveStorage::Attached::Changes::CreateOne)
+
+    blob = change.blob
+    return if blob.metadata.key?('width') && blob.metadata.key?('height')
+
+    blob.metadata = blob.metadata.merge(measure_image(change.attachable, blob)).merge(analyzed: true)
+    blob.save! if blob.persisted?
+  rescue Vips::Error => e
+    Rails.logger.warn("SeatMap #{id || 'new'}: could not read #{blob&.filename} as an image: #{e.message}")
+    errors.add(:base_image_map, 'could not be read as an image. Please upload a PNG, JPEG or GIF file.')
+    throw(:abort)
   end
 
   def original_width
@@ -67,6 +85,32 @@ class SeatMap < ApplicationRecord
   end
 
   private
+
+  # The attachable is what was assigned: an uploaded file (form or test), an
+  # attach(io:, filename:, ...) hash, or an existing blob / signed blob id,
+  # which is already on the service and can be opened from there.
+  def measure_image(attachable, blob)
+    case attachable
+    when Hash
+      image_dimensions(Vips::Image.new_from_buffer(read_and_rewind(attachable.symbolize_keys.fetch(:io)), ''))
+    when ActiveStorage::Blob, String
+      blob.open { |file| image_dimensions(Vips::Image.new_from_file(file.path)) }
+    else
+      image_dimensions(Vips::Image.new_from_file(attachable.path))
+    end
+  end
+
+  # The io is uploaded again after commit, so leave it at the start.
+  def read_and_rewind(io)
+    io.rewind if io.respond_to?(:rewind)
+    io.read.tap { io.rewind if io.respond_to?(:rewind) }
+  end
+
+  def image_dimensions(image)
+    rotated = image.get_typeof('orientation').positive? &&
+              ROTATED_EXIF_ORIENTATIONS.cover?(image.get('orientation'))
+    rotated ? { width: image.height, height: image.width } : { width: image.width, height: image.height }
+  end
 
   # A map that productions still use, or whose seats were sold (e.g. under a
   # production since moved to another map), keeps its seats. The sold-seat

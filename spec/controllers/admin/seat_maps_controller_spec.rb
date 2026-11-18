@@ -55,6 +55,27 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
       allow(controller).to receive(:authorize!).and_return(true)
     end
 
+    # Measured by SeatMap#save_image_dimensions on save; not square, so a
+    # width/height swap would show.
+    def uploaded_png(width, height, bytes: nil)
+      file = Tempfile.new(['map', '.png'])
+      file.binmode
+      file.write(bytes || Vips::Image.black(width, height).write_to_buffer('.png'))
+      file.rewind
+      Rack::Test::UploadedFile.new(file.path, 'image/png', true, original_filename: 'map.png')
+    end
+
+    def geometry_header
+      'location,row,sequence,origin-x,origin-y,width,height,feature'
+    end
+
+    def uploaded_geometry(content)
+      file = Tempfile.new(['geometry', '.csv'])
+      file.write(content)
+      file.rewind
+      Rack::Test::UploadedFile.new(file.path, 'text/csv', original_filename: 'geometry.csv')
+    end
+
     def sold!(seat)
       FactoryBot.create(:performance).tap do |perf|
         SeatAssignment.create!(seat: seat, performance: perf, status: SeatAssignment::ASSIGNED,
@@ -63,13 +84,6 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
     end
 
     describe 'GET #index (datatable JSON)' do
-      # 1x1 transparent PNG; blob dimensions are set directly in the example.
-      let(:tiny_png) do
-        Base64.decode64(
-          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
-        )
-      end
-
       # The venue factory creates a seat map of its own, so pick our row out of
       # the response by the editor link in its label.
       def row_for(seat_map)
@@ -91,16 +105,14 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
       end
 
       it 'renders an SVG preview with seat circles when a base image is attached' do
-        # Analysis needs ImageMagick in-process; set the dimensions directly.
-        allow_any_instance_of(SeatMap).to receive(:save_image_dimensions)
-        seat_map.base_image_map.attach(io: StringIO.new(tiny_png), filename: 'map.png', content_type: 'image/png')
-        seat_map.base_image_map.blob.update!(metadata: { 'width' => 100, 'height' => 60, 'analyzed' => true })
+        seat_map.update!(base_image_map: uploaded_png(100, 60))
 
         get :index, params: datatable_params, format: :json
         expect(response).to be_successful
 
         preview = row_for(seat_map)['preview']
         expect(preview).to include('<svg')
+        expect(preview).to include('viewBox="0 0 100 60"')
         expect(preview.scan('<circle').length).to eq(3)
       end
 
@@ -109,6 +121,140 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
 
         get :index, params: datatable_params, format: :json
         expect(row_for(seat_map)['preview']).to eq('')
+      end
+    end
+
+    describe 'POST #create' do
+      # The venue factory builds a seat map of its own; create it before counting.
+      before { venue }
+
+      it 'creates the seat map with the measured size of the uploaded image and returns to the venue' do
+        expect do
+          post :create, params: { venue_id: venue.id, seat_map: { label: 'Main Floor', base_image_map: uploaded_png(120, 40) } }
+        end.to change(SeatMap, :count).by(1)
+
+        expect(response).to redirect_to(admin_venue_path(venue))
+        created = SeatMap.find_by(label: 'Main Floor', venue: venue)
+        expect([created.original_width, created.original_height]).to eq([120, 40])
+      end
+
+      it 're-renders the form without creating a seat map when the image cannot be read' do
+        broken = uploaded_png(0, 0, bytes: 'not an image')
+
+        expect do
+          post :create, params: { venue_id: venue.id, seat_map: { label: 'Broken Map', base_image_map: broken } }
+        end.not_to change(SeatMap, :count)
+
+        expect(response).to render_template(:new)
+        expect(assigns(:seat_map).errors[:base_image_map]).to be_present
+      end
+
+      context 'with a geometry file' do
+        def create_with(file)
+          post :create, params: { venue_id: venue.id, seat_map: { label: 'Geometry Map', geometry_import: file } }
+        end
+
+        it 'creates the seat map, imports the seats and reports the count in the notice' do
+          file = uploaded_geometry(<<~CSV)
+            #{geometry_header}
+            AA1,AA,1,10,10,5,5,
+            AA2,AA,2,20,10,5,5,
+          CSV
+
+          expect { create_with(file) }.to change(SeatMap, :count).by(1).and change(Seat, :count).by(2)
+
+          expect(response).to redirect_to(admin_venue_path(venue))
+          created = SeatMap.find_by(label: 'Geometry Map', venue: venue)
+          expect(created.seats.pluck(:location)).to contain_exactly('AA1', 'AA2')
+          expect(flash[:notice]).to include('Imported 2 seats from geometry.csv.')
+          expect(flash[:warning]).to be_nil
+        end
+
+        it 're-renders the form naming the missing column and creates nothing' do
+          file = uploaded_geometry(<<~CSV)
+            location,row,origin-x,origin-y,width,height,feature
+            AA1,AA,10,10,5,5,
+          CSV
+
+          counts = -> { [SeatMap.count, Seat.count] }
+          expect { create_with(file) }.not_to change(&counts)
+
+          expect(response).to render_template(:new)
+          expect(flash[:error]).to include('missing required column(s): sequence')
+        end
+
+        it 'imports the good rows and warns about the skipped lines' do
+          file = uploaded_geometry(<<~CSV)
+            #{geometry_header}
+            AA1,AA,1,10,10,5,5,
+            AA2,,2,20,10,5,5,
+            AA3,AA,3,30,10,5,5,
+          CSV
+
+          expect { create_with(file) }.to change(Seat, :count).by(2)
+
+          expect(response).to redirect_to(admin_venue_path(venue))
+          expect(flash[:notice]).to include('Imported 2 seats')
+          expect(flash[:warning]).to include('1 row was skipped')
+          expect(flash[:warning]).to include('line 3 (location AA2)')
+        end
+
+        it 'imports only the good seat and warns about a row with a non-numeric origin-x' do
+          file = uploaded_geometry(<<~CSV)
+            #{geometry_header}
+            AA1,AA,1,10,10,5,5,
+            AA2,AA,2,abc,10,5,5,
+          CSV
+
+          expect { create_with(file) }.to change(Seat, :count).by(1)
+
+          expect(response).to redirect_to(admin_venue_path(venue))
+          created = SeatMap.find_by(label: 'Geometry Map', venue: venue)
+          expect(created.seats.pluck(:location)).to eq(['AA1'])
+          expect(flash[:warning]).to include('line 3 (location AA2)')
+          expect(flash[:warning]).to include('origin-x')
+        end
+      end
+    end
+
+    describe 'PATCH #update with a geometry file' do
+      before { seat_map }
+
+      def update_with(file, label: 'Renamed Map')
+        patch :update, params: { venue_id: venue.id, id: seat_map.id,
+                                 seat_map: { label: label, geometry_import: file } }
+      end
+
+      it 're-renders the form with an error and applies none of the submitted changes' do
+        original_label = seat_map.label
+        file = uploaded_geometry(<<~CSV)
+          location,row,sequence,origin-x,origin-y,width,feature
+          AA1,AA,1,10,10,5,
+        CSV
+
+        expect { update_with(file) }.not_to change(Seat, :count)
+
+        expect(response).to render_template(:edit)
+        expect(flash[:error]).to include('missing required column(s): height')
+        expect(seat_map.reload.label).to eq(original_label)
+      end
+
+      it 'updates existing seats, adds new ones and redirects with the notice' do
+        existing = seat_map.seats.first
+        file = uploaded_geometry(<<~CSV)
+          #{geometry_header}
+          #{existing.location},#{existing.row},#{existing.seat_number},321,654,5,5,
+          ZZ1,ZZ,1,10,10,5,5,
+        CSV
+
+        expect { update_with(file) }.to change(Seat, :count).by(1)
+
+        expect(response).to redirect_to(admin_venue_path(venue))
+        expect([existing.reload.origin_x, existing.origin_y]).to eq([321, 654])
+        expect(seat_map.seats.reload.find_by(location: 'ZZ1')).to be_present
+        expect(seat_map.reload.label).to eq('Renamed Map')
+        expect(flash[:notice]).to include("SeatMap 'Renamed Map' was successfully updated.")
+        expect(flash[:notice]).to include('Imported 2 seats from geometry.csv.')
       end
     end
 
@@ -171,6 +317,20 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
         new_seat = seat_map.seats.find_by(location: 'ZZ1')
         expect(new_seat).to be_present
         expect(body['id_map']['new-1']).to eq(new_seat.id)
+      end
+
+      it 'updates row and seat number without changing the location' do
+        target = seat_map.seats.first
+        location = target.location
+
+        post :bulk_update_seats, format: :json,
+                                 params: { venue_id: venue.id, id: seat_map.id,
+                                           seats: [{ op: 'update', id: target.id, row: 'QQ', seat_number: 42 }] }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body['status']).to eq('ok')
+        target.reload
+        expect([target.row, target.seat_number, target.location]).to eq(['QQ', 42, location])
       end
 
       it 'rebuilds inventory for performances of productions using the map when a seat is added' do
