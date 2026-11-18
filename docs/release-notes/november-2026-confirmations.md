@@ -34,6 +34,19 @@ Two fixes on the **Change Seating** window for reserved-seating orders:
 ⠀
 ————————
 
+## You can add a seat map again (you couldn't)
+
+**Before:** adding a seat map, or replacing the picture on an existing one, crashed with an error page. Every time. The Rails upgrade changed when an uploaded file actually lands on the server, and the code that measures the picture was looking for it too early, with a tool we don't have installed. [WHO HIT IT / WHICH MAP]
+
+**Now:** it saves. If the file you pick isn't a picture we can read, the form tells you so and keeps what you typed.
+
+Two more things on seat maps while I was in there:
+
+* **The seat spreadsheet import tells you what it did.** It used to crash if a column was missing, and it quietly threw away any row it didn't like. Worse, a seat number of "abc" was saved as seat 0. Now a file with a missing column is refused with a message and nothing changes. Otherwise you get a count of the seats imported and a list of the rows it skipped, by line number, with the reason for each.
+* **You can fix a seat's row and number in the editor.** They could only be set when the seat was first added. There's now a **Row** box, which applies to every seat you have selected, and a **Number** box for one seat at a time. Neither one changes the seat's label.
+
+————————
+
 ## Wide seat maps get the whole page
 
 **Before:** on the public order page the seat map always sat in the right-hand half, beside the list of selected seats. That suits our tall maps. A wide one got squeezed into half the page and the seats came out tiny. This is preperation work for Dead Outlaw.
