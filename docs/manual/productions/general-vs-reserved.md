@@ -72,7 +72,7 @@ Reserved seating assigns patrons to specific, numbered seats. It requires a seat
 ### Order Flow
 
 1. Patron selects a performance date and time
-2. Patron views the interactive seat map and selects specific seats
+2. Patron views the interactive seat map and selects specific seats. A seat map image that is wider than it is tall appears full width above the selected seats; any other map appears beside them on wider screens. A PNG seat map image is shown with a thin outline.
 3. Selected seats are temporarily reserved during checkout
 4. Upon payment, seat assignments are confirmed and locked
 5. Tickets are issued with section, row, and seat numbers

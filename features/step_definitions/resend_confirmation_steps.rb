@@ -14,8 +14,8 @@ def expect_confirmation_baseline_noted
   raise 'No baseline recorded: add the step "I note how many confirmation emails that order has been sent" before the action'
 end
 
-# reseating.js requires seat_map.js, which requires application.js: with it on
-# the page jQuery, jquery_ujs and reveal_confirm.js are each evaluated twice.
+# The admin page of a sold reserved-seating order includes reseating.js (the
+# seat-change script) beside the layout's application bundle.
 Then(/^the order page loads reseating\.js$/) do
   expect(page).to have_css('script[src*="/reseating"]', visible: :all)
 end

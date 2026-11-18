@@ -3,7 +3,6 @@
   = order_form.submit 'Print Tickets', :class=>'button' if order_form.object.printable?
 
 - if [Order::NEW, Order::HOLD, Order::EXCHANGING, Order::PROCESSING].include? order_form.object.status
-  = link_to 'Assign Seats', '#', :class=>'submit-button hide button seating-required order-submit-button', :onclick=>"submitForm('Assign Seats')"
   = link_to 'Place Order', "#", :class=>'submit-button button seating-not-required order-submit-button', :onclick=>"confirmSubmit('Process this order?','Place Order')"
 
 - if ((can?(:hold, TicketOrder) || (can?(:hold_existing, TicketOrder) && !order_form.object.id.nil?)) && order_form.object.unprocessed?)

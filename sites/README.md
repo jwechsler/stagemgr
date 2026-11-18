@@ -53,6 +53,9 @@ replaces `app/views/order_mailer/_seating_policy.html.haml` everywhere it is
 rendered. This works for public pages, mailer templates and layouts alike,
 because the theme directory is prepended to the view paths of both
 `ActionController::Base` and `ActionMailer::Base` at boot.
+A theme that overrides the public page layout must supply what
+`layouts/standalone` does; see
+[Site wrapper layouts](../docs/manual/developer/configuration.md#site-wrapper-layouts).
 
 To override a file: copy the generic one, edit the copy, leave the original
 alone. **Never edit `app/views/` for house copy** — the next house to install

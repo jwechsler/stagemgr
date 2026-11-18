@@ -51,9 +51,8 @@ Then(/^the order page shows the new seat location$/) do
   expect(find('#seatinglist').text.split(',')).not_to include(old_location)
 end
 
-# Records the URL of every XHR the page opens, below jQuery: the order page
-# loads jQuery twice (reseating.js requires seat_map.js, which requires
-# application.js), and this sees $.post from either copy.
+# Records the URL of every XHR the page opens, below jQuery, so it sees every
+# $.post whichever script sends it.
 SEATING_REQUEST_RECORDER_JS = <<~JS.freeze
   (function() {
     window.__seatingRequests = [];

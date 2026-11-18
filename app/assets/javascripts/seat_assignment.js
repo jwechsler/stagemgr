@@ -40,15 +40,6 @@ function release_temporary_holds_url() {
   return $('#seating-config').data('release-temporary-url')
 }
 
-function update_seating_submit_button(seating_complete) {
-  $('.seating-required').prop('disabled',!seating_complete)
-  if (seating_complete) {
-    $('.seating-required').attr('value','Place Order')
-  } else {
-    $('.seating-required').attr('value','Assign Seats')
-  }
-}
-
 function release_temporary_holds_by_uuid(uuid, perf_id) {
   console.log("releasing for all but " + performance_id(perf_id))
   $.post( release_temporary_holds_url(),
@@ -77,13 +68,6 @@ function initialize_seating_assignment() {
 
   // Namespaced and unbound first: this runs again whenever
   // update_ticketing_panel reloads the seatmap, and must not stack handlers.
-  $(document).off('closed.zf.reveal.seatAssignment')
-  $(document).on('closed.zf.reveal.seatAssignment', '[data-reveal]', function () {
-    var modal = $(this);
-    //$('img.seatingmap').mapster('rebind',mapster_options());
-
-  });
-
   $('#seatingmap circle').off('click.seatAssignment')
   $('#seatingmap circle').on('click.seatAssignment', function(e) {
     e.preventDefault();
