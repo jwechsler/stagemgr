@@ -24,3 +24,35 @@ Given(/^there is a flex pass offer named "([^"]*)"$/) do |offer_name|
                     spiff: 1.00,
                     flat_payout: 5.00)
 end
+
+When(/^I select the "([^"]*)" row in the active flex pass offers table$/) do |offer_name|
+  row = find('#active_flex_pass_offer_listing tbody tr', text: offer_name)
+  # The price cell: clicking the offer name would follow its link.
+  row.find('td:nth-child(2)').click
+  expect(row).to match_css('tr.selected')
+end
+
+When(/^I click the "([^"]*)" bulk action$/) do |action|
+  click_button(action)
+end
+
+When(/^I (confirm|cancel) making (\d+) flex pass offers? inactive$/) do |answer, count|
+  question = "Make #{count} offer#{'s' unless count.to_i == 1} inactive? Inactive offers also come off public sale."
+  if answer == 'confirm'
+    accept_reveal_confirm(question, accept_label: 'Make Inactive')
+  else
+    dismiss_reveal_confirm(question)
+  end
+end
+
+Then(/^I should see the offer bulk result "([^"]*)"$/) do |message|
+  expect(page).to have_css('.offer-bulk-result.success', text: message)
+end
+
+Then(/^I should not see an offer bulk result$/) do
+  expect(page).to have_no_css('.offer-bulk-result')
+end
+
+Then(/^the flex pass offer "([^"]*)" should be (active|inactive)$/) do |offer_name, state|
+  expect(FlexPassOffer.find_by!(name: offer_name).active).to eq(state == 'active')
+end

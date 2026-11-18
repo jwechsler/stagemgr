@@ -1,5 +1,3 @@
-//= require application
-
 function count_assigned() {
   count = 0
   $("#seatingmap area").each(function () {
@@ -24,15 +22,6 @@ function reserve_url() {
 
 function release_url() {
   return $('#seating-config').data('release-url')
-}
-
-function update_seating_submit_button(seating_complete) {
-  $('.seating-required').prop('disabled',!seating_complete)
-  if (seating_complete) {
-    $('.seating-required').attr('value','Place Order')
-  } else {
-    $('.seating-required').attr('value','Assign Seats')
-  }
 }
 
 // Seats with a reserve/release request in flight, keyed by assignment id.
@@ -72,7 +61,7 @@ function seat_request_failed(xhr) {
   } catch (e) {
     console.log("seat request failed: " + xhr.status)
   }
-  alert(msg)
+  revealAlert(msg)
 }
 
 function update_seating_attributes(e_reference, status) {

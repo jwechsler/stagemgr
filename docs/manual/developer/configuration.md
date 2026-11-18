@@ -300,7 +300,6 @@ from the cron environment:
 |---|---|---|
 | `REPORT_EMAIL` | **none -- the scripts abort without it** | Recipient and envelope sender for `mail_*.sh` |
 | `REPORT_SUBJECT_TAG` | `StageMgr` | Prefix in the subject line, e.g. `[StageMgr] Unfulfilled Flexpasses` |
-| `MY_CNF` | `$HOME/.my.cnf` | MySQL defaults file the HUD count scripts (`db/reports/hud/*.sh`) authenticate with |
 
 ## `config/server.yml`
 
@@ -318,8 +317,26 @@ overrides them by deep merge.
 | `sub_uri` | Mount point when the app is **not** served from `/`, e.g. `/tickets`. Passed to ActionMailer as `:script_name`, so mail sent from a worker gets the prefix exactly once. **Leave it blank on a standalone install** |
 | `secure_root_url` | Absolute base for the links in the generated public calendar feed (`ResqueJobs::GenerateCalendar`) |
 | `static_cache_dir` | Where that generated calendar is written |
-| `ext_site_wrapper` | Layout for the public order pages. `standalone` for a self-contained install; the name of an externally supplied layout when a marketing site wraps the app |
+| `ext_site_wrapper` | Layout for the public order pages. `standalone` for a self-contained install; the name of an externally supplied layout when the app is integrated into the theater's full web site ([what that layout must contain](#site-wrapper-layouts)) |
 | `site_theme` | Directory under `sites/` holding this house's editorial copy. Commented out = generic copy ([Theming](theming.md)) |
+
+#### Site wrapper layouts
+
+A site wrapper named by `ext_site_wrapper` takes the place of
+`layouts/standalone` for every public page, so it must supply what that layout
+does:
+
+- in the `<head>`: `<%= stylesheet_link_tag "frontend" %>`,
+  `<%= csrf_meta_tag %>` and `<%= yield :head %>`, where pages add their own
+  head content, such as a production's conversion pixel on the order
+  confirmation page;
+- in the body: `<%= yield %>` where the page content goes;
+- before `</body>`, after any scripts of the site's own:
+  `<%= javascript_include_tag "frontend" %>` followed by `<%= yield :js %>`.
+
+The `frontend` bundle brings its own jQuery (with jquery_ujs, Foundation and
+the Reveal dialogs), and that copy becomes the page's global `$` for the page
+scripts `yield :js` adds.
 
 ### Sales rules
 

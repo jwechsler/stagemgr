@@ -1,4 +1,5 @@
 /*
+ *= require _reveal_dialog
  *= require_self
 */
 
@@ -417,6 +418,19 @@ del.diffmod, del.diffdel { color: #ff9999; }
   fill:  #000;
   fill-opacity:  .25;
   stroke-opacity:  .25;
+}
+
+/* Public order page seat map: keep the figure tight to the map image. */
+.seating-layout__map #seatingmap {
+  margin: 0;
+}
+
+.seating-layout__map svg {
+  display: block;
+}
+
+.seating-layout__map--outlined {
+  border: 1px solid #ccc;
 }
 
 /* Festival grouping — box office band */

@@ -103,7 +103,16 @@ Before do
   end
 end
 
+# A page timer can fire a request after the scenario's last step (the held
+# order page refreshes its ticketing panel 600 ms after load), so a @javascript
+# scenario leaves the page before truncating: reset_session! goes to
+# about:blank, which cancels page timers, and waits for requests the server is
+# still handling. The failure-screenshot hook (failure_screenshots.rb) is
+# defined later, so it runs before this one, while the page is still there.
 After do |scenario|
-  settle_browser_requests if scenario.source_tag_names.include?('@javascript')
+  if scenario.source_tag_names.include?('@javascript')
+    settle_browser_requests
+    Capybara.reset_session!
+  end
   DatabaseCleaner.clean
 end

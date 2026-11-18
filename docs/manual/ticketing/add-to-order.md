@@ -63,7 +63,7 @@ Anything typed in **Notes** is added to the end of the original order's notes.
 
 ### Step 4: Place the Addition
 
-Click **Place Order** and confirm. Additions are placed in one step: **Hold** and **Assign Seats** are not used.
+Click **Place Order** and confirm. Additions are placed in one step: **Hold** is not used.
 
 On success you return to the original order with the notice *Added to order #...*. The order now shows the new items and payment alongside the original ones, and its **Change history** records an entry reading *Added from order #...*, listing the items added and any card charge reference.
 
@@ -97,7 +97,7 @@ A membership covers a set number of seats per performance (**Tickets Per Perform
 | Issue | Resolution |
 |-------|------------|
 | Add to Order button not shown | The order must be **Processed** and not part of an exchange in progress. Fulfilled orders need a new order. |
-| *An addition is placed in one step: use Place Order* | Hold and Assign Seats are not available for additions; click **Place Order** |
+| *An addition is placed in one step: use Place Order* | Hold is not available for additions; click **Place Order** |
 | *...special offer ... would also discount these tickets* | The original order's offer applies to that ticket class. Use [Exchange](exchanges.md) instead. |
 | *...is out of balance* | Resolve the original order's balance first |
 | Card declined | Nothing was saved; take another payment and place the addition again |

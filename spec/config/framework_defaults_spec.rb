@@ -25,11 +25,11 @@ RSpec.describe 'framework defaults' do
     expect(ActiveRecord::Base.has_many_inversing).to eq(ENV['HAS_MANY_INVERSING'] == '1')
   end
 
-  it 'holds cookie SameSite protection at the pre-6.1 value' do
-    expect(Rails.application.config.action_dispatch.cookies_same_site_protection).to be_nil
+  it 'sets cookie SameSite protection to lax' do
+    expect(Rails.application.config.action_dispatch.cookies_same_site_protection).to eq(:lax)
   end
 
-  it 'holds CSRF tokens at the pre-6.1 encoding' do
-    expect(ActionController::Base.urlsafe_csrf_tokens).to be(false)
+  it 'generates URL-safe CSRF tokens' do
+    expect(ActionController::Base.urlsafe_csrf_tokens).to be(true)
   end
 end

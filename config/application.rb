@@ -29,10 +29,6 @@ module Stagemgr
     # built with `order:` and saved before `<<` is appended twice in memory.
     config.active_record.has_many_inversing = false
 
-    # Held at the pre-6.1 values for their own small deploy (PR 2).
-    config.action_dispatch.cookies_same_site_protection = nil
-    config.action_controller.urlsafe_csrf_tokens = false
-
     # app/models/<dir>/ only groups files: orders/ticket_order.rb defines
     # TicketOrder, not Orders::TicketOrder. Collapse the folders rather than adding
     # each as an autoload path -- Rails leaves autoload-only paths out of eager

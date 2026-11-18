@@ -39,8 +39,8 @@
 
 <p>
   <%= link_to "Edit", edit_admin_default_ticket_class_path(@default_ticket_class) %> |
-  <%= link_to "Destroy", [:admin, @default_ticket_class], :confirm => 'Are you sure?', :method => :delete %> |
+  <%= link_to "Destroy", [:admin, @default_ticket_class], data: destroy_confirm_data, :method => :delete %> |
   <%= link_to "View All", admin_default_ticket_classes_path %>
 </p>
 
-<%= link_to "Destroy", [:admin, @default_ticket_class], :confirm => 'Are you sure?', :method => :delete, :class=>'tiny alert button' %>
+<%= link_to "Destroy", [:admin, @default_ticket_class], data: destroy_confirm_data, :method => :delete, :class=>'tiny alert button' %>

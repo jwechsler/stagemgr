@@ -1,4 +1,4 @@
-@javascript @wip
+@javascript
 Feature: Box office ordering
   As an box office user
   I want to enter orders

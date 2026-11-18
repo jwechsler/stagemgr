@@ -343,7 +343,8 @@ site, in a workspace of peer checkouts (`site/`, `stagemgr/`, `src/`, `dist/`,
   `app/views/layouts/ext_site_wrapper.html.erb` -- Rails needs a handler
   extension on a layout and the Foundation build emits plain `.html`.
   `config/server.yml` must set `sub_uri: /tickets` and
-  `ext_site_wrapper: ext_site_wrapper` to agree with it.
+  `ext_site_wrapper: ext_site_wrapper` to agree with it. What that layout
+  must contain is in [Site wrapper layouts](configuration.md#site-wrapper-layouts).
 - **`site/`'s Compose file layers on top of this one.** `stagemgr`'s
   `docker-compose.yml` is the primary stack; the workspace adds the `foundation`
   service and Theater Wit's own mounts on top of it rather than defining a

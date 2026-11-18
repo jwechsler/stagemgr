@@ -232,7 +232,6 @@ They read:
 |---|---|---|
 | `REPORT_EMAIL` | none -- the script aborts | Recipient and envelope sender |
 | `REPORT_SUBJECT_TAG` | `StageMgr` | Subject prefix, e.g. `[StageMgr] Unfulfilled Flexpasses` |
-| `MY_CNF` | `$HOME/.my.cnf` | MySQL defaults file used by the HUD scripts in `db/reports/hud/` |
 
 There is deliberately no default recipient: a report quietly mailed to a
 placeholder address is worse than a cron job that fails loudly.

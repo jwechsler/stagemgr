@@ -19,7 +19,7 @@ Feature: An administrator can perform privileged production operations
     And I go to the admin detail page for theater "Theater One"
     And I wait for the datatable to load
     And I should see "Production One"
-    When I follow "Destroy"
+    When I follow "Destroy" and answer "Are you sure?" with OK
     Then I should not see "Production One"
 
   @javascript

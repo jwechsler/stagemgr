@@ -306,7 +306,6 @@ Rails.application.routes.draw do
         get :fulfill
         get :reprint
         get :unclaimed
-        post :confirm
         get :resend_confirmation
         get :add_to
         post :update_notes

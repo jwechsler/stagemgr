@@ -120,12 +120,6 @@ class Admin::TicketOrdersController < Admin::OrdersController
     end
   end
 
-  def confirm
-    respond_to do |format|
-      format.html { render 'confirm', layout: true }
-    end
-  end
-
   def convert_to_donation
     donation_order = @ticket_order.convert_to_donation!
     flash[:notice] = "Order ##{@ticket_order.id} converted to Donation ##{donation_order.id}."
@@ -340,7 +334,7 @@ class Admin::TicketOrdersController < Admin::OrdersController
       set_payment_accessors_from_params(order, params[:ticket_order])
       set_ticket_classes_for_line_items(order)
       order.send_merge_confirmation = params[:send_confirmation] != '0' if order.addition?
-      super
+      super(order)
       # A failed addition leaves no order behind; free the seats it held.
       TicketOrderAddition.release_holds(order) if order.addition? && !order.addition_placed?
     end
@@ -360,14 +354,6 @@ class Admin::TicketOrdersController < Admin::OrdersController
 
   def authorize_addition
     authorize!(:add_to, TicketOrder) if params.dig(:ticket_order, :merge_target_id).present?
-  end
-
-  def template_by_order_status(order, commit_action = nil)
-    if order.editable? && !commit_action.nil? && commit_action.downcase.eql?('assign seats') && order.performance.production.has_reserved_seating?
-      'confirm'
-    else
-      super
-    end
   end
 
   private

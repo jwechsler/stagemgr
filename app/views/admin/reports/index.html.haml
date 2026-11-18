@@ -343,7 +343,7 @@
           .small-8.cell
             = text_field_tag(:through_day, Date.current, :default=>Time.now, :class=>'date_picker')
           .small-4.cell
-            = submit_tag "Print", :confirm =>"This will fulfill tickets.  Are you sure?", :class=>'tiny button postfix'
+            = submit_tag "Print", data: { confirm: "This will fulfill tickets.  Are you sure?" }, :class=>'tiny button postfix'
 
 - if can? :reconciliation_reports, Report then
   .grid-x.grid-padding-x

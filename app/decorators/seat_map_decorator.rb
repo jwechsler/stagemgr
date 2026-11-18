@@ -44,7 +44,7 @@ class SeatMapDecorator < ApplicationDecorator
     if h.current_user.can?(
       :destroy, SeatMap
     )
-      actions << ('<li>' + h.link_to('Destroy', [:admin, object.venue, object], confirm: 'Are you sure?',
+      actions << ('<li>' + h.link_to('Destroy', [:admin, object.venue, object], data: h.destroy_confirm_data,
                                                                                 method: :delete, class: 'tiny alert button') + '</li>')
     end
     h.raw("<ul class=\"button-group\"><li>#{actions.join('</li><li>')}</li></ul>")
