@@ -99,4 +99,105 @@ RSpec.describe SeatMap, type: :model do
       expect(Seat.where(seat_map_id: unassigned.id)).to be_empty
     end
   end
+
+  describe '#landscape?' do
+    # 1x1 PNG; the dimensions that matter are the ones recorded on the blob.
+    tiny_png = Base64.decode64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==')
+
+    let(:seat_map) { FactoryBot.build(:seat_map) }
+
+    def with_dimensions(width, height)
+      allow(seat_map).to receive_messages(original_width: width, original_height: height)
+      seat_map
+    end
+
+    it 'is true when the map is wider than it is tall' do
+      expect(with_dimensions(480, 80)).to be_landscape
+    end
+
+    it 'is false when the map is taller than it is wide' do
+      expect(with_dimensions(300, 600)).not_to be_landscape
+    end
+
+    it 'is false when the map is square' do
+      expect(with_dimensions(400, 400)).not_to be_landscape
+    end
+
+    it 'is false when no image is attached' do
+      expect(seat_map.base_image_map).not_to be_attached
+      expect(seat_map).not_to be_landscape
+    end
+
+    it 'reads the dimensions recorded on the attached image' do
+      seat_map = FactoryBot.create(:seat_map, seat_count: 0)
+      # Analysis needs MiniMagick; record the size on the blob directly.
+      blob = ActiveStorage::Blob.create_and_upload!(io: StringIO.new(tiny_png), filename: 'map.png',
+                                                    content_type: 'image/png',
+                                                    metadata: { identified: true, analyzed: true,
+                                                                width: 480, height: 80 })
+      ActiveStorage::Attachment.create!(name: 'base_image_map', record: seat_map, blob: blob)
+      seat_map.reload
+
+      expect(seat_map.original_width).to eq(480)
+      expect(seat_map.original_height).to eq(80)
+      expect(seat_map).to be_landscape
+
+      blob.update!(metadata: blob.metadata.merge('width' => 80, 'height' => 480))
+      expect(seat_map.reload).not_to be_landscape
+    end
+  end
+
+  describe 'dimensions with no image attached' do
+    let(:seat_map) { FactoryBot.build(:seat_map) }
+
+    it 'reports a width and height of 0' do
+      expect(seat_map.base_image_map).not_to be_attached
+      expect(seat_map.original_width).to eq(0)
+      expect(seat_map.original_height).to eq(0)
+    end
+  end
+
+  describe '#png_image?' do
+    # 1x1 PNG, and the leading bytes of a JFIF JPEG. ActiveStorage identifies
+    # the content type from these bytes, so each blob carries a real type.
+    png_bytes = Base64.decode64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==')
+    jpeg_bytes = "\xFF\xD8\xFF\xE0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xFF\xD9".b
+
+    # Analysis needs MiniMagick; mark the blob analyzed so attaching skips it.
+    def attach_image(seat_map, bytes, filename)
+      blob = ActiveStorage::Blob.create_and_upload!(io: StringIO.new(bytes), filename: filename,
+                                                    metadata: { identified: true, analyzed: true,
+                                                                width: 1, height: 1 })
+      ActiveStorage::Attachment.create!(name: 'base_image_map', record: seat_map, blob: blob)
+      seat_map.reload
+    end
+
+    let(:seat_map) { FactoryBot.create(:seat_map, seat_count: 0) }
+
+    it 'is true when the attached image is a PNG' do
+      attach_image(seat_map, png_bytes, 'map.png')
+
+      expect(seat_map.base_image_map.content_type).to eq('image/png')
+      expect(seat_map).to be_png_image
+    end
+
+    it 'is false when the attached image is a JPEG' do
+      attach_image(seat_map, jpeg_bytes, 'map.jpg')
+
+      expect(seat_map.base_image_map.content_type).to eq('image/jpeg')
+      expect(seat_map).not_to be_png_image
+    end
+
+    it 'goes by the content type, not the file name' do
+      attach_image(seat_map, jpeg_bytes, 'map.png')
+
+      expect(seat_map.base_image_map.content_type).to eq('image/jpeg')
+      expect(seat_map).not_to be_png_image
+    end
+
+    it 'is false when no image is attached' do
+      expect(seat_map.base_image_map).not_to be_attached
+      expect(seat_map).not_to be_png_image
+    end
+  end
 end

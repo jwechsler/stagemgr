@@ -22,11 +22,25 @@ class SeatMap < ApplicationRecord
   end
 
   def original_width
+    return 0 unless base_image_map.attached?
+
     base_image_map.metadata['width'].to_i
   end
 
   def original_height
+    return 0 unless base_image_map.attached?
+
     base_image_map.metadata['height'].to_i
+  end
+
+  # Decides whether the public order page puts the map above the selected seats.
+  def landscape?
+    original_width > original_height
+  end
+
+  # Decides whether the public order page outlines the map with a hairline box.
+  def png_image?
+    base_image_map.attached? && base_image_map.content_type == 'image/png'
   end
 
   def capacity

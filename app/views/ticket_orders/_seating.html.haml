@@ -6,13 +6,22 @@
 = render partial:'/seat_assignments/ticket_class_selector', locals: {order_form: order_form, show_backend_classes: show_backend_classes}
 #ticket-items{'data-line-items':'[]'}
 - unavailable_data = raw '{"alwaysOn": true, "fillColor":"000000"}'
-.grid-x.grid-padding-x
-  .cell.small-12.medium-6
-    = render partial:'/ticket_orders/ticket_line_items', locals:{order_form: order_form}
-    = render partial:'/seat_assignments/non_seat_ticket_picker', locals:{order_form: order_form, show_backend_classes: show_backend_classes}
-  .cell.small-12.medium-6
-    <!-- Seating Map -->
-    =render partial:'/admin/ticket_orders/seatmap', locals:{ticket_order:ticket_order}
+-#
+  A landscape map runs full width above the selected seats; any other map
+  sits beside them from medium up.
+- seat_map = ticket_order.performance.production.seat_map
+- is_landscape = seat_map.landscape?
+- selected_seats = capture do
+  = render partial:'/ticket_orders/ticket_line_items', locals:{order_form: order_form}
+  = render partial:'/seat_assignments/non_seat_ticket_picker', locals:{order_form: order_form, show_backend_classes: show_backend_classes}
+-# A PNG map gets a hairline outline so its edge reads against the page.
+- seating_map = capture do
+  .seating-layout__map{ class: ('seating-layout__map--outlined' if seat_map.png_image?) }
+    = render partial: '/admin/ticket_orders/seatmap', locals: { ticket_order: ticket_order }
+- cells = is_landscape ? [seating_map, selected_seats] : [selected_seats, seating_map]
+.grid-x.grid-padding-x.seating-layout{ class: is_landscape ? 'seating-layout--landscape' : 'seating-layout--portrait' }
+  - cells.each do |cell_content|
+    .cell.small-12{ class: ('medium-6' unless is_landscape) }= cell_content
 
 = content_for :js do
   = javascript_include_tag 'seat_assignment'
