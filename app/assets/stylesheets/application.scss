@@ -319,6 +319,12 @@ form.lgl-resync {
       text-transform: uppercase;
     }
   }
+
+  // Row keeps the case it was typed in, so show it as stored.
+  .editor-zone-label--narrow input {
+    width: 3.5rem;
+    text-transform: none;
+  }
 }
 
 #dirty-indicator { color: #cc4b37; font-weight: bold; }

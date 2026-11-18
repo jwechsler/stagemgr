@@ -12,7 +12,7 @@ The seat map editor is a graphical tool for editing a seat map directly on top o
 - **Move** seats by dragging them, individually or as a group (e.g., nudge a whole row)
 - **Add** new seats by clicking their position on the map
 - **Delete** seats that have no sold or held tickets
-- **Edit** a seat's label, zone, circle size, and exact X/Y coordinates
+- **Edit** a seat's row, number, label, zone, circle size, and exact X/Y coordinates
 - **Paint zones** across many seats at once for [zoned pricing](#seat-zones-and-zoned-pricing)
 
 ![The seat map editor showing the toolbar, hints, and the seat map canvas](../assets/images/screenshots/setup-seat-map-editor-overview.png)
@@ -26,6 +26,8 @@ The seat map editor is a graphical tool for editing a seat map directly on top o
 |---------|---------|
 | **Add Seat** | Toggles add-seat mode -- click a spot on the map to place a new seat |
 | **Delete** | Deletes the selected seats (enabled only when seats are selected) |
+| **Row** | Shows/edits the row for the selected seats |
+| **Number** | Shows/edits the seat number within its row -- editable only when exactly **one** seat is selected |
 | **Label** | Shows/edits the seat location label -- editable only when exactly **one** seat is selected |
 | **Zone** | Shows/edits the zone for the selected seats |
 | **Radius** | Shows/edits the circle radius (in pixels) for the selected seats |
@@ -42,7 +44,7 @@ A red **● unsaved changes** indicator appears whenever the working copy differ
 - **Drag on the background** to rubber-band select a group (e.g., a whole row)
 - **Escape** clears the selection
 
-When multiple seats are selected, each property box shows the value they share, or **mult.** when the values differ. The Label box is the exception -- labels are unique per seat, so it reads **mult.** and locks whenever more than one seat is selected.
+When multiple seats are selected, each property box shows the value they share, or **mult.** when the values differ. The Number and Label boxes are the exceptions -- they are set one seat at a time, so they read **mult.** and lock whenever more than one seat is selected.
 
 ![A full row selected with the marquee; the toolbar shows Zone B and Y 1045 shared by the selection, with Label and X reading "mult."](../assets/images/screenshots/setup-seat-map-editor-selection.png)
 
@@ -58,10 +60,15 @@ Each property box follows the same pattern: type a value and press **Enter** or 
 
 | Property | Rules |
 |----------|-------|
+| **Row** | 1--4 characters, kept exactly as typed. Applies to every selected seat, so you can select a whole row and set it once. |
+| **Number** | One seat at a time; whole number of 1 or more |
 | **Label** | One seat at a time; must be unique within the seat map |
 | **Zone** | 1--2 characters, letters and digits only (e.g., `A`, `B2`) |
 | **Radius** | Whole number of pixels, 2--99 |
 | **X / Y** | Whole number of pixels, 0--9999 |
+
+!!! note "Row, Number and Label are separate"
+    Changing a seat's **Row** or **Number** does not change its **Label**, and relabeling a seat does not change its row or number. When you renumber or move a seat to another row, update the label as well so the three stay in step (e.g., row `C`, number `7`, label `C7`).
 
 !!! tip "Sold seats can still be edited"
     Seats with sold or held tickets can be moved, resized, relabeled, and re-zoned -- geometry and zone changes are harmless after a sale, since zones are only checked at sale time. Such seats simply cannot be **deleted**.

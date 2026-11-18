@@ -95,6 +95,26 @@ export function setLocation(store, key, location) {
   store.seats.get(key).location = location
 }
 
+// Row and seat number are independent of the label: changing them never
+// rewrites location (and relabelling never touches them).
+export function setRow(store, keys, row) {
+  beginMutation(store)
+  keys.forEach((k) => {
+    const seat = store.seats.get(k)
+    if (seat) seat.row = row
+  })
+}
+
+// number must already be a Number (matches the loaded JSON integer, so
+// computeOps' !== diff sees an unchanged value as unchanged).
+export function setSeatNumber(store, key, number) {
+  const seat = store.seats.get(key)
+  if (!seat) return
+
+  beginMutation(store)
+  store.seats.get(key).seat_number = number
+}
+
 // Stamp one axis onto every selected seat (alignment). field is whitelisted
 // so a caller can never write arbitrary attributes through this path.
 export function setCoordinate(store, keys, field, value) {

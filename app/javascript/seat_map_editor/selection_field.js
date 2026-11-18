@@ -1,5 +1,5 @@
 // Shared behavior for the selection-scoped text boxes in the editor toolbar
-// (Zone, Radius): the box shows the selection's common value, or "mult." when
+// (Row, Number, Label, Zone, Radius, X, Y): the box shows the selection's common value, or "mult." when
 // the selection spans multiple values. Enter or Tab commits the typed value
 // to every selected seat; Escape reverts the box.
 export const MULTIPLE = 'mult.'

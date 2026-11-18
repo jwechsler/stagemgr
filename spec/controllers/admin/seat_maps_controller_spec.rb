@@ -319,6 +319,20 @@ RSpec.describe Admin::SeatMapsController, type: :controller do
         expect(body['id_map']['new-1']).to eq(new_seat.id)
       end
 
+      it 'updates row and seat number without changing the location' do
+        target = seat_map.seats.first
+        location = target.location
+
+        post :bulk_update_seats, format: :json,
+                                 params: { venue_id: venue.id, id: seat_map.id,
+                                           seats: [{ op: 'update', id: target.id, row: 'QQ', seat_number: 42 }] }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body['status']).to eq('ok')
+        target.reload
+        expect([target.row, target.seat_number, target.location]).to eq(['QQ', 42, location])
+      end
+
       it 'rebuilds inventory for performances of productions using the map when a seat is added' do
         production = FactoryBot.create(:production, seat_map: seat_map, venue: venue)
         performance = FactoryBot.create(:performance, production: production)
