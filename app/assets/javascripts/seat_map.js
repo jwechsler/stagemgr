@@ -24,15 +24,6 @@ function release_url() {
   return $('#seating-config').data('release-url')
 }
 
-function update_seating_submit_button(seating_complete) {
-  $('.seating-required').prop('disabled',!seating_complete)
-  if (seating_complete) {
-    $('.seating-required').attr('value','Place Order')
-  } else {
-    $('.seating-required').attr('value','Assign Seats')
-  }
-}
-
 // Seats with a reserve/release request in flight, keyed by assignment id.
 // A second click on the same seat (a double click, or the modal's class
 // button clicked twice) is ignored until the first request settles; other

@@ -36,7 +36,7 @@ class Ability
       user.theater_ids.include?(flex_pass_offer.theater_id)
     end
 
-    can %i[create update update_notes confirm quickview new_for_production], TicketOrder
+    can %i[create update update_notes quickview new_for_production], TicketOrder
     can :seat_unlimited, SeatAssignment
     can %i[create hold_existing], TicketOrder
     can :prehold, TicketOrder do |order|
