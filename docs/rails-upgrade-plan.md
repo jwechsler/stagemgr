@@ -616,14 +616,18 @@ webhook arriving, exception mail delivered, and no new deprecation warnings in
 
 1. **Passenger:** version, and whether it runs under Apache or Nginx (docs
    disagree). This decides when Rack 3 is safe (R13). *(Before Release 2.)*
-2. **Ruby on the box:** installed with rbenv. Still open: CPU architecture
-   (Apple Silicon or Intel).
-3. **Node/yarn on the box:** versions and install method. *(Before Release 1c.)*
+2. **Ruby on the box:** answered 2026-11-19. rbenv, x86_64 Linux, checkout at
+   `/home/deploy/stagemgr`; 3.3.12 is installed alongside 3.2.11.
+3. **Node/yarn on the box:** answered 2026-11-19. Node 22.23.4 and yarn 1.22.22,
+   system-wide in `/usr/bin` (no nvm, no Homebrew). Both satisfy the esbuild
+   build.
 4. **MySQL and Redis on the box:** exact versions. MySQL 8.0 went EOL in April 2026;
    8.4 LTS is the forward path (independent of Rails).
 5. **Process supervision:** anything restarting Resque workers and the scheduler
    after a reboot (launchd, monit), or only the `nohup` scripts?
-6. **macOS upgrade path:** can the box move to macOS 14+ (it lifts the
+6. **macOS upgrade path** (the box reported `x86_64-linux` on 2026-11-19, so
+   this question, R5's sass-embedded note, R6 and the "macOS 13 host" line in
+   section 2 need rechecking against the real host)**:** can the box move to macOS 14+ (it lifts the
    sass-embedded cap), and is there a plan for when macOS 13 tools stop
    building?
 7. **Backups:** how `storage/` (ActiveStorage, local disk) and MySQL are backed up
