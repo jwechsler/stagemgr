@@ -226,10 +226,10 @@ pass `--force`, and keeps the branch.
   `bundle-cache-ruby33` named volume -- never in `vendor/bundle`, so the
   container never writes into the checkout. The image's Ruby (3.3.12) comes
   from the phusion base image; its patch level is independent of
-  `.ruby-version`, which only the native install and CI read. A login shell
-  (`bash -lc`) in the container warns that the `.ruby-version` patch release
-  is not installed, which you can ignore -- use `bash -c`, as the everyday
-  commands do.
+  `.ruby-version`, which only the native install and CI read. When the two
+  differ, a login shell (`bash -lc`) in the container warns that the
+  `.ruby-version` patch release is not installed, which you can ignore -- use
+  `bash -c`, as the everyday commands do.
 - The volume name carries the Ruby minor version, so a Ruby upgrade starts
   from an empty gemset: the entrypoint's `bundle install` fills it on the first
   start after `docker compose up -d --build` (a few minutes; watch with
@@ -284,12 +284,12 @@ will not start without it.
 
 ### 2. Ruby and Node
 
-Ruby **3.3.11** (`.ruby-version`) and Node **22** (`.nvmrc`), under whichever
+Ruby **3.3.12** (`.ruby-version`) and Node **22** (`.nvmrc`), under whichever
 version manager you use. Any 3.3.x patch release works; the Gemfile does not
 pin a Ruby version.
 
 ```sh
-rbenv install 3.3.11 && rbenv local 3.3.11 # or asdf / rvm
+rbenv install 3.3.12 && rbenv local 3.3.12 # or asdf / rvm
 nvm install 22 && nvm use 22
 gem install bundler:2.4.10                 # the version in Gemfile.lock
 npm install -g yarn
