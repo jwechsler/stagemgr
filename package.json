@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "build": "esbuild app/javascript/seat_map_editor.js --bundle --format=iife --outdir=app/assets/builds"
+    "build": "esbuild app/javascript/seat_map_editor.js --bundle --format=iife --minify --outdir=app/assets/builds"
   },
   "dependencies": {
     "esbuild": "^0.28.2",
