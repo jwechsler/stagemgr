@@ -55,7 +55,7 @@ values on that same first boot.
 
 !!! note "Always `-u app`"
     `docker compose exec` runs as **root** by default, and anything root writes
-    into the bind mount (`log/`, `tmp/`, `public/packs`) is then owned by root
+    into the bind mount (`log/`, `tmp/`, `app/assets/builds`) is then owned by root
     on your host too. `-u app` runs as the same user Passenger and the Resque
     workers use. Gems resolve either way -- the image puts the app's RVM gemset
     on `PATH`, `GEM_HOME` and `GEM_PATH` for non-login shells, which is what
@@ -106,8 +106,11 @@ exists:
 2. `bundle install`.
 3. `rake setup:config` -- scaffolds `config/*.yml` and `.env` from the templates.
 4. **Production only:** `rake setup:doctor`, and refuses to serve if it fails.
-5. `yarn install` and `rails webpacker:compile` (plus `assets:precompile` in
-   production).
+5. `yarn install` and `yarn build`, which bundles the seat map editor with
+   esbuild into `app/assets/builds/` for Sprockets to serve (plus
+   `assets:precompile` in production). Nothing rebuilds the bundle on request:
+   while editing `app/javascript/`, run
+   `docker compose exec -u app stagemgr bash -c "yarn build --watch"`.
 6. `rake setup:bootstrap` -- create the database, load `db/schema.rb`, migrate,
    seed if there are no users. Controlled by `DB_PREPARE_ON_BOOT`.
 7. Installs the Nginx site config: foundation mode if `/var/www/foundation-dist`
@@ -227,11 +230,11 @@ pass `--force`, and keeps the branch.
   ruby-3.2.11 is not installed, which you can ignore -- use `bash -c`, as the
   everyday commands do.
 - `node_modules` is a named volume too: it has to sit in-tree for
-  yarn/webpacker resolution, but the builds are Linux ones and must not
-  overwrite your host's.
+  yarn/esbuild and the Sprockets asset path, but the builds are Linux ones and
+  must not overwrite your host's.
 
 On Linux, files the container writes into the bind mount (`log/`, `tmp/`,
-`public/packs`) come back owned by uid 9999. Set `HOST_UID` and `HOST_GID` in
+`app/assets/builds`) come back owned by uid 9999. Set `HOST_UID` and `HOST_GID` in
 `.env` to your own `id -u`/`id -g` and the entrypoint renumbers its `app` user
 to match. Unnecessary on Docker Desktop.
 
@@ -292,6 +295,7 @@ git clone git@github.com:jwechsler/stagemgr.git
 cd stagemgr
 bundle install
 yarn install
+yarn build                        # seat map editor bundle -> app/assets/builds/
 bundle exec rake setup:config     # config/*.yml and .env from the templates
 ```
 
@@ -325,6 +329,11 @@ bundle exec rake environment resque:scheduler       # recurring jobs
 ```
 
 Browse to <http://localhost:8080/login>.
+
+Nothing rebuilds the esbuild bundle on request. While editing
+`app/javascript/`, keep `yarn build --watch` running as a fourth process.
+`rspec` and `cucumber` build it themselves when it is missing or older than its
+sources.
 
 Puma stays in the `Gemfile` for exactly this -- `rails server` on a native
 install. Passenger is what serves the app in Docker and in production.

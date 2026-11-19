@@ -185,7 +185,7 @@ Reference — copy of what's in `config/initializers/rack_attack.rb` at time of 
 
 | Name | Limit | Window | Scope |
 |---|---|---|---|
-| `req/ip` | 300 | 5 min | All requests, excludes `/assets`, `/packs`, `/favicon` |
+| `req/ip` | 300 | 5 min | All requests, excludes `/assets`, `/favicon` |
 | `logins/ip` | 10 | 1 min | POST to `/user_session` or `/login` |
 | `orders-post/ip` | 30 | 1 min | POST to `/ticket_orders`, `/donation_orders`, `/membership_orders`, `/flex_pass_orders` |
 

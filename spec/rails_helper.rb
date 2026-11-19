@@ -14,6 +14,7 @@ require Rails.root.join('spec/support/printing_service_mock')
 require Rails.root.join('spec/support/membership_card_fixtures')
 require Rails.root.join('spec/support/bare_time_to_s_detector')
 require Rails.root.join('spec/support/concurrent_db_snapshot')
+require Rails.root.join('spec/support/javascript_build')
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are

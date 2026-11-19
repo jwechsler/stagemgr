@@ -65,3 +65,28 @@ RSpec.describe 'Rack::Attack throttling', type: :request do
     expect(responses.last).to have_http_status(429)
   end
 end
+
+# The 'req/ip' discriminator returns nil (not counted) for asset requests. Call
+# it directly so the examples need neither a cache store nor a compiled asset.
+RSpec.describe "Rack::Attack 'req/ip' asset exclusion" do
+  def discriminator_for(path)
+    env = Rack::MockRequest.env_for(path, 'REMOTE_ADDR' => '203.0.113.7')
+    Rack::Attack.throttles['req/ip'].block.call(Rack::Attack::Request.new(env))
+  end
+
+  it 'does not count Sprockets asset requests, including the esbuild seat map editor bundle' do
+    expect(discriminator_for('/tickets/assets/seat_map_editor-abc123.js')).to be_nil
+  end
+
+  it 'does not count favicon requests' do
+    expect(discriminator_for('/favicon.ico')).to be_nil
+  end
+
+  it 'counts page requests by client IP' do
+    expect(discriminator_for('/tickets/admin/theaters')).to eq('203.0.113.7')
+  end
+
+  it 'counts requests under the retired Webpacker /packs prefix like any other page' do
+    expect(discriminator_for('/tickets/packs/js/application-abc123.js')).to eq('203.0.113.7')
+  end
+end

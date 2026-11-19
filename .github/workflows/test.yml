@@ -84,6 +84,12 @@ jobs:
       - name: Install JavaScript dependencies
         run: yarn install --frozen-lockfile
 
+      # esbuild bundle of the seat map editor into app/assets/builds/, served by
+      # Sprockets. spec/support/javascript_build.rb would build it on demand;
+      # building here makes a broken bundle fail as its own step.
+      - name: Build JavaScript (esbuild)
+        run: yarn build
+
       - name: Generate config files from templates
         run: bundle exec rake setup:config
 
@@ -136,12 +142,12 @@ jobs:
           path: tmp/capybara/
           if-no-files-found: ignore
 
-      # The same production build bin/deploy runs, so a broken asset or pack
-      # fails here instead of mid-deploy. Runs last because compiled files in
-      # public/assets and public/packs shadow live sources in the test suites;
-      # !cancelled() keeps it running when an earlier test step failed.
-      # No database connection is made; Redis (the service above) is, by the
-      # Resque initializer. bin/webpack adds --openssl-legacy-provider itself.
+      # The same production build bin/deploy runs (jsbundling-rails runs yarn
+      # install + yarn build first), so a broken asset or bundle fails here
+      # instead of mid-deploy. Runs last because compiled files in public/assets
+      # shadow live sources in the test suites; !cancelled() keeps it running
+      # when an earlier test step failed. No database connection is made; Redis
+      # (the service above) is, by the Resque initializer.
       # RequiredSecrets exempts rake runs, so only SECRET_KEY_BASE is needed.
       - name: Precompile assets (production)
         if: ${{ !cancelled() }}

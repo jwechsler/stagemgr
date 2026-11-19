@@ -230,17 +230,23 @@ fails whenever Mozilla's FTP lags behind a freshly released patch version. On a
 native install, install both yourself (`brew install --cask firefox` plus
 `brew install geckodriver`).
 
-### Webpacker compilation fails or assets are stale
+### Seat map editor JavaScript is missing or stale
 
-The app pins Node **22** (`.nvmrc`, and the same version in the Dockerfile and
-CI). Run `nvm use 22`, then:
+The seat map editor page raises that `seat_map_editor.js` is not present in
+the asset pipeline, or the editor runs old code. Its bundle is built by esbuild
+into `app/assets/builds/`, and nothing rebuilds it on request. The app pins
+Node **22** (`.nvmrc`, and the same version in the Dockerfile and CI). Run
+`nvm use 22`, then:
 
 ```sh
-yarn install
-bundle exec rails webpacker:compile
+yarn install && yarn build
 ```
 
-The container does both on every start; if it fails there, it is reported and
+While editing `app/javascript/`, keep `yarn build --watch` running instead. If
+the page still serves old code, a stale precompile is shadowing the build:
+delete `public/assets`.
+
+The container runs `yarn install` and `yarn build` on every start; if it fails there, it is reported and
 the container stays up in development so you can exec in and fix it. (Every
 entrypoint step behaves that way except `bundle install`, which is fatal in
 every environment.)

@@ -6,8 +6,8 @@ module ScriptBundleHelpers
   # One line of jQuery's banner: present once per copy of jQuery.
   JQUERY_MARKER = 'jQuery JavaScript Library'.freeze
 
-  # Sprockets serves bundles under /assets/; Webpacker packs (/packs-test/,
-  # one of them also named "application") are a separate pipeline.
+  # Sprockets serves every local bundle under /assets/ (the esbuild seat map
+  # editor bundle included); scripts loaded from elsewhere are not bundles.
   SPROCKETS_PREFIX = '/assets/'.freeze
 
   # The logical names of the page's Sprockets <script src> bundles, digest

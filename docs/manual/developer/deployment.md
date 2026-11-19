@@ -256,7 +256,7 @@ serving patrons from it, expect to supply at least:
   scheme and bakes its credentials into a local volume; production data wants a
   real MySQL with backups.
 - **Log and asset handling.** `RAILS_LOG_TO_STDOUT=true` for a container log
-  driver; a plan for `public/assets` and `public/packs`, which are precompiled
+  driver; a plan for `public/assets` and `app/assets/builds`, which are built
   into the bind mount at boot.
 - **A migration step outside the container lifecycle**, since
   `DB_PREPARE_ON_BOOT` is off there by design.

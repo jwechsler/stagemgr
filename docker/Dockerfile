@@ -71,7 +71,7 @@ RUN ARCH=$(uname -m) && \
     tar -xzf /tmp/geckodriver.tar.gz -C /usr/local/bin && \
     rm /tmp/geckodriver.tar.gz
 
-# Node 22 + Yarn for Webpacker asset compilation. Matches .nvmrc and the
+# Node 22 + Yarn for the esbuild JavaScript build (`yarn build`). Matches .nvmrc and the
 # actions/setup-node version in .github/workflows/test.yml.
 RUN curl -sL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \

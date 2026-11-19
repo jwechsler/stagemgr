@@ -57,7 +57,7 @@ change and each Ruby bump), with small follow-up deploys that flip framework def
 
 **Stack:** Rails 6.1.7.10, Ruby 3.2.2, `config.load_defaults 6.1` (since 1d, with
 `has_many_inversing`, SameSite and urlsafe CSRF held explicitly), MySQL 8 (utf8mb4_0900),
-Redis via Resque 2.6, Sprockets 4 + Webpacker 5 (webpack 4), Passenger on a
+Redis via Resque 2.6, Sprockets 4 + jsbundling-rails (esbuild, since 1c), Passenger on a
 macOS 13 host, deployed by `bin/deploy` (git pull → bundle → yarn → migrate →
 doctor → precompile → restart).
 
@@ -71,7 +71,7 @@ doctor → precompile → restart).
 | rspec-rails | 5.1.2 (pinned `< 6`) | supports ≤ 7.0 | 6.1 → 7.1 → 8.0 per hop |
 | resque-web | 0.0.12 (2017) | pulls twitter-bootstrap-rails `< 8`, sassc-rails, less | **Remove — unused.** The `/admin/resque` dashboard is `Resque::Server` from the resque gem itself (`config/routes.rb:37`) |
 | sqlite3 | 1.6.9 (pinned) | Rails 8 needs ≥ 2.1 | **Remove — unused** (every env is mysql2); also ends the lockfile platform churn |
-| webpacker | 5.4.4 | retired upstream; webpack 4 needs `--openssl-legacy-provider` on Node 22 | Replace with jsbundling-rails (esbuild) |
+| webpacker | removed (was 5.4.4) | retired upstream; webpack 4 needed `--openssl-legacy-provider` on Node 22 | Replaced with jsbundling-rails (esbuild) in 1c |
 
 **Unused, delete:** activerecord-session_store (sessions are `:cookie_store`),
 i18n-js, uglifier, jquery-timepicker-rails
@@ -116,19 +116,16 @@ beyond 11.x (capped by stripe-ruby-mock). Each is its own later project.
 
 ### Frontend
 
-Two JS systems are in use. Sprockets does nearly everything (jQuery, jQuery UI,
-DataTables + yadcf, Foundation 6.9 from `node_modules`, cocoon, chartkick,
-tagify, 39 views with inline scripts relying on Sprockets-defined globals).
-Webpacker serves exactly **one** real pack, `seat_map_editor` (Konva + 10 local
-ES modules); the `application` pack is empty but still loaded by the main
-layout.
+Sprockets does nearly everything (jQuery, jQuery UI, DataTables + yadcf,
+Foundation 6.9 from `node_modules`, cocoon, chartkick, tagify, 39 views with
+inline scripts relying on Sprockets-defined globals). The one exception is the
+seat-map editor (Konva + 10 local ES modules), which **jsbundling-rails +
+esbuild** bundles into `app/assets/builds/` for Sprockets to serve (1c, below).
 
-**Target:** keep Sprockets (fully supported on Rails 8), replace Webpacker with
-**jsbundling-rails + esbuild** for the seat-map editor only. This removes
-webpack 4, Babel, ~950 yarn lockfile entries and the Node OpenSSL workaround,
-with near-zero change to the rest of the UI. Propshaft/importmap are *not*
-recommended now: the jQuery-plugin load order, SCSS, and inline globals make
-that a large, separate frontend project.
+**Target:** keep Sprockets (fully supported on Rails 8) with esbuild for the
+seat-map editor only. Propshaft/importmap are *not* recommended now: the
+jQuery-plugin load order, SCSS, and inline globals make that a large, separate
+frontend project.
 
 ### Site theming
 
@@ -376,15 +373,26 @@ both CSRF token encodings, so sessions in flight across the deploy keep working.
 
 **1c. Replace Webpacker (~1 day)**
 
-1. Add jsbundling-rails with esbuild. Build `seat_map_editor` to
-   `app/assets/builds`, served by Sprockets.
-2. Remove the empty `application` pack and its `javascript_pack_tag`. Switch
-   `admin/seat_maps/editor.html.haml:60` to `javascript_include_tag`.
-3. Delete webpacker, `config/webpack/`, `webpacker.yml`, `babel.config.js`,
-   `postcss.config.js`, `bin/webpack*` and the unused npm packages.
+*Done on `rails-upgrade/release-1c`.*
+
+1. jsbundling-rails with esbuild replaced the webpacker gem. `yarn build`
+   bundles `app/javascript/seat_map_editor.js` (iife, no source map) into
+   `app/assets/builds/`, which Sprockets serves through `//= link_tree ../builds`;
+   `assets:precompile` runs `yarn install` + `yarn build` first.
+2. The empty `application` pack and its `javascript_pack_tag` in the main layout
+   are gone, and `admin/seat_maps/editor.html.haml` loads the editor with
+   `javascript_include_tag`.
+3. Deleted webpacker, `config/webpack/`, `webpacker.yml`, `babel.config.js`,
+   `postcss.config.js`, `.browserslistrc`, `bin/webpack*` and the unused npm
+   packages: `@nathanvda/cocoon`, `chart.js`, `chartkick`, `jquery`,
+   `jquery-timepicker` and `jquery-ujs` (Sprockets takes those libraries from
+   their gems) plus `@rails/webpacker`, `webpack`, `webpack-cli` and
+   `webpack-dev-server`.
 4. Convert the 5 CoffeeScript files to JS and drop coffee-rails.
-5. Update `bin/deploy`, `bin/docker-entrypoint` and the docs (the `troubleshooting.md`
-   Node/OpenSSL note).
+5. `bin/deploy`, `bin/docker-entrypoint` (runs `yarn build` on start), `bin/setup`,
+   CI (a separate `yarn build` step) and the developer docs describe the esbuild
+   build. RSpec and Cucumber build the bundle on demand, when it is missing or
+   older than its sources, through `spec/support/javascript_build.rb`.
 6. Dry-run `assets:precompile` on the production box before deploying.
 
 **Deploy.** One window, or two if you'd rather ship 1c on its own, since it's
@@ -549,7 +557,8 @@ webhook arriving, exception mail delivered, and no new deprecation warnings in
 ### Security and maintainability
 - Security patches again (Rails 8.1 until ~Oct 2027; Ruby 3.4 until ~Mar 2028),
   which matters for a payment-taking system handling patron PII.
-- Removes ~15 dead or abandoned gems and the whole webpack 4/Babel toolchain;
+- Removes ~15 dead or abandoned gems, and esbuild (1c) has replaced the
+  webpack 4/Babel toolchain;
   a smaller dependency surface, faster `bundle`/`yarn install` and deploys.
 - Unblocks current versions of the rest of the ecosystem (rspec-rails 8,
   exception_notification 5, active_storage_validations, and others) and future hires'
@@ -559,8 +568,8 @@ webhook arriving, exception mail delivered, and no new deprecation warnings in
 - **YJIT** (Ruby 3.3+/3.4): typically a 15–30% speedup for Rails request
   throughput. It helps the ERB/HAML-heavy admin pages and report generation.
 - Rails 7.1+ ships faster ActiveRecord query building, per-request memory
-  improvements, and a much faster `assets:precompile` once esbuild replaces
-  webpack 4.
+  improvements, and a much faster `assets:precompile` now that esbuild has
+  replaced webpack 4.
 - **`load_async`** (7.0+): the analysis dashboards and house-management
   reports that issue several independent queries per page can run them in
   parallel.

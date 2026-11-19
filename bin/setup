@@ -19,6 +19,8 @@ FileUtils.chdir APP_ROOT do
 
   # Install JavaScript dependencies
   system! 'bin/yarn'
+  # Build the esbuild bundle (seat map editor) into app/assets/builds/
+  system! 'bin/yarn build'
 
   # puts "\n== Copying sample files =="
   # unless File.exist?('config/database.yml')

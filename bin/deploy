@@ -58,6 +58,8 @@ bundle exec rails db:migrate
 step "Health check (rake setup:doctor)"
 bundle exec rake setup:doctor
 
+# jsbundling-rails runs `yarn install` + `yarn build` (esbuild into
+# app/assets/builds/) before Sprockets precompiles.
 step "Assets"
 bundle exec rails assets:precompile
 

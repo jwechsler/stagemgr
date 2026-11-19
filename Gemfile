@@ -5,7 +5,7 @@ gem 'rails', '~> 6.1'
 
 gem 'bootsnap'
 gem 'sprockets-rails'
-gem 'webpacker'
+gem 'jsbundling-rails'
 
 gem 'redcarpet', '~> 3.6' # Markdown
 
