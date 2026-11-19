@@ -4,8 +4,8 @@ source 'https://rubygems.org'
 gem 'rails', '~> 6.1'
 
 gem 'bootsnap'
-gem 'sprockets-rails'
 gem 'jsbundling-rails'
+gem 'sprockets-rails'
 
 gem 'redcarpet', '~> 3.6' # Markdown
 
@@ -35,7 +35,10 @@ gem 'monetize'
 gem 'money'
 gem 'money-rails'
 gem 'StreetAddress' # parses street addresses for matching checks
-# Removed base64 gem as it's part of Ruby 3.2.2 standard library
+# These stop being default gems in Ruby 3.4. The app requires csv directly;
+# activesupport 6.1 requires mutex_m without declaring it.
+gem 'csv'
+gem 'mutex_m'
 # gem "gemcutter"
 gem 'ajax-datatables-rails', '> 1.0.0'
 gem 'cocoon'
@@ -62,7 +65,7 @@ gem 'yajl-ruby', require: 'yajl'
 # gem "name_parse", "~> 0.0.5"
 gem 'namae'
 gem 'rack-attack', require: 'rack/attack'
-gem 'redis', '~> 4.8.0' # Updated for better Ruby 3.2.2 compatibility
+gem 'redis', '~> 4.8.0'
 
 gem 'ri_cal', git: 'https://github.com/ctide/ri_cal.git'
 

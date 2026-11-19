@@ -55,7 +55,8 @@ change and each Ruby bump), with small follow-up deploys that flip framework def
 
 ## 2. Current state (audit summary)
 
-**Stack:** Rails 6.1.7.10, Ruby 3.2.2, `config.load_defaults 6.1` (since 1d, with
+**Stack:** Rails 6.1.7.10, Ruby 3.3.11 (since 1c; production still on 3.2 until
+that release deploys), `config.load_defaults 6.1` (since 1d, with
 `has_many_inversing`, SameSite and urlsafe CSRF held explicitly), MySQL 8 (utf8mb4_0900),
 Redis via Resque 2.6, Sprockets 4 + jsbundling-rails (esbuild, since 1c), Passenger on a
 macOS 13 host, deployed by `bin/deploy` (git pull → bundle → yarn → migrate →
@@ -316,7 +317,11 @@ their own windows.*
 **Moved to their own windows:**
 
 - **Framework defaults** (was 1b.8): see 1d below.
-- **Ruby 3.3** (was 1b.9): unchanged, still a separate window.
+- **Ruby 3.3** (was 1b.9): the code and CI moved to Ruby 3.3.11 on
+  `rails-upgrade/release-1c` (`.ruby-version`; CI follows it). The production
+  box needs Ruby 3.3.11 installed, and `bundle install` run under it, before
+  that release deploys; `bin/deploy` aborts when the running Ruby differs from
+  `.ruby-version`. The install method is open question 2 in section 7.
 
 **1d. Framework defaults (done 2026-11-07, branch `rails-upgrade/release-1-defaults`)**
 
@@ -376,7 +381,7 @@ both CSRF token encodings, so sessions in flight across the deploy keep working.
 *Done on `rails-upgrade/release-1c`.*
 
 1. jsbundling-rails with esbuild replaced the webpacker gem. `yarn build`
-   bundles `app/javascript/seat_map_editor.js` (iife, no source map) into
+   bundles `app/javascript/seat_map_editor.js` (iife, minified, no source map) into
    `app/assets/builds/`, which Sprockets serves through `//= link_tree ../builds`;
    `assets:precompile` runs `yarn install` + `yarn build` first.
 2. The empty `application` pack and its `javascript_pack_tag` in the main layout
@@ -397,9 +402,10 @@ both CSRF token encodings, so sessions in flight across the deploy keep working.
 6. Dry-run `assets:precompile` on the production box before deploying.
 
 **Deploy.** One window, or two if you'd rather ship 1c on its own, since it's
-the only step that changes the production asset build. It is reasonable to
-deploy Ruby 3.3 in its own window as well, because it touches the production host's
-toolchain.
+the only step that changes the production asset build. The code and CI moved to
+Ruby 3.3.11 on `rails-upgrade/release-1c`, so before that release deploys the
+production box needs Ruby 3.3.11 installed and `bundle install` run under it
+(install method: open question 2 in section 7).
 
 ---
 
