@@ -75,8 +75,8 @@ doctor → precompile → restart).
 
 **Unused, delete:** activerecord-session_store (sessions are `:cookie_store`),
 i18n-js, uglifier, jquery-timepicker-rails
-(vendored/npm copy is what's loaded — verify), coffee-rails (after converting 5
-small `.coffee` files), and the dev-group fossils wirble, bond, what_methods,
+(vendored/npm copy is what's loaded — verify), coffee-rails (removed in 1c; its
+5 `.coffee` files held only generator comments), and the dev-group fossils wirble, bond, what_methods,
 map_by_method, single_test, rbx-require-relative. Also `config/spring.rb`,
 `config/initializers/footnotes.rb`, `config/resque_web.rb`, and the
 `config.whiny_nils` lines.
@@ -388,7 +388,8 @@ both CSRF token encodings, so sessions in flight across the deploy keep working.
    `jquery-timepicker` and `jquery-ujs` (Sprockets takes those libraries from
    their gems) plus `@rails/webpacker`, `webpack`, `webpack-cli` and
    `webpack-dev-server`.
-4. Convert the 5 CoffeeScript files to JS and drop coffee-rails.
+4. The 5 `.coffee` files held only generator comments, so they were deleted and
+   coffee-rails was dropped.
 5. `bin/deploy`, `bin/docker-entrypoint` (runs `yarn build` on start), `bin/setup`,
    CI (a separate `yarn build` step) and the developer docs describe the esbuild
    build. RSpec and Cucumber build the bundle on demand, when it is missing or
