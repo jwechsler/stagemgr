@@ -196,8 +196,12 @@ end
 exception_recipients = ExceptionRecipients.for(Rails.configuration.x.email_address)
 
 if exception_recipients.empty?
-  Rails.logger.warn('[ExceptionNotification] no email.addresses.exception_notifications or ' \
-                    'software_address in server.yml -- crash reports are disabled.')
+  # Rails.logger is still nil while an environment file is evaluated, so the
+  # warning waits until the app has initialized.
+  Rails.application.config.after_initialize do
+    Rails.logger.warn('[ExceptionNotification] no email.addresses.exception_notifications or ' \
+                      'software_address in server.yml -- crash reports are disabled.')
+  end
 else
   Stagemgr::Application.config.middleware.use ExceptionNotification::Rack,
                                               ignore_exceptions: [
