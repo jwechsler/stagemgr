@@ -52,9 +52,10 @@ gem 'rails-jquery-autocomplete' # :git=>"https://github.com/jwechsler/rails3-jqu
 gem 'validates_formatting_of'
 
 gem 'dartsass-sprockets'
-# The production box runs macOS 13; sass-embedded 1.98.0 bumped the bundled
-# Dart runtime's minimum to macOS 14 (its compiler process dies at launch,
-# aborting assets:precompile). Lift the cap once that machine is on 14+.
+# sass-embedded 1.98.0 bumped the bundled Dart runtime's minimum to macOS 14
+# (its compiler process dies at launch, aborting assets:precompile), which the
+# former macOS 13 production machine could not run. Production is on Linux
+# now; lifting the cap is a follow-up in docs/rails-upgrade-plan.md.
 gem 'sass-embedded', '>= 1.80', '< 1.98'
 # Foundation 6.9 via npm (foundation-sites in package.json)
 gem 'autoprefixer-rails'

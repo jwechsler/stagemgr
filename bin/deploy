@@ -12,7 +12,7 @@
 # deploy here instead of surfacing to the first customer.
 #
 # Usage, from the dev machine:
-#   ssh deploy@theaterwit.org 'RAILS_ENV=production /var/www/stagemgr/bin/deploy'
+#   ssh deploy@theaterwit.org 'RAILS_ENV=production /home/deploy/stagemgr/bin/deploy'
 # (non-interactive ssh may not source the deploy user's profile, so pass
 # RAILS_ENV on the command line).
 
