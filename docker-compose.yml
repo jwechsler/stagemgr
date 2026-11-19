@@ -121,8 +121,11 @@ services:
       # Live source. Edits on the host are picked up without a rebuild.
       - .:/var/www/stagemgr:rw
       # Gems live in the image's RVM gemset, outside the checkout entirely, so
-      # nothing in the working tree is ever written by the container.
-      - bundle-cache:/usr/local/rvm/gems/ruby-3.2.2@stagemgr
+      # nothing in the working tree is ever written by the container. The path
+      # is the image's STAGEMGR_RUBY (docker/Dockerfile); the volume name
+      # carries the Ruby minor so a minor bump starts from an empty gemset
+      # instead of mounting gems built for the old ABI.
+      - bundle-cache-ruby33:/usr/local/rvm/gems/ruby-3.3.12@stagemgr
       # node_modules has to stay in-tree for yarn/esbuild and the Sprockets
       # asset path, but it is a volume rather than the host's directory: these
       # are Linux builds.
@@ -131,5 +134,5 @@ services:
 volumes:
   mysql-data:
   redis-data:
-  bundle-cache:
+  bundle-cache-ruby33:
   node-modules:

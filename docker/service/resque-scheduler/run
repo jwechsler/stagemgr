@@ -13,6 +13,6 @@ export RAILS_ENV="${PASSENGER_APP_ENV:-${RAILS_ENV:-development}}"
 exec /sbin/setuser app bash -c "
   cd /var/www/stagemgr &&
   source /etc/profile.d/rvm.sh &&
-  rvm use 3.2.2@stagemgr &&
+  rvm use ${STAGEMGR_RUBY:?STAGEMGR_RUBY is set by docker/Dockerfile} &&
   exec bundle exec rake environment resque:scheduler
 "

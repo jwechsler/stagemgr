@@ -27,8 +27,10 @@
 set -e
 
 APP_DIR=/var/www/stagemgr
-RUBY_ENV="3.2.2@stagemgr"
-GEMSET_DIR="/usr/local/rvm/gems/ruby-${RUBY_ENV}"
+# Set by docker/Dockerfile (e.g. ruby-3.3.12@stagemgr); the one name for the
+# image's Ruby and gemset.
+RUBY_ENV="${STAGEMGR_RUBY:?STAGEMGR_RUBY is not set; this script runs inside the image built from docker/Dockerfile}"
+GEMSET_DIR="/usr/local/rvm/gems/${RUBY_ENV}"
 APP_ENV="${PASSENGER_APP_ENV:-${RAILS_ENV:-development}}"
 NGINX_SRC_DIR=/etc/nginx/stagemgr
 NGINX_SITE=/etc/nginx/sites-enabled/stagemgr.conf
@@ -237,7 +239,7 @@ else
   fi
   nginx_src="$NGINX_SRC_DIR/nginx.conf"
 fi
-sed "s|__PASSENGER_APP_ENV__|$APP_ENV|g" "$nginx_src" > "$NGINX_SITE" ||
+sed -e "s|__PASSENGER_APP_ENV__|$APP_ENV|g" -e "s|__STAGEMGR_RUBY__|$RUBY_ENV|g" "$nginx_src" > "$NGINX_SITE" ||
   fail "(could not write $NGINX_SITE from $nginx_src — Nginx will start with no site configured and answer nothing)"
 
 echo "==> Boot complete ($APP_ENV); exec $*"
