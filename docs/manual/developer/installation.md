@@ -291,7 +291,7 @@ pin a Ruby version.
 ```sh
 rbenv install 3.3.12 && rbenv local 3.3.12 # or asdf / rvm
 nvm install 22 && nvm use 22
-gem install bundler:2.4.10                 # the version in Gemfile.lock
+gem install bundler:2.5.22                 # the version in Gemfile.lock
 npm install -g yarn
 ```
 

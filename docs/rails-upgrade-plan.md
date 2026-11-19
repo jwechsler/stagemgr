@@ -411,25 +411,23 @@ On the box (user `deploy`, checkout `/home/deploy/stagemgr`, rbenv in
 `/home/deploy/.rbenv`), in order:
 
 1. `rbenv install 3.3.12` (done 2026-11-19).
-2. `rbenv shell 3.3.12 && gem install bundler -v 2.4.10`. Under 3.3.12 the only
-   bundler is the default 2.5.22, and `Gemfile.lock` says `BUNDLED WITH 2.4.10`.
-3. In `/etc/nginx/sites-available/stagemgr`, change the hard-coded
+2. In `/etc/nginx/sites-available/stagemgr`, change the hard-coded
    `passenger_ruby /home/deploy/.rbenv/versions/3.2.11/bin/ruby` (line 67) to
    `/home/deploy/.rbenv/versions/3.3.12/bin/ruby`, or delete it so the shim in
    `/etc/nginx/conf.d/mod-http-passenger.conf` applies. Then `sudo nginx -t`.
    Do not reload yet. Until Nginx reloads, Passenger keeps running 3.2.11.
-4. Run `bin/deploy`. Its Ruby check passes once the pull brings the new
+3. Run `bin/deploy`. Its Ruby check passes once the pull brings the new
    `.ruby-version` (the rbenv shim reads it in the checkout); gems install under
    3.3.12; `assets:precompile` runs `yarn install` + `yarn build`. Its Passenger
    restart and smoke check still run under 3.2.11, which has none of the new
-   gems, so expect the smoke check to fail and go straight to step 5.
-5. `sudo systemctl reload nginx` (or the host's equivalent) so Passenger picks
+   gems, so expect the smoke check to fail and go straight to step 4.
+4. `sudo systemctl reload nginx` (or the host's equivalent) so Passenger picks
    up the new `passenger_ruby`. Restart the Resque workers and scheduler under
    3.3.12: `bin/deploy` already restarted them through `script/resque-worker`
    and `script/scheduler` (`nohup bundle exec` from the checkout, so the shim
    gives them 3.3.12), but anything that starts them some other way (Q5) needs
    pointing at 3.3.12 too.
-6. Confirm with `passenger-status` and `passenger-config about ruby-command`
+5. Confirm with `passenger-status` and `passenger-config about ruby-command`
    (both should report 3.3.12), check the workers' Ruby, rerun the smoke `curl`
    from `bin/deploy`, and work through the smoke checklist (§5).
 
@@ -658,9 +656,8 @@ webhook arriving, exception mail delivered, and no new deprecation warnings in
 2. **Ruby on the box:** answered 2026-11-19. rbenv in `/home/deploy/.rbenv` on an
    x86_64 Linux cloud VM (4 vCPU / 8 GB), user `deploy`, checkout at
    `/home/deploy/stagemgr`; 3.3.12 is installed alongside 3.2.11. Under 3.3.12
-   the only bundler is the default 2.5.22 while `Gemfile.lock` is
-   `BUNDLED WITH 2.4.10`, so bundler 2.4.10 goes in before the deploy (1c's
-   checklist, step 2).
+   `Gemfile.lock` is `BUNDLED WITH 2.5.22`, the default bundler of Ruby 3.3.12, so
+   nothing extra needs installing.
 3. **Node/yarn on the box:** answered 2026-11-19. Node 22.23.4 and yarn 1.22.22,
    system-wide in `/usr/bin` (no nvm, no Homebrew). Both satisfy the esbuild
    build.

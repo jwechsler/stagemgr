@@ -130,8 +130,8 @@ ENV PATH=/usr/local/rvm/gems/ruby-${RUBY_VERSION}@stagemgr/bin:/usr/local/rvm/ge
 
 # Pinned to the version in Gemfile.lock's BUNDLED WITH. Unpinned, this now
 # installs a Bundler 4.x into the gemset (whose bin directory the ENV above puts
-# first on PATH), which would shadow the 2.4.x that generated the lockfile.
-RUN gem install bundler -v 2.4.10
+# first on PATH), which would shadow the 2.5.x that generated the lockfile.
+RUN gem install bundler -v 2.5.22
 
 ENV BUNDLE_BUILD__MYSQL2="--with-mysql-config=/usr/bin/mysql_config"
 
