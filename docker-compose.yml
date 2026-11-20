@@ -103,7 +103,7 @@ services:
       # (it must agree with server.yml's sub_uri).
       RAILS_RELATIVE_URL_ROOT: "${STAGEMGR_SUB_URI:-}"
       # Linux hosts: the image's `app` user is uid 9999, so files it writes into
-      # the bind mount (log/, tmp/, public/packs) come back owned by a stranger.
+      # the bind mount (log/, tmp/, app/assets/builds) come back owned by a stranger.
       # Set HOST_UID/HOST_GID in .env to `id -u` / `id -g` and the entrypoint
       # renumbers `app` to match. Unset (and on Docker Desktop, where the VM
       # already maps ownership) nothing happens.
@@ -121,14 +121,18 @@ services:
       # Live source. Edits on the host are picked up without a rebuild.
       - .:/var/www/stagemgr:rw
       # Gems live in the image's RVM gemset, outside the checkout entirely, so
-      # nothing in the working tree is ever written by the container.
-      - bundle-cache:/usr/local/rvm/gems/ruby-3.2.2@stagemgr
-      # node_modules has to stay in-tree for yarn/webpacker resolution, but it
-      # is a volume rather than the host's directory: these are Linux builds.
+      # nothing in the working tree is ever written by the container. The path
+      # is the image's STAGEMGR_RUBY (docker/Dockerfile); the volume name
+      # carries the Ruby minor so a minor bump starts from an empty gemset
+      # instead of mounting gems built for the old ABI.
+      - bundle-cache-ruby33:/usr/local/rvm/gems/ruby-3.3.12@stagemgr
+      # node_modules has to stay in-tree for yarn/esbuild and the Sprockets
+      # asset path, but it is a volume rather than the host's directory: these
+      # are Linux builds.
       - node-modules:/var/www/stagemgr/node_modules
 
 volumes:
   mysql-data:
   redis-data:
-  bundle-cache:
+  bundle-cache-ruby33:
   node-modules:

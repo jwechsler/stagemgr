@@ -2,14 +2,14 @@
 # Stagemgr Docker entrypoint.
 #
 # Runs on every container start and is idempotent — re-running bundle/yarn/
-# webpacker is cheap once the caches are warm, and nothing that already exists
+# esbuild is cheap once the caches are warm, and nothing that already exists
 # is overwritten.
 #
 #   1. optionally renumber the `app` user to match the host (Linux bind mounts)
 #   2. bundle install (gems live in the RVM gemset, outside the checkout)
 #   3. rake setup:config — scaffold config/*.yml and .env from the templates
 #   4. production only: gate on `rake setup:doctor` before anything slow
-#   5. yarn install + webpacker:compile (+ assets:precompile in production)
+#   5. yarn install + yarn build (esbuild; + assets:precompile in production)
 #   6. database prep (setup:bootstrap; default off in production)
 #   7. install the Nginx site config: foundation mode when a Foundation build is
 #      mounted at /var/www/foundation-dist, otherwise standalone
@@ -27,8 +27,10 @@
 set -e
 
 APP_DIR=/var/www/stagemgr
-RUBY_ENV="3.2.2@stagemgr"
-GEMSET_DIR="/usr/local/rvm/gems/ruby-${RUBY_ENV}"
+# Set by docker/Dockerfile (e.g. ruby-3.3.12@stagemgr); the one name for the
+# image's Ruby and gemset.
+RUBY_ENV="${STAGEMGR_RUBY:?STAGEMGR_RUBY is not set; this script runs inside the image built from docker/Dockerfile}"
+GEMSET_DIR="/usr/local/rvm/gems/${RUBY_ENV}"
 APP_ENV="${PASSENGER_APP_ENV:-${RAILS_ENV:-development}}"
 NGINX_SRC_DIR=/etc/nginx/stagemgr
 NGINX_SITE=/etc/nginx/sites-enabled/stagemgr.conf
@@ -73,7 +75,7 @@ cd "$APP_DIR"
 
 # ── 1. host uid/gid alignment ────────────────────────────────────────────────
 # The image's `app` user is uid 9999. On a Linux host that means every file the
-# container writes into the bind mount (log/, tmp/, public/packs) comes back
+# container writes into the bind mount (log/, tmp/, app/assets/builds) comes back
 # owned by a stranger. Renumber `app` instead of chowning the working tree —
 # chown -R on a bind mount rewrites the developer's own files.
 align_app_user() {
@@ -151,7 +153,7 @@ as_app_ruby "bundle exec rake setup:config" ||
   fail "(rake setup:config failed — config/database.yml and config/server.yml may be missing, and nothing that boots Rails will work until they exist)"
 
 # ── 4. production gate ───────────────────────────────────────────────────────
-# Before yarn and webpacker on purpose. In production the first thing to boot
+# Before yarn and esbuild on purpose. In production the first thing to boot
 # Rails should be the one command whose job is to explain what is wrong: a
 # missing secret otherwise surfaces several minutes later as a bare
 # "secret_key_base for production environment must be a type of String" out of
@@ -171,11 +173,14 @@ fi
 echo "==> yarn install..."
 as_app "cd $APP_DIR && yarn install" || fail "(yarn install failed)"
 
-echo "==> webpacker:compile..."
-as_app_ruby "bundle exec rails webpacker:compile" ||
-  fail "(webpacker:compile failed)"
+# esbuild writes the seat map editor bundle into app/assets/builds/, where
+# Sprockets serves it. Nothing rebuilds it on request: while editing
+# app/javascript/, run `yarn build --watch` in the container.
+echo "==> yarn build (esbuild)..."
+as_app "cd $APP_DIR && yarn build" || fail "(yarn build failed)"
 
-# Sprockets, on top of the webpack bundle above.
+# Sprockets, on top of the esbuild bundle above. (assets:precompile also runs
+# yarn install + yarn build itself, via jsbundling-rails.)
 if is_production; then
   echo "==> rake assets:precompile..."
   as_app_ruby "bundle exec rake assets:precompile" || {
@@ -234,7 +239,7 @@ else
   fi
   nginx_src="$NGINX_SRC_DIR/nginx.conf"
 fi
-sed "s|__PASSENGER_APP_ENV__|$APP_ENV|g" "$nginx_src" > "$NGINX_SITE" ||
+sed -e "s|__PASSENGER_APP_ENV__|$APP_ENV|g" -e "s|__STAGEMGR_RUBY__|$RUBY_ENV|g" "$nginx_src" > "$NGINX_SITE" ||
   fail "(could not write $NGINX_SITE from $nginx_src — Nginx will start with no site configured and answer nothing)"
 
 echo "==> Boot complete ($APP_ENV); exec $*"

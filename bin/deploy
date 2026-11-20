@@ -4,7 +4,7 @@
 #
 # Runs the manual deploy sequence in a fixed order so no step can be
 # forgotten:
-#   git pull -> gems -> yarn -> migrate -> doctor -> precompile -> restart -> smoke check
+#   git pull -> Ruby version check -> gems -> yarn -> migrate -> doctor -> precompile -> restart -> smoke check
 #
 # Every step is idempotent, so a failed deploy is retried by simply running
 # the script again. The smoke check doubles as the request that boots the
@@ -12,7 +12,7 @@
 # deploy here instead of surfacing to the first customer.
 #
 # Usage, from the dev machine:
-#   ssh deploy@theaterwit.org 'RAILS_ENV=production /var/www/stagemgr/bin/deploy'
+#   ssh deploy@theaterwit.org 'RAILS_ENV=production /home/deploy/stagemgr/bin/deploy'
 # (non-interactive ssh may not source the deploy user's profile, so pass
 # RAILS_ENV on the command line).
 
@@ -42,6 +42,18 @@ git pull --ff-only
 new_sha=$(git rev-parse --short HEAD)
 echo "    ${old_sha} -> ${new_sha}"
 
+# Checked after the pull so a release that bumps .ruby-version is caught
+# before any gem is installed under the wrong Ruby.
+step "Ruby version"
+wanted_ruby=$(tr -d '[:space:]' < .ruby-version)
+wanted_ruby=${wanted_ruby#ruby-}
+running_ruby=$(ruby -e 'print RUBY_VERSION' 2>/dev/null || echo "none")
+if [[ "$running_ruby" != "$wanted_ruby" ]]; then
+  echo "Refusing to deploy: .ruby-version asks for Ruby ${wanted_ruby} but 'ruby' here is ${running_ruby}. Install Ruby ${wanted_ruby} on this box (and run bundle install under it), then run bin/deploy again." >&2
+  exit 1
+fi
+echo "    ${running_ruby}"
+
 step "Gems"
 bundle check || bundle install
 
@@ -58,6 +70,8 @@ bundle exec rails db:migrate
 step "Health check (rake setup:doctor)"
 bundle exec rake setup:doctor
 
+# jsbundling-rails runs `yarn install` + `yarn build` (esbuild into
+# app/assets/builds/) before Sprockets precompiles.
 step "Assets"
 bundle exec rails assets:precompile
 

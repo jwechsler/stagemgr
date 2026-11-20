@@ -10,7 +10,7 @@ Rack::Attack.cache.store = ActiveSupport::Cache::RedisCacheStore.new(
   }
 )
 
-ASSET_PREFIXES = %w[/assets /packs /favicon].freeze
+ASSET_PREFIXES = %w[/assets /favicon].freeze
 LOGIN_PATH_RE = %r{/(user_session|login)\z}
 ORDER_PATH_RE = %r{/(ticket|donation|membership|flex_pass)_orders(\.|/|\z)}
 

@@ -55,7 +55,7 @@ values on that same first boot.
 
 !!! note "Always `-u app`"
     `docker compose exec` runs as **root** by default, and anything root writes
-    into the bind mount (`log/`, `tmp/`, `public/packs`) is then owned by root
+    into the bind mount (`log/`, `tmp/`, `app/assets/builds`) is then owned by root
     on your host too. `-u app` runs as the same user Passenger and the Resque
     workers use. Gems resolve either way -- the image puts the app's RVM gemset
     on `PATH`, `GEM_HOME` and `GEM_PATH` for non-login shells, which is what
@@ -106,8 +106,11 @@ exists:
 2. `bundle install`.
 3. `rake setup:config` -- scaffolds `config/*.yml` and `.env` from the templates.
 4. **Production only:** `rake setup:doctor`, and refuses to serve if it fails.
-5. `yarn install` and `rails webpacker:compile` (plus `assets:precompile` in
-   production).
+5. `yarn install` and `yarn build`, which bundles the seat map editor with
+   esbuild into `app/assets/builds/` for Sprockets to serve (plus
+   `assets:precompile` in production). Nothing rebuilds the bundle on request:
+   while editing `app/javascript/`, run
+   `docker compose exec -u app stagemgr bash -c "yarn build --watch"`.
 6. `rake setup:bootstrap` -- create the database, load `db/schema.rb`, migrate,
    seed if there are no users. Controlled by `DB_PREPARE_ON_BOOT`.
 7. Installs the Nginx site config: foundation mode if `/var/www/foundation-dist`
@@ -219,19 +222,26 @@ pass `--force`, and keeps the branch.
 - The checkout is bind-mounted at `/var/www/stagemgr`. `config/*.yml`, `.env`,
   encryption keys and `sites/<slug>/` are read straight out of your working
   tree; **nothing is baked into the image**.
-- Gems live in the image's RVM gemset (`ruby-3.2.2@stagemgr`), backed by the
-  `bundle-cache` named volume -- never in `vendor/bundle`, so the container never
-  writes into the checkout. The image's Ruby (3.2.2) comes from the phusion
-  base image and is independent of `.ruby-version`, which only the native
-  install and CI read; a login shell (`bash -lc`) in the container warns that
-  ruby-3.2.11 is not installed, which you can ignore -- use `bash -c`, as the
-  everyday commands do.
+- Gems live in the image's RVM gemset (`ruby-3.3.12@stagemgr`), backed by the
+  `bundle-cache-ruby33` named volume -- never in `vendor/bundle`, so the
+  container never writes into the checkout. The image's Ruby (3.3.12) comes
+  from the phusion base image; its patch level is independent of
+  `.ruby-version`, which only the native install and CI read. When the two
+  differ, a login shell (`bash -lc`) in the container warns that the
+  `.ruby-version` patch release is not installed, which you can ignore -- use
+  `bash -c`, as the everyday commands do.
+- The volume name carries the Ruby minor version, so a Ruby upgrade starts
+  from an empty gemset: the entrypoint's `bundle install` fills it on the first
+  start after `docker compose up -d --build` (a few minutes; watch with
+  `docker compose logs -f stagemgr`). The previous volume (`bundle-cache` for
+  Ruby 3.2) is left in place, unused; remove it with
+  `docker volume rm <project>_bundle-cache` once you no longer need to go back.
 - `node_modules` is a named volume too: it has to sit in-tree for
-  yarn/webpacker resolution, but the builds are Linux ones and must not
-  overwrite your host's.
+  yarn/esbuild and the Sprockets asset path, but the builds are Linux ones and
+  must not overwrite your host's.
 
 On Linux, files the container writes into the bind mount (`log/`, `tmp/`,
-`public/packs`) come back owned by uid 9999. Set `HOST_UID` and `HOST_GID` in
+`app/assets/builds`) come back owned by uid 9999. Set `HOST_UID` and `HOST_GID` in
 `.env` to your own `id -u`/`id -g` and the entrypoint renumbers its `app` user
 to match. Unnecessary on Docker Desktop.
 
@@ -274,14 +284,14 @@ will not start without it.
 
 ### 2. Ruby and Node
 
-Ruby **3.2.11** (`.ruby-version`) and Node **22** (`.nvmrc`), under whichever
-version manager you use. Any 3.2.x patch release works; the Gemfile does not
+Ruby **3.3.12** (`.ruby-version`) and Node **22** (`.nvmrc`), under whichever
+version manager you use. Any 3.3.x patch release works; the Gemfile does not
 pin a Ruby version.
 
 ```sh
-rbenv install 3.2.11 && rbenv local 3.2.11 # or asdf / rvm
+rbenv install 3.3.12 && rbenv local 3.3.12 # or asdf / rvm
 nvm install 22 && nvm use 22
-gem install bundler:2.4.10                 # the version in Gemfile.lock
+gem install bundler:2.5.22                 # the version in Gemfile.lock
 npm install -g yarn
 ```
 
@@ -292,6 +302,7 @@ git clone git@github.com:jwechsler/stagemgr.git
 cd stagemgr
 bundle install
 yarn install
+yarn build                        # seat map editor bundle -> app/assets/builds/
 bundle exec rake setup:config     # config/*.yml and .env from the templates
 ```
 
@@ -325,6 +336,11 @@ bundle exec rake environment resque:scheduler       # recurring jobs
 ```
 
 Browse to <http://localhost:8080/login>.
+
+Nothing rebuilds the esbuild bundle on request. While editing
+`app/javascript/`, keep `yarn build --watch` running as a fourth process.
+`rspec` and `cucumber` build it themselves when it is missing or older than its
+sources.
 
 Puma stays in the `Gemfile` for exactly this -- `rails server` on a native
 install. Passenger is what serves the app in Docker and in production.

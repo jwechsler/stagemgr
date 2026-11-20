@@ -1,4 +1,4 @@
-# Stagemgr application image — Passenger + Nginx + Ruby 3.2.2 (via RVM).
+# Stagemgr application image — Passenger + Nginx + Ruby 3.3 (via RVM).
 #
 # Built for development and CI: the checkout is bind-mounted at
 # /var/www/stagemgr by docker-compose, so edit-save-refresh works without a
@@ -10,7 +10,18 @@
 # Rebuild when this file, the nginx configs, the runit services or the
 # entrypoint change — all four are baked in, not bind-mounted.
 
-FROM phusion/passenger-full:2.6.2
+# passenger-full ships several RVM Rubies (3.3, 3.4, 4.0 in this tag; the RVM
+# default is the newest). 3.1.11 is the last tag on Ubuntu 24.04 (Noble); the
+# 3.2.x line moves to 26.04. When bumping the tag, set RUBY_VERSION below to the
+# 3.3.x it ships: `docker run --rm --entrypoint ls <image> /usr/local/rvm/rubies`.
+FROM phusion/passenger-full:3.1.11
+
+# The one place the image's Ruby is named. Everything else -- GEM_HOME and PATH
+# below, the entrypoint, the runit services and the nginx site configs -- reads
+# STAGEMGR_RUBY. docker-compose.yml's bundle-cache mount path and
+# docs/manual/developer/installation.md name it literally; keep them in step.
+ARG RUBY_VERSION=3.3.12
+ENV STAGEMGR_RUBY=ruby-${RUBY_VERSION}@stagemgr
 
 # bin/docker-entrypoint installs the right site config at boot (standalone vs
 # foundation mode), so the image ships neither.
@@ -25,10 +36,12 @@ RUN passwd -d app
 # Build deps for native gems (mysql2, ruby-vips, nokogiri) plus the shared
 # libraries Firefox needs for @javascript Cucumber scenarios.
 #
-# The base image enables deb-src for every pocket, so each `apt-get update`
-# drags down source-package indexes we never use (jammy/universe Sources alone
-# is 22 MB, ~25 MB all told). Stripping the lines here is a filesystem change,
-# so it applies to the Mozilla and NodeSource updates further down too.
+# Earlier (Jammy) base images enabled deb-src for every pocket, so each
+# `apt-get update` dragged down ~25 MB of source-package indexes we never use.
+# Noble's base keeps its sources in deb822 form (sources.list.d/ubuntu.sources)
+# with `Types: deb` only, so the sed is a no-op today; it stays as a guard.
+#
+# libasound2 is libasound2t64 on Noble (the 64-bit time_t transition).
 #
 # --no-install-recommends throughout: every library these packages actually need
 # is named explicitly, here or in the Firefox block below.
@@ -39,7 +52,7 @@ RUN rm -f /etc/apt/sources.list.d/passenger.list && \
       mysql-client libmysqlclient-dev \
       libreadline-dev zlib1g-dev libssl-dev libcrypto++-dev automake \
       libvips libvips-dev fonts-urw-base35 \
-      bzip2 libdbus-glib-1-2 libgtk-3-0 libx11-xcb1 libasound2 \
+      bzip2 libdbus-glib-1-2 libgtk-3-0 libx11-xcb1 libasound2t64 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Real Firefox from Mozilla's APT repo (non-snap .deb, amd64 + arm64) so
@@ -71,26 +84,33 @@ RUN ARCH=$(uname -m) && \
     tar -xzf /tmp/geckodriver.tar.gz -C /usr/local/bin && \
     rm /tmp/geckodriver.tar.gz
 
-# Node 22 + Yarn for Webpacker asset compilation. Matches .nvmrc and the
-# actions/setup-node version in .github/workflows/test.yml.
-RUN curl -sL https://deb.nodesource.com/setup_22.x | bash - \
+# Node 22 + Yarn for the esbuild JavaScript build (`yarn build`). Matches .nvmrc and the
+# actions/setup-node version in .github/workflows/test.yml. The base image ships
+# NodeSource's Node 24, and apt will not downgrade an installed package, so
+# purge it before switching the NodeSource repo to 22.x. The purge leaves the
+# base image's corepack yarn/yarnpkg symlinks dangling; they would block
+# `npm install -g yarn`.
+RUN apt-get purge -y nodejs \
+    && rm -f /usr/bin/yarn /usr/bin/yarnpkg \
+    && curl -sL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
     && npm install -g yarn \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Pin Ruby 3.2.2 in a named gemset so the Passenger site configs can point at a
-# stable wrapper path. The gemset -- not the bare ruby -- is the RVM default, so
-# a login shell lands in it without an explicit `rvm use`.
-# 3.2.2 is the base image's Ruby and is deliberately not tied to .ruby-version
-# (see docs/manual/developer/installation.md).
-RUN bash -lc "rvm gemset create stagemgr && \
-              rvm gemset use stagemgr && \
-              rvm --default use 3.2.2@stagemgr && \
+# Pin the base image's Ruby 3.3 in a named gemset so the Passenger site configs
+# can point at a stable wrapper path. The gemset -- not the bare ruby -- is the
+# RVM default (replacing the base image's newest Ruby), so a login shell lands
+# in it without an explicit `rvm use`.
+# The patch level is whatever the base image ships and is deliberately not tied
+# to .ruby-version (see docs/manual/developer/installation.md).
+RUN bash -lc "rvm use ruby-${RUBY_VERSION} && \
+              rvm gemset create stagemgr && \
+              rvm --default use ${STAGEMGR_RUBY} && \
               rvm cleanup all"
 
-# The nginx configs hard-code this wrapper; fail the build here rather than
-# serving 502s at run time if a Ruby or gemset rename ever moves it.
-RUN test -x /usr/local/rvm/wrappers/ruby-3.2.2@stagemgr/ruby
+# The entrypoint writes this wrapper into the nginx site config; fail the build
+# here rather than serving 502s at run time if a Ruby or gemset rename moves it.
+RUN test -x /usr/local/rvm/wrappers/${STAGEMGR_RUBY}/ruby
 
 # Make RVM available in every shell (entrypoint, `docker compose exec`).
 RUN echo 'source /etc/profile.d/rvm.sh' >> /etc/skel/.bashrc && \
@@ -101,17 +121,17 @@ RUN echo 'source /etc/profile.d/rvm.sh' >> /etc/skel/.bashrc && \
 # and `docker compose run` use: they exec the command directly, so nothing
 # sources /etc/profile.d/rvm.sh and `bundle` would otherwise resolve to the
 # base image's /usr/bin/bundle with none of the app's gems on its path. These
-# are the exact values `rvm use 3.2.2@stagemgr` exports (verified with
+# are the exact values `rvm use $STAGEMGR_RUBY` exports (verified with
 # `gem env` inside the image), pinned here so that
 # `docker compose exec -u app stagemgr bundle exec rake ...` just works.
-ENV GEM_HOME=/usr/local/rvm/gems/ruby-3.2.2@stagemgr
-ENV GEM_PATH=/usr/local/rvm/gems/ruby-3.2.2@stagemgr:/usr/local/rvm/gems/ruby-3.2.2@global
-ENV PATH=/usr/local/rvm/gems/ruby-3.2.2@stagemgr/bin:/usr/local/rvm/gems/ruby-3.2.2@global/bin:/usr/local/rvm/rubies/ruby-3.2.2/bin:/usr/local/rvm/bin:$PATH
+ENV GEM_HOME=/usr/local/rvm/gems/ruby-${RUBY_VERSION}@stagemgr
+ENV GEM_PATH=/usr/local/rvm/gems/ruby-${RUBY_VERSION}@stagemgr:/usr/local/rvm/gems/ruby-${RUBY_VERSION}@global
+ENV PATH=/usr/local/rvm/gems/ruby-${RUBY_VERSION}@stagemgr/bin:/usr/local/rvm/gems/ruby-${RUBY_VERSION}@global/bin:/usr/local/rvm/rubies/ruby-${RUBY_VERSION}/bin:/usr/local/rvm/bin:$PATH
 
 # Pinned to the version in Gemfile.lock's BUNDLED WITH. Unpinned, this now
 # installs a Bundler 4.x into the gemset (whose bin directory the ENV above puts
-# first on PATH), which would shadow the 2.4.x that generated the lockfile.
-RUN gem install bundler -v 2.4.10
+# first on PATH), which would shadow the 2.5.x that generated the lockfile.
+RUN gem install bundler -v 2.5.22
 
 ENV BUNDLE_BUILD__MYSQL2="--with-mysql-config=/usr/bin/mysql_config"
 
@@ -129,7 +149,7 @@ RUN mkdir -p /home/app/.bundle && chown app:app /home/app/.bundle
 # services, and Passenger's own bundler activation) would have to re-export it,
 # and any one that forgot would crash-loop on Bundler::GitError. The gemset is
 # already outside the bind-mounted checkout, which is the point of the exercise.
-RUN chown -R app:app /usr/local/rvm/gems/ruby-3.2.2@stagemgr && usermod -a -G rvm app
+RUN chown -R app:app "$GEM_HOME" && usermod -a -G rvm app
 
 # Bind-mount target.
 WORKDIR /var/www

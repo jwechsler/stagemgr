@@ -1,6 +1,7 @@
-// Seat Map Editor pack — Konva-based graphical editor for seat geometry and
-// zones. Loaded only on admin/seat_maps#editor via javascript_pack_tag.
-import { boot } from '../seat_map_editor/editor'
+// Seat map editor entry point: Konva-based graphical editor for seat geometry
+// and zones. `yarn build` bundles it with esbuild into app/assets/builds/,
+// which Sprockets serves; loaded only on admin/seat_maps#editor.
+import { boot } from './seat_map_editor/editor'
 
 document.addEventListener('DOMContentLoaded', () => {
   const root = document.getElementById('seat-map-editor-app')

@@ -4,8 +4,8 @@ source 'https://rubygems.org'
 gem 'rails', '~> 6.1'
 
 gem 'bootsnap'
+gem 'jsbundling-rails'
 gem 'sprockets-rails'
-gem 'webpacker'
 
 gem 'redcarpet', '~> 3.6' # Markdown
 
@@ -35,7 +35,10 @@ gem 'monetize'
 gem 'money'
 gem 'money-rails'
 gem 'StreetAddress' # parses street addresses for matching checks
-# Removed base64 gem as it's part of Ruby 3.2.2 standard library
+# These stop being default gems in Ruby 3.4. The app requires csv directly;
+# activesupport 6.1 requires mutex_m without declaring it.
+gem 'csv'
+gem 'mutex_m'
 # gem "gemcutter"
 gem 'ajax-datatables-rails', '> 1.0.0'
 gem 'cocoon'
@@ -48,11 +51,11 @@ gem 'postmark-rails'
 gem 'rails-jquery-autocomplete' # :git=>"https://github.com/jwechsler/rails3-jquery-autocomplete.git" #:path=>'/Users/jeremyw/dev/rails3-jquery-autocomplete'
 gem 'validates_formatting_of'
 
-gem 'coffee-rails'
 gem 'dartsass-sprockets'
-# The production box runs macOS 13; sass-embedded 1.98.0 bumped the bundled
-# Dart runtime's minimum to macOS 14 (its compiler process dies at launch,
-# aborting assets:precompile). Lift the cap once that machine is on 14+.
+# sass-embedded 1.98.0 bumped the bundled Dart runtime's minimum to macOS 14
+# (its compiler process dies at launch, aborting assets:precompile), which the
+# former macOS 13 production machine could not run. Production is on Linux
+# now; lifting the cap is a follow-up in docs/rails-upgrade-plan.md.
 gem 'sass-embedded', '>= 1.80', '< 1.98'
 # Foundation 6.9 via npm (foundation-sites in package.json)
 gem 'autoprefixer-rails'
@@ -63,7 +66,7 @@ gem 'yajl-ruby', require: 'yajl'
 # gem "name_parse", "~> 0.0.5"
 gem 'namae'
 gem 'rack-attack', require: 'rack/attack'
-gem 'redis', '~> 4.8.0' # Updated for better Ruby 3.2.2 compatibility
+gem 'redis', '~> 4.8.0'
 
 gem 'ri_cal', git: 'https://github.com/ctide/ri_cal.git'
 

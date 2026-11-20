@@ -100,7 +100,7 @@ RSpec.describe 'seat-map JavaScript bundles' do
   end
 
   it 'has no JavaScript file that requires the application bundle' do
-    requirers = Dir[SeatBundleMarkers::JS_ROOT.join('**/*.{js,coffee,erb}')].select do |path|
+    requirers = Dir[SeatBundleMarkers::JS_ROOT.join('**/*.{js,erb}')].select do |path|
       File.read(path).match?(SeatBundleMarkers::REQUIRE_APPLICATION)
     end
     expect(requirers.map { |path| Pathname(path).relative_path_from(Rails.root).to_s }).to eq([])

@@ -31,8 +31,8 @@ Rails 6.1 app fine — the audit booted it on 3.3.6) and **3.4 at the end**.
 
 What we are *not* recommending: the Rails 8 "Solid" defaults (Solid Queue,
 Solid Cache, Solid Cable), Kamal, or Thruster. They are new-app defaults, not
-requirements. Resque + Redis, Passenger and the macOS host all keep working on
-Rails 8.1; replacing them would add risk without being on the upgrade's
+requirements. Resque + Redis, Passenger under Nginx and the Linux production
+host all keep working on Rails 8.1; replacing them would add risk without being on the upgrade's
 critical path.
 
 ### Why this is tractable
@@ -55,11 +55,13 @@ change and each Ruby bump), with small follow-up deploys that flip framework def
 
 ## 2. Current state (audit summary)
 
-**Stack:** Rails 6.1.7.10, Ruby 3.2.2, `config.load_defaults 6.1` (since 1d, with
+**Stack:** Rails 6.1.7.10, Ruby 3.3.12 (since 1c; production still on 3.2 until
+that release deploys), `config.load_defaults 6.1` (since 1d, with
 `has_many_inversing`, SameSite and urlsafe CSRF held explicitly), MySQL 8 (utf8mb4_0900),
-Redis via Resque 2.6, Sprockets 4 + Webpacker 5 (webpack 4), Passenger on a
-macOS 13 host, deployed by `bin/deploy` (git pull → bundle → yarn → migrate →
-doctor → precompile → restart).
+Redis via Resque 2.6, Sprockets 4 + jsbundling-rails (esbuild, since 1c), Passenger
+under Nginx on a Linux host (an x86_64 cloud VM, 4 vCPU / 8 GB; Ruby via rbenv,
+system Node 22 and yarn 1), deployed by `bin/deploy` (git pull → bundle → yarn →
+migrate → doctor → precompile → restart).
 
 ### Gem blockers
 
@@ -71,12 +73,12 @@ doctor → precompile → restart).
 | rspec-rails | 5.1.2 (pinned `< 6`) | supports ≤ 7.0 | 6.1 → 7.1 → 8.0 per hop |
 | resque-web | 0.0.12 (2017) | pulls twitter-bootstrap-rails `< 8`, sassc-rails, less | **Remove — unused.** The `/admin/resque` dashboard is `Resque::Server` from the resque gem itself (`config/routes.rb:37`) |
 | sqlite3 | 1.6.9 (pinned) | Rails 8 needs ≥ 2.1 | **Remove — unused** (every env is mysql2); also ends the lockfile platform churn |
-| webpacker | 5.4.4 | retired upstream; webpack 4 needs `--openssl-legacy-provider` on Node 22 | Replace with jsbundling-rails (esbuild) |
+| webpacker | removed (was 5.4.4) | retired upstream; webpack 4 needed `--openssl-legacy-provider` on Node 22 | Replaced with jsbundling-rails (esbuild) in 1c |
 
 **Unused, delete:** activerecord-session_store (sessions are `:cookie_store`),
 i18n-js, uglifier, jquery-timepicker-rails
-(vendored/npm copy is what's loaded — verify), coffee-rails (after converting 5
-small `.coffee` files), and the dev-group fossils wirble, bond, what_methods,
+(vendored/npm copy is what's loaded — verify), coffee-rails (removed in 1c; its
+5 `.coffee` files held only generator comments), and the dev-group fossils wirble, bond, what_methods,
 map_by_method, single_test, rbx-require-relative. Also `config/spring.rb`,
 `config/initializers/footnotes.rb`, `config/resque_web.rb`, and the
 `config.whiny_nils` lines.
@@ -116,19 +118,16 @@ beyond 11.x (capped by stripe-ruby-mock). Each is its own later project.
 
 ### Frontend
 
-Two JS systems are in use. Sprockets does nearly everything (jQuery, jQuery UI,
-DataTables + yadcf, Foundation 6.9 from `node_modules`, cocoon, chartkick,
-tagify, 39 views with inline scripts relying on Sprockets-defined globals).
-Webpacker serves exactly **one** real pack, `seat_map_editor` (Konva + 10 local
-ES modules); the `application` pack is empty but still loaded by the main
-layout.
+Sprockets does nearly everything (jQuery, jQuery UI, DataTables + yadcf,
+Foundation 6.9 from `node_modules`, cocoon, chartkick, tagify, 39 views with
+inline scripts relying on Sprockets-defined globals). The one exception is the
+seat-map editor (Konva + 10 local ES modules), which **jsbundling-rails +
+esbuild** bundles into `app/assets/builds/` for Sprockets to serve (1c, below).
 
-**Target:** keep Sprockets (fully supported on Rails 8), replace Webpacker with
-**jsbundling-rails + esbuild** for the seat-map editor only. This removes
-webpack 4, Babel, ~950 yarn lockfile entries and the Node OpenSSL workaround,
-with near-zero change to the rest of the UI. Propshaft/importmap are *not*
-recommended now: the jQuery-plugin load order, SCSS, and inline globals make
-that a large, separate frontend project.
+**Target:** keep Sprockets (fully supported on Rails 8) with esbuild for the
+seat-map editor only. Propshaft/importmap are *not* recommended now: the
+jQuery-plugin load order, SCSS, and inline globals make that a large, separate
+frontend project.
 
 ### Site theming
 
@@ -144,13 +143,13 @@ Likelihood/impact are for this codebase specifically.
 
 | # | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|---|
-| R0 | **Not upgrading.** Rails 6.1 has had no security patches since Oct 2024, on a system that takes card payments and stores patron PII. Ruby 3.2 and macOS 13 are also out of support. Each month widens the gap and more gems drop 6.1. | Certain (ongoing) | High | This plan. |
+| R0 | **Not upgrading.** Rails 6.1 has had no security patches since Oct 2024, on a system that takes card payments and stores patron PII. Ruby 3.2 is also out of support. Each month widens the gap and more gems drop 6.1. | Certain (ongoing) | High | This plan. |
 | R1 | **Silent date/time format regressions** (`to_s(:fmt)`, `Time` default format) in tickets, confirmations, reports and exports. No exception, just wrong output. | High if unmitigated | High (customer-facing) | Sweep all 43 calls to `to_formatted_s` *before* 7.1; set `config.active_support.deprecation = :raise` in test; add spec assertions on rendered dates in mailer/ticket views; grep implicit time interpolation in views. |
 | R2 | **Mass logout / session loss** when flipping the 7.0 cookie digest default. | High if unmitigated | Medium (staff mid-order, patrons mid-checkout lose carts) | Add SHA1→SHA256 cookie rotator in the same deploy; flip in a quiet window; remove the rotator one release later. |
 | R3 | **Authentication breakage** from the authlogic bump (staff box office and patron logins). | Medium | High | Bump authlogic in an isolated PR; run the session/login specs and cucumber login features; manual check of staff login, patron login, password reset. |
 | R4 | **Payment path regressions** (Stripe PaymentIntents via ActiveMerchant, stripe_event webhooks, refunds/exchanges). No Rails dependency in the gateway gems, but controllers/callbacks around them change. | Low | Very high | Keep stripe/activemerchant versions fixed during the upgrade; per-hop manual checklist in Stripe test mode: card purchase, 3DS, refund, exchange with differential, webhook receipt. |
-| R5 | **Asset build fails on the production box** (webpacker→esbuild swap; sass-embedded's Dart binary needs macOS ≥ 14 above 1.98; native gems on a Ruby bump). CI never runs `assets:precompile`, so this would first appear at deploy. | Medium | High (deploy aborts; site stays on old code if deploy is ordered right) | Add `assets:precompile` to CI now; do a dry-run precompile on the production box (in a separate checkout) before each deploy that touches assets or Ruby; keep the `< 1.98` cap. |
-| R6 | **Production host is macOS 13** (Apple no longer patching it). Future gem/Ruby/Node releases increasingly assume newer OS and toolchains. | Medium (grows over time) | Medium–High | Not a blocker for this plan, but budget an OS upgrade to macOS 14+ (or a Linux move) alongside or after Release 3. |
+| R5 | **Asset build fails on the production box.** The first esbuild build (webpacker→esbuild swap) and the native gem rebuild under a new Ruby both happen on the box for the first time at deploy. CI never runs those on the production host. (sass-embedded is not a host risk: `Gemfile.lock` already carries its `x86_64-linux-gnu` platform gem.) | Low–Medium | High (deploy aborts; site stays on old code if deploy is ordered right) | `assets:precompile` runs in CI (1a); do a dry-run precompile on the production box (in a separate checkout, under the new Ruby when it changes) before each deploy that touches assets or Ruby. The Gemfile's sass-embedded `< 1.98` cap was for the old macOS host; lifting it is a separate change, checked by the same dry run. |
+| R6 | **Production host is newly adopted.** Production moved to a Linux cloud VM (x86_64, 4 vCPU / 8 GB) that has not yet been stress tested, and may be replaced by a dedicated machine in 2027. Its sizing is unproven under on-sale load, and host-specific setup (rbenv Ruby, the Nginx `passenger_ruby` line, system Node and yarn) lives only on that box. | Medium | Medium–High | Stress test the VM before Release 2 (Q6). Keep the host-specific steps written down and repeatable on a new machine: the Ruby 3.3 checklist in 1c is the template, and each later Ruby bump updates it. |
 | R7 | **Autoload/eager-load surprises in production.** `app/models/**/` subdirectories are added as autoload roots, which are not eager loaded; one file defines the wrong constant. A class that loads fine lazily in dev can fail under eager load. | Medium | Medium | Fix the two bad files in Release 1; add a CI step that eager loads with `config.eager_load = true` (`bin/rails zeitwerk:check` plus a full eager load); consider `config.autoload_lib` in 7.1. |
 | R8 | **Unmaintained gems break quietly** (rails-jquery-autocomplete, cocoon, ajax-datatables-rails, decent_exposure, resque-lock-timeout, ri_cal). | Medium | Low–Medium (admin UX) | Per-hop smoke list covers autocomplete (addresses, ticket orders), DataTables admin grids, cocoon nested forms, calendar export. Replace any that break rather than patching. |
 | R9 | **Monkey patches interacting with new framework code** (`Hash#deep_merge`, `validates_credit_card` reopening `ActiveRecord::Validations`, HWIA `to_yaml` used by audited). | Medium | Medium | Delete `hash_extensions.rb` (equivalent to ActiveSupport); keep the others under spec coverage; re-run audited specs every hop. |
@@ -319,7 +318,11 @@ their own windows.*
 **Moved to their own windows:**
 
 - **Framework defaults** (was 1b.8): see 1d below.
-- **Ruby 3.3** (was 1b.9): unchanged, still a separate window.
+- **Ruby 3.3** (was 1b.9): the code and CI moved to Ruby 3.3.12 on
+  `rails-upgrade/release-1c` (`.ruby-version`; CI follows it) and deploy with
+  1c. `bin/deploy` aborts when the running Ruby differs from `.ruby-version`.
+  The steps on the production box are the checklist under 1c's **Deploy**
+  below.
 
 **1d. Framework defaults (done 2026-11-07, branch `rails-upgrade/release-1-defaults`)**
 
@@ -376,21 +379,64 @@ both CSRF token encodings, so sessions in flight across the deploy keep working.
 
 **1c. Replace Webpacker (~1 day)**
 
-1. Add jsbundling-rails with esbuild. Build `seat_map_editor` to
-   `app/assets/builds`, served by Sprockets.
-2. Remove the empty `application` pack and its `javascript_pack_tag`. Switch
-   `admin/seat_maps/editor.html.haml:60` to `javascript_include_tag`.
-3. Delete webpacker, `config/webpack/`, `webpacker.yml`, `babel.config.js`,
-   `postcss.config.js`, `bin/webpack*` and the unused npm packages.
-4. Convert the 5 CoffeeScript files to JS and drop coffee-rails.
-5. Update `bin/deploy`, `bin/docker-entrypoint` and the docs (the `troubleshooting.md`
-   Node/OpenSSL note).
+*Done on `rails-upgrade/release-1c`.*
+
+1. jsbundling-rails with esbuild replaced the webpacker gem. `yarn build`
+   bundles `app/javascript/seat_map_editor.js` (iife, minified, no source map) into
+   `app/assets/builds/`, which Sprockets serves through `//= link_tree ../builds`;
+   `assets:precompile` runs `yarn install` + `yarn build` first.
+2. The empty `application` pack and its `javascript_pack_tag` in the main layout
+   are gone, and `admin/seat_maps/editor.html.haml` loads the editor with
+   `javascript_include_tag`.
+3. Deleted webpacker, `config/webpack/`, `webpacker.yml`, `babel.config.js`,
+   `postcss.config.js`, `.browserslistrc`, `bin/webpack*` and the unused npm
+   packages: `@nathanvda/cocoon`, `chart.js`, `chartkick`, `jquery`,
+   `jquery-timepicker` and `jquery-ujs` (Sprockets takes those libraries from
+   their gems) plus `@rails/webpacker`, `webpack`, `webpack-cli` and
+   `webpack-dev-server`.
+4. The 5 `.coffee` files held only generator comments, so they were deleted and
+   coffee-rails was dropped.
+5. `bin/deploy`, `bin/docker-entrypoint` (runs `yarn build` on start), `bin/setup`,
+   CI (a separate `yarn build` step) and the developer docs describe the esbuild
+   build. RSpec and Cucumber build the bundle on demand, when it is missing or
+   older than its sources, through `spec/support/javascript_build.rb`.
 6. Dry-run `assets:precompile` on the production box before deploying.
 
 **Deploy.** One window, or two if you'd rather ship 1c on its own, since it's
-the only step that changes the production asset build. It is reasonable to
-deploy Ruby 3.3 in its own window as well, because it touches the production host's
-toolchain.
+the only step that changes the production asset build. The code and CI moved to
+Ruby 3.3.12 on `rails-upgrade/release-1c`, so this release also moves production
+from Ruby 3.2.11 to 3.3.12.
+
+On the box (user `deploy`, checkout `/home/deploy/stagemgr`, rbenv in
+`/home/deploy/.rbenv`), in order:
+
+1. `rbenv install 3.3.12` (done 2026-11-19).
+2. In `/etc/nginx/sites-available/stagemgr`, change the hard-coded
+   `passenger_ruby /home/deploy/.rbenv/versions/3.2.11/bin/ruby` (line 67) to
+   `/home/deploy/.rbenv/versions/3.3.12/bin/ruby`, or delete it so the shim in
+   `/etc/nginx/conf.d/mod-http-passenger.conf` applies. Then `sudo nginx -t`.
+   Do not reload yet. Until Nginx reloads, Passenger keeps running 3.2.11.
+3. Run `bin/deploy`. Its Ruby check passes once the pull brings the new
+   `.ruby-version` (the rbenv shim reads it in the checkout); gems install under
+   3.3.12; `assets:precompile` runs `yarn install` + `yarn build`. Its Passenger
+   restart and smoke check still run under 3.2.11, which has none of the new
+   gems, so expect the smoke check to fail and go straight to step 4.
+4. `sudo systemctl reload nginx` (or the host's equivalent) so Passenger picks
+   up the new `passenger_ruby`. Restart the Resque workers and scheduler under
+   3.3.12: `bin/deploy` already restarted them through `script/resque-worker`
+   and `script/scheduler` (`nohup bundle exec` from the checkout, so the shim
+   gives them 3.3.12), but anything that starts them some other way (Q5) needs
+   pointing at 3.3.12 too.
+5. Confirm with `passenger-status` and `passenger-config about ruby-command`
+   (both should report 3.3.12), check the workers' Ruby, rerun the smoke `curl`
+   from `bin/deploy`, and work through the smoke checklist (§5).
+
+**Rollback:** check out the previous release, put the `passenger_ruby` line back
+to `/home/deploy/.rbenv/versions/3.2.11/bin/ruby`, and reload Nginx. Ruby 3.2.11
+and its gems stay installed, so nothing needs reinstalling.
+
+Keep this list current: it is also the record of what a replacement host needs
+(R6).
 
 ---
 
@@ -516,7 +562,11 @@ apply any remaining YJIT and GC tuning.
 
 ### Follow-ups (separate projects, not blocking)
 
-- Host OS: macOS 14+ (lifts the sass-embedded cap) or a Linux host.
+- Host: act on the stress test of the Linux VM, and decide whether production
+  moves to a dedicated machine in 2027 (Q6, R6). A new machine repeats the
+  host steps in 1c's deploy checklist.
+- Lift the sass-embedded `< 1.98` cap, which was only needed on the old macOS
+  host (R5).
 - money 7 / money-rails 2+, redis 5 + mock_redis, resque 3, and the Stripe gem beyond
   11.x (replace stripe-ruby-mock or bump it).
 - Rack 3, once the Passenger version supports it.
@@ -549,7 +599,8 @@ webhook arriving, exception mail delivered, and no new deprecation warnings in
 ### Security and maintainability
 - Security patches again (Rails 8.1 until ~Oct 2027; Ruby 3.4 until ~Mar 2028),
   which matters for a payment-taking system handling patron PII.
-- Removes ~15 dead or abandoned gems and the whole webpack 4/Babel toolchain;
+- Removes ~15 dead or abandoned gems, and esbuild (1c) has replaced the
+  webpack 4/Babel toolchain;
   a smaller dependency surface, faster `bundle`/`yarn install` and deploys.
 - Unblocks current versions of the rest of the ecosystem (rspec-rails 8,
   exception_notification 5, active_storage_validations, and others) and future hires'
@@ -559,8 +610,8 @@ webhook arriving, exception mail delivered, and no new deprecation warnings in
 - **YJIT** (Ruby 3.3+/3.4): typically a 15–30% speedup for Rails request
   throughput. It helps the ERB/HAML-heavy admin pages and report generation.
 - Rails 7.1+ ships faster ActiveRecord query building, per-request memory
-  improvements, and a much faster `assets:precompile` once esbuild replaces
-  webpack 4.
+  improvements, and a much faster `assets:precompile` now that esbuild has
+  replaced webpack 4.
 - **`load_async`** (7.0+): the analysis dashboards and house-management
   reports that issue several independent queries per page can run them in
   parallel.
@@ -598,18 +649,28 @@ webhook arriving, exception mail delivered, and no new deprecation warnings in
 
 ## 7. Open questions (answer before the relevant phase)
 
-1. **Passenger:** version, and whether it runs under Apache or Nginx (docs
-   disagree). This decides when Rack 3 is safe (R13). *(Before Release 2.)*
-2. **Ruby on the box:** install method (rbenv/rvm/asdf/Homebrew) and CPU
-   architecture (Apple Silicon or Intel). *(Before the Release 1 Ruby bump.)*
-3. **Node/yarn on the box:** versions and install method. *(Before Release 1c.)*
+1. **Passenger:** runs under Nginx (answered 2026-11-19; `passenger_ruby` is set
+   in `/etc/nginx/sites-available/stagemgr`, see 1c's deploy checklist). Version
+   still open: run `passenger --version` on the box. It decides when Rack 3 is
+   safe (R13). *(Before Release 2.)*
+2. **Ruby on the box:** answered 2026-11-19. rbenv in `/home/deploy/.rbenv` on an
+   x86_64 Linux cloud VM (4 vCPU / 8 GB), user `deploy`, checkout at
+   `/home/deploy/stagemgr`; 3.3.12 is installed alongside 3.2.11. Under 3.3.12
+   `Gemfile.lock` is `BUNDLED WITH 2.5.22`, the default bundler of Ruby 3.3.12, so
+   nothing extra needs installing.
+3. **Node/yarn on the box:** answered 2026-11-19. Node 22.23.4 and yarn 1.22.22,
+   system-wide in `/usr/bin` (no nvm, no Homebrew). Both satisfy the esbuild
+   build.
 4. **MySQL and Redis on the box:** exact versions. MySQL 8.0 went EOL in April 2026;
    8.4 LTS is the forward path (independent of Rails).
-5. **Process supervision:** anything restarting Resque workers and the scheduler
-   after a reboot (launchd, monit), or only the `nohup` scripts?
-6. **macOS upgrade path:** can the box move to macOS 14+ (it lifts the
-   sass-embedded cap), and is there a plan for when macOS 13 tools stop
-   building?
+5. **Process supervision:** how the Resque workers and scheduler are started on
+   the Linux host, and what restarts them after a reboot: systemd units, monit,
+   or only the `nohup` scripts (`script/resque-worker`, `script/scheduler`)? The
+   answer also decides which Ruby they run after the Ruby 3.3 deploy: anything
+   that bypasses the rbenv shim in the checkout stays on 3.2.11. *(Before the
+   Ruby 3.3 deploy.)*
+6. **Production host:** what the stress test of the 4 vCPU / 8 GB VM shows, and
+   whether production moves to a dedicated machine in 2027 (undecided). See R6.
 7. **Backups:** how `storage/` (ActiveStorage, local disk) and MySQL are backed up
    today, for pre-deploy snapshots.
 8. **Legacy layouts:** are the facebook/orders/none/performances layouts (which
